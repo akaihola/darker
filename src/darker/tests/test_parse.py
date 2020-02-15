@@ -1,5 +1,5 @@
 import pytest
-from whatthepatch.patch import Change
+from whatthepatch import parse_patch
 
 from darker.__main__ import (get_edited_new_line_numbers,
                              choose_edited_lines)
@@ -30,5 +30,5 @@ def test_get_edited_line_numbers():
      ]
 )
 def test_choose_edited_lines(edited_line_numbers, expect):
-    result = list(choose_edited_lines(CHANGE_SECOND_LINE, edited_line_numbers))
+    result = list(choose_edited_lines(next(parse_patch(CHANGE_SECOND_LINE)), edited_line_numbers))
     assert [tuple(r) for r in result] == expect
