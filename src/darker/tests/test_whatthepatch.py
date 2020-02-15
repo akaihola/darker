@@ -3,7 +3,7 @@ from pprint import pprint
 from whatthepatch import apply_diff
 from whatthepatch.patch import parse_patch, diffobj
 
-from black_scm_diff.tests.example_3_lines import ORIGINAL, CHANGE_SECOND_LINE
+from darker.tests.example_3_lines import ORIGINAL, CHANGE_SECOND_LINE
 
 
 def test_apply():

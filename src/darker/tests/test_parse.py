@@ -1,9 +1,9 @@
 import pytest
 from whatthepatch.patch import Change
 
-from black_scm_diff.__main__ import (get_edited_new_line_numbers,
-                                     choose_edited_lines)
-from black_scm_diff.tests.example_3_lines import CHANGE_SECOND_LINE
+from darker.__main__ import (get_edited_new_line_numbers,
+                             choose_edited_lines)
+from darker.tests.example_3_lines import CHANGE_SECOND_LINE
 
 
 def test_get_edited_line_numbers():
