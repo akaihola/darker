@@ -3,6 +3,7 @@ import sys
 from argparse import ArgumentParser
 from contextlib import redirect_stdout
 from pathlib import Path
+from pprint import pprint
 from typing import Generator, List
 
 import git
@@ -11,6 +12,7 @@ from black import FileMode, WriteBack, assert_equivalent, format_file_in_place
 import intervals as I
 from whatthepatch import parse_patch
 from whatthepatch.apply import apply_diff
+from whatthepatch.exceptions import HunkApplyException
 from whatthepatch.patch import Change, diffobj
 
 
@@ -86,10 +88,26 @@ def reformat(path: Path) -> None:
     changes: List[Change] = list(choose_edited_lines(black_patch, edited_line_numbers))
     filtered_diff = diffobj(black_patch.header, changes, black_patch.text)
     old_content: str = path.read_text()
-    new_lines = apply_diff(filtered_diff, old_content)
+    try:
+        new_lines = apply_diff(filtered_diff, old_content)
+    except HunkApplyException:
+        _debug_dump(filtered_diff, old_content)
+        raise
     new_content = "".join(f"{line}\n" for line in new_lines)
-    assert_equivalent(old_content, new_content)
+    try:
+        assert_equivalent(old_content, new_content)
+    except AssertionError:
+        _debug_dump(filtered_diff, old_content)
+        print(new_content)
+        raise
     path.write_text(new_content)
+
+
+def _debug_dump(filtered_diff, old_content):
+    pprint([tuple(c) for c in filtered_diff.changes])
+    pprint(
+        [(linenum + 1, line) for linenum, line in enumerate(old_content.splitlines())]
+    )
 
 
 def main():
