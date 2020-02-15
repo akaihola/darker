@@ -1,15 +1,12 @@
-import io
-import sys
 from argparse import ArgumentParser
-from contextlib import redirect_stdout
+from datetime import datetime
 from pathlib import Path
 from pprint import pprint
 from typing import Generator, List
 
 import git
-from black import FileMode, WriteBack, assert_equivalent, format_file_in_place
-
 import intervals as I
+from black import FileMode, assert_equivalent, diff, format_str
 from whatthepatch import parse_patch
 from whatthepatch.apply import apply_diff
 from whatthepatch.exceptions import HunkApplyException
@@ -67,15 +64,14 @@ def choose_edited_lines(
     yield from emit_chunk()
 
 
-def get_black_diff(path: Path) -> str:
-    captured_stdout = io.TextIOWrapper(io.BytesIO(), sys.stdout.encoding)
-    with redirect_stdout(captured_stdout):
-        format_file_in_place(
-            src=path, fast=False, mode=FileMode(), write_back=WriteBack.DIFF,
-        )
-    captured_stdout.seek(0)
-    black_diff = captured_stdout.read()
-    return black_diff
+def get_black_diff(src: Path) -> str:
+    src_contents = src.read_text()
+    dst_contents = format_str(src_contents, mode=FileMode())
+    then = datetime.utcfromtimestamp(src.stat().st_mtime)
+    now = datetime.utcnow()
+    src_name = f"{src}\t{then} +0000"
+    dst_name = f"{src}\t{now} +0000"
+    return diff(src_contents, dst_contents, src_name, dst_name)
 
 
 def reformat(path: Path) -> None:
