@@ -15,7 +15,10 @@ from whatthepatch.patch import Change, diffobj
 
 
 def get_edited_new_line_numbers(patch: str) -> Generator[int, None, None]:
-    patchset = next(parse_patch(patch))
+    try:
+        patchset = next(parse_patch(patch))
+    except StopIteration:
+        return
     for change in patchset.changes:
         if change.new and not change.old:
             yield change.new
