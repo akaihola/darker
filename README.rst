@@ -9,7 +9,7 @@ What?
 This is a small utility built on top of the black_ Python code formatter
 to enable formatting of only regions which have changed since the last Git commit.
 
-.. _black:: https://github.com/python/black
+.. _black: https://github.com/python/black
 
 Why?
 ====
@@ -56,27 +56,28 @@ Alternatively, you can invoke the module directly through the ``python`` executa
 which may be preferable depending on your setup.
 Use ``python -m darker`` instead of ``darker`` in that case.
 
-Example::
+Example:
 
-  $ mkdir test && cd test && git init
-  Initialized empty Git repository in /tmp/test/.git/
-  $ echo "if True: print('hi')\n\nif False: print('there')" | tee test.py
-  if True: print('hi')
+.. code-block:: shell
+   $ mkdir test && cd test && git init
+   Initialized empty Git repository in /tmp/test/.git/
+   $ echo "if True: print('hi')\n\nif False: print('there')" | tee test.py
+   if True: print('hi')
 
-  if False: print('there')
-  $ git add test.py && git commit -m "Initial commit"
-  [master (root-commit) a0c7c32] Initial commit
-   1 file changed, 3 insertions(+)
-   create mode 100644 test.py
-  $ echo "if True: print('changed')\n\nif False: print('there')" | tee test.py
-  if True: print('changed')
+   if False: print('there')
+   $ git add test.py && git commit -m "Initial commit"
+   [master (root-commit) a0c7c32] Initial commit
+    1 file changed, 3 insertions(+)
+    create mode 100644 test.py
+   $ echo "if True: print('changed')\n\nif False: print('there')" | tee test.py
+   if True: print('changed')
 
-  if False: print('there')
-  $ darker test.py && cat test.py
-  if True:
-      print("changed")
+   if False: print('there')
+   $ darker test.py && cat test.py
+   if True:
+       print("changed")
 
-  if False: print('there')
+   if False: print('there')
 
 
 Editor integration
