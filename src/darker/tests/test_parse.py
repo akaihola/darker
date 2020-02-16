@@ -1,34 +1,64 @@
 import pytest
-from whatthepatch import parse_patch
 
-from darker.__main__ import (get_edited_new_line_numbers,
-                             choose_edited_lines)
+from darker.__main__ import choose_edited_lines, get_edited_new_line_numbers
 from darker.tests.example_3_lines import CHANGE_SECOND_LINE
 
 
 def test_get_edited_line_numbers():
     result = list(get_edited_new_line_numbers(CHANGE_SECOND_LINE))
-    assert result == [2]
+    assert result == [1]
 
 
 @pytest.mark.parametrize(
-    'edited_line_numbers, expect',
-    [([], [(1, 1, 'original first line', 1),
-           (3, 3, 'original third line', 1)]),
-     ([1], [(1, 1, 'original first line', 1),
-            (3, 3, 'original third line', 1)]),
-     ([2], [(1, 1, 'original first line', 1),
-            (2, None, 'original second line', 1),
-            (None, 2, 'changed second line', 1),
-            (3, 3, 'original third line', 1)]),
-     ([3], [(1, 1, 'original first line', 1),
-            (3, 3, 'original third line', 1)]),
-     ([1, 2], [(1, 1, 'original first line', 1),
-               (2, None, 'original second line', 1),
-               (None, 2, 'changed second line', 1),
-               (3, 3, 'original third line', 1)]),
-     ]
+    "edited_line_numbers, expect",
+    [
+        (
+            [],
+            [
+                ["original first line"],
+                ["original second line"],
+                ["original third line"],
+            ],
+        ),
+        (
+            [0],
+            [
+                ["original first line"],
+                ["original second line"],
+                ["original third line"],
+            ],
+        ),
+        (
+            [1],
+            [
+                ["original first line"],
+                ["changed second line"],
+                ["original third line"],
+            ],
+        ),
+        (
+            [2],
+            [
+                ["original first line"],
+                ["original second line"],
+                ["original third line"],
+            ],
+        ),
+        (
+            [0, 1],
+            [
+                ["original first line"],
+                ["changed second line"],
+                ["original third line"],
+            ],
+        ),
+    ],
 )
 def test_choose_edited_lines(edited_line_numbers, expect):
-    result = list(choose_edited_lines(next(parse_patch(CHANGE_SECOND_LINE)), edited_line_numbers))
-    assert [tuple(r) for r in result] == expect
+    black_chunks = [
+        (0, 1, ["original first line"], ["original first line"]),
+        (1, 2, ["original second line"], ["changed second line"]),
+        (2, 3, ["original third line"], ["original third line"]),
+    ]
+    result = list(choose_edited_lines(black_chunks, edited_line_numbers))
+    assert result == expect
