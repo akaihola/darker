@@ -1,9 +1,9 @@
 from pathlib import Path
 from textwrap import dedent
 
-from black import InvalidInput, format_str, FileMode
+from black import FileMode, InvalidInput, format_str
 
-from darker.__main__ import run_black, diff_opcodes, opcodes_to_chunks
+from darker.__main__ import diff_and_get_opcodes, opcodes_to_chunks, run_black
 
 FUNCTIONS2_PY = dedent(
     '''\
@@ -43,7 +43,7 @@ def test_find_groups():
             src_lines, dst_lines = run_black(src)
         except InvalidInput:
             continue
-        opcodes = diff_opcodes(src_lines, dst_lines)
+        opcodes = diff_and_get_opcodes(src_lines, dst_lines)
         assert all(
             (tag1 == 'equal') != (tag2 == 'equal')
             for (tag1, _, _, _, _), (tag2, _, _, _, _) in zip(opcodes[:-1], opcodes[1:])
@@ -56,7 +56,7 @@ def test_find_groups():
 def test_diff_opcodes():
     src_lines = FUNCTIONS2_PY.splitlines()
     dst_lines = format_str(FUNCTIONS2_PY, mode=FileMode()).splitlines()
-    opcodes = diff_opcodes(src_lines, dst_lines)
+    opcodes = diff_and_get_opcodes(src_lines, dst_lines)
     assert opcodes == [
         ('replace', 0, 4, 0, 1),
         ('equal', 4, 6, 1, 3),
