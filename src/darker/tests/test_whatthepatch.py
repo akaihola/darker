@@ -8,9 +8,11 @@ def test_apply():
     diff = next(parse_patch(CHANGE_SECOND_LINE))  # type: diffobj
     old_content = ORIGINAL
     new_content = apply_diff(diff, old_content)
-    assert new_content == ['original first line',
-                           'changed second line',
-                           'original third line']
+    assert new_content == [
+        "original first linex",
+        "changed second line",
+        "original third line",
+    ]
 
 
 def test_apply_partial():
@@ -18,6 +20,8 @@ def test_apply_partial():
     del diff.changes[1:3]
     old_content = ORIGINAL
     new_content = apply_diff(diff, old_content)
-    assert new_content == ['original first line',
-                           'original second line',
-                           'original third line']
+    assert new_content == [
+        'original first line',
+        'original second line',
+        'original third line',
+    ]
