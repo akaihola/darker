@@ -1,4 +1,5 @@
 """Darker - apply black reformatting to only areas edited since the last commit"""
+
 import logging
 from argparse import ArgumentParser
 from pathlib import Path
@@ -11,6 +12,7 @@ from darker.utils import joinlines
 from darker.verification import verify_ast_unchanged
 
 logger = logging.getLogger(__name__)
+
 
 def apply_black_on_edited_lines(src: Path) -> None:
     """Apply black formatting to chunks with edits since the last commit
