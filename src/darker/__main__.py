@@ -34,6 +34,8 @@ def apply_black_on_edited_lines(src: Path) -> None:
     """
     git_diff_output = git_diff_u0(src)
     edited_linenums = list(get_edit_linenums(git_diff_output))
+    if not edited_linenums:
+        return
     edited, formatted = run_black(src)
     logger.info("Read %s lines from %s", len(edited), src)
     logger.info("Reformatted into %s lines", len(formatted))
