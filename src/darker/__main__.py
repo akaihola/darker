@@ -1,5 +1,5 @@
 """Darker - apply black reformatting to only areas edited since the last commit"""
-
+import logging
 from argparse import ArgumentParser
 from pathlib import Path
 from typing import List
@@ -10,6 +10,7 @@ from darker.git_diff import get_edit_linenums, git_diff_u0
 from darker.utils import joinlines
 from darker.verification import verify_ast_unchanged
 
+logger = logging.getLogger(__name__)
 
 def apply_black_on_edited_lines(src: Path) -> None:
     """Apply black formatting to chunks with edits since the last commit
@@ -32,6 +33,8 @@ def apply_black_on_edited_lines(src: Path) -> None:
     git_diff_output = git_diff_u0(src)
     edited_linenums = list(get_edit_linenums(git_diff_output))
     edited, formatted = run_black(src)
+    logger.info("Read %s lines from %s", len(edited), src)
+    logger.info("Reformatted into %s lines", len(formatted))
     opcodes = diff_and_get_opcodes(edited, formatted)
     black_chunks = list(opcodes_to_chunks(opcodes, edited, formatted))
     chosen_lines: List[str] = list(choose_lines(black_chunks, edited_linenums))
@@ -44,7 +47,9 @@ def main() -> None:
     """Parse the command line and apply black formatting for each source file"""
     parser = ArgumentParser()
     parser.add_argument("src", nargs="+")
+    parser.add_argument("-v", "--verbose", action="store_true")
     args = parser.parse_args()
+    logging.basicConfig(level=logging.INFO if args.verbose else logging.WARNING)
     for path in args.src:
         apply_black_on_edited_lines(Path(path))
 

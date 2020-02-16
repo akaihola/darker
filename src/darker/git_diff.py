@@ -1,13 +1,17 @@
 """Git diffing"""
-
+import logging
 from pathlib import Path
 from subprocess import check_output
 from typing import Generator
 
+logger = logging.getLogger(__name__)
+
 
 def git_diff_u0(path: Path) -> bytes:
     """Run ``git diff -U0 <path>`` on the given path, and return the output"""
-    return check_output(["git", "diff", "-U0", path], cwd=str(path.parent))
+    cmd = ["git", "diff", "-U0", "--", path.name]
+    logger.info("[%s]$ %s", path.parent, " ".join(cmd))
+    return check_output(cmd, cwd=str(path.parent))
 
 
 def get_edit_linenums(patch: bytes) -> Generator[int, None, None]:
@@ -17,6 +21,9 @@ def get_edit_linenums(patch: bytes) -> Generator[int, None, None]:
     single file.
 
     """
+    if not patch:
+        logger.info("No edits found in the source file")
+        return
     git_diff_lines = patch.split(b"\n")
     assert git_diff_lines[0].startswith(b"diff --git ")
     assert git_diff_lines[1].startswith(b"index ")
@@ -30,4 +37,10 @@ def get_edit_linenums(patch: bytes) -> Generator[int, None, None]:
         start_str, *length_str = line.split()[2].split(b",")
         start_linenum = int(start_str) - 1
         length = int(length_str[0]) if length_str else 1
+        logger.info(
+            "Found edited %s",
+            f"line {start_linenum + 1}"
+            if length == 1
+            else f"lines {start_linenum + 1}-{start_linenum + length}",
+        )
         yield from range(start_linenum, start_linenum + length)
