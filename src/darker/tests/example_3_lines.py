@@ -14,11 +14,9 @@ CHANGE_SECOND_LINE = dedent(
     index 9ed6856..5a6b0d2 100644
     --- a/test1.txt
     +++ b/test1.txt
-    @@ -1,3 +1,3 @@
-     original first line
+    @@ -2,1 +2,1 @@
     -original second line
     +changed second line
-     original third line
 '''
 )
 
