@@ -2,27 +2,28 @@ from argparse import ArgumentParser
 from difflib import SequenceMatcher
 from pathlib import Path
 from pprint import pprint
+from subprocess import check_output
 from typing import Generator, Iterable, List, Tuple
 
-import git
 from black import FileMode, assert_equivalent, format_str
-from whatthepatch import parse_patch
 
 
-def get_edited_new_line_numbers(patch: str) -> Generator[int, None, None]:
-    try:
-        patchset = next(parse_patch(patch))
-    except StopIteration:
-        return
-    for change in patchset.changes:
-        if change.new and not change.old:
-            # Generate 0-based line numbers for edited lines from `git diff`
-            yield change.new - 1
+def get_edited_new_line_numbers(patch: bytes) -> Generator[int, None, None]:
+    git_diff_lines = patch.split(b"\n")
+    assert git_diff_lines[0].startswith(b"diff --git ")
+    a_path, b_path = git_diff_lines[0].split()[-2:]
+    for line in git_diff_lines:
+        if not line.startswith(b"@@ "):
+            continue
+        start_str, *length_str = line.split()[2].split(b",")
+        start_linenum = int(start_str) - 1
+        length = int(length_str[0]) if length_str else 1
+        yield from range(start_linenum, start_linenum + length)
 
 
 def get_file_edit_linenums(path: Path) -> Generator[int, None, None]:
-    repo = git.Repo(path, search_parent_directories=True)
-    yield from get_edited_new_line_numbers(repo.git.diff(path))
+    git_diff_output = check_output(["git", "diff", "-U0", path], cwd=str(path.parent))
+    yield from get_edited_new_line_numbers(git_diff_output)
 
 
 def choose_edited_lines(
