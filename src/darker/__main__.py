@@ -1,16 +1,12 @@
 from argparse import ArgumentParser
-from datetime import datetime
+from difflib import SequenceMatcher
 from pathlib import Path
 from pprint import pprint
-from typing import Generator, List
+from typing import Generator, Iterable, List, Tuple
 
 import git
-import intervals as I
-from black import FileMode, assert_equivalent, diff, format_str
+from black import FileMode, assert_equivalent, format_str
 from whatthepatch import parse_patch
-from whatthepatch.apply import apply_diff
-from whatthepatch.exceptions import HunkApplyException
-from whatthepatch.patch import Change, diffobj
 
 
 def get_edited_new_line_numbers(patch: str) -> Generator[int, None, None]:
@@ -20,93 +16,90 @@ def get_edited_new_line_numbers(patch: str) -> Generator[int, None, None]:
         return
     for change in patchset.changes:
         if change.new and not change.old:
-            yield change.new
+            # Generate 0-based line numbers for edited lines from `git diff`
+            yield change.new - 1
 
 
-def get_file_edit_linenums(path):
+def get_file_edit_linenums(path: Path) -> Generator[int, None, None]:
     repo = git.Repo(path, search_parent_directories=True)
     yield from get_edited_new_line_numbers(repo.git.diff(path))
 
 
 def choose_edited_lines(
-    black_patch: diffobj, edited_line_numbers: List[int]
-) -> Generator[Change, None, None]:
-    def reset_chunk():
-        nonlocal chunk_changes, chunk_interval
-        chunk_changes = []
-        chunk_interval = I.empty()
-
-    def emit_chunk():
-        nonlocal chunk_interval, chunk_changes
-        if any(linenum in chunk_interval for linenum in edited_line_numbers):
-            yield from chunk_changes
-        reset_chunk()
-
-    chunk_changes = chunk_interval = None
-    reset_chunk()
-
-    for black_change in black_patch.changes:
-        if black_change.old and black_change.new:
-            # It's an unchanged line. Emit lines from collected chunk
-            # if any of its lines have been edited.
-            yield from emit_chunk()
-            yield black_change
+    black_chunks: Iterable[Tuple[int, int, List[str], List[str]]],
+    edited_line_numbers: List[int],
+) -> Generator[List[str], None, None]:
+    for i1, i2, old_lines, new_lines in black_chunks:
+        if any(i1 <= linenum < i2 for linenum in edited_line_numbers):
+            yield new_lines
         else:
-            chunk_changes.append(black_change)
-            if black_change.old:
-                chunk_interval = chunk_interval.replace(
-                    I.CLOSED,
-                    lambda lower: lower if lower < I.inf else black_change.old,
-                    lambda upper: upper if upper > -I.inf else black_change.old + 1,
-                    I.OPEN,
-                    ignore_inf=False,
-                )
-    yield from emit_chunk()
+            yield old_lines
 
 
-def get_black_diff(src: Path) -> str:
+def run_black(src: Path) -> Tuple[List[str], List[str]]:
     src_contents = src.read_text()
     dst_contents = format_str(src_contents, mode=FileMode())
-    then = datetime.utcfromtimestamp(src.stat().st_mtime)
-    now = datetime.utcnow()
-    src_name = f"{src}\t{then} +0000"
-    dst_name = f"{src}\t{now} +0000"
-    return diff(src_contents, dst_contents, src_name, dst_name)
+    return src_contents.splitlines(), dst_contents.splitlines()
+
+
+def diff_opcodes(
+    src_lines: List[str], dst_lines: List[str]
+) -> List[Tuple[str, int, int, int, int]]:
+    s = SequenceMatcher(None, src_lines, dst_lines)
+    opcodes = s.get_opcodes()
+    return opcodes
+
+
+def opcodes_to_chunks(
+    opcodes: List[Tuple[str, int, int, int, int]],
+    src_lines: List[str],
+    dst_lines: List[str],
+) -> Generator[Tuple[int, int, List[str], List[str]], None, None]:
+    # Make sure every other opcode is an 'equal' tag
+    assert all(
+        (tag1 == "equal") != (tag2 == "equal")
+        for (tag1, _, _, _, _), (tag2, _, _, _, _) in zip(opcodes[:-1], opcodes[1:])
+    ), opcodes
+
+    for tag, i1, i2, j1, j2 in opcodes:
+        yield i1, i2, src_lines[i1:i2], dst_lines[j1:j2]
+
+
+def get_black_diff(
+    src: Path,
+) -> Generator[Tuple[int, int, List[str], List[str]], None, None]:
+    src_lines, dst_lines = run_black(src)
+    opcodes = diff_opcodes(src_lines, dst_lines)
+    return opcodes_to_chunks(opcodes, src_lines, dst_lines)
 
 
 def reformat(path: Path) -> None:
     edited_line_numbers: List[int] = list(get_file_edit_linenums(path))
-    black_diff = get_black_diff(path)
-    try:
-        black_patch: diffobj = next(parse_patch(black_diff))
-    except StopIteration:
-        return
-    changes: List[Change] = list(choose_edited_lines(black_patch, edited_line_numbers))
-    filtered_diff = diffobj(black_patch.header, changes, black_patch.text)
+    black_patch = list(get_black_diff(path))
+    changes: List[List[str]] = list(
+        choose_edited_lines(black_patch, edited_line_numbers)
+    )
+    new_content = "".join(f"{line}\n" for chunk in changes for line in chunk)
     old_content: str = path.read_text()
-    try:
-        new_lines = apply_diff(filtered_diff, old_content)
-    except HunkApplyException:
-        _debug_dump(filtered_diff, old_content)
-        raise
-    new_content = "".join(f"{line}\n" for line in new_lines)
     try:
         assert_equivalent(old_content, new_content)
     except AssertionError:
-        _debug_dump(filtered_diff, old_content)
+        _debug_dump(black_patch, old_content)
         print(new_content)
         raise
     path.write_text(new_content)
 
 
-def _debug_dump(filtered_diff, old_content):
-    pprint([tuple(c) for c in filtered_diff.changes])
+def _debug_dump(
+    black_patch: List[Tuple[int, int, List[str], List[str]]], old_content
+) -> None:
+    pprint(black_patch)
     pprint(
         [(linenum + 1, line) for linenum, line in enumerate(old_content.splitlines())]
     )
 
 
-def main():
+def main() -> None:
     parser = ArgumentParser()
     parser.add_argument("src", nargs="+")
     args = parser.parse_args()

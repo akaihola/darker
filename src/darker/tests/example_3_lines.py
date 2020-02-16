@@ -17,3 +17,9 @@ CHANGE_SECOND_LINE = dedent('''\
     +changed second line
      original third line
 ''')
+
+CHANGED = dedent('''\
+    original first line
+    changed second line
+    original third line
+''')
