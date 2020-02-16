@@ -1,6 +1,7 @@
 import pytest
 
-from darker.__main__ import choose_lines, get_edit_linenums
+from darker.chooser import choose_lines
+from darker.git_diff import get_edit_linenums
 from darker.tests.example_3_lines import CHANGE_SECOND_LINE
 
 

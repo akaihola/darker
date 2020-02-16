@@ -3,7 +3,7 @@ from textwrap import dedent
 
 from black import FileMode, InvalidInput, format_str
 
-from darker.__main__ import diff_and_get_opcodes, opcodes_to_chunks, run_black
+from darker.black_diff import run_black, diff_and_get_opcodes, opcodes_to_chunks
 
 FUNCTIONS2_PY = dedent(
     '''\
