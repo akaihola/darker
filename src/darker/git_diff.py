@@ -35,12 +35,12 @@ def get_edit_linenums(patch: bytes) -> Generator[int, None, None]:
             continue
         assert line.startswith(b"@@ ")
         start_str, *length_str = line.split()[2].split(b",")
-        start_linenum = int(start_str) - 1
+        start_linenum = int(start_str)
         length = int(length_str[0]) if length_str else 1
         logger.info(
             "Found edited %s",
-            f"line {start_linenum + 1}"
+            f"line {start_linenum}"
             if length == 1
-            else f"lines {start_linenum + 1}-{start_linenum + length}",
+            else f"lines {start_linenum}-{start_linenum + length - 1}",
         )
         yield from range(start_linenum, start_linenum + length)

@@ -68,4 +68,4 @@ def opcodes_to_chunks(
     ), opcodes
 
     for tag, i1, i2, j1, j2 in opcodes:
-        yield i1, src_lines[i1:i2], dst_lines[j1:j2]
+        yield i1 + 1, src_lines[i1:i2], dst_lines[j1:j2]
