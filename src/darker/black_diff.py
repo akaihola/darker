@@ -1,10 +1,12 @@
 """Running black reformatting and getting a diff for the changes"""
-
+import logging
 from difflib import SequenceMatcher
 from pathlib import Path
 from typing import Generator, List, Tuple
 
 from black import FileMode, format_str
+
+logger = logging.getLogger(__name__)
 
 
 def run_black(src: Path) -> Tuple[List[str], List[str]]:
@@ -32,7 +34,14 @@ def diff_and_get_opcodes(
     - the number of the last line in the chunk in the to-file
 
     """
-    return SequenceMatcher(None, src_lines, dst_lines, autojunk=False).get_opcodes()
+    matcher = SequenceMatcher(None, src_lines, dst_lines, autojunk=False)
+    opcodes = matcher.get_opcodes()
+    logger.info(
+        "Diff between edited and reformatted has %s opcode%s",
+        len(opcodes),
+        "s" if len(opcodes) > 1 else "",
+    )
+    return opcodes
 
 
 def opcodes_to_chunks(
