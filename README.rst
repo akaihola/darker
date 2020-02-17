@@ -59,6 +59,7 @@ Use ``python -m darker`` instead of ``darker`` in that case.
 Example:
 
 .. code-block:: shell
+
    $ mkdir test && cd test && git init
    Initialized empty Git repository in /tmp/test/.git/
    $ echo "if True: print('hi')\n\nif False: print('there')" | tee test.py
