@@ -10,6 +10,7 @@ from darker.chooser import choose_lines
 from darker.git_diff import get_edit_linenums, git_diff_u0
 from darker.utils import joinlines
 from darker.verification import verify_ast_unchanged
+from darker.version import __version__
 
 logger = logging.getLogger(__name__)
 
@@ -50,10 +51,13 @@ def apply_black_on_edited_lines(src: Path) -> None:
 def main() -> None:
     """Parse the command line and apply black formatting for each source file"""
     parser = ArgumentParser()
-    parser.add_argument("src", nargs="+")
+    parser.add_argument("src", nargs="*")
     parser.add_argument("-v", "--verbose", action="store_true")
+    parser.add_argument('--version', action='store_true')
     args = parser.parse_args()
     logging.basicConfig(level=logging.INFO if args.verbose else logging.WARNING)
+    if args.version:
+        print(__version__)
     for path in args.src:
         apply_black_on_edited_lines(Path(path))
 
