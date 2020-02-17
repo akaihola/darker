@@ -20,6 +20,7 @@ def any_edit_falls_inside(items: List[int], start: int, length: int) -> bool:
         logger.info('Found edits on %s', line_range)
     else:
         logger.info('Found no edits on %s', line_range)
+    return has_edits
 
 
 def choose_lines(
@@ -43,4 +44,4 @@ def choose_lines(
             'line' if len(chosen_lines) == 1 else 'lines',
             original_lines_offset,
         )
-        yield from original_lines
+        yield from chosen_lines
