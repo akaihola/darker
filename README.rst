@@ -137,7 +137,7 @@ PyCharm/IntelliJ IDEA
    2. Go to ``Preferences or Settings -> Tools -> File Watchers`` and click ``+`` to add
       a new watcher:
 
-      - Name: Darner
+      - Name: Darker
       - File type: Python
       - Scope: Project Files
       - Program: <install_location_from_step_2>
@@ -164,4 +164,3 @@ Prior art
 
 __ https://github.com/wbolster/black-macchiato
 __ https://github.com/Carreau/darken
-
