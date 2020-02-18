@@ -4,7 +4,7 @@ from typing import List, Tuple
 
 from black import assert_equivalent
 
-from darker.utils import _debug_dump, joinlines
+from darker.utils import debug_dump, joinlines
 
 
 def verify_ast_unchanged(
@@ -18,5 +18,5 @@ def verify_ast_unchanged(
     try:
         assert_equivalent(edited_to_file_str, reformatted_str)
     except AssertionError:
-        _debug_dump(black_chunks, edited_to_file_str, reformatted_str, edited_linenums)
+        debug_dump(black_chunks, edited_to_file_str, reformatted_str, edited_linenums)
         raise

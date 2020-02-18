@@ -4,7 +4,7 @@ from pprint import pprint
 from typing import List, Tuple
 
 
-def _debug_dump(
+def debug_dump(
     black_chunks: List[Tuple[int, List[str], List[str]]],
     old_content: str,
     new_content: str,
