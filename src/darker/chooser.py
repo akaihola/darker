@@ -1,4 +1,33 @@
-"""Picking of original or reformatted chunks based on edits"""
+"""Picking of original or reformatted chunks based on edits
+
+The :func:`choose_lines` function should be fed with
+a list of line numbers which were edited after the last commit,
+plus output from :func:`darker.black_diff.opcodes_to_chunks`.
+It reconstructs the Python source code file from chunks
+while choosing either the original or reformatted version of each chunk.
+The original is chosen if no edited line number falls on original chunk lines,
+and the reformatted if an edit was seen on any of the lines in the chunk.
+
+Example::
+
+    >>> reconstruction = choose_lines(
+    ...     [ ( 1,                        # chunk starts on line 1 in original content
+    ...         ['original line 1',
+    ...          'original line 2'],
+    ...         ['reformatted lines 1-2']
+    ...       ),
+    ...       ( 3,                        # chunk starts on line 3 in original content
+    ...         ['original line 3',
+    ...          'original line 4'],
+    ...         ['reformatted lines 3-4']
+    ...       )
+    ...      ],
+    ...      [2]                          # only line 2 was edited since last commit
+    ... )
+    >>> list(reconstruction)
+    ['reformatted lines 1-2', 'original line 3', 'original line 4']
+
+"""
 
 import logging
 from typing import Generator, Iterable, List, Tuple

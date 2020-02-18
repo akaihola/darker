@@ -6,20 +6,27 @@ From these chunks, the same file can be reconstructed
 while choosing whether each chunk should be taken from the original untouched file
 or from the version reformatted with Black.
 
+In examples below, a simple two-line snippet is used.
+The first line will be reformatted by Black, and the second left intact::
+
+    >>> from unittest.mock import Mock
+    >>> src = Mock()
+    >>> src.read_text.return_value = '''\\
+    ... for i in range(5): print(i)
+    ... print("done")
+    ... '''
+
 First, :func:`run_black` uses Black to reformat the contents of a given file.
 Original and reformatted lines are returned e.g.::
 
-    (
-        [
-            'for i in range(5): print(i)',
-            'print("done")'
-        ],
-        [
-            'for i in range(5):',
-             '    print(i)',
-             'print("done")'
-        ]
-    )
+    >>> src_lines, dst_lines = run_black(src)
+    >>> src_lines
+    ['for i in range(5): print(i)',
+     'print("done")']
+    >>> dst_lines
+    ['for i in range(5):',
+     '    print(i)',
+     'print("done")']
 
 The output of :func:`run_black` should then be fed into :func:`diff_and_get_opcodes`.
 It divides a diff between the original and reformatted content
@@ -29,26 +36,30 @@ modified ('delete', 'replace' or 'insert' tag) lines.
 Each chunk is an opcode represented by the tag and the corresponding 0-based line ranges
 in the original and reformatted content, e.g.::
 
-    [
-        ('replace', 0, 1, 0, 2),  # split for loop into two lines
-        ('equal', 1, 2, 2, 3)     # keep print("done") as such
-    ]
+    >>> opcodes = diff_and_get_opcodes(src_lines, dst_lines)
+    >>> len(opcodes)
+    2
+    >>> opcodes[0]  # split 'for' loop into two lines
+    ('replace', 0, 1, 0, 2)
+    >>> opcodes[1]  # keep 'print("done")' as such
+    ('equal', 1, 2, 2, 3)
 
 Finally, :func:`opcodes_to_chunks` picks the lines
 from original and reformatted content for each opcode.
 It combines line content with the 1-based line offset in the original content, e.g.::
 
-    [(
-         1,                                # original line offset
-         ['for i in range(5): print(i)'],  # original line
-         ['for i in range(5):',            # reformatted lines
-          '    print(i)']
-     ),
-     (
-         2,                                # original line offset
-         ['print("done")'],                # original line
-         ['print("done")']                 # (identical) reformatted line
-     )]
+    >>> chunks = list(opcodes_to_chunks(opcodes, src_lines, dst_lines))
+    >>> len(chunks)
+    2
+    >>> chunks[0]  # (<offset in orig content>, <original lines>, <reformatted lines>)
+    (1,
+     ['for i in range(5): print(i)'],
+     ['for i in range(5):',
+      '    print(i)'])
+    >>> chunks[1]
+    (2,
+     ['print("done")'],
+     ['print("done")'])
 
 By concatenating the second items in these tuples, i.e. original lines,
 the original file can be reconstructed.
