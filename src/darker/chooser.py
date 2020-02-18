@@ -35,8 +35,8 @@ from typing import Generator, Iterable, List, Tuple
 logger = logging.getLogger(__name__)
 
 
-def any_edit_falls_inside(items: List[int], start: int, length: int) -> bool:
-    """Return ``True`` if any item falls inside the slice [start:start + length]
+def _any_item_in_range(items: List[int], start: int, length: int) -> bool:
+    """Return ``True`` if any item falls inside the slice ``[start : start + length]``
 
     If ``length == 0``, add one to make sure an edit at the position of an inserted
     chunk causes the reformatted version to be chosen for that chunk.
@@ -57,7 +57,7 @@ def choose_lines(
 ) -> Generator[str, None, None]:
     """Choose formatted chunks for edited areas, original chunks for non-edited"""
     for original_lines_offset, original_lines, formatted_lines in black_chunks:
-        chunk_has_edits = any_edit_falls_inside(
+        chunk_has_edits = _any_item_in_range(
             edit_linenums, original_lines_offset, len(original_lines)
         )
         if chunk_has_edits:
