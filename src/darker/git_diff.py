@@ -1,4 +1,30 @@
-"""Git diffing"""
+"""Helpers for doing a ``git diff`` and getting modified line numbers
+
+The :func:`git_diff_u0` runs ``git diff -U0 -- <path>``
+in the containing directory of ``<path>``,
+and returns Git output as a bytestring.
+
+That output can be fed into :func:`get_edit_linenums`
+to obtain a list of line numbers in the to-file (modified file)
+which were changed from the from-file (file before modification)::
+
+    >>> list(get_edit_linenums(b'''\\
+    ... diff --git a/mymodule.py b/mymodule.py
+    ... index a57921c..a8afb81 100644
+    ... --- a/mymodule.py
+    ... +++ b/mymodule.py
+    ... @@ -1 +1,2 @@      # will pick +1,2 from this line...
+    ... -Old first line
+    ... +Replacement for
+    ... +first line
+    ... @@ -10 +11 @@    # ...and +11 from this line
+    ... -Old tenth line
+    ... +Replacement for tenth line
+    ... '''))
+    [1, 2, 11]
+
+"""
+
 import logging
 from pathlib import Path
 from subprocess import check_output
