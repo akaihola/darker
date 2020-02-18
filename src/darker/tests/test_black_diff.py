@@ -78,17 +78,17 @@ def test_mixed():
     chunks = list(opcodes_to_chunks(opcodes, src_lines, dst_lines))
     assert chunks == [
         (
-            0,
+            1,
             ['def f(', '  a,', '  **kwargs,', ') -> A:'],
             ['def f(a, **kwargs,) -> A:'],
         ),
         (
-            4,
+            5,
             ['    with cache_dir():', '        if something:'],
             ['    with cache_dir():', '        if something:'],
         ),
         (
-            6,
+            7,
             [
                 '            result = (',
                 '                CliRunner().invoke(black.main, [str(src1), str(src2), '
@@ -100,7 +100,7 @@ def test_mixed():
             ],
         ),
         (
-            8,
+            9,
             [
                 '            )',
                 '    limited.append(-limited.pop())  # negate top',
@@ -120,29 +120,29 @@ def test_mixed():
                 '    )',
             ],
         ),
-        (15, [], ['', '']),
-        (15, ['def g():', '    "Docstring."'], ['def g():', '    "Docstring."']),
-        (17, [], ['']),
+        (16, [], ['', '']),
+        (16, ['def g():', '    "Docstring."'], ['def g():', '    "Docstring."']),
+        (18, [], ['']),
         (
-            17,
+            18,
             ['    def inner():', '        pass'],
             ['    def inner():', '        pass'],
         ),
-        (19, [], ['']),
-        (
-            19,
-            ['    print("Inner defs should breathe a little.")'],
-            ['    print("Inner defs should breathe a little.")'],
-        ),
-        (20, [], ['', '']),
+        (20, [], ['']),
         (
             20,
+            ['    print("Inner defs should breathe a little.")'],
+            ['    print("Inner defs should breathe a little.")'],
+        ),
+        (21, [], ['', '']),
+        (
+            21,
             ['def h():', '    def inner():', '        pass'],
             ['def h():', '    def inner():', '        pass'],
         ),
-        (23, [], ['']),
+        (24, [], ['']),
         (
-            23,
+            24,
             ['    print("Inner defs should breathe a little.")'],
             ['    print("Inner defs should breathe a little.")'],
         ),
