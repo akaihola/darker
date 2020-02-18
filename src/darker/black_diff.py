@@ -1,4 +1,66 @@
-"""Running black reformatting and getting a diff for the changes"""
+"""Turn Python code into chunks of original and re-formatted code
+
+The functions in this module implement three steps
+for converting a file with Python source code into a list of chunks.
+From these chunks, the same file can be reconstructed
+while choosing whether each chunk should be taken from the original untouched file
+or from the version reformatted with Black.
+
+First, :func:`run_black` uses Black to reformat the contents of a given file.
+Original and reformatted lines are returned e.g.::
+
+    (
+        [
+            'for i in range(5): print(i)',
+            'print("done")'
+        ],
+        [
+            'for i in range(5):',
+             '    print(i)',
+             'print("done")'
+        ]
+    )
+
+The output of :func:`run_black` should then be fed into :func:`diff_and_get_opcodes`.
+It divides a diff between the original and reformatted content
+into alternating chunks of
+intact (represented by the 'equal' tag) and
+modified ('delete', 'replace' or 'insert' tag) lines.
+Each chunk is an opcode represented by the tag and the corresponding 0-based line ranges
+in the original and reformatted content, e.g.::
+
+    [
+        ('replace', 0, 1, 0, 2),  # split for loop into two lines
+        ('equal', 1, 2, 2, 3)     # keep print("done") as such
+    ]
+
+Finally, :func:`opcodes_to_chunks` picks the lines
+from original and reformatted content for each opcode.
+It combines line content with the 1-based line offset in the original content, e.g.::
+
+    [(
+         1,                                # original line offset
+         ['for i in range(5): print(i)'],  # original line
+         ['for i in range(5):',            # reformatted lines
+          '    print(i)']
+     ),
+     (
+         2,                                # original line offset
+         ['print("done")'],                # original line
+         ['print("done")']                 # (identical) reformatted line
+     )]
+
+By concatenating the second items in these tuples, i.e. original lines,
+the original file can be reconstructed.
+
+By concatenating the third items, i.e. reformatted lines,
+the complete output from Black can be reconstructed.
+
+By concatenating and choosing either the second or third item,
+a mixed result with only selected regions reformatted can be reconstructed.
+
+"""
+
 import logging
 from difflib import SequenceMatcher
 from pathlib import Path
@@ -23,7 +85,7 @@ def run_black(src: Path) -> Tuple[List[str], List[str]]:
 def diff_and_get_opcodes(
     src_lines: List[str], dst_lines: List[str]
 ) -> List[Tuple[str, int, int, int, int]]:
-    """Return opcodes and lines for chunks in the diff between two lists of strings
+    """Return opcodes and line numbers for chunks in the diff of two lists of strings
 
     The opcodes are 5-tuples for each chunk with
 
@@ -32,6 +94,8 @@ def diff_and_get_opcodes(
     - the number of the last line in the chunk in the from-file
     - the number of the first line in the chunk in the to-file
     - the number of the last line in the chunk in the to-file
+
+    Line numbers are zero based.
 
     """
     matcher = SequenceMatcher(None, src_lines, dst_lines, autojunk=False)
@@ -49,11 +113,11 @@ def opcodes_to_chunks(
     src_lines: List[str],
     dst_lines: List[str],
 ) -> Generator[Tuple[int, List[str], List[str]], None, None]:
-    """Convert each diff opcode to a linenumbers and original plus modified lines
+    """Convert each diff opcode to a line number and original plus modified lines
 
     Each chunk is a 3-tuple with
 
-    - the number of the first line in the chunk in the from-file
+    - the 1-based number of the first line in the chunk in the from-file
     - the original lines of the chunk in the from-file
     - the modified lines of the chunk in the to-file
 
