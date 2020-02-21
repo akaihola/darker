@@ -7,6 +7,10 @@ from black import assert_equivalent
 from darker.utils import debug_dump, joinlines
 
 
+class NotEquivalentError(Exception):
+    pass
+
+
 def verify_ast_unchanged(
     edited_to_file_lines: List[str],
     reformatted_str: str,
@@ -17,6 +21,6 @@ def verify_ast_unchanged(
     edited_to_file_str = joinlines(edited_to_file_lines)
     try:
         assert_equivalent(edited_to_file_str, reformatted_str)
-    except AssertionError:
+    except AssertionError as exc_info:
         debug_dump(black_chunks, edited_to_file_str, reformatted_str, edited_linenums)
-        raise
+        raise NotEquivalentError(str(exc_info))

@@ -33,9 +33,9 @@ from typing import Generator
 logger = logging.getLogger(__name__)
 
 
-def git_diff_u0(path: Path) -> bytes:
-    """Run ``git diff -U0 <path>`` on the given path, and return the output"""
-    cmd = ["git", "diff", "-U0", "--", path.name]
+def git_diff(path: Path, context_lines: int) -> bytes:
+    """Run ``git diff -U<context_lines> <path>`` and return the output"""
+    cmd = ["git", "diff", f"-U{context_lines}", "--", path.name]
     logger.info("[%s]$ %s", path.parent, " ".join(cmd))
     return check_output(cmd, cwd=str(path.parent))
 
@@ -57,7 +57,7 @@ def get_edit_linenums(patch: bytes) -> Generator[int, None, None]:
     assert git_diff_lines[3].startswith(b"+++ b/")
     for line in git_diff_lines[4:]:
         assert not line.startswith((b"diff --git ", b"index "))
-        if not line or line.startswith((b"+", b"-")):
+        if not line or line.startswith((b"+", b"-", b" ")):
             continue
         assert line.startswith(b"@@ ")
         start_str, *length_str = line.split()[2].split(b",")

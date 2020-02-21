@@ -7,15 +7,18 @@ from typing import List
 
 from darker.black_diff import diff_and_get_opcodes, opcodes_to_chunks, run_black
 from darker.chooser import choose_lines
-from darker.git_diff import get_edit_linenums, git_diff_u0
+from darker.git_diff import get_edit_linenums, git_diff
 from darker.utils import joinlines
-from darker.verification import verify_ast_unchanged
+from darker.verification import NotEquivalentError, verify_ast_unchanged
 from darker.version import __version__
 
 logger = logging.getLogger(__name__)
 
+# Maximum `git diff -U<context_lines> value to try with
+MAX_CONTEXT_LINES = 1000
 
-def apply_black_on_edited_lines(src: Path) -> None:
+
+def apply_black_on_edited_lines(src: Path, context_lines: int = 1) -> None:
     """Apply black formatting to chunks with edits since the last commit
 
     1. do a ``git diff -U0 <path>``
@@ -33,7 +36,7 @@ def apply_black_on_edited_lines(src: Path) -> None:
     9. write the reformatted source back to the original file
 
     """
-    git_diff_output = git_diff_u0(src)
+    git_diff_output = git_diff(src, context_lines)
     edited_linenums = list(get_edit_linenums(git_diff_output))
     if not edited_linenums:
         return
@@ -59,7 +62,20 @@ def main() -> None:
     if args.version:
         print(__version__)
     for path in args.src:
-        apply_black_on_edited_lines(Path(path))
+        for context_lines in range(1, MAX_CONTEXT_LINES + 1):
+            try:
+                apply_black_on_edited_lines(Path(path), context_lines)
+            except NotEquivalentError:
+                # Diff produced misaligned chunks which couldn't be reconstructed into
+                # a partially re-formatted Python file which produces an identical AST.
+                # Try again with a larger `-U<context_lines>` option for `git diff`,
+                # or give up if `context_lines` is already very large.
+                if context_lines == MAX_CONTEXT_LINES:
+                    raise
+            else:
+                # A re-formatted Python file which produces an identical AST was created
+                # successfully.
+                break
 
 
 if __name__ == "__main__":
