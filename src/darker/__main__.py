@@ -1,21 +1,42 @@
 """Darker - apply black reformatting to only areas edited since the last commit"""
 
 import logging
-from argparse import ArgumentParser
 from pathlib import Path
 from typing import List
 
 from darker.black_diff import diff_and_get_opcodes, opcodes_to_chunks, run_black
 from darker.chooser import choose_lines
+from darker.command_line import ISORT_INSTRUCTION, parse_command_line
 from darker.git_diff import get_edit_linenums, git_diff
 from darker.utils import joinlines
 from darker.verification import NotEquivalentError, verify_ast_unchanged
 from darker.version import __version__
 
+try:
+    from isort import SortImports
+except ImportError:
+    SortImports = None
+
 logger = logging.getLogger(__name__)
 
 # Maximum `git diff -U<context_lines> value to try with
 MAX_CONTEXT_LINES = 1000
+
+
+def apply_isort(src: Path) -> None:
+    logger.info(
+        f"SortImports({str(src)!r}, multi_line_output=3, include_trailing_comma=True,"
+        " force_grid_wrap=0, use_parentheses=True,"
+        " line_length=88)"
+    )
+    _ = SortImports(
+        src,
+        multi_line_output=3,
+        include_trailing_comma=True,
+        force_grid_wrap=0,
+        use_parentheses=True,
+        line_length=88,
+    )
 
 
 def apply_black_on_edited_lines(src: Path, context_lines: int = 1) -> None:
@@ -53,18 +74,23 @@ def apply_black_on_edited_lines(src: Path, context_lines: int = 1) -> None:
 
 def main() -> None:
     """Parse the command line and apply black formatting for each source file"""
-    parser = ArgumentParser()
-    parser.add_argument("src", nargs="*")
-    parser.add_argument("-v", "--verbose", action="store_true")
-    parser.add_argument('--version', action='store_true')
-    args = parser.parse_args()
-    logging.basicConfig(level=logging.INFO if args.verbose else logging.WARNING)
+    args = parse_command_line()
+    logging.basicConfig(
+        level=logging.INFO if args.verbose else logging.WARNING,
+        format="%(levelname)s: %(message)s",
+    )
     if args.version:
         print(__version__)
     for path in args.src:
-        for context_lines in range(1, MAX_CONTEXT_LINES + 1):
+        src = Path(path)
+        if args.isort:
+            if not SortImports:
+                logger.error(f"{ISORT_INSTRUCTION} to use the `--isort` option.")
+                exit(1)
+            apply_isort(src)
+        for context_lines in range(MAX_CONTEXT_LINES + 1):
             try:
-                apply_black_on_edited_lines(Path(path), context_lines)
+                apply_black_on_edited_lines(src, context_lines)
             except NotEquivalentError:
                 # Diff produced misaligned chunks which couldn't be reconstructed into
                 # a partially re-formatted Python file which produces an identical AST.
