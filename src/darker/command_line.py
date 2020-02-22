@@ -5,7 +5,7 @@ from darker.argparse_helpers import NewlinePreservingFormatter
 ISORT_INSTRUCTION = "Please run `pip install 'darker[isort]'`"
 
 
-def parse_command_line():
+def parse_command_line(argv):
     description = [
         "Re-format Python source files by using",
         "- `isort` to sort Python import definitions alphabetically within logical"
@@ -38,5 +38,4 @@ def parse_command_line():
     parser.add_argument(
         "--version", action="store_true", help="Show the version of `darker`"
     )
-    args = parser.parse_args()
-    return args
+    return parser.parse_args(argv)

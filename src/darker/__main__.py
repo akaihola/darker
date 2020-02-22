@@ -1,6 +1,7 @@
 """Darker - apply black reformatting to only areas edited since the last commit"""
 
 import logging
+import sys
 from pathlib import Path
 from typing import List
 
@@ -79,9 +80,11 @@ def apply_black_on_edited_lines(src: Path, context_lines: int = 1) -> None:
     src.write_text(result_str)
 
 
-def main() -> None:
+def main(argv: List[str] = None) -> None:
     """Parse the command line and apply black formatting for each source file"""
-    args = parse_command_line()
+    if argv is None:
+        argv = sys.argv[1:]
+    args = parse_command_line(argv)
     logging.basicConfig(
         level=logging.INFO if args.verbose else logging.WARNING,
         format="%(levelname)s: %(message)s",
