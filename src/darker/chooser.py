@@ -61,7 +61,9 @@ def choose_lines(
             edit_linenums, original_lines_offset, len(original_lines)
         )
         if chunk_has_edits:
-            choice = 'reformatted'
+            choice = (
+                "unmodified" if formatted_lines == original_lines else "reformatted"
+            )
             chosen_lines = formatted_lines
         else:
             choice = 'original'

@@ -62,13 +62,20 @@ def apply_black_on_edited_lines(src: Path, context_lines: int = 1) -> None:
     if not edited_linenums:
         return
     edited, formatted = run_black(src)
-    logger.info("Read %s lines from %s", len(edited), src)
-    logger.info("Reformatted into %s lines", len(formatted))
+    logger.info("Read %s lines from edited file %s", len(edited), src)
+    logger.info("Black reformat resulted in %s lines", len(formatted))
     opcodes = diff_and_get_opcodes(edited, formatted)
     black_chunks = list(opcodes_to_chunks(opcodes, edited, formatted))
     chosen_lines: List[str] = list(choose_lines(black_chunks, edited_linenums))
     result_str = joinlines(chosen_lines)
+    logger.info(
+        "Verifying that the %s original edited lines and %s reformatted lines parse "
+        "into an identical abstract syntax tree",
+        len(edited),
+        len(chosen_lines),
+    )
     verify_ast_unchanged(edited, result_str, black_chunks, edited_linenums)
+    logger.info("Writing %s bytes into %s", len(result_str), src)
     src.write_text(result_str)
 
 
@@ -98,6 +105,11 @@ def main() -> None:
                 # or give up if `context_lines` is already very large.
                 if context_lines == MAX_CONTEXT_LINES:
                     raise
+                logger.info(
+                    "AST verification failed. "
+                    "Trying again with %s lines of context for `git diff -U`",
+                    context_lines + 1,
+                )
             else:
                 # A re-formatted Python file which produces an identical AST was created
                 # successfully.
