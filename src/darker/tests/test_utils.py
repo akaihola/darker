@@ -1,13 +1,19 @@
-from darker.utils import joinlines, debug_dump
+from textwrap import dedent
+
+from darker.utils import debug_dump, joinlines
 
 
 def test_debug_dump(capsys):
     debug_dump([(1, ["black"], ["chunks"])], "old content", "new content", [2, 3])
     assert capsys.readouterr().out == (
-        "[2, 3]\n"
-        "[(1, ['black'], ['chunks'])]\n"
-        "[(1, 'old content')]\n"
-        "new content\n"
+        dedent(
+            """\
+            --------------------------------------------------------------------------------
+             -   1 black
+             +     chunks
+            --------------------------------------------------------------------------------
+            """
+        )
     )
 
 

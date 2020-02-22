@@ -1,6 +1,6 @@
 import pytest
 
-from darker.verification import verify_ast_unchanged
+from darker.verification import verify_ast_unchanged, NotEquivalentError
 
 
 @pytest.mark.parametrize(
@@ -15,7 +15,7 @@ def test_verify_ast_unchanged(src_lines, dst_content, expect):
     edited_linenums = [1, 2]
     try:
         verify_ast_unchanged(src_lines, dst_content, black_chunks, edited_linenums)
-    except AssertionError:
+    except NotEquivalentError:
         assert expect is AssertionError
     else:
         assert expect is None
