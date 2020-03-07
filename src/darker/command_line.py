@@ -32,8 +32,18 @@ def parse_command_line(argv):
     parser.add_argument(
         "-v",
         "--verbose",
-        action="store_true",
+        dest="log_level",
+        action="append_const",
+        const=10,
         help="Show steps taken and summarize modifications",
+    )
+    parser.add_argument(
+        "-q",
+        "--quiet",
+        dest="log_level",
+        action="append_const",
+        const=-10,
+        help="Reduce amount of output",
     )
     parser.add_argument(
         "--version", action="store_true", help="Show the version of `darker`"

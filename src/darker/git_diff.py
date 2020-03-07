@@ -8,7 +8,7 @@ That output can be fed into :func:`get_edit_linenums`
 to obtain a list of line numbers in the to-file (modified file)
 which were changed from the from-file (file before modification)::
 
-    >>> list(get_edit_linenums(b'''\\
+    >>> path, linenums = next(get_edit_linenums(b'''\\
     ... diff --git a/mymodule.py b/mymodule.py
     ... index a57921c..a8afb81 100644
     ... --- a/mymodule.py
@@ -21,26 +21,61 @@ which were changed from the from-file (file before modification)::
     ... -Old tenth line
     ... +Replacement for tenth line
     ... '''))
+    >>> print(path)
+    mymodule.py
+    >>> list(linenums)
     [1, 2, 11]
 
 """
-
 import logging
 from pathlib import Path
 from subprocess import check_output
-from typing import Generator, Tuple
+from typing import Generator, Iterable, Tuple
+
+from darker.utils import Buf
 
 logger = logging.getLogger(__name__)
 
 
-def git_diff(path: Path, context_lines: int) -> bytes:
+def git_diff(paths: Iterable[Path], cwd: Path, context_lines: int) -> bytes:
     """Run ``git diff -U<context_lines> <path>`` and return the output"""
-    cmd = ["git", "diff", f"-U{context_lines}", "--", path.name]
-    logger.info("[%s]$ %s", path.parent, " ".join(cmd))
-    return check_output(cmd, cwd=str(path.parent))
+    relative_paths = {p.resolve().relative_to(cwd) for p in paths}
+    cmd = [
+        "git",
+        "diff",
+        f"-U{context_lines}",
+        "--",
+        *[str(path) for path in relative_paths],
+    ]
+    logger.info("[%s]$ %s", cwd, " ".join(cmd))
+    return check_output(cmd, cwd=str(cwd))
 
 
-def get_edit_chunks(patch: bytes) -> Generator[Tuple[int, int], None, None]:
+def parse_range(s: str):
+    start_str, *length_str = s.split(",")
+    start_linenum = int(start_str)
+    if length_str:
+        # e.g. `+42,2` means lines 42 and 43 were edited
+        return start_linenum, int(length_str[0])
+    else:
+        # e.g. `+42` means only line 42 was edited
+        return start_linenum, 1
+
+
+def get_edit_chunks_for_one_file(lines: Buf) -> Generator[Tuple[int, int], None, None]:
+    while lines.next_line_startswith("@@ "):
+        _, remove, add, ats2, *_ = next(lines).split(" ", 4)
+        add_linenum, num_added = parse_range(add)
+        while lines.next_line_startswith((" ", "-", "+")):
+            next(lines)
+        if num_added:
+            # e.g. `+42,0` means lines were deleted starting on line 42 - skip those
+            yield add_linenum, add_linenum + num_added
+
+
+def get_edit_chunks(
+    patch: bytes,
+) -> Generator[Tuple[Path, Generator[Tuple[int, int], None, None]], None, None]:
     """Yield ranges of changed line numbers in Git diff to-file
 
     The patch must be in ``git diff -U<num>`` format, and only contain differences for a
@@ -57,47 +92,51 @@ def get_edit_chunks(patch: bytes) -> Generator[Tuple[int, int], None, None]:
     """
     if not patch:
         return
-    git_diff_lines = patch.split(b"\n")
-    assert git_diff_lines[0].startswith(b"diff --git ")
-    assert git_diff_lines[1].startswith(b"index ")
-    assert git_diff_lines[2].startswith(b"--- a/")
-    assert git_diff_lines[3].startswith(b"+++ b/")
-    for line in git_diff_lines[4:]:
-        assert not line.startswith((b"diff --git ", b"index "))
-        if not line or line.startswith((b"+", b"-", b" ")):
-            continue
-        assert line.startswith(b"@@ ")
-        start_str, *length_str = line.split()[2].split(b",")
-        start_linenum = int(start_str)
-        if length_str:
-            # e.g. `+42,2` means lines 42 and 43 were edited
-            length = int(length_str[0])
-        else:
-            # e.g. `+42` means only line 42 was edited
-            length = 1
-        if length:
-            # e.g. `+42,0` means lines were deleted starting on line 42 - skip those
-            yield start_linenum, start_linenum + length
+    lines = Buf(patch)
+    while True:
+        try:
+            if not lines.next_line_startswith("diff --git "):
+                return
+        except StopIteration:
+            return
+        _, _, path_a, path_b = next(lines).split(" ")
+        assert path_a.startswith("a/")
+        assert path_b.startswith("b/")
+        path = Path(path_a[2:])
+
+        assert next(lines).startswith("index ")
+        path_a_line = next(lines)
+        assert path_a_line == f"--- {path_a}", (path_a_line, path_a)
+        assert next(lines) == f"+++ b/{path_a[2:]}"
+        yield path, get_edit_chunks_for_one_file(lines)
 
 
-def get_edit_linenums(patch: bytes) -> Generator[int, None, None]:
+def get_edit_linenums(
+    patch: bytes,
+) -> Generator[Tuple[Path, Generator[int, None, None]], None, None]:
     """Yield changed line numbers in Git diff to-file
 
     The patch must be in ``git diff -U<num>`` format, and only contain differences for a
     single file.
 
     """
-    ranges = list(get_edit_chunks(patch))
-    if not ranges:
-        logger.info("Found no edited lines")
-        return
-    logger.info(
-        "Found edited line(s) {}".format(
-            ", ".join(
-                str(start) if end == start + 1 else f"{start}-{end - 1}"
-                for start, end in ranges
+    paths_and_ranges = get_edit_chunks(patch)
+    for path, chunks in paths_and_ranges:
+        ranges = list(chunks)
+        if not ranges:
+            logger.info(f"Found no edited lines for {path}")
+            return
+        logger.info(
+            "Found edited line(s) for {}: {}".format(
+                path,
+                ", ".join(
+                    str(start) if end == start + 1 else f"{start}-{end - 1}"
+                    for start, end in ranges
+                ),
             )
         )
-    )
-    for start_linenum, end_linenum in ranges:
-        yield from range(start_linenum, end_linenum)
+        yield path, (
+            linenum
+            for start_linenum, end_linenum in ranges
+            for linenum in range(start_linenum, end_linenum)
+        )

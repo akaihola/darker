@@ -1,7 +1,8 @@
 """Miscellaneous utility functions"""
 
-from pprint import pprint
-from typing import List, Tuple
+import io
+from pathlib import Path
+from typing import Iterable, List, Tuple, Union
 
 
 def debug_dump(
@@ -29,3 +30,37 @@ def joinlines(lines: List[str]) -> str:
 
     """
     return "".join(f"{line}\n" for line in lines)
+
+
+def get_common_git_root(paths: Iterable[Path]) -> Path:
+    """Find the deepest common parent directory of given paths"""
+    resolved_paths = [path.resolve() for path in paths]
+    parents = reversed(list(zip(*(reversed(path.parents) for path in resolved_paths))))
+    for first_path, *other_paths in parents:
+        if (
+            all(path == first_path for path in other_paths)
+            and (first_path / ".git").is_dir()
+        ):
+            return first_path
+    raise ValueError(f"Paths have no common parent Git root: {resolved_paths}")
+
+
+class Buf:
+    def __init__(self, initial_bytes: bytes):
+        self._buf = io.BytesIO(initial_bytes)
+        self._line_starts: List[int] = []
+
+    def __next__(self) -> str:
+        self._line_starts.append(self._buf.tell())
+        return next(self._buf).rstrip(b"\n").decode("utf-8")
+
+    def __iter__(self) -> "Buf":
+        return self
+
+    def next_line_startswith(self, prefix: Union[str, Tuple[str, ...]]):
+        try:
+            return next(self).startswith(prefix)
+        except StopIteration:
+            return False
+        finally:
+            self._buf.seek(self._line_starts.pop())
