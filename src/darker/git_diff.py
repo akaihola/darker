@@ -9,10 +9,10 @@ to obtain a list of line numbers in the to-file (modified file)
 which were changed from the from-file (file before modification)::
 
     >>> path, linenums = next(get_edit_linenums(b'''\\
-    ... diff --git a/mymodule.py b/mymodule.py
+    ... diff --git mymodule.py mymodule.py
     ... index a57921c..a8afb81 100644
-    ... --- a/mymodule.py
-    ... +++ b/mymodule.py
+    ... --- mymodule.py
+    ... +++ mymodule.py
     ... @@ -1 +1,2 @@      # will pick +1,2 from this line...
     ... -Old first line
     ... +Replacement for
@@ -45,6 +45,7 @@ def git_diff(paths: Iterable[Path], cwd: Path, context_lines: int) -> bytes:
         "diff",
         f"-U{context_lines}",
         "--relative",
+        "--no-prefix",
         "--",
         *[str(path) for path in relative_paths],
     ]
@@ -109,14 +110,12 @@ def get_edit_chunks(
         except StopIteration:
             return
         _, _, path_a, path_b = next(lines).split(" ")
-        assert path_a.startswith("a/")
-        assert path_b.startswith("b/")
-        path = Path(path_a[2:])
+        path = Path(path_a)
 
         assert next(lines).startswith("index ")
         path_a_line = next(lines)
         assert path_a_line == f"--- {path_a}", (path_a_line, path_a)
-        assert next(lines) == f"+++ b/{path_a[2:]}"
+        assert next(lines) == f"+++ {path_a}"
         if path.suffix == ".py":
             yield path, get_edit_chunks_for_one_file(lines)
         else:
