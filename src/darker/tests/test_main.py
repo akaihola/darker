@@ -1,4 +1,5 @@
 from pathlib import Path
+from subprocess import check_call
 from types import SimpleNamespace
 from unittest.mock import DEFAULT, Mock, patch
 
@@ -7,10 +8,11 @@ import pytest
 import darker.__main__
 
 
-def test_isort_option_without_isort(without_isort, caplog):
+def test_isort_option_without_isort(tmpdir, without_isort, caplog):
+    check_call(["git", "init"], cwd=tmpdir)
     with patch.object(darker.__main__, "SortImports", None), pytest.raises(SystemExit):
 
-        darker.__main__.main(["--isort", "/nowhere/dummy.py"])
+        darker.__main__.main(["--isort", str(tmpdir)])
 
     assert (
         "Please run `pip install 'darker[isort]'` to use the `--isort` option."

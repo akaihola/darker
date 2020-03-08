@@ -1,7 +1,7 @@
 from pathlib import Path
 from textwrap import dedent
 
-from darker.utils import debug_dump, get_common_git_root, joinlines
+from darker.utils import debug_dump, get_common_root, get_path_ancestry, joinlines
 
 
 def test_debug_dump(capsys):
@@ -23,11 +23,32 @@ def test_joinlines():
     assert result == "a\nb\nc\n"
 
 
-def test_get_common_git_root(tmpdir):
+def test_get_common_root(tmpdir):
     tmpdir = Path(tmpdir)
-    (tmpdir / "a" / ".git").mkdir(parents=True)
-    path1 = tmpdir / "a/b/c/d"
-    path2 = tmpdir / "a/e/../b/f/g"
-    path3 = tmpdir / "a/h/../b/i"
-    result = get_common_git_root([path1, path2, path3])
-    assert result == tmpdir / "a"
+    path1 = tmpdir / "a" / "b" / "c" / "d"
+    path2 = tmpdir / "a" / "e" / ".." / "b" / "f" / "g"
+    path3 = tmpdir / "a" / "h" / ".." / "b" / "i"
+    result = get_common_root([path1, path2, path3])
+    assert result == tmpdir / "a" / "b"
+
+
+def test_get_common_root_of_directory(tmpdir):
+    tmpdir = Path(tmpdir)
+    result = get_common_root([tmpdir])
+    assert result == tmpdir
+
+
+def test_get_path_ancestry_for_directory(tmpdir):
+    tmpdir = Path(tmpdir)
+    result = list(get_path_ancestry(tmpdir))
+    assert result[-1] == tmpdir
+    assert result[-2] == tmpdir.parent
+
+
+def test_get_path_ancestry_for_file(tmpdir):
+    tmpdir = Path(tmpdir)
+    dummy = tmpdir / "dummy"
+    dummy.write_text("dummy")
+    result = list(get_path_ancestry(dummy))
+    assert result[-1] == tmpdir
+    assert result[-2] == tmpdir.parent
