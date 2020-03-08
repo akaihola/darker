@@ -43,44 +43,64 @@ def apply_isort(src: Path) -> None:
 def format_edited_parts(srcs: Iterable[Path], isort: bool) -> None:
     """Apply black formatting to chunks with edits since the last commit
 
-    1. do a ``git diff -U0 <path>``
-    2. extract line numbers in the edited to-file for changed lines
-    3. run black on the contents of the edited to-file
-    4. get a diff between the edited to-file and the reformatted content
-    5. convert the diff into chunks, keeping original and reformatted content for each
+    1. do a ``git diff -U0 <path> ...`` for all file & dir paths on the command line
+    2. extract line numbers in each edited to-file for changed lines
+    3. run isort on each edited to-file
+    4. run black on the contents of each edited to-file
+    5. get a diff between the edited to-file and the reformatted content
+    6. convert the diff into chunks, keeping original and reformatted content for each
        chunk
-    6. choose reformatted content for each chunk if there were any changed lines inside
+    7. choose reformatted content for each chunk if there were any changed lines inside
        the chunk in the edited to-file, or choose the chunk's original contents if no
        edits were done in that chunk
-    7. concatenate all chosen chunks
-    8. verify that the resulting reformatted source code parses to an identical AST as
+    8. concatenate all chosen chunks
+    9. verify that the resulting reformatted source code parses to an identical AST as
        the original edited to-file
-    9. write the reformatted source back to the original file
+    10. write the reformatted source back to the original file
 
-    :param isort:
-    :param srcs:
+    :param srcs: Directories and files to re-format
+    :param isort: ``True`` to also run ``isort`` first on each changed file
+
     """
     failed_srcs: Set[Path] = set()
     for context_lines in range(MAX_CONTEXT_LINES + 1):
+
+        # 1. do the git diff
         diff_srcs = failed_srcs or set(srcs)
         logger.debug("Looking at %s", ", ".join(str(s) for s in diff_srcs))
         git_root = get_common_root(diff_srcs)
         logger.debug("Git root: %s", git_root)
         git_diff_output = git_diff(diff_srcs, git_root, context_lines)
+
+        # 2. extract changed line numbers for each to-file
         failed_srcs = set()
         for src_relative, edited_linenums in get_edit_linenums(git_diff_output):
             src = git_root / src_relative
             if not edited_linenums:
                 continue
+
+            # 3. run isort
             if isort:
                 apply_isort(src)
+
+            # 4. run black
             edited, formatted = run_black(src)
             logger.debug("Read %s lines from edited file %s", len(edited), src)
             logger.debug("Black reformat resulted in %s lines", len(formatted))
+
+            # 5. get the diff between each edited and reformatted file
             opcodes = diff_and_get_opcodes(edited, formatted)
+
+            # 6. convert the diff into chunks
             black_chunks = list(opcodes_to_chunks(opcodes, edited, formatted))
+
+            # 7. choose reformatted content
             chosen_lines: List[str] = list(choose_lines(black_chunks, edited_linenums))
+
+            # 8. concatenate chosen chunks
             result_str = joinlines(chosen_lines)
+
+            # 9. verify
             logger.debug(
                 "Verifying that the %s original edited lines and %s reformatted lines "
                 "parse into an identical abstract syntax tree",
@@ -103,8 +123,8 @@ def format_edited_parts(srcs: Iterable[Path], isort: bool) -> None:
                 )
                 failed_srcs.add(src)
             else:
-                # A re-formatted Python file which produces an identical AST was created
-                # successfully.
+                # 10. A re-formatted Python file which produces an identical AST was
+                #     created successfully - write an updated file
                 logger.info("Writing %s bytes into %s", len(result_str), src)
                 src.write_text(result_str)
         if not failed_srcs:
