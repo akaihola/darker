@@ -74,9 +74,6 @@ def format_edited_parts(srcs: Iterable[Path], isort: bool) -> None:
             if not edited_linenums:
                 continue
             if isort:
-                if not SortImports:
-                    logger.error(f"{ISORT_INSTRUCTION} to use the `--isort` option.")
-                    exit(1)
                 apply_isort(src)
             edited, formatted = run_black(src)
             logger.debug("Read %s lines from edited file %s", len(edited), src)
@@ -131,6 +128,11 @@ def main(argv: List[str] = None) -> None:
 
     if args.version:
         print(__version__)
+
+    if args.isort and not SortImports:
+        logger.error(f"{ISORT_INSTRUCTION} to use the `--isort` option.")
+        exit(1)
+
     paths = {Path(p) for p in args.src}
     format_edited_parts(paths, args.isort)
 
