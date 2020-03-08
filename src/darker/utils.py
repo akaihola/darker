@@ -3,7 +3,7 @@
 import io
 from itertools import chain
 from pathlib import Path
-from typing import Iterable, List, Tuple, Union, Iterator
+from typing import Iterable, List, Tuple, Union
 
 
 def debug_dump(
