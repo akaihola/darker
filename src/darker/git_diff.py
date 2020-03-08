@@ -74,6 +74,14 @@ def get_edit_chunks_for_one_file(lines: Buf) -> Generator[Tuple[int, int], None,
             yield add_linenum, add_linenum + num_added
 
 
+def skip_file(lines: Buf, path: Path) -> None:
+    logger.info("Skipping non-Python file %s", path)
+    while lines.next_line_startswith("@@ "):
+        _ = next(lines)
+        while lines.next_line_startswith((" ", "-", "+")):
+            next(lines)
+
+
 def get_edit_chunks(
     patch: bytes,
 ) -> Generator[Tuple[Path, Generator[Tuple[int, int], None, None]], None, None]:
@@ -109,7 +117,10 @@ def get_edit_chunks(
         path_a_line = next(lines)
         assert path_a_line == f"--- {path_a}", (path_a_line, path_a)
         assert next(lines) == f"+++ b/{path_a[2:]}"
-        yield path, get_edit_chunks_for_one_file(lines)
+        if path.suffix == ".py":
+            yield path, get_edit_chunks_for_one_file(lines)
+        else:
+            skip_file(lines, path)
 
 
 def get_edit_linenums(
