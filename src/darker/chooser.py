@@ -46,9 +46,9 @@ def _any_item_in_range(items: List[int], start: int, length: int) -> bool:
     has_edits = any(start <= n <= end for n in items)
     line_range = f'line {start}' if end == start else f'lines {start}-{end}'
     if has_edits:
-        logger.info('Found edits on %s', line_range)
+        logger.debug("Found edits on %s", line_range)
     else:
-        logger.info('Found no edits on %s', line_range)
+        logger.debug("Found no edits on %s", line_range)
     return has_edits
 
 
@@ -68,7 +68,7 @@ def choose_lines(
         else:
             choice = 'original'
             chosen_lines = original_lines
-        logger.info(
+        logger.debug(
             'Using %s %s %s at line %s',
             len(chosen_lines),
             choice,

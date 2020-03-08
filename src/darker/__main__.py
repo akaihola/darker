@@ -25,7 +25,7 @@ MAX_CONTEXT_LINES = 1000
 
 
 def apply_isort(src: Path) -> None:
-    logger.info(
+    logger.debug(
         f"SortImports({str(src)!r}, multi_line_output=3, include_trailing_comma=True,"
         " force_grid_wrap=0, use_parentheses=True,"
         " line_length=88)"
@@ -79,15 +79,15 @@ def format_edited_parts(srcs: Iterable[Path], isort: bool) -> None:
                     exit(1)
                 apply_isort(src)
             edited, formatted = run_black(src)
-            logger.info("Read %s lines from edited file %s", len(edited), src)
-            logger.info("Black reformat resulted in %s lines", len(formatted))
+            logger.debug("Read %s lines from edited file %s", len(edited), src)
+            logger.debug("Black reformat resulted in %s lines", len(formatted))
             opcodes = diff_and_get_opcodes(edited, formatted)
             black_chunks = list(opcodes_to_chunks(opcodes, edited, formatted))
             chosen_lines: List[str] = list(choose_lines(black_chunks, edited_linenums))
             result_str = joinlines(chosen_lines)
-            logger.info(
-                "Verifying that the %s original edited lines and %s reformatted lines parse "
-                "into an identical abstract syntax tree",
+            logger.debug(
+                "Verifying that the %s original edited lines and %s reformatted lines "
+                "parse into an identical abstract syntax tree",
                 len(edited),
                 len(chosen_lines),
             )
@@ -100,7 +100,7 @@ def format_edited_parts(srcs: Iterable[Path], isort: bool) -> None:
                 # or give up if `context_lines` is already very large.
                 if context_lines == MAX_CONTEXT_LINES:
                     raise
-                logger.info(
+                logger.debug(
                     "AST verification failed. "
                     "Trying again with %s lines of context for `git diff -U`",
                     context_lines + 1,

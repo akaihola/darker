@@ -47,7 +47,7 @@ def git_diff(paths: Iterable[Path], cwd: Path, context_lines: int) -> bytes:
         "--",
         *[str(path) for path in relative_paths],
     ]
-    logger.info("[%s]$ %s", cwd, " ".join(cmd))
+    logger.debug("[%s]$ %s", cwd, " ".join(cmd))
     return check_output(cmd, cwd=str(cwd))
 
 
@@ -124,9 +124,9 @@ def get_edit_linenums(
     for path, chunks in paths_and_ranges:
         ranges = list(chunks)
         if not ranges:
-            logger.info(f"Found no edited lines for {path}")
+            logger.debug(f"Found no edited lines for {path}")
             return
-        logger.info(
+        logger.debug(
             "Found edited line(s) for {}: {}".format(
                 path,
                 ", ".join(

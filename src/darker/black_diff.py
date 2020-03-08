@@ -111,7 +111,7 @@ def diff_and_get_opcodes(
     """
     matcher = SequenceMatcher(None, src_lines, dst_lines, autojunk=False)
     opcodes = matcher.get_opcodes()
-    logger.info(
+    logger.debug(
         "Diff between edited and reformatted has %s opcode%s",
         len(opcodes),
         "s" if len(opcodes) > 1 else "",
