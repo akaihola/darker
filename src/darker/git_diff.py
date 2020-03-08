@@ -132,17 +132,13 @@ def get_edit_linenums(patch: bytes,) -> Generator[Tuple[Path, List[int]], None, 
     paths_and_ranges = get_edit_chunks(patch)
     for path, ranges in paths_and_ranges:
         if not ranges:
-            logger.debug(f"Found no edited lines for {path}")
+            logger.debug(f"Found no edited lines for %s", path)
             return
-        logger.debug(
-            "Found edited line(s) for {}: {}".format(
-                path,
-                ", ".join(
-                    str(start) if end == start + 1 else f"{start}-{end - 1}"
-                    for start, end in ranges
-                ),
-            )
+        log_linenums = (
+            str(start) if end == start + 1 else f"{start}-{end - 1}"
+            for start, end in ranges
         )
+        logger.debug("Found edited line(s) for %s: %s", path, ", ".join(log_linenums))
         yield path, [
             linenum
             for start_linenum, end_linenum in ranges
