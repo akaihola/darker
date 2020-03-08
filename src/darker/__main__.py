@@ -68,9 +68,8 @@ def format_edited_parts(srcs: Iterable[Path], isort: bool) -> None:
         logger.debug("Git root: %s", git_root)
         git_diff_output = git_diff(diff_srcs, git_root, context_lines)
         failed_srcs = set()
-        for src_relative, edited_linenums_gen in get_edit_linenums(git_diff_output):
+        for src_relative, edited_linenums in get_edit_linenums(git_diff_output):
             src = git_root / src_relative
-            edited_linenums = list(edited_linenums_gen)
             if not edited_linenums:
                 continue
             if isort:

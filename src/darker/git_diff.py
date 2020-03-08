@@ -23,14 +23,14 @@ which were changed from the from-file (file before modification)::
     ... '''))
     >>> print(path)
     mymodule.py
-    >>> list(linenums)
+    >>> linenums
     [1, 2, 11]
 
 """
 import logging
 from pathlib import Path
 from subprocess import check_output
-from typing import Generator, Iterable, Tuple
+from typing import Generator, Iterable, List, Tuple
 
 from darker.utils import Buf
 
@@ -85,7 +85,7 @@ def skip_file(lines: Buf, path: Path) -> None:
 
 def get_edit_chunks(
     patch: bytes,
-) -> Generator[Tuple[Path, Generator[Tuple[int, int], None, None]], None, None]:
+) -> Generator[Tuple[Path, List[Tuple[int, int]]], None, None]:
     """Yield ranges of changed line numbers in Git diff to-file
 
     The patch must be in ``git diff -U<num>`` format, and only contain differences for a
@@ -117,14 +117,12 @@ def get_edit_chunks(
         assert path_a_line == f"--- {path_a}", (path_a_line, path_a)
         assert next(lines) == f"+++ {path_a}"
         if path.suffix == ".py":
-            yield path, get_edit_chunks_for_one_file(lines)
+            yield path, list(get_edit_chunks_for_one_file(lines))
         else:
             skip_file(lines, path)
 
 
-def get_edit_linenums(
-    patch: bytes,
-) -> Generator[Tuple[Path, Generator[int, None, None]], None, None]:
+def get_edit_linenums(patch: bytes,) -> Generator[Tuple[Path, List[int]], None, None]:
     """Yield changed line numbers in Git diff to-file
 
     The patch must be in ``git diff -U<num>`` format, and only contain differences for a
@@ -132,8 +130,7 @@ def get_edit_linenums(
 
     """
     paths_and_ranges = get_edit_chunks(patch)
-    for path, chunks in paths_and_ranges:
-        ranges = list(chunks)
+    for path, ranges in paths_and_ranges:
         if not ranges:
             logger.debug(f"Found no edited lines for {path}")
             return
@@ -146,8 +143,8 @@ def get_edit_linenums(
                 ),
             )
         )
-        yield path, (
+        yield path, [
             linenum
             for start_linenum, end_linenum in ranges
             for linenum in range(start_linenum, end_linenum)
-        )
+        ]
