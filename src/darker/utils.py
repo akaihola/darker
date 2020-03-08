@@ -3,7 +3,7 @@
 import io
 from itertools import chain
 from pathlib import Path
-from typing import Iterable, List, Tuple, Union
+from typing import Iterable, List, Tuple, Union, Iterator
 
 
 def debug_dump(
@@ -63,7 +63,7 @@ class Buf:
     def __iter__(self) -> "Buf":
         return self
 
-    def next_line_startswith(self, prefix: Union[str, Tuple[str, ...]]):
+    def next_line_startswith(self, prefix: Union[str, Tuple[str, ...]]) -> bool:
         try:
             return next(self).startswith(prefix)
         except StopIteration:

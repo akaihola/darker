@@ -53,7 +53,7 @@ def git_diff(paths: Iterable[Path], cwd: Path, context_lines: int) -> bytes:
     return check_output(cmd, cwd=str(cwd))
 
 
-def parse_range(s: str):
+def parse_range(s: str) -> Tuple[int, int]:
     start_str, *length_str = s.split(",")
     start_linenum = int(start_str)
     if length_str:

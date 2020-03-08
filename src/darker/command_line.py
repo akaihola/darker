@@ -1,11 +1,12 @@
-from argparse import ArgumentParser
+from argparse import ArgumentParser, Namespace
+from typing import List
 
 from darker.argparse_helpers import NewlinePreservingFormatter
 
 ISORT_INSTRUCTION = "Please run `pip install 'darker[isort]'`"
 
 
-def parse_command_line(argv):
+def parse_command_line(argv: List[str]) -> Namespace:
     description = [
         "Re-format Python source files by using",
         "- `isort` to sort Python import definitions alphabetically within logical"
