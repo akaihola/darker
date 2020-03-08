@@ -40,10 +40,10 @@ TWO_FILES_CHANGED = dedent(
     +
     +# TODO: add multiple file git diffing
     +
-    diff --git src/darker/tests/example_3_lines.py src/darker/tests/example_3_lines.py
+    diff --git src/darker/tests/git_diff_example_output.py src/darker/tests/git_diff_example_output.py
     index 3cc7ca1..c5404dd 100644
-    --- src/darker/tests/example_3_lines.py
-    +++ src/darker/tests/example_3_lines.py
+    --- src/darker/tests/git_diff_example_output.py
+    +++ src/darker/tests/git_diff_example_output.py
     @@ -29,0 +30,4 @@ CHANGED = dedent(
     +
     +

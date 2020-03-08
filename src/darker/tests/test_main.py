@@ -7,7 +7,7 @@ import pytest
 
 import darker.__main__
 import darker.import_sorting
-from darker.tests.example_3_lines import CHANGE_SECOND_LINE
+from darker.tests.git_diff_example_output import CHANGE_SECOND_LINE
 
 
 def test_isort_option_without_isort(tmpdir, without_isort, caplog):

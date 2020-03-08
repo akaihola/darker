@@ -1,6 +1,6 @@
 from difflib import SequenceMatcher
 
-from darker.tests.example_3_lines import CHANGED, ORIGINAL
+from darker.tests.git_diff_example_output import CHANGED, ORIGINAL
 
 
 def test_sequencematcher():
