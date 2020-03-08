@@ -120,10 +120,15 @@ def main(argv: List[str] = None) -> None:
     if argv is None:
         argv = sys.argv[1:]
     args = parse_command_line(argv)
-    logging.basicConfig(
-        level=logging.WARNING - sum(args.log_level or ()),
-        format="%(levelname)s: %(message)s",
-    )
+    log_level = logging.WARNING - sum(args.log_level or ())
+    logging.basicConfig(level=log_level)
+    if log_level == logging.INFO:
+        formatter = logging.Formatter("%(levelname)s: %(message)s")
+        logging.getLogger().handlers[0].setFormatter(formatter)
+
+    # Make sure we don't get excessive debug log output from Black
+    logging.getLogger("blib2to3.pgen2.driver").setLevel(logging.WARNING)
+
     if args.version:
         print(__version__)
     paths = {Path(p) for p in args.src}
