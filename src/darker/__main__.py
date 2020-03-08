@@ -9,14 +9,10 @@ from darker.black_diff import diff_and_get_opcodes, opcodes_to_chunks, run_black
 from darker.chooser import choose_lines
 from darker.command_line import ISORT_INSTRUCTION, parse_command_line
 from darker.git_diff import get_edit_linenums, git_diff
+from darker.import_sorting import SortImports, apply_isort
 from darker.utils import get_common_root, joinlines
 from darker.verification import NotEquivalentError, verify_ast_unchanged
 from darker.version import __version__
-
-try:
-    from isort import SortImports
-except ImportError:
-    SortImports = None
 
 logger = logging.getLogger(__name__)
 
@@ -24,24 +20,8 @@ logger = logging.getLogger(__name__)
 MAX_CONTEXT_LINES = 1000
 
 
-def apply_isort(src: Path) -> None:
-    logger.debug(
-        f"SortImports({str(src)!r}, multi_line_output=3, include_trailing_comma=True,"
-        " force_grid_wrap=0, use_parentheses=True,"
-        " line_length=88)"
-    )
-    _ = SortImports(
-        src,
-        multi_line_output=3,
-        include_trailing_comma=True,
-        force_grid_wrap=0,
-        use_parentheses=True,
-        line_length=88,
-    )
-
-
 def format_edited_parts(srcs: Iterable[Path], isort: bool) -> None:
-    """Apply black formatting to chunks with edits since the last commit
+    """Black (and optional isort) formatting for chunks with edits since the last commit
 
     1. do a ``git diff -U0 <path> ...`` for all file & dir paths on the command line
     2. extract line numbers in each edited to-file for changed lines

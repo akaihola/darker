@@ -1,11 +1,12 @@
 from pathlib import Path
 from subprocess import check_call
 from types import SimpleNamespace
-from unittest.mock import DEFAULT, Mock, patch
+from unittest.mock import Mock, patch
 
 import pytest
 
 import darker.__main__
+import darker.import_sorting
 from darker.tests.example_3_lines import CHANGE_SECOND_LINE
 
 
@@ -26,12 +27,13 @@ def run_isort(tmpdir, monkeypatch, caplog):
     monkeypatch.chdir(tmpdir)
     with patch.multiple(
         darker.__main__,
-        SortImports=DEFAULT,
         run_black=Mock(return_value=([], [])),
         git_diff=Mock(return_value=CHANGE_SECOND_LINE.encode("ascii")),
-    ):
+    ), patch("darker.import_sorting.SortImports"):
         darker.__main__.main(["--isort", "./test1.py"])
-        return SimpleNamespace(SortImports=darker.__main__.SortImports, caplog=caplog)
+        return SimpleNamespace(
+            SortImports=darker.import_sorting.SortImports, caplog=caplog
+        )
 
 
 def test_isort_option_with_isort(run_isort):
