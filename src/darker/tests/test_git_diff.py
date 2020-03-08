@@ -14,7 +14,7 @@ from darker.utils import Buf
 
 def test_get_edit_linenums():
     ((path, chunks),) = list(get_edit_linenums(CHANGE_SECOND_LINE.encode("ascii")))
-    assert path == Path("test1.txt")
+    assert path == Path("test1.py")
     assert list(chunks) == [2]
 
 
@@ -34,7 +34,7 @@ def test_get_edit_chunks_for_one_file():
 
 def test_get_edit_chunks_one_file():
     path, chunks = next(get_edit_chunks(CHANGE_SECOND_LINE.encode("ascii")))
-    assert path == Path("test1.txt")
+    assert path == Path("test1.py")
     assert list(chunks) == [(2, 3)]
 
 

@@ -10,10 +10,10 @@ ORIGINAL = dedent(
 
 CHANGE_SECOND_LINE = dedent(
     '''\
-    diff --git a/test1.txt b/test1.txt
+    diff --git a/test1.py b/test1.py
     index 9ed6856..5a6b0d2 100644
-    --- a/test1.txt
-    +++ b/test1.txt
+    --- a/test1.py
+    +++ b/test1.py
     @@ -2,1 +2,1 @@
     -original second line
     +changed second line
