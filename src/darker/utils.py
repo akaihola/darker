@@ -1,6 +1,7 @@
 """Miscellaneous utility functions"""
 
 import io
+from itertools import chain
 from pathlib import Path
 from typing import Iterable, List, Tuple, Union
 
@@ -32,15 +33,20 @@ def joinlines(lines: List[str]) -> str:
     return "".join(f"{line}\n" for line in lines)
 
 
-def get_common_git_root(paths: Iterable[Path]) -> Path:
+def get_path_ancestry(path: Path) -> Iterable[Path]:
+    reverse_parents = reversed(path.parents)
+    if path.is_dir():
+        return chain(reverse_parents, [path])
+    else:
+        return reverse_parents
+
+
+def get_common_root(paths: Iterable[Path]) -> Path:
     """Find the deepest common parent directory of given paths"""
     resolved_paths = [path.resolve() for path in paths]
-    parents = reversed(list(zip(*(reversed(path.parents) for path in resolved_paths))))
+    parents = reversed(list(zip(*(get_path_ancestry(path) for path in resolved_paths))))
     for first_path, *other_paths in parents:
-        if (
-            all(path == first_path for path in other_paths)
-            and (first_path / ".git").is_dir()
-        ):
+        if all(path == first_path for path in other_paths):
             return first_path
     raise ValueError(f"Paths have no common parent Git root: {resolved_paths}")
 

@@ -9,7 +9,7 @@ from darker.black_diff import diff_and_get_opcodes, opcodes_to_chunks, run_black
 from darker.chooser import choose_lines
 from darker.command_line import ISORT_INSTRUCTION, parse_command_line
 from darker.git_diff import get_edit_linenums, git_diff
-from darker.utils import get_common_git_root, joinlines
+from darker.utils import get_common_root, joinlines
 from darker.verification import NotEquivalentError, verify_ast_unchanged
 from darker.version import __version__
 
@@ -64,7 +64,7 @@ def format_edited_parts(srcs: Iterable[Path], isort: bool) -> None:
     for context_lines in range(MAX_CONTEXT_LINES + 1):
         diff_srcs = failed_srcs or set(srcs)
         logger.debug("Looking at %s", ", ".join(str(s) for s in diff_srcs))
-        git_root = get_common_git_root(diff_srcs)
+        git_root = get_common_root(diff_srcs)
         logger.debug("Git root: %s", git_root)
         git_diff_output = git_diff(diff_srcs, git_root, context_lines)
         failed_srcs = set()

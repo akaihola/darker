@@ -44,6 +44,7 @@ def git_diff(paths: Iterable[Path], cwd: Path, context_lines: int) -> bytes:
         "git",
         "diff",
         f"-U{context_lines}",
+        "--relative",
         "--",
         *[str(path) for path in relative_paths],
     ]
