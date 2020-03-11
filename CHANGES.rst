@@ -1,4 +1,4 @@
-0.2.0 / 2020-mm-dd
+0.2.0 / 2020-03-11
 ------------------
 
 - Feature: Retry with a larger ``git diff -U<context_lines>`` option after producing a
