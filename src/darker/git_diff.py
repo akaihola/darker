@@ -83,6 +83,10 @@ def skip_file(lines: Buf, path: Path) -> None:
             next(lines)
 
 
+def should_reformat_file(path: Path):
+    return path.suffix == ".py"
+
+
 def get_edit_chunks(
     patch: bytes,
 ) -> Generator[Tuple[Path, List[Tuple[int, int]]], None, None]:
@@ -116,7 +120,7 @@ def get_edit_chunks(
         path_a_line = next(lines)
         assert path_a_line == f"--- {path_a}", (path_a_line, path_a)
         assert next(lines) == f"+++ {path_a}"
-        if path.suffix == ".py":
+        if should_reformat_file(path):
             yield path, list(get_edit_chunks_for_one_file(lines))
         else:
             skip_file(lines, path)
@@ -159,4 +163,5 @@ def git_diff_name_only(paths: Iterable[Path], cwd: Path) -> List[Path]:
     ]
     logger.debug("[%s]$ %s", cwd, " ".join(cmd))
     lines = check_output(cmd, cwd=str(cwd)).decode("utf-8").splitlines()
-    return [(cwd / line).resolve() for line in lines]
+    changed_paths = ((cwd / line).resolve() for line in lines)
+    return [path for path in changed_paths if should_reformat_file(path)]
