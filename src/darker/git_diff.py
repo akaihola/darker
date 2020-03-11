@@ -144,3 +144,19 @@ def get_edit_linenums(patch: bytes,) -> Generator[Tuple[Path, List[int]], None, 
             for start_linenum, end_linenum in ranges
             for linenum in range(start_linenum, end_linenum)
         ]
+
+
+def git_diff_name_only(paths: Iterable[Path], cwd: Path) -> List[Path]:
+    """Run ``git diff --name-only`` and return file names from the output"""
+    relative_paths = {p.resolve().relative_to(cwd) for p in paths}
+    cmd = [
+        "git",
+        "diff",
+        "--name-only",
+        "--relative",
+        "--",
+        *[str(path) for path in relative_paths],
+    ]
+    logger.debug("[%s]$ %s", cwd, " ".join(cmd))
+    lines = check_output(cmd, cwd=str(cwd)).decode("utf-8").splitlines()
+    return [(cwd / line).resolve() for line in lines]
