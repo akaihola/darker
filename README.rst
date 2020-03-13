@@ -4,8 +4,8 @@
 
 |travis-badge|_
 
-.. |travis-badge| image:: https://travis-ci.org/akaihola/darker.svg?branch=master
-.. _travis-badge: https://travis-ci.org/akaihola/darker
+.. |travis-badge| image:: https://travis-ci.com/akaihola/darker.svg?branch=master
+.. _travis-badge: https://travis-ci.com/akaihola/darker
 
 What?
 =====
