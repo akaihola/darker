@@ -2,6 +2,10 @@
  Darker – Apply Black formatting only in regions changed since last commit
 ===========================================================================
 
+|travis-badge|_
+
+.. |travis-badge| image:: https://travis-ci.org/akaihola/darker.svg?branch=master
+.. _travis-badge: https://travis-ci.org/akaihola/darker
 
 What?
 =====
