@@ -18,22 +18,22 @@
 What?
 =====
 
-This is a small utility built on top of the black_ Python code formatter
-to enable formatting of only regions which have changed since the last Git commit.
+This is a small utility built on top of the black_ and isort_ Python code formatters
+to enable formatting of only regions which have changed in the Git working tree
+since the last commit.
 
 .. _black: https://github.com/python/black
+.. _isort: https://github.com/timothycrosley/isort
 
 Why?
 ====
 
-Python code should be black, just like outer space.
-However, sometimes people insist on staying on the Earth.
-Since there's no complete blackness on the Earth,
-you eventually settle for just a little darker as a compromise.
+You want to start unifying code style in your project using black_.
+But instead of formatting the whole code base in one giant commit,
+you'd like to only change formatting when you're touching the code for other reasons.
 
-In other words, you want to use black_ for the code you write,
-but for some reason you don't want to convert the whole files,
-e.g. when contributing to upstream codebases that are not under your complete control.
+This can also be useful
+when contributing to upstream codebases that are not under your complete control.
 
 However, partial formatting is not supported by black_ itself,
 for various good reasons, and it won't be implemented either
@@ -49,7 +49,9 @@ __ https://github.com/python/black/issues/830
 This is where ``darker`` enters the stage.
 This tool is for those who want to do partial formatting anyway.
 
-Note that this tool is a stopgap measure, and you should avoid using it if you can.
+Note that this tool is meant for special situations
+when dealing with existing code bases.
+You should just use black_ as is when starting a project from scratch.
 
 How?
 ====
@@ -160,6 +162,19 @@ PyCharm/IntelliJ IDEA
    3. Uncheck "Auto-save edited files to trigger the watcher"
 
 __ https://plugins.jetbrains.com/plugin/7177-file-watchers
+
+
+How does it work?
+=================
+
+Darker takes a ``git diff`` of your Python files,
+records which lines of current files have been edited or added since the last commit.
+It then runs black_ and notes which chunks of lines were reformatted.
+Finally, only those reformatted chunks on which edited lines fall (even partially)
+are applied to the edited file.
+
+Also, in case the ``--isort`` option was specified,
+isort_ is run on each edited file before applying black_.
 
 
 License
