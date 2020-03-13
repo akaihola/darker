@@ -2,10 +2,18 @@
  Darker – Apply Black formatting only in regions changed since last commit
 ===========================================================================
 
-|travis-badge|_
+|travis-badge|_ |license-badge|_ |pypi-badge|_ |downloads-badge|_ |black-badge|_
 
 .. |travis-badge| image:: https://travis-ci.com/akaihola/darker.svg?branch=master
 .. _travis-badge: https://travis-ci.com/akaihola/darker
+.. |license-badge| image:: https://img.shields.io/badge/License-BSD%203--Clause-blue.svg
+.. _license-badge: https://github.com/akaihola/darker/blob/master/LICENSE.rst
+.. |pypi-badge| image:: https://img.shields.io/pypi/v/darker
+.. _pypi-badge: https://pypi.org/project/darker/
+.. |downloads-badge| image:: https://pepy.tech/badge/darker
+.. _downloads-badge: https://pepy.tech/project/darker
+.. |black-badge| image:: https://img.shields.io/badge/code%20style-black-000000.svg
+.. _black-badge: https://github.com/psf/black
 
 What?
 =====
