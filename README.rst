@@ -94,6 +94,20 @@ Example:
 
    if False: print('there')
 
+Black Command Line Arguments
+============================
+
+``black`` `command line arguments`_ that are currently supported:
+
+.. code:: sh
+
+     -S, --skip-string-normalization
+                           Sets the `--skip-string-normalization` flag for
+                           `black`
+     -l LINE_LENGTH, --line-length LINE_LENGTH
+                           Sets the `--line-length` argument for `black`
+
+.. _command line arguments: https://black.readthedocs.io/en/stable/installation_and_usage.html#command-line-options
 
 Editor integration
 ==================
