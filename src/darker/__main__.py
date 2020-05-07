@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 MAX_CONTEXT_LINES = 1000
 
 
-def format_edited_parts(srcs: Iterable[Path], isort: bool) -> None:
+def format_edited_parts(srcs: Iterable[Path], isort: bool, black_args: dict) -> None:
     """Black (and optional isort) formatting for chunks with edits since the last commit
 
     1. run isort on each edited file
@@ -40,6 +40,7 @@ def format_edited_parts(srcs: Iterable[Path], isort: bool) -> None:
 
     :param srcs: Directories and files to re-format
     :param isort: ``True`` to also run ``isort`` first on each changed file
+    :param black_args: Command-line arguments to send to ``black.FileMode``
 
     """
     remaining_srcs: Set[Path] = set(srcs)
@@ -65,7 +66,7 @@ def format_edited_parts(srcs: Iterable[Path], isort: bool) -> None:
                 continue
 
             # 4. run black
-            edited, formatted = run_black(src)
+            edited, formatted = run_black(src, black_args)
             logger.debug("Read %s lines from edited file %s", len(edited), src)
             logger.debug("Black reformat resulted in %s lines", len(formatted))
 
@@ -133,8 +134,13 @@ def main(argv: List[str] = None) -> None:
         logger.error(f"{ISORT_INSTRUCTION} to use the `--isort` option.")
         exit(1)
 
+    black_args = {
+        "line_length": args.line_length,
+        "skip_string_normalization": args.skip_string_normalization,
+    }
+
     paths = {Path(p) for p in args.src}
-    format_edited_parts(paths, args.isort)
+    format_edited_parts(paths, args.isort, black_args)
 
 
 if __name__ == "__main__":
