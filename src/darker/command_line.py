@@ -49,4 +49,20 @@ def parse_command_line(argv: List[str]) -> Namespace:
     parser.add_argument(
         "--version", action="store_true", help="Show the version of `darker`"
     )
+    parser.add_argument(
+        "-S",
+        "--skip-string-normalization",
+        action="store_true",
+        dest="skip_string_normalization",
+        default=False,
+        help="Sets the `--skip-string-normalization` flag for `black`",
+    )
+    parser.add_argument(
+        "-l",
+        "--line-length",
+        type=int,
+        dest="line_length",
+        default=88,
+        help="Sets the `--line-length` argument for `black`",
+    )
     return parser.parse_args(argv)
