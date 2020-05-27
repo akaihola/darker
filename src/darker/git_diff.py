@@ -129,10 +129,7 @@ def get_edit_chunks(
         return line
 
     while True:
-        try:
-            if not lines.next_line_startswith("diff --git "):
-                return
-        except StopIteration:
+        if not lines.next_line_startswith("diff --git "):
             return
         _, _, path_a, path_b = get_next().split(" ")
         path = Path(path_a)
