@@ -117,23 +117,31 @@ def get_edit_chunks(
     if not git_diff_result.output:
         return
     lines = Buf(git_diff_result.output)
+    command = " ".join(git_diff_result.command)
 
-    def expect_line(expect_startswith: str = "") -> str:
-        line = next(lines)
+    def expect_line(expect_startswith: str = "", catch_stop: bool = True) -> str:
+        if catch_stop:
+            try:
+                line = next(lines)
+            except StopIteration:
+                raise GitDiffParseError(f"Unexpected end of output from '{command}'")
+        else:
+            line = next(lines)
         if not line.startswith(expect_startswith):
             raise GitDiffParseError(
-                "Expected an '{}' line, got '{}' from '{}'".format(
-                    expect_startswith, line, git_diff_result.command
-                )
+                f"Expected an '{expect_startswith}' line, got '{line}' from '{command}'"
             )
         return line
 
     while True:
         try:
-            diff_git_line = expect_line("diff --git ")
+            diff_git_line = expect_line("diff --git ", catch_stop=False)
         except StopIteration:
             return
-        _, _, path_a, path_b = diff_git_line.split(" ")
+        try:
+            _, _, path_a, path_b = diff_git_line.split(" ")
+        except ValueError:
+            raise GitDiffParseError(f"Can't parse '{diff_git_line}'")
         path = Path(path_a)
 
         try:
