@@ -117,25 +117,35 @@ def get_edit_chunks(
     if not git_diff_result.output:
         return
     lines = Buf(git_diff_result.output)
+
+    def get_next(expect_startswith: str = "") -> str:
+        line = next(lines)
+        if not line.startswith(expect_startswith):
+            raise GitDiffParseError(
+                "Expected an '{}' line, got '{}' from '{}'".format(
+                    expect_startswith, line, git_diff_result.command
+                )
+            )
+        return line
+
     while True:
         try:
             if not lines.next_line_startswith("diff --git "):
                 return
         except StopIteration:
             return
-        _, _, path_a, path_b = next(lines).split(" ")
+        _, _, path_a, path_b = get_next().split(" ")
         path = Path(path_a)
 
-        index_line = next(lines)
-        if not index_line.startswith("index "):
-            raise GitDiffParseError(
-                "Expected an 'index' line, got '{}' from '{}'".format(
-                    index_line, " ".join(git_diff_result.command)
-                )
-            )
-        path_a_line = next(lines)
-        assert path_a_line == f"--- {path_a}", (path_a_line, path_a)
-        assert next(lines) == f"+++ {path_a}"
+        try:
+            get_next("index ")
+        except GitDiffParseError:
+            lines.seek_line(-1)
+            get_next("old mode ")
+            get_next("new mode ")
+            get_next("index ")
+        get_next(f"--- {path_a}")
+        get_next(f"+++ {path_a}")
         if should_reformat_file(path):
             yield path, list(get_edit_chunks_for_one_file(lines))
         else:

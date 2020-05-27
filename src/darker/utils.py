@@ -63,10 +63,15 @@ class Buf:
     def __iter__(self) -> "Buf":
         return self
 
+    def seek_line(self, lines_delta: int) -> None:
+        assert lines_delta <= 0
+        for _ in range(-lines_delta):
+            self._buf.seek(self._line_starts.pop())
+
     def next_line_startswith(self, prefix: Union[str, Tuple[str, ...]]) -> bool:
         try:
             return next(self).startswith(prefix)
         except StopIteration:
             return False
         finally:
-            self._buf.seek(self._line_starts.pop())
+            self.seek_line(-1)
