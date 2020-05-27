@@ -8,7 +8,7 @@ That output can be fed into :func:`get_edit_linenums`
 to obtain a list of line numbers in the to-file (modified file)
 which were changed from the from-file (file before modification)::
 
-    >>> path, linenums = next(get_edit_linenums(b'''\\
+    >>> diff_result = GitDiffResult(b'''\\
     ... diff --git mymodule.py mymodule.py
     ... index a57921c..a8afb81 100644
     ... --- mymodule.py
@@ -20,7 +20,8 @@ which were changed from the from-file (file before modification)::
     ... @@ -10 +11 @@    # ...and +11 from this line
     ... -Old tenth line
     ... +Replacement for tenth line
-    ... '''))
+    ... ''', ['git', 'diff'])
+    >>> path, linenums = next(get_edit_linenums(diff_result))
     >>> print(path)
     mymodule.py
     >>> linenums
@@ -30,14 +31,19 @@ which were changed from the from-file (file before modification)::
 import logging
 from pathlib import Path
 from subprocess import check_output
-from typing import Generator, Iterable, List, Tuple
+from typing import Generator, Iterable, List, NamedTuple, Tuple
 
 from darker.utils import Buf
 
 logger = logging.getLogger(__name__)
 
 
-def git_diff(paths: Iterable[Path], cwd: Path, context_lines: int) -> bytes:
+class GitDiffResult(NamedTuple):
+    output: bytes
+    command: List[str]
+
+
+def git_diff(paths: Iterable[Path], cwd: Path, context_lines: int) -> GitDiffResult:
     """Run ``git diff -U<context_lines> <path>`` and return the output"""
     relative_paths = {p.resolve().relative_to(cwd) for p in paths}
     cmd = [
@@ -50,7 +56,7 @@ def git_diff(paths: Iterable[Path], cwd: Path, context_lines: int) -> bytes:
         *[str(path) for path in relative_paths],
     ]
     logger.debug("[%s]$ %s", cwd, " ".join(cmd))
-    return check_output(cmd, cwd=str(cwd))
+    return GitDiffResult(check_output(cmd, cwd=str(cwd)), cmd)
 
 
 def parse_range(s: str) -> Tuple[int, int]:
@@ -87,8 +93,12 @@ def should_reformat_file(path: Path) -> bool:
     return path.suffix == ".py"
 
 
+class GitDiffParseError(Exception):
+    pass
+
+
 def get_edit_chunks(
-    patch: bytes,
+    git_diff_result: GitDiffResult,
 ) -> Generator[Tuple[Path, List[Tuple[int, int]]], None, None]:
     """Yield ranges of changed line numbers in Git diff to-file
 
@@ -104,9 +114,9 @@ def get_edit_chunks(
     E.g. ``[42, 7]`` means lines 42, 43, 44, 45, 46, 47 and 48 were changed.
 
     """
-    if not patch:
+    if not git_diff_result.output:
         return
-    lines = Buf(patch)
+    lines = Buf(git_diff_result.output)
     while True:
         try:
             if not lines.next_line_startswith("diff --git "):
@@ -116,7 +126,13 @@ def get_edit_chunks(
         _, _, path_a, path_b = next(lines).split(" ")
         path = Path(path_a)
 
-        assert next(lines).startswith("index ")
+        index_line = next(lines)
+        if not index_line.startswith("index "):
+            raise GitDiffParseError(
+                "Expected an 'index' line, got '{}' from '{}'".format(
+                    index_line, " ".join(git_diff_result.command)
+                )
+            )
         path_a_line = next(lines)
         assert path_a_line == f"--- {path_a}", (path_a_line, path_a)
         assert next(lines) == f"+++ {path_a}"
@@ -126,14 +142,22 @@ def get_edit_chunks(
             skip_file(lines, path)
 
 
-def get_edit_linenums(patch: bytes,) -> Generator[Tuple[Path, List[int]], None, None]:
+def get_edit_linenums(
+    git_diff_result: GitDiffResult,
+) -> Generator[Tuple[Path, List[int]], None, None]:
     """Yield changed line numbers in Git diff to-file
 
     The patch must be in ``git diff -U<num>`` format, and only contain differences for a
     single file.
 
     """
-    paths_and_ranges = get_edit_chunks(patch)
+    try:
+        paths_and_ranges = get_edit_chunks(git_diff_result)
+    except GitDiffParseError:
+        raise RuntimeError(
+            "Can't get line numbers for diff output from: %s",
+            " ".join(git_diff_result.command),
+        )
     for path, ranges in paths_and_ranges:
         if not ranges:
             logger.debug(f"Found no edited lines for %s", path)
