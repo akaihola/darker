@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 MAX_CONTEXT_LINES = 1000
 
 
-def format_edited_parts(srcs: Iterable[Path], isort: bool) -> None:
+def format_edited_parts(srcs: Iterable[Path], isort: bool, print_diff=False) -> None:
     """Black (and optional isort) formatting for chunks with edits since the last commit
 
     1. run isort on each edited file
@@ -107,7 +107,24 @@ def format_edited_parts(srcs: Iterable[Path], isort: bool) -> None:
                 # 10. A re-formatted Python file which produces an identical AST was
                 #     created successfully - write an updated file
                 logger.info("Writing %s bytes into %s", len(result_str), src)
-                src.write_text(result_str)
+                if print_diff:
+                    from difflib import unified_diff
+
+                    difflines = list(
+                        unified_diff(
+                            open(src).read().splitlines(),
+                            result_str.splitlines(),
+                            src.as_posix(),
+                            src.as_posix(),
+                        )
+                    )
+                    if len(difflines) > 2:
+                        h1, h2, *rest = list(difflines)
+                        print(h1, end="")
+                        print(h2, end="")
+                        print("\n".join(rest))
+                else:
+                    src.write_text(result_str)
         if not remaining_srcs:
             break
 
@@ -134,7 +151,7 @@ def main(argv: List[str] = None) -> None:
         exit(1)
 
     paths = {Path(p) for p in args.src}
-    format_edited_parts(paths, args.isort)
+    format_edited_parts(paths, args.isort, args.diff)
 
 
 if __name__ == "__main__":
