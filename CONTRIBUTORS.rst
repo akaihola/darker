@@ -5,3 +5,4 @@
 (in alphabetic order and with GitHub handles)
 
 - Antti Kaihola (@akaihola)
+- Correy Lim (@CorreyL)
