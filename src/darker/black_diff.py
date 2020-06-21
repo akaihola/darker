@@ -88,6 +88,7 @@ def run_black(src: Path, black_args: dict) -> Tuple[List[str], List[str]]:
     Return lines of the original file as well as the formatted content.
 
     :param black_args: Command-line arguments to send to ``black.FileMode``
+
     """
     src_contents = src.read_text()
     dst_contents = format_str(
