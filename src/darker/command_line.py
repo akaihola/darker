@@ -31,7 +31,10 @@ def parse_command_line(argv: List[str]) -> Namespace:
         "-i", "--isort", action="store_true", help="".join(isort_help),
     )
     parser.add_argument(
-        "-c", "--config", metavar="PATH", help="Read configuration from PATH."
+        "-c",
+        "--config",
+        metavar="PATH",
+        help="Ask `black` to read configuration from PATH.",
     )
     parser.add_argument(
         "-v",
