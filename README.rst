@@ -187,7 +187,8 @@ Prior art
 =========
 
 - black-macchiato__
-- darken__
+- darken__ (deprecated in favor of Darker; thanks Carreau__ for inspiration!)
 
 __ https://github.com/wbolster/black-macchiato
 __ https://github.com/Carreau/darken
+__ https://github.com/Carreau
