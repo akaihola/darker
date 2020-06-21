@@ -55,7 +55,7 @@ def parse_command_line(argv: List[str]) -> Namespace:
         action="store_true",
         dest="skip_string_normalization",
         default=False,
-        help="Sets the `--skip-string-normalization` flag for `black`",
+        help="Don't normalize string quotes or prefixes",
     )
     parser.add_argument(
         "-l",
@@ -63,6 +63,6 @@ def parse_command_line(argv: List[str]) -> Namespace:
         type=int,
         dest="line_length",
         default=88,
-        help="Sets the `--line-length` argument for `black`",
+        help="How many characters per line to allow [default: 88]",
     )
     return parser.parse_args(argv)
