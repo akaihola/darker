@@ -192,3 +192,12 @@ Prior art
 __ https://github.com/wbolster/black-macchiato
 __ https://github.com/Carreau/darken
 __ https://github.com/Carreau
+
+
+GitHub stars trend
+==================
+
+|stargazers|_
+
+.. |stargazers| image:: https://starchart.cc/akaihola/darker.svg
+.. _stargazers: https://starchart.cc/akaihola/darker
