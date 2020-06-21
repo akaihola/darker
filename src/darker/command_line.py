@@ -63,6 +63,6 @@ def parse_command_line(argv: List[str]) -> Namespace:
         type=int,
         dest="line_length",
         default=88,
-        help="Sets the `--line-length` argument for `black`",
+        help="How many characters per line to allow [default: 88]",
     )
     return parser.parse_args(argv)
