@@ -55,7 +55,7 @@ def parse_command_line(argv: List[str]) -> Namespace:
         action="store_true",
         dest="skip_string_normalization",
         default=False,
-        help="Sets the `--skip-string-normalization` flag for `black`",
+        help="Don't normalize string quotes or prefixes",
     )
     parser.add_argument(
         "-l",
