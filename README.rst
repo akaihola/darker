@@ -99,7 +99,7 @@ Black Command Line Arguments
 
 ``black`` `command line arguments`_ that are currently supported:
 
-.. code:: sh
+.. code-block:: shell
 
      -S, --skip-string-normalization
                            Sets the `--skip-string-normalization` flag for
