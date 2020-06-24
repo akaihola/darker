@@ -3,7 +3,7 @@
 import logging
 import sys
 from pathlib import Path
-from typing import Iterable, List, Set
+from typing import Iterable, List, Optional, Set
 
 from darker.black_diff import diff_and_get_opcodes, opcodes_to_chunks, run_black
 from darker.chooser import choose_lines
@@ -20,7 +20,9 @@ logger = logging.getLogger(__name__)
 MAX_CONTEXT_LINES = 1000
 
 
-def format_edited_parts(srcs: Iterable[Path], isort: bool) -> None:
+def format_edited_parts(
+    srcs: Iterable[Path], isort: bool, config: Optional[str]
+) -> None:
     """Black (and optional isort) formatting for chunks with edits since the last commit
 
     1. run isort on each edited file
@@ -40,6 +42,7 @@ def format_edited_parts(srcs: Iterable[Path], isort: bool) -> None:
 
     :param srcs: Directories and files to re-format
     :param isort: ``True`` to also run ``isort`` first on each changed file
+    :param config: Path to the black configuration file (optional)
 
     """
     remaining_srcs: Set[Path] = set(srcs)
@@ -65,7 +68,7 @@ def format_edited_parts(srcs: Iterable[Path], isort: bool) -> None:
                 continue
 
             # 4. run black
-            edited, formatted = run_black(src)
+            edited, formatted = run_black(src, config)
             logger.debug("Read %s lines from edited file %s", len(edited), src)
             logger.debug("Black reformat resulted in %s lines", len(formatted))
 
@@ -134,7 +137,7 @@ def main(argv: List[str] = None) -> None:
         exit(1)
 
     paths = {Path(p) for p in args.src}
-    format_edited_parts(paths, args.isort)
+    format_edited_parts(paths, args.isort, args.config)
 
 
 if __name__ == "__main__":
