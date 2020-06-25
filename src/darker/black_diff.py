@@ -96,7 +96,11 @@ def read_black_config(src: Path, value: Optional[str]) -> Dict[str, Any]:
 
     read_pyproject_toml(context, parameter, value)
 
-    return context.default_map or {}
+    return {
+        key: value
+        for key, value in (context.default_map or {}).items()
+        if key in ["line_length", "skip_string_normalization"]
+    }
 
 
 def run_black(
