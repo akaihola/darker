@@ -115,22 +115,23 @@ def run_black(
     """
     config = black_args.pop("config", None)
     defaults = read_black_config(src, config)
+    combined_args = {**defaults, **black_args}
 
-    command_line_args = {}
-    if "line_length" in black_args:
-        command_line_args["line_length"] = black_args["line_length"]
-    if "skip_string_normalization" in black_args:
+    effective_args = {}
+    if "line_length" in combined_args:
+        effective_args["line_length"] = combined_args["line_length"]
+    if "skip_string_normalization" in combined_args:
         # The ``black`` command line argument is
         # ``--skip-string-normalization``, but the parameter for
         # ``black.FileMode`` needs to be the opposite boolean of
         # ``skip-string-normalization``, hence the inverse boolean
-        command_line_args["string_normalization"] = not black_args[
+        effective_args["string_normalization"] = not combined_args[
             "skip_string_normalization"
         ]
 
     # Override defaults and pyproject.toml settings if they've been specified
     # from the command line arguments
-    mode = FileMode(**{**defaults, **command_line_args})
+    mode = FileMode(**effective_args)
 
     src_contents = src.read_text()
     dst_contents = format_str(src_contents, mode=mode)
