@@ -101,6 +101,8 @@ Black Command Line Arguments
 
 .. code-block:: shell
 
+     -c PATH, --config PATH
+                           Ask `black` to read configuration from PATH.
      -S, --skip-string-normalization
                            Don't normalize string quotes or prefixes
      -l LINE_LENGTH, --line-length LINE_LENGTH
