@@ -1,8 +1,10 @@
+from pathlib import Path
 from textwrap import dedent
 
+import pytest
 from black import FileMode, format_str
 
-from darker.black_diff import diff_and_get_opcodes, opcodes_to_chunks
+from darker.black_diff import diff_and_get_opcodes, opcodes_to_chunks, read_black_config
 
 FUNCTIONS2_PY = dedent(
     '''\
@@ -147,3 +149,15 @@ def test_mixed():
             ['    print("Inner defs should breathe a little.")'],
         ),
     ]
+
+
+@pytest.mark.parametrize("config,line_length", ((None, 79), ("custom.toml", 99)))
+def test_black_config(tmpdir, config, line_length):
+    tmpdir = Path(tmpdir)
+    src = tmpdir / "src.py"
+    toml = tmpdir / (config or "pyproject.toml")
+
+    toml.write_text("[tool.black]\nline-length = {}\n".format(line_length))
+
+    config = read_black_config(src, config and str(toml))
+    assert config == {"line_length": line_length}
