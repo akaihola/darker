@@ -1,4 +1,4 @@
-0.3.0 / 2020-06-22
+0.3.0.dev / yyyy-mm-dd
 ----------------------
 
 - Feature: Add support for black config
