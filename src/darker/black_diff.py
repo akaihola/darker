@@ -76,7 +76,7 @@ import logging
 from difflib import SequenceMatcher
 from functools import lru_cache
 from pathlib import Path
-from typing import Any, Dict, Generator, List, Optional, Tuple
+from typing import Any, Dict, Generator, List, Optional, Tuple, Union
 
 from black import FileMode, format_str, read_pyproject_toml
 from click import Command, Context, Option
@@ -99,7 +99,9 @@ def read_black_config(src: Path, value: Optional[str]) -> Dict[str, Any]:
     return context.default_map or {}
 
 
-def run_black(src: Path, black_args: dict, config: Optional[str]) -> Tuple[List[str], List[str]]:
+def run_black(
+    src: Path, black_args: Dict[str, Union[bool, int]]
+) -> Tuple[List[str], List[str]]:
     """Run the black formatter for the contents of the given Python file
 
     Return lines of the original file as well as the formatted content.
@@ -107,6 +109,7 @@ def run_black(src: Path, black_args: dict, config: Optional[str]) -> Tuple[List[
     :param black_args: Command-line arguments to send to ``black.FileMode``
 
     """
+    config = black_args.pop("config", None)
     defaults = read_black_config(src, config)
 
     command_line_args = {}

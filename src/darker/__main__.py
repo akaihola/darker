@@ -3,7 +3,7 @@
 import logging
 import sys
 from pathlib import Path
-from typing import Iterable, List, Optional, Set
+from typing import Dict, Iterable, List, Set, Union
 
 from darker.black_diff import diff_and_get_opcodes, opcodes_to_chunks, run_black
 from darker.chooser import choose_lines
@@ -21,7 +21,7 @@ MAX_CONTEXT_LINES = 1000
 
 
 def format_edited_parts(
-    srcs: Iterable[Path], isort: bool, black_args: dict, config: Optional[str]
+    srcs: Iterable[Path], isort: bool, black_args: Dict[str, Union[bool, int]]
 ) -> None:
     """Black (and optional isort) formatting for chunks with edits since the last commit
 
@@ -43,8 +43,6 @@ def format_edited_parts(
     :param srcs: Directories and files to re-format
     :param isort: ``True`` to also run ``isort`` first on each changed file
     :param black_args: Command-line arguments to send to ``black.FileMode``
-    :param config: Path to the black configuration file (optional)
-
     """
     remaining_srcs: Set[Path] = set(srcs)
     git_root = get_common_root(srcs)
@@ -69,7 +67,7 @@ def format_edited_parts(
                 continue
 
             # 4. run black
-            edited, formatted = run_black(src, black_args, config)
+            edited, formatted = run_black(src, black_args)
             logger.debug("Read %s lines from edited file %s", len(edited), src)
             logger.debug("Black reformat resulted in %s lines", len(formatted))
 
@@ -138,13 +136,15 @@ def main(argv: List[str] = None) -> None:
         exit(1)
 
     black_args = {}
+    if args.config:
+        black_args["config"] = args.config
     if args.line_length:
         black_args["line_length"] = args.line_length
     if args.skip_string_normalization:
         black_args["skip_string_normalization"] = args.skip_string_normalization
 
     paths = {Path(p) for p in args.src}
-    format_edited_parts(paths, args.isort, black_args, args.config)
+    format_edited_parts(paths, args.isort, black_args)
 
 
 if __name__ == "__main__":
