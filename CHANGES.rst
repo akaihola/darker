@@ -1,8 +1,8 @@
-0.3.0.dev / 2020-06-22
+0.3.0 / 2020-06-22
 ----------------------
 
 - Feature: Add support for black config
-
+- Feature: Add support for ``-l``/``--line-length`` and ``-S``/``--skip-string-normalization``
 
 0.2.0 / 2020-03-11
 ------------------
