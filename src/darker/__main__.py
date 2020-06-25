@@ -137,10 +137,11 @@ def main(argv: List[str] = None) -> None:
         logger.error(f"{ISORT_INSTRUCTION} to use the `--isort` option.")
         exit(1)
 
-    black_args = {
-        "line_length": args.line_length,
-        "skip_string_normalization": args.skip_string_normalization,
-    }
+    black_args = {}
+    if args.line_length:
+        black_args["line_length"] = args.line_length
+    if args.skip_string_normalization:
+        black_args["skip_string_normalization"] = args.skip_string_normalization
 
     paths = {Path(p) for p in args.src}
     format_edited_parts(paths, args.isort, black_args, args.config)
