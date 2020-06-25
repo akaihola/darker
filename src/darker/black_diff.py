@@ -76,7 +76,7 @@ import logging
 from difflib import SequenceMatcher
 from functools import lru_cache
 from pathlib import Path
-from typing import Any, Dict, Generator, List, Optional, Tuple, Union
+from typing import Dict, Generator, List, Optional, Tuple, Union
 
 from black import FileMode, format_str, read_pyproject_toml
 from click import Command, Context, Option
@@ -85,14 +85,14 @@ logger = logging.getLogger(__name__)
 
 
 @lru_cache(maxsize=1)
-def read_black_config(src: Path, value: Optional[str]) -> Dict[str, Any]:
+def read_black_config(src: Path, value: Optional[str]) -> Dict[str, Union[bool, int]]:
     """Read the black configuration from pyproject.toml"""
     command = Command("main")
 
     context = Context(command)
     context.params["src"] = (str(src),)
 
-    parameter = Option(("--config",))
+    parameter = Option(["--config"])
 
     read_pyproject_toml(context, parameter, value)
 

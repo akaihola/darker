@@ -83,7 +83,7 @@ def skip_file(lines: Buf, path: Path) -> None:
             next(lines)
 
 
-def should_reformat_file(path: Path):
+def should_reformat_file(path: Path) -> bool:
     return path.suffix == ".py"
 
 
