@@ -102,10 +102,9 @@ Black Command Line Arguments
 .. code-block:: shell
 
      -S, --skip-string-normalization
-                           Sets the `--skip-string-normalization` flag for
-                           `black`
+                           Don't normalize string quotes or prefixes
      -l LINE_LENGTH, --line-length LINE_LENGTH
-                           Sets the `--line-length` argument for `black`
+                           How many characters per line to allow [default: 88]
 
 .. _command line arguments: https://black.readthedocs.io/en/stable/installation_and_usage.html#command-line-options
 
