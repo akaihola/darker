@@ -3,7 +3,7 @@
 import logging
 import sys
 from pathlib import Path
-from typing import Iterable, List, Optional, Set
+from typing import Dict, Iterable, List, Optional, Set, Union
 
 from darker.black_diff import diff_and_get_opcodes, opcodes_to_chunks, run_black
 from darker.chooser import choose_lines
@@ -21,7 +21,10 @@ MAX_CONTEXT_LINES = 1000
 
 
 def format_edited_parts(
-    srcs: Iterable[Path], isort: bool, black_args: dict, config: Optional[str]
+    srcs: Iterable[Path],
+    isort: bool,
+    black_args: Dict[str, Union[bool, int]],
+    config: Optional[str],
 ) -> None:
     """Black (and optional isort) formatting for chunks with edits since the last commit
 
