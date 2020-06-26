@@ -151,13 +151,32 @@ def test_mixed():
     ]
 
 
-@pytest.mark.parametrize("config,line_length", ((None, 79), ("custom.toml", 99)))
-def test_black_config(tmpdir, config, line_length):
+@pytest.mark.parametrize(
+    "config_path, config_lines, expect",
+    [
+        (None, ['line-length = 79'], {'line_length': 79}),
+        ("custom.toml", ['line-length = 99'], {'line_length': 99}),
+        (
+            "custom.toml",
+            ['skip-string-normalization = true'],
+            {'skip_string_normalization': True},
+        ),
+        (
+            "custom.toml",
+            ['skip-string-normalization = false'],
+            {'skip_string_normalization': False},
+        ),
+        ("custom.toml", ["target-version = ['py37']"], {}),
+        ("custom.toml", ["include = '\\.pyi$'"], {}),
+        ("custom.toml", ["exclude = '\\.pyx$'"], {}),
+    ],
+)
+def test_black_config(tmpdir, config_path, config_lines, expect):
     tmpdir = Path(tmpdir)
     src = tmpdir / "src.py"
-    toml = tmpdir / (config or "pyproject.toml")
+    toml = tmpdir / (config_path or "pyproject.toml")
 
-    toml.write_text("[tool.black]\nline-length = {}\n".format(line_length))
+    toml.write_text("[tool.black]\n{}\n".format('\n'.join(config_lines)))
 
-    config = read_black_config(src, config and str(toml))
-    assert config == {"line_length": line_length}
+    config = read_black_config(src, config_path and str(toml))
+    assert config == expect
