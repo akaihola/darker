@@ -35,3 +35,9 @@ To speed up review and increase odds for the PR to be accepted, please
 - document new features or changed behavior in ``README.rst``
 - summarize end-user affecting changes in ``CHANGES.rst``
 - add your information in ``CONTRIBUTORS.rst``
+
+GitHub is configured to use Travis CI on each pull request to
+
+- run the test suite using Pytest
+- do static type checking using Mypy
+- check code formatting using Black
