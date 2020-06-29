@@ -74,22 +74,67 @@ a mixed result with only selected regions reformatted can be reconstructed.
 
 import logging
 from difflib import SequenceMatcher
+from functools import lru_cache
 from pathlib import Path
-from typing import Generator, List, Tuple
+from typing import Dict, Generator, List, Optional, Tuple, Union
 
-from black import FileMode, format_str
+from black import FileMode, format_str, read_pyproject_toml
+from click import Command, Context, Option
 
 logger = logging.getLogger(__name__)
 
 
-def run_black(src: Path) -> Tuple[List[str], List[str]]:
+@lru_cache(maxsize=1)
+def read_black_config(src: Path, value: Optional[str]) -> Dict[str, Union[bool, int]]:
+    """Read the black configuration from pyproject.toml"""
+    command = Command("main")
+
+    context = Context(command)
+    context.params["src"] = (str(src),)
+
+    parameter = Option(["--config"])
+
+    read_pyproject_toml(context, parameter, value)
+
+    return {
+        key: value
+        for key, value in (context.default_map or {}).items()
+        if key in ["line_length", "skip_string_normalization"]
+    }
+
+
+def run_black(
+    src: Path, black_args: Dict[str, Union[bool, int]]
+) -> Tuple[List[str], List[str]]:
     """Run the black formatter for the contents of the given Python file
 
     Return lines of the original file as well as the formatted content.
 
+    :param black_args: Command-line arguments to send to ``black.FileMode``
+
     """
+    config = black_args.pop("config", None)
+    defaults = read_black_config(src, config)
+    combined_args = {**defaults, **black_args}
+
+    effective_args = {}
+    if "line_length" in combined_args:
+        effective_args["line_length"] = combined_args["line_length"]
+    if "skip_string_normalization" in combined_args:
+        # The ``black`` command line argument is
+        # ``--skip-string-normalization``, but the parameter for
+        # ``black.FileMode`` needs to be the opposite boolean of
+        # ``skip-string-normalization``, hence the inverse boolean
+        effective_args["string_normalization"] = not combined_args[
+            "skip_string_normalization"
+        ]
+
+    # Override defaults and pyproject.toml settings if they've been specified
+    # from the command line arguments
+    mode = FileMode(**effective_args)
+
     src_contents = src.read_text()
-    dst_contents = format_str(src_contents, mode=FileMode())
+    dst_contents = format_str(src_contents, mode=mode)
     return src_contents.splitlines(), dst_contents.splitlines()
 
 

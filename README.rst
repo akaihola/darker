@@ -94,6 +94,21 @@ Example:
 
    if False: print('there')
 
+Black Command Line Arguments
+============================
+
+``black`` `command line arguments`_ that are currently supported:
+
+.. code-block:: shell
+
+     -c PATH, --config PATH
+                           Ask `black` to read configuration from PATH.
+     -S, --skip-string-normalization
+                           Don't normalize string quotes or prefixes
+     -l LINE_LENGTH, --line-length LINE_LENGTH
+                           How many characters per line to allow [default: 88]
+
+.. _command line arguments: https://black.readthedocs.io/en/stable/installation_and_usage.html#command-line-options
 
 Editor integration
 ==================
@@ -187,7 +202,17 @@ Prior art
 =========
 
 - black-macchiato__
-- darken__
+- darken__ (deprecated in favor of Darker; thanks Carreau__ for inspiration!)
 
 __ https://github.com/wbolster/black-macchiato
 __ https://github.com/Carreau/darken
+__ https://github.com/Carreau
+
+
+GitHub stars trend
+==================
+
+|stargazers|_
+
+.. |stargazers| image:: https://starchart.cc/akaihola/darker.svg
+.. _stargazers: https://starchart.cc/akaihola/darker
