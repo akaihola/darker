@@ -124,7 +124,7 @@ def format_edited_parts(
                         )
                     )
                     if len(difflines) > 2:
-                        h1, h2, *rest = list(difflines)
+                        h1, h2, *rest = difflines
                         print(h1, end="")
                         print(h2, end="")
                         print("\n".join(rest))
