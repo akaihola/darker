@@ -54,6 +54,8 @@ def format_edited_parts(
 
     # 1. run isort
     if isort:
+        if print_diff:
+            raise NotImplementedError('--isort is not supported with --print-diff')
         changed_files = git_diff_name_only(remaining_srcs, git_root)
         apply_isort(changed_files)
 
