@@ -121,7 +121,7 @@ def format_edited_parts(
 
                     difflines = list(
                         unified_diff(
-                            open(src).read().splitlines(),
+                            edited,
                             result_str.splitlines(),
                             src.as_posix(),
                             src.as_posix(),
