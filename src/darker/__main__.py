@@ -121,10 +121,7 @@ def format_edited_parts(
 
                     difflines = list(
                         unified_diff(
-                            edited,
-                            result_str.splitlines(),
-                            src.as_posix(),
-                            src.as_posix(),
+                            edited, chosen_lines, src.as_posix(), src.as_posix(),
                         )
                     )
                     if len(difflines) > 2:
