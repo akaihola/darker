@@ -49,4 +49,5 @@ def test_isort_option_with_isort_calls_sortimports(run_isort):
         line_length=88,
         multi_line_output=3,
         use_parentheses=True,
+        quiet=True,
     )

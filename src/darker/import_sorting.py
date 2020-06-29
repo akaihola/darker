@@ -15,7 +15,7 @@ def apply_isort(srcs: List[Path]) -> None:
         logger.debug(
             f"SortImports({str(src)!r}, multi_line_output=3, "
             f"include_trailing_comma=True, force_grid_wrap=0, use_parentheses=True,"
-            f" line_length=88)"
+            f" line_length=88, quiet=True)"
         )
         _ = SortImports(
             str(src),
@@ -24,4 +24,5 @@ def apply_isort(srcs: List[Path]) -> None:
             force_grid_wrap=0,
             use_parentheses=True,
             line_length=88,
+            quiet=True,
         )
