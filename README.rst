@@ -178,6 +178,30 @@ PyCharm/IntelliJ IDEA
 
 __ https://plugins.jetbrains.com/plugin/7177-file-watchers
 
+Visual Studio Code
+------------------
+
+1. Install ``darker``::
+
+     $ pip install darker
+
+2. Locate your ``darker`` installation folder.
+
+   On macOS / Linux / BSD::
+
+     $ which darker
+     /usr/local/bin/darker  # possible location
+
+   On Windows::
+
+     $ where darker
+     %LocalAppData%\Programs\Python\Python36-32\Scripts\darker.exe  # possible location
+
+3. Add these configuration options::
+
+    "python.formatting.provider": "black",
+    "python.formatting.blackPath": "<install_location_from_step_2>"
+
 
 How does it work?
 =================
