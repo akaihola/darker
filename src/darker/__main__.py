@@ -46,6 +46,8 @@ def format_edited_parts(
     :param srcs: Directories and files to re-format
     :param isort: ``True`` to also run ``isort`` first on each changed file
     :param black_args: Command-line arguments to send to ``black.FileMode``
+    :param print_diff: ``True`` to output diffs instead of modifying source files
+
     """
     remaining_srcs: Set[Path] = set(srcs)
     git_root = get_common_root(srcs)
