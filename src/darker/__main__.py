@@ -2,6 +2,7 @@
 
 import logging
 import sys
+from difflib import unified_diff
 from pathlib import Path
 from typing import Dict, Iterable, List, Set, Union
 
@@ -117,8 +118,6 @@ def format_edited_parts(
                 #     created successfully - write an updated file
                 logger.info("Writing %s bytes into %s", len(result_str), src)
                 if print_diff:
-                    from difflib import unified_diff
-
                     difflines = list(
                         unified_diff(
                             edited, chosen_lines, src.as_posix(), src.as_posix(),
