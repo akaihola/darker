@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 MAX_CONTEXT_LINES = 1000
 
 
-def format_edited_parts(srcs: Iterable[Path], isort: bool, print_diff=False) -> None:
+def format_edited_parts(srcs: Iterable[Path], isort: bool, print_diff: bool) -> None:
     """Black (and optional isort) formatting for chunks with edits since the last commit
 
     1. run isort on each edited file
