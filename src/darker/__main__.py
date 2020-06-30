@@ -9,7 +9,12 @@ from typing import Dict, Iterable, List, Set, Union
 from darker.black_diff import diff_and_get_opcodes, opcodes_to_chunks, run_black
 from darker.chooser import choose_lines
 from darker.command_line import ISORT_INSTRUCTION, parse_command_line
-from darker.git_diff import get_edit_linenums, git_diff, git_diff_name_only
+from darker.git_diff import (
+    GitDiffParseError,
+    get_edit_linenums,
+    git_diff,
+    git_diff_name_only,
+)
 from darker.import_sorting import SortImports, apply_isort
 from darker.utils import get_common_root, joinlines
 from darker.verification import NotEquivalentError, verify_ast_unchanged
@@ -65,11 +70,11 @@ def format_edited_parts(
         # 2. do the git diff
         logger.debug("Looking at %s", ", ".join(str(s) for s in remaining_srcs))
         logger.debug("Git root: %s", git_root)
-        git_diff_output = git_diff(remaining_srcs, git_root, context_lines)
+        git_diff_result = git_diff(remaining_srcs, git_root, context_lines)
 
         # 3. extract changed line numbers for each to-file
         remaining_srcs = set()
-        for src_relative, edited_linenums in get_edit_linenums(git_diff_output):
+        for src_relative, edited_linenums in get_edit_linenums(git_diff_result):
             src = git_root / src_relative
             if not edited_linenums:
                 continue
