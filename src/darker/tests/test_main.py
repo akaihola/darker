@@ -22,13 +22,12 @@ def test_isort_option_without_isort(tmpdir, without_isort, caplog):
 
 
 @pytest.fixture
-def run_isort(tmpdir, monkeypatch, caplog):
-    monkeypatch.chdir(tmpdir)
-    check_call(["git", "init"], cwd=tmpdir)
+def run_isort(git_repo, monkeypatch, caplog):
+    monkeypatch.chdir(git_repo.root)
+    paths = git_repo.add({'test1.py': 'original'}, commit='Initial commit')
+    paths['test1.py'].write('changed')
     with patch.multiple(
-        darker.__main__,
-        run_black=Mock(return_value=([], [])),
-        git_diff_name_only=Mock(return_value=[Path(tmpdir / 'test1.py')]),
+        darker.__main__, run_black=Mock(return_value=[]), verify_ast_unchanged=Mock(),
     ), patch("darker.import_sorting.SortImports"):
         darker.__main__.main(["--isort", "./test1.py"])
         return SimpleNamespace(
@@ -42,7 +41,8 @@ def test_isort_option_with_isort(run_isort):
 
 def test_isort_option_with_isort_calls_sortimports(run_isort):
     run_isort.SortImports.assert_called_once_with(
-        str(Path.cwd() / "test1.py"),
+        file_contents="changed",
+        check=True,
         force_grid_wrap=0,
         include_trailing_comma=True,
         line_length=88,
@@ -56,12 +56,6 @@ def test_format_edited_parts_empty():
     with pytest.raises(ValueError):
 
         darker.__main__.format_edited_parts([], False, {}, True)
-
-
-def test_format_edited_parts_isort_print_diff():
-    with pytest.raises(NotImplementedError):
-
-        darker.__main__.format_edited_parts([Path('test.py')], True, {}, True)
 
 
 A_PY = ['import sys', 'import os', "print( '42')", '']
@@ -94,28 +88,53 @@ A_PY_DIFF_BLACK_NO_STR_NORMALIZE = [
     '',
 ]
 
+A_PY_DIFF_BLACK_ISORT = [
+    '--- /a.py',
+    '+++ /a.py',
+    '@@ -1,3 +1,4 @@',
+    '',
+    '+import os',
+    ' import sys',
+    '-import os',
+    "-print( '42')",
+    '+',
+    '+print("42")',
+    '',
+]
+
 
 @pytest.mark.parametrize(
-    'srcs, isort, black_args, print_diff, expect_stdout, expect_a_py',
+    'isort, black_args, print_diff, expect_stdout, expect_a_py',
     [
-        (['a.py'], False, {}, True, A_PY_DIFF_BLACK, A_PY),
-        (['a.py'], True, {}, False, [''], A_PY_BLACK_ISORT),
+        (False, {}, True, A_PY_DIFF_BLACK, A_PY),
         (
-            ['a.py'],
+            True,
+            {},
+            False,
+            ['ERROR:  Imports are incorrectly sorted.', ''],
+            A_PY_BLACK_ISORT,
+        ),
+        (
             False,
             {'skip_string_normalization': True},
             True,
             A_PY_DIFF_BLACK_NO_STR_NORMALIZE,
             A_PY,
         ),
-        (['a.py'], False, {}, False, [''], A_PY_BLACK),
+        (False, {}, False, [''], A_PY_BLACK),
+        (
+            True,
+            {},
+            True,
+            ['ERROR:  Imports are incorrectly sorted.'] + A_PY_DIFF_BLACK_ISORT,
+            A_PY,
+        ),
     ],
 )
 def test_format_edited_parts(
     git_repo,
     monkeypatch,
     capsys,
-    srcs,
     isort,
     black_args,
     print_diff,
@@ -126,9 +145,7 @@ def test_format_edited_parts(
     paths = git_repo.add({'a.py': '\n', 'b.py': '\n'}, commit='Initial commit')
     paths['a.py'].write('\n'.join(A_PY))
     paths['b.py'].write('print(42 )\n')
-    darker.__main__.format_edited_parts(
-        [Path(src) for src in srcs], isort, black_args, print_diff
-    )
+    darker.__main__.format_edited_parts([Path('a.py')], isort, black_args, print_diff)
     stdout = capsys.readouterr().out.replace(str(git_repo.root), '')
     assert stdout.split('\n') == expect_stdout
     assert paths['a.py'].readlines(cr=False) == expect_a_py
