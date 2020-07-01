@@ -19,7 +19,7 @@ The first line will be reformatted by Black, and the second left intact::
 First, :func:`run_black` uses Black to reformat the contents of a given file.
 Original and reformatted lines are returned e.g.::
 
-    >>> src_lines, dst_lines = run_black(src)
+    >>> src_lines, dst_lines = run_black(src, black_args={})
     >>> src_lines
     ['for i in range(5): print(i)',
      'print("done")']
