@@ -1,6 +1,6 @@
 import pytest
 
-from darker.verification import verify_ast_unchanged, NotEquivalentError
+from darker.verification import NotEquivalentError, verify_ast_unchanged
 
 
 @pytest.mark.parametrize(
