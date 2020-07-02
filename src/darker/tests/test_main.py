@@ -41,14 +41,15 @@ def test_isort_option_with_isort(run_isort):
 
 def test_isort_option_with_isort_calls_sortimports(run_isort):
     run_isort.SortImports.assert_called_once_with(
-        file_contents="changed",
-        check=True,
-        force_grid_wrap=0,
-        include_trailing_comma=True,
-        line_length=88,
-        multi_line_output=3,
-        use_parentheses=True,
-        quiet=True,
+        file_contents="changed", check=True, **darker.import_sorting.default
+    )
+
+
+def test_isort_option_with_config(isort_config, run_isort):
+    isort_args = darker.import_sorting.default.copy()
+    isort_args["line_length"] = 120
+    run_isort.SortImports.assert_called_once_with(
+        file_contents="changed", check=True, **isort_args
     )
 
 

@@ -4,7 +4,7 @@ import logging
 import sys
 from difflib import unified_diff
 from pathlib import Path
-from typing import Dict, Iterable, List, Union
+from typing import Dict, Iterable, List, Optional, Union, cast
 
 from darker.black_diff import run_black
 from darker.chooser import choose_lines
@@ -29,7 +29,7 @@ MAX_CONTEXT_LINES = 1000
 def format_edited_parts(
     srcs: Iterable[Path],
     isort: bool,
-    black_args: Dict[str, Union[bool, int]],
+    black_args: Dict[str, Union[bool, int, str]],
     print_diff: bool,
 ) -> None:
     """Black (and optional isort) formatting for chunks with edits since the last commit
@@ -64,8 +64,10 @@ def format_edited_parts(
 
     # 1. run isort
     if isort:
+        config = cast(Optional[str], black_args.get("config"))
+        line_length = cast(Optional[int], black_args.get("line_length"))
         edited_srcs = {
-            src: apply_isort(edited_content)
+            src: apply_isort(edited_content, src, config, line_length)
             for src, edited_content in worktree_srcs.items()
         }
     else:

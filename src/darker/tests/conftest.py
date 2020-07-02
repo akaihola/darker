@@ -1,6 +1,7 @@
 import sys
 import types
 from subprocess import check_call
+from textwrap import dedent
 from typing import Dict
 from unittest.mock import patch
 
@@ -43,3 +44,21 @@ class GitRepoFixture:
 def git_repo(tmpdir):
     check_call(["git", "init"], cwd=tmpdir)
     return GitRepoFixture(tmpdir)
+
+
+@pytest.fixture
+def isort_config(tmpdir):
+    from darker.import_sorting import find_project_root
+
+    find_project_root.cache_clear()
+
+    config = tmpdir / 'pyproject.toml'
+    config.write(
+        dedent(
+            """\
+            [tool.isort]
+            line_length = 120
+            """
+        )
+    )
+    return config

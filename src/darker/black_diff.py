@@ -35,7 +35,7 @@ for how this result is further processed with:
 import logging
 from functools import lru_cache
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Tuple, Union, cast
 
 from black import FileMode, format_str, read_pyproject_toml
 from click import Command, Context, Option
@@ -63,7 +63,7 @@ def read_black_config(src: Path, value: Optional[str]) -> Dict[str, Union[bool, 
 
 
 def run_black(
-    src: Path, src_contents: str, black_args: Dict[str, Union[bool, int]]
+    src: Path, src_contents: str, black_args: Dict[str, Union[bool, int, str]]
 ) -> List[str]:
     """Run the black formatter for the Python source code given as a string
 
@@ -76,7 +76,8 @@ def run_black(
     """
     config = black_args.pop("config", None)
     defaults = read_black_config(src, config)
-    combined_args = {**defaults, **black_args}
+    args = cast(Dict[str, Union[bool, int]], black_args)
+    combined_args = {**defaults, **args}
 
     effective_args = {}
     if "line_length" in combined_args:
