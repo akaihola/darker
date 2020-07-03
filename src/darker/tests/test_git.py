@@ -3,9 +3,9 @@ from pathlib import Path
 import pytest
 
 from darker.git import (
+    git_diff_name_only,
     git_get_unmodified_content,
     should_reformat_file,
-    git_diff_name_only,
 )
 
 

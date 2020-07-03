@@ -1,6 +1,6 @@
 from textwrap import dedent
 
-from black import format_str, FileMode
+from black import FileMode, format_str
 
 from darker.diff import (
     diff_and_get_opcodes,

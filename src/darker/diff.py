@@ -67,7 +67,7 @@ a mixed result with only selected regions reformatted can be reconstructed.
 
 import logging
 from difflib import SequenceMatcher
-from typing import List, Generator, Tuple
+from typing import Generator, List, Tuple
 
 logger = logging.getLogger(__name__)
 

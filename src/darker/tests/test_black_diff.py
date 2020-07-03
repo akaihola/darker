@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from darker.black_diff import read_black_config, run_black, run_black
+from darker.black_diff import read_black_config, run_black
 
 
 @pytest.mark.parametrize(
