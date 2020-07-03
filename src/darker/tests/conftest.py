@@ -32,7 +32,7 @@ class GitRepoFixture:
             for relative_path in paths_and_contents
         }
         for relative_path, content in paths_and_contents.items():
-            absolute_paths[relative_path].write(content)
+            absolute_paths[relative_path].write(content, ensure=True)
             check_call(["git", "add", relative_path], cwd=self.root)
         if commit:
             check_call(["git", "commit", "-m", commit], cwd=self.root)

@@ -12,13 +12,12 @@ class NotEquivalentError(Exception):
 
 
 def verify_ast_unchanged(
-    edited_to_file_lines: List[str],
+    edited_to_file_str: str,
     reformatted_str: str,
     black_chunks: List[Tuple[int, List[str], List[str]]],
     edited_linenums: List[int],
 ) -> None:
     """Verify that source code parses to the same AST before and after reformat"""
-    edited_to_file_str = joinlines(edited_to_file_lines)
     try:
         assert_equivalent(edited_to_file_str, reformatted_str)
     except AssertionError as exc_info:
