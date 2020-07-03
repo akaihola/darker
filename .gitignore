@@ -1,3 +1,5 @@
 /.idea/
-/src/darker.egg-info
+darker.egg-info/
 __pycache__/
+.mypy_cache/
+*.pyc

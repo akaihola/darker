@@ -7,4 +7,4 @@ python:
   - "nightly"  # nightly build
 install:
   - pip install -e '.[isort,test]'
-script: pytest --black --mypy src
+script: pytest
