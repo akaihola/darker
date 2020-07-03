@@ -4,17 +4,17 @@ from darker.verification import NotEquivalentError, verify_ast_unchanged
 
 
 @pytest.mark.parametrize(
-    "src_lines, dst_content, expect",
+    "src_content, dst_content, expect",
     [
-        (["if True: pass"], "if False: pass\n", AssertionError),
-        (["if True: pass"], "if True:\n    pass\n", None),
+        ("if True: pass\n", "if False: pass\n", AssertionError),
+        ("if True: pass\n", "if True:\n    pass\n", None),
     ],
 )
-def test_verify_ast_unchanged(src_lines, dst_content, expect):
+def test_verify_ast_unchanged(src_content, dst_content, expect):
     black_chunks = [(1, ["black"], ["chunks"])]
     edited_linenums = [1, 2]
     try:
-        verify_ast_unchanged(src_lines, dst_content, black_chunks, edited_linenums)
+        verify_ast_unchanged(src_content, dst_content, black_chunks, edited_linenums)
     except NotEquivalentError:
         assert expect is AssertionError
     else:

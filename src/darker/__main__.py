@@ -2,18 +2,19 @@
 
 import logging
 import sys
+from difflib import unified_diff
 from pathlib import Path
-from typing import Dict, Iterable, List, Set, Union
+from typing import Dict, Iterable, List, Union
 
-from darker.black_diff import diff_and_get_opcodes, opcodes_to_chunks, run_black
+from darker.black_diff import run_black
 from darker.chooser import choose_lines
 from darker.command_line import ISORT_INSTRUCTION, parse_command_line
-from darker.git_diff import (
-    GitDiffParseError,
-    get_edit_linenums,
-    git_diff,
-    git_diff_name_only,
+from darker.diff import (
+    diff_and_get_opcodes,
+    opcodes_to_chunks,
+    opcodes_to_edit_linenums,
 )
+from darker.git import git_diff_name_only, git_get_unmodified_content
 from darker.import_sorting import SortImports, apply_isort
 from darker.utils import get_common_root, joinlines
 from darker.verification import NotEquivalentError, verify_ast_unchanged
@@ -26,12 +27,15 @@ MAX_CONTEXT_LINES = 1000
 
 
 def format_edited_parts(
-    srcs: Iterable[Path], isort: bool, black_args: Dict[str, Union[bool, int]]
+    srcs: Iterable[Path],
+    isort: bool,
+    black_args: Dict[str, Union[bool, int]],
+    print_diff: bool,
 ) -> None:
     """Black (and optional isort) formatting for chunks with edits since the last commit
 
     1. run isort on each edited file
-    2. do a ``git diff -U0 <path> ...`` for all file & dir paths on the command line
+    2. diff HEAD and worktree for all file & dir paths on the command line
     3. extract line numbers in each edited to-file for changed lines
     4. run black on the contents of each edited to-file
     5. get a diff between the edited to-file and the reformatted content
@@ -48,31 +52,46 @@ def format_edited_parts(
     :param srcs: Directories and files to re-format
     :param isort: ``True`` to also run ``isort`` first on each changed file
     :param black_args: Command-line arguments to send to ``black.FileMode``
+    :param print_diff: ``True`` to output diffs instead of modifying source files
+
     """
-    remaining_srcs: Set[Path] = set(srcs)
     git_root = get_common_root(srcs)
+    changed_files = git_diff_name_only(srcs, git_root)
+    head_srcs = {
+        src: git_get_unmodified_content(src, git_root) for src in changed_files
+    }
+    worktree_srcs = {src: (git_root / src).read_text() for src in changed_files}
 
     # 1. run isort
     if isort:
-        changed_files = git_diff_name_only(remaining_srcs, git_root)
-        apply_isort(changed_files)
+        edited_srcs = {
+            src: apply_isort(edited_content)
+            for src, edited_content in worktree_srcs.items()
+        }
+    else:
+        edited_srcs = worktree_srcs
 
-    for context_lines in range(MAX_CONTEXT_LINES + 1):
-
-        # 2. do the git diff
-        logger.debug("Looking at %s", ", ".join(str(s) for s in remaining_srcs))
-        logger.debug("Git root: %s", git_root)
-        git_diff_result = git_diff(remaining_srcs, git_root, context_lines)
-
-        # 3. extract changed line numbers for each to-file
-        remaining_srcs = set()
-        for src_relative, edited_linenums in get_edit_linenums(git_diff_result):
+    for src_relative, edited_content in edited_srcs.items():
+        for context_lines in range(MAX_CONTEXT_LINES + 1):
             src = git_root / src_relative
-            if not edited_linenums:
-                continue
+            edited = edited_content.splitlines()
+            head_lines = head_srcs[src_relative]
+
+            # 2. diff HEAD and worktree for all file & dir paths on the command line
+            edited_opcodes = diff_and_get_opcodes(head_lines, edited)
+
+            # 3. extract line numbers in each edited to-file for changed lines
+            edited_linenums = list(opcodes_to_edit_linenums(edited_opcodes))
+            if (
+                isort
+                and not edited_linenums
+                and edited_content == worktree_srcs[src_relative]
+            ):
+                logger.debug("No changes in %s after isort", src)
+                break
 
             # 4. run black
-            edited, formatted = run_black(src, black_args)
+            formatted = run_black(src, edited_content, black_args)
             logger.debug("Read %s lines from edited file %s", len(edited), src)
             logger.debug("Black reformat resulted in %s lines", len(formatted))
 
@@ -96,7 +115,9 @@ def format_edited_parts(
                 len(chosen_lines),
             )
             try:
-                verify_ast_unchanged(edited, result_str, black_chunks, edited_linenums)
+                verify_ast_unchanged(
+                    edited_content, result_str, black_chunks, edited_linenums
+                )
             except NotEquivalentError:
                 # Diff produced misaligned chunks which couldn't be reconstructed into
                 # a partially re-formatted Python file which produces an identical AST.
@@ -109,14 +130,29 @@ def format_edited_parts(
                     "Trying again with %s lines of context for `git diff -U`",
                     context_lines + 1,
                 )
-                remaining_srcs.add(src)
+                continue
             else:
                 # 10. A re-formatted Python file which produces an identical AST was
                 #     created successfully - write an updated file
-                logger.info("Writing %s bytes into %s", len(result_str), src)
-                src.write_text(result_str)
-        if not remaining_srcs:
-            break
+                #     or print the diff
+                if print_diff:
+                    difflines = list(
+                        unified_diff(
+                            worktree_srcs[src_relative].splitlines(),
+                            chosen_lines,
+                            src.as_posix(),
+                            src.as_posix(),
+                        )
+                    )
+                    if len(difflines) > 2:
+                        h1, h2, *rest = difflines
+                        print(h1, end="")
+                        print(h2, end="")
+                        print("\n".join(rest))
+                else:
+                    logger.info("Writing %s bytes into %s", len(result_str), src)
+                    src.write_text(result_str)
+                break
 
 
 def main(argv: List[str] = None) -> None:
@@ -149,7 +185,7 @@ def main(argv: List[str] = None) -> None:
         black_args["skip_string_normalization"] = args.skip_string_normalization
 
     paths = {Path(p) for p in args.src}
-    format_edited_parts(paths, args.isort, black_args)
+    format_edited_parts(paths, args.isort, black_args, args.diff)
 
 
 if __name__ == "__main__":

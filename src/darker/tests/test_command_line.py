@@ -1,4 +1,5 @@
 import re
+from pathlib import Path
 from textwrap import dedent
 from unittest.mock import call, patch
 
@@ -78,3 +79,31 @@ def test_black_options(monkeypatch, tmpdir, git_repo, options, expect):
 
     _, expect_args, expect_kwargs = expect
     FileMode.assert_called_once_with(*expect_args, **expect_kwargs)
+
+
+@pytest.mark.parametrize(
+    'options, expect',
+    [
+        (['a.py'], ({Path('a.py')}, False, {}, False)),
+        (['--isort', 'a.py'], ({Path('a.py')}, True, {}, False)),
+        (
+            ['--config', 'my.cfg', 'a.py'],
+            ({Path('a.py')}, False, {'config': 'my.cfg'}, False),
+        ),
+        (
+            ['--line-length', '90', 'a.py'],
+            ({Path('a.py')}, False, {'line_length': 90}, False),
+        ),
+        (
+            ['--skip-string-normalization', 'a.py'],
+            ({Path('a.py')}, False, {'skip_string_normalization': True}, False),
+        ),
+        (['--diff', 'a.py'], ({Path('a.py')}, False, {}, True)),
+    ],
+)
+def test_options(options, expect):
+    with patch('darker.__main__.format_edited_parts') as format_edited_parts:
+
+        main(options)
+
+    format_edited_parts.assert_called_once_with(*expect)

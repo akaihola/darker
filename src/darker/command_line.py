@@ -28,6 +28,11 @@ def parse_command_line(argv: List[str]) -> Namespace:
     if not isort:
         isort_help.append(f". {ISORT_INSTRUCTION} to enable usage of this option.")
     parser.add_argument(
+        "--diff",
+        action="store_true",
+        help="Don't write the files back, just output a diff for each file on stdout",
+    )
+    parser.add_argument(
         "-i", "--isort", action="store_true", help="".join(isort_help),
     )
     parser.add_argument(
