@@ -5,10 +5,10 @@ from typing import Dict, List, Optional, Tuple, Union
 from black import find_project_root
 
 try:
-    from isort.api import sort_code_string as SortImports
+    from isort.api import sort_code_string
     import isort.settings as isort_settings
 except ImportError:
-    SortImports = None
+    sort_code_string = None
     isort_settings = None
 
 logger = logging.getLogger(__name__)
@@ -42,9 +42,9 @@ def apply_isort(
         isort_settings["line_length"] = line_length
 
     logger.debug(
-        "SortImports(file_contents=..., check=True, {})".format(
+        "sort_code_string(file_contents=..., check=True, {})".format(
             ", ".join(f"{k}={v}" for k, v in isort_settings.items())
         )
     )
-    output: str = SortImports(content, **isort_settings)
+    output: str = sort_code_string(content, **isort_settings)
     return output

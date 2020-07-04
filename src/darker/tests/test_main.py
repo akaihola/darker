@@ -1,7 +1,7 @@
 from pathlib import Path
 from subprocess import check_call
 from types import SimpleNamespace
-from unittest.mock import Mock, patch, ANY
+from unittest.mock import Mock, patch
 
 import pytest
 
@@ -11,7 +11,9 @@ import darker.import_sorting
 
 def test_isort_option_without_isort(tmpdir, without_isort, caplog):
     check_call(["git", "init"], cwd=tmpdir)
-    with patch.object(darker.__main__, "SortImports", None), pytest.raises(SystemExit):
+    with patch.object(darker.__main__, "sort_code_string", None), pytest.raises(
+        SystemExit
+    ):
 
         darker.__main__.main(["--isort", str(tmpdir)])
 
@@ -28,10 +30,10 @@ def run_isort(git_repo, monkeypatch, caplog):
     paths['test1.py'].write('changed')
     with patch.multiple(
         darker.__main__, run_black=Mock(return_value=[]), verify_ast_unchanged=Mock(),
-    ), patch("darker.import_sorting.SortImports"):
+    ), patch("darker.import_sorting.sort_code_string"):
         darker.__main__.main(["--isort", "./test1.py"])
         return SimpleNamespace(
-            SortImports=darker.import_sorting.SortImports, caplog=caplog
+            sort_code_string=darker.import_sorting.sort_code_string, caplog=caplog
         )
 
 
@@ -40,14 +42,14 @@ def test_isort_option_with_isort(run_isort):
 
 
 def test_isort_option_with_isort_calls_sortimports(run_isort):
-    run_isort.SortImports.assert_called_once()
-    assert run_isort.SortImports.call_args[0] == ("changed",)
+    run_isort.sort_code_string.assert_called_once()
+    assert run_isort.sort_code_string.call_args[0] == ("changed",)
 
 
 def test_isort_option_with_config(isort_config, run_isort):
-    run_isort.SortImports.assert_called_once()
-    assert run_isort.SortImports.call_args[0] == ("changed",)
-    assert run_isort.SortImports.call_args[1]["line_length"] == 120
+    run_isort.sort_code_string.assert_called_once()
+    assert run_isort.sort_code_string.call_args[0] == ("changed",)
+    assert run_isort.sort_code_string.call_args[1]["line_length"] == 120
 
 
 def test_format_edited_parts_empty():
