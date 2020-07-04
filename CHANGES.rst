@@ -4,7 +4,7 @@
 - Feature: Add support for black config
 - Feature: Add support for ``-l``/``--line-length`` and ``-S``/``--skip-string-normalization``
 - Feature: ``--diff`` outputs a diff for each file on standard output
-- Feature: Allow to configure `isort` through pyproject.toml
+- Feature: Allow to configure ``isort`` through pyproject.toml
 
 
 0.2.0 / 2020-03-11
