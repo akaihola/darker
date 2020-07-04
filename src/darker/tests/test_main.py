@@ -106,13 +106,7 @@ A_PY_DIFF_BLACK_ISORT = [
     'isort, black_args, print_diff, expect_stdout, expect_a_py',
     [
         (False, {}, True, A_PY_DIFF_BLACK, A_PY),
-        (
-            True,
-            {},
-            False,
-            ['ERROR:  Imports are incorrectly sorted and/or formatted.', ''],
-            A_PY_BLACK_ISORT,
-        ),
+        (True, {}, False, [''], A_PY_BLACK_ISORT,),
         (
             False,
             {'skip_string_normalization': True},
@@ -121,14 +115,7 @@ A_PY_DIFF_BLACK_ISORT = [
             A_PY,
         ),
         (False, {}, False, [''], A_PY_BLACK),
-        (
-            True,
-            {},
-            True,
-            ['ERROR:  Imports are incorrectly sorted and/or formatted.']
-            + A_PY_DIFF_BLACK_ISORT,
-            A_PY,
-        ),
+        (True, {}, True, A_PY_DIFF_BLACK_ISORT, A_PY,),
     ],
 )
 def test_format_edited_parts(
