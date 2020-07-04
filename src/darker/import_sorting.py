@@ -3,7 +3,7 @@ import logging
 try:
     import isort
 except ImportError:
-    isort = False
+    isort = None
 
 logger = logging.getLogger(__name__)
 
