@@ -1,3 +1,4 @@
+import io
 import logging
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Union, cast
@@ -5,7 +6,7 @@ from typing import Dict, List, Optional, Tuple, Union, cast
 from black import find_project_root
 
 try:
-    from isort import SortImports
+    from isort.api import sort_stream as SortImports
     import isort.settings as isort_settings
 except ImportError:
     SortImports = None
@@ -45,5 +46,6 @@ def apply_isort(
             ", ".join(f"{k}={v}" for k, v in isort_settings.items())
         )
     )
-    result = SortImports(file_contents=content, check=True, **isort_settings)
-    return cast(str, result.output)
+    result = io.StringIO()
+    SortImports(io.StringIO(content), result, check=True, **isort_settings)
+    return result.getvalue()
