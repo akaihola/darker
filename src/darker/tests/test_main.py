@@ -11,7 +11,7 @@ import darker.import_sorting
 
 def test_isort_option_without_isort(tmpdir, without_isort, caplog):
     check_call(["git", "init"], cwd=tmpdir)
-    with patch.object(darker.__main__, "SortImports", None), pytest.raises(SystemExit):
+    with patch.object(darker.__main__, "isort", None), pytest.raises(SystemExit):
 
         darker.__main__.main(["--isort", str(tmpdir)])
 
@@ -28,10 +28,10 @@ def run_isort(git_repo, monkeypatch, caplog):
     paths['test1.py'].write('changed')
     with patch.multiple(
         darker.__main__, run_black=Mock(return_value=[]), verify_ast_unchanged=Mock(),
-    ), patch("darker.import_sorting.SortImports"):
+    ), patch("darker.import_sorting.isort.code"):
         darker.__main__.main(["--isort", "./test1.py"])
         return SimpleNamespace(
-            SortImports=darker.import_sorting.SortImports, caplog=caplog
+            isort_code=darker.import_sorting.isort.code, caplog=caplog
         )
 
 
@@ -40,9 +40,8 @@ def test_isort_option_with_isort(run_isort):
 
 
 def test_isort_option_with_isort_calls_sortimports(run_isort):
-    run_isort.SortImports.assert_called_once_with(
-        file_contents="changed",
-        check=True,
+    run_isort.isort_code.assert_called_once_with(
+        code="changed",
         force_grid_wrap=0,
         include_trailing_comma=True,
         line_length=88,
@@ -111,7 +110,7 @@ A_PY_DIFF_BLACK_ISORT = [
             True,
             {},
             False,
-            ['ERROR:  Imports are incorrectly sorted.', ''],
+            ['ERROR:  Imports are incorrectly sorted and/or formatted.', ''],
             A_PY_BLACK_ISORT,
         ),
         (
@@ -126,7 +125,8 @@ A_PY_DIFF_BLACK_ISORT = [
             True,
             {},
             True,
-            ['ERROR:  Imports are incorrectly sorted.'] + A_PY_DIFF_BLACK_ISORT,
+            ['ERROR:  Imports are incorrectly sorted and/or formatted.']
+            + A_PY_DIFF_BLACK_ISORT,
             A_PY,
         ),
     ],
