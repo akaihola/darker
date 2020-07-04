@@ -6,16 +6,10 @@ from black import find_project_root
 
 try:
     from isort import SortImports
-    from isort.settings import (
-        _update_with_config_file,
-        default,
-        from_path,
-    )
+    import isort.settings as isort_settings
 except ImportError:
     SortImports = None
-    _update_with_config_file = None
-    default = None
-    from_path = None
+    isort_settings = None
 
 logger = logging.getLogger(__name__)
 
@@ -25,12 +19,14 @@ IsortSettings = Dict[str, Union[bool, int, List[str], str, Tuple[str], None]]
 def get_isort_settings(src: Optional[Path], config: Optional[str]) -> IsortSettings:
     if src and config is None:
         project_root = find_project_root((str(src),))
-        settings: IsortSettings = from_path(str(project_root))
+        settings: IsortSettings = isort_settings.from_path(str(project_root))
         return settings
 
-    computed_settings: IsortSettings = default.copy()
+    computed_settings: IsortSettings = isort_settings.default.copy()
     if config:
-        _update_with_config_file(config, ('tool.isort',), computed_settings)
+        isort_settings._update_with_config_file(
+            config, ('tool.isort',), computed_settings
+        )
     return computed_settings
 
 

@@ -41,12 +41,14 @@ def test_isort_option_with_isort(run_isort):
 
 def test_isort_option_with_isort_calls_sortimports(run_isort):
     run_isort.SortImports.assert_called_once_with(
-        file_contents="changed", check=True, **darker.import_sorting.default
+        file_contents="changed",
+        check=True,
+        **darker.import_sorting.isort_settings.default
     )
 
 
 def test_isort_option_with_config(isort_config, run_isort):
-    isort_args = darker.import_sorting.default.copy()
+    isort_args = darker.import_sorting.isort_settings.default.copy()
     isort_args["line_length"] = 120
     run_isort.SortImports.assert_called_once_with(
         file_contents="changed", check=True, **isort_args
