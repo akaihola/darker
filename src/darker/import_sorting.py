@@ -1,12 +1,11 @@
-import io
 import logging
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Union, cast
+from typing import Dict, List, Optional, Tuple, Union
 
 from black import find_project_root
 
 try:
-    from isort.api import sort_stream as SortImports
+    from isort.api import sort_code_string as SortImports
     import isort.settings as isort_settings
 except ImportError:
     SortImports = None
@@ -20,13 +19,14 @@ IsortSettings = Dict[str, Union[bool, int, List[str], str, Tuple[str], None]]
 def get_isort_settings(src: Optional[Path], config: Optional[str]) -> IsortSettings:
     if src and config is None:
         project_root = find_project_root((str(src),))
-        settings: IsortSettings = isort_settings.from_path(str(project_root))
+        settings: IsortSettings
+        _, settings = isort_settings._find_config(str(project_root))
         return settings
 
-    computed_settings: IsortSettings = isort_settings.default.copy()
+    computed_settings: IsortSettings = {}
     if config:
-        isort_settings._update_with_config_file(
-            config, ('tool.isort',), computed_settings
+        computed_settings.update(
+            isort_settings._get_config_data(config, ('tool.isort',))
         )
     return computed_settings
 
@@ -46,6 +46,5 @@ def apply_isort(
             ", ".join(f"{k}={v}" for k, v in isort_settings.items())
         )
     )
-    result = io.StringIO()
-    SortImports(io.StringIO(content), result, check=True, **isort_settings)
-    return result.getvalue()
+    output: str = SortImports(content, **isort_settings)
+    return output

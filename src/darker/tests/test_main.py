@@ -1,7 +1,7 @@
 from pathlib import Path
 from subprocess import check_call
 from types import SimpleNamespace
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, patch, ANY
 
 import pytest
 
@@ -40,19 +40,14 @@ def test_isort_option_with_isort(run_isort):
 
 
 def test_isort_option_with_isort_calls_sortimports(run_isort):
-    run_isort.SortImports.assert_called_once_with(
-        file_contents="changed",
-        check=True,
-        **darker.import_sorting.isort_settings.default
-    )
+    run_isort.SortImports.assert_called_once()
+    assert run_isort.SortImports.call_args[0] == ("changed",)
 
 
 def test_isort_option_with_config(isort_config, run_isort):
-    isort_args = darker.import_sorting.isort_settings.default.copy()
-    isort_args["line_length"] = 120
-    run_isort.SortImports.assert_called_once_with(
-        file_contents="changed", check=True, **isort_args
-    )
+    run_isort.SortImports.assert_called_once()
+    assert run_isort.SortImports.call_args[0] == ("changed",)
+    assert run_isort.SortImports.call_args[1]["line_length"] == 120
 
 
 def test_format_edited_parts_empty():
@@ -110,13 +105,7 @@ A_PY_DIFF_BLACK_ISORT = [
     'isort, black_args, print_diff, expect_stdout, expect_a_py',
     [
         (False, {}, True, A_PY_DIFF_BLACK, A_PY),
-        (
-            True,
-            {},
-            False,
-            ['ERROR:  Imports are incorrectly sorted.', ''],
-            A_PY_BLACK_ISORT,
-        ),
+        (True, {}, False, [''], A_PY_BLACK_ISORT,),
         (
             False,
             {'skip_string_normalization': True},
@@ -125,13 +114,7 @@ A_PY_DIFF_BLACK_ISORT = [
             A_PY,
         ),
         (False, {}, False, [''], A_PY_BLACK),
-        (
-            True,
-            {},
-            True,
-            ['ERROR:  Imports are incorrectly sorted.'] + A_PY_DIFF_BLACK_ISORT,
-            A_PY,
-        ),
+        (True, {}, True, A_PY_DIFF_BLACK_ISORT, A_PY,),
     ],
 )
 def test_format_edited_parts(
