@@ -1,24 +1,16 @@
 import logging
-from pathlib import Path
-from typing import List, cast
 
 try:
-    from isort import SortImports
+    import isort
 except ImportError:
-    SortImports = None
+    isort = None
 
 logger = logging.getLogger(__name__)
 
 
 def apply_isort(content: str) -> str:
-    logger.debug(
-        "SortImports(file_contents=..., check=True, multi_line_output=3, "
-        "include_trailing_comma=True, force_grid_wrap=0, use_parentheses=True, "
-        "line_length=88, quiet=True)"
-    )
-    result = SortImports(
-        file_contents=content,
-        check=True,
+    isort.check_code(code=content)
+    isort_config_kwargs = dict(
         multi_line_output=3,
         include_trailing_comma=True,
         force_grid_wrap=0,
@@ -26,4 +18,10 @@ def apply_isort(content: str) -> str:
         line_length=88,
         quiet=True,
     )
-    return cast(str, result.output)
+    logger.debug(
+        "isort.code(code=..., {})".format(
+            ", ".join(f"{k}={v!r}" for k, v in isort_config_kwargs.items())
+        )
+    )
+    result: str = isort.code(code=content, **isort_config_kwargs)
+    return result
