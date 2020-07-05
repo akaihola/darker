@@ -33,9 +33,15 @@ for how this result is further processed with:
 """
 
 import logging
+import sys
 from functools import lru_cache
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Union
+from typing import List, Optional, cast
+
+if sys.version_info >= (3, 8):
+    from typing import TypedDict
+else:
+    from typing_extensions import TypedDict
 
 from black import FileMode, format_str, read_pyproject_toml
 from click import Command, Context, Option
@@ -43,8 +49,14 @@ from click import Command, Context, Option
 logger = logging.getLogger(__name__)
 
 
+class BlackArgs(TypedDict, total=False):
+    config: str
+    line_length: int
+    skip_string_normalization: bool
+
+
 @lru_cache(maxsize=1)
-def read_black_config(src: Path, value: Optional[str]) -> Dict[str, Union[bool, int]]:
+def read_black_config(src: Path, value: Optional[str]) -> BlackArgs:
     """Read the black configuration from pyproject.toml"""
     command = Command("main")
 
@@ -55,16 +67,17 @@ def read_black_config(src: Path, value: Optional[str]) -> Dict[str, Union[bool, 
 
     read_pyproject_toml(context, parameter, value)
 
-    return {
-        key: value
-        for key, value in (context.default_map or {}).items()
-        if key in ["line_length", "skip_string_normalization"]
-    }
+    return cast(
+        BlackArgs,
+        {
+            key: value
+            for key, value in (context.default_map or {}).items()
+            if key in ["line_length", "skip_string_normalization"]
+        },
+    )
 
 
-def run_black(
-    src: Path, src_contents: str, black_args: Dict[str, Union[bool, int]]
-) -> List[str]:
+def run_black(src: Path, src_contents: str, black_args: BlackArgs) -> List[str]:
     """Run the black formatter for the Python source code given as a string
 
     Return lines of the original file as well as the formatted content.

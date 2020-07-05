@@ -4,9 +4,9 @@ import logging
 import sys
 from difflib import unified_diff
 from pathlib import Path
-from typing import Dict, Iterable, List, Union
+from typing import Iterable, List
 
-from darker.black_diff import run_black
+from darker.black_diff import BlackArgs, run_black
 from darker.chooser import choose_lines
 from darker.command_line import ISORT_INSTRUCTION, parse_command_line
 from darker.diff import (
@@ -27,10 +27,7 @@ MAX_CONTEXT_LINES = 1000
 
 
 def format_edited_parts(
-    srcs: Iterable[Path],
-    isort: bool,
-    black_args: Dict[str, Union[bool, int]],
-    print_diff: bool,
+    srcs: Iterable[Path], isort: bool, black_args: BlackArgs, print_diff: bool,
 ) -> None:
     """Black (and optional isort) formatting for chunks with edits since the last commit
 
@@ -176,7 +173,7 @@ def main(argv: List[str] = None) -> None:
         logger.error(f"{ISORT_INSTRUCTION} to use the `--isort` option.")
         exit(1)
 
-    black_args = {}
+    black_args = BlackArgs()
     if args.config:
         black_args["config"] = args.config
     if args.line_length:
