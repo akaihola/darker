@@ -61,8 +61,10 @@ def format_edited_parts(
 
     # 1. run isort
     if isort:
+        config = black_args.get("config")
+        line_length = black_args.get("line_length")
         edited_srcs = {
-            src: apply_isort(edited_content)
+            src: apply_isort(edited_content, src, config, line_length)
             for src, edited_content in worktree_srcs.items()
         }
     else:
