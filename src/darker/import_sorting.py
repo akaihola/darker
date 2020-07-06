@@ -9,7 +9,6 @@ logger = logging.getLogger(__name__)
 
 
 def apply_isort(content: str) -> str:
-    isort.check_code(code=content)
     isort_config_kwargs = dict(
         multi_line_output=3,
         include_trailing_comma=True,
