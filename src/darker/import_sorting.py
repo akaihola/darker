@@ -27,15 +27,15 @@ class IsortArgs(TypedDict, total=False):
 
 def apply_isort(
     content: str,
-    src: Optional[Path] = None,
+    src: Path,
     config: Optional[str] = None,
     line_length: Optional[int] = None,
 ) -> str:
     isort_args = IsortArgs()
-    if src and not config:
-        isort_args["settings_path"] = str(find_project_root((str(src),)))
     if config:
         isort_args["settings_file"] = config
+    else:
+        isort_args["settings_path"] = str(find_project_root((str(src),)))
     if line_length:
         isort_args["line_length"] = line_length
 
