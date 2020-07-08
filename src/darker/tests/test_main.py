@@ -45,7 +45,7 @@ def test_isort_option_with_isort(run_isort):
 
 
 @pytest.mark.parametrize(
-    "run_isort,isort_args",
+    "run_isort, isort_args",
     [((), {}), (("--line-length", "120"), {"line_length": 120})],
     indirect=["run_isort"],
 )
