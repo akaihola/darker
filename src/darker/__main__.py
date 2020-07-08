@@ -12,6 +12,7 @@ from darker.command_line import ISORT_INSTRUCTION, parse_command_line
 from darker.diff import diff_and_get_opcodes, opcodes_to_chunks
 from darker.git import EditedLinenumsDiffer, git_get_modified_files
 from darker.import_sorting import apply_isort, isort
+from darker.linting import run_linter
 from darker.utils import get_common_root, joinlines
 from darker.verification import NotEquivalentError, verify_ast_unchanged
 
@@ -19,7 +20,11 @@ logger = logging.getLogger(__name__)
 
 
 def format_edited_parts(
-    srcs: Iterable[Path], revision: str, enable_isort: bool, black_args: BlackArgs
+    srcs: Iterable[Path],
+    revision: str,
+    enable_isort: bool,
+    linter_cmdlines: List[List[str]],
+    black_args: BlackArgs,
 ) -> Generator[Tuple[Path, str, str, List[str]], None, None]:
     """Black (and optional isort) formatting for chunks with edits since the last commit
 
@@ -41,6 +46,8 @@ def format_edited_parts(
     :param srcs: Directories and files to re-format
     :param revision: The Git revision against which to compare the working tree
     :param enable_isort: ``True`` to also run ``isort`` first on each changed file
+    :param linter_cmdlines: The command line(s) for running linters on the changed
+                            files. Each entry is a list of tokens on the command line.
     :param black_args: Command-line arguments to send to ``black.FileMode``
     :return: A generator which yields details about changes for each file which should
              be reformatted, and skips unchanged files.
@@ -131,6 +138,13 @@ def format_edited_parts(
                     # Pass them both on to avoid back-and-forth conversion.
                     yield src, worktree_content, result_str, chosen_lines
                 break
+    # 11. start a Mypy process on all edited files
+    # 12. diff HEAD and worktree (after isort and Black reformatting) for each file
+    #     reported by Mypy
+    # 13. extract line numbers in each file reported by Mypy for changed lines
+    # 14. print only Mypy error lines which fall on changed lines
+    for linter_cmdline in linter_cmdlines:
+        run_linter(linter_cmdline, git_root, changed_files)
 
 
 def modify_file(path: Path, new_content: str) -> None:
@@ -200,7 +214,7 @@ def main(argv: List[str] = None) -> int:
     # We need both forms when showing diffs or modifying files.
     # Pass them both on to avoid back-and-forth conversion.
     for path, old_content, new_content, new_lines in format_edited_parts(
-        paths, args.revision, args.isort, black_args
+        paths, args.revision, args.isort, args.lint, black_args
     ):
         some_files_changed = True
         if args.diff:
