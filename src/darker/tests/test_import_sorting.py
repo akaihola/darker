@@ -11,7 +11,7 @@ ISORTED_SOURCE = "import os\nimport sys\n"
 
 
 def test_apply_isort():
-    result = apply_isort(ORIGINAL_SOURCE)
+    result = apply_isort(ORIGINAL_SOURCE, Path("test1.py"))
 
     assert result == ISORTED_SOURCE
 
@@ -58,8 +58,7 @@ def test_isort_config(monkeypatch, tmpdir, line_length, settings_file, expect):
     )
 
     content = "from module import ab, cd, ef, gh, ij, kl, mn, op, qr, st, uv, wx, yz"
-    src = Path(tmpdir / "test1.py") if not settings_file else None
     config = str(tmpdir / settings_file) if settings_file else None
 
-    actual = apply_isort(content, src, config)
+    actual = apply_isort(content, Path("test1.py"), config)
     assert actual == expect
