@@ -1,5 +1,7 @@
+from itertools import chain
 from textwrap import dedent
 
+import pytest
 from black import FileMode, format_str
 
 from darker.diff import (
@@ -141,7 +143,17 @@ def test_opcodes_to_chunks():
     ]
 
 
-def test_opcodes_to_edit_linenums():
-    edit_linenums = list(opcodes_to_edit_linenums(OPCODES))
+@pytest.mark.parametrize(
+    'context_lines, expect',
+    [
+        (0, [1, 4, 5, 13, 14, 17, 20, 22, 23, 27]),
+        (1, [[1, 6], [12, 24], [26, 28]]),
+        (2, [[1, 7], [11, 29]]),
+    ],
+)
+def test_opcodes_to_edit_linenums(context_lines, expect):
+    edit_linenums = list(opcodes_to_edit_linenums(OPCODES, context_lines))
+    expect_ranges = [[n, n] if isinstance(n, int) else n for n in expect]
+    expect_linenums = list(chain(*(range(n[0], n[1] + 1) for n in expect_ranges)))
 
-    assert edit_linenums == [1, 4, 5, 13, 14, 17, 20, 22, 23, 27]
+    assert edit_linenums == expect_linenums

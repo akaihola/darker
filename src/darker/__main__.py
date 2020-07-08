@@ -81,7 +81,9 @@ def format_edited_parts(
             edited_opcodes = diff_and_get_opcodes(head_lines, edited)
 
             # 3. extract line numbers in each edited to-file for changed lines
-            edited_linenums = list(opcodes_to_edit_linenums(edited_opcodes))
+            edited_linenums = list(
+                opcodes_to_edit_linenums(edited_opcodes, context_lines)
+            )
             if (
                 isort
                 and not edited_linenums
