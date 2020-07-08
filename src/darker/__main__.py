@@ -28,8 +28,9 @@ def format_edited_parts(
 ) -> Generator[Tuple[Path, str, str, List[str]], None, None]:
     """Black (and optional isort) formatting for chunks with edits since the last commit
 
-    1. run isort on each edited file
-    2. diff HEAD and worktree for all file & dir paths on the command line
+    1. run isort on each edited file (optional)
+    2. diff HEAD and worktree (optionally with isort modifications) for all file & dir
+       paths on the command line
     3. extract line numbers in each edited to-file for changed lines
     4. run black on the contents of each edited to-file
     5. get a diff between the edited to-file and the reformatted content
@@ -42,6 +43,11 @@ def format_edited_parts(
     9. verify that the resulting reformatted source code parses to an identical AST as
        the original edited to-file
     10. write the reformatted source back to the original file
+    11. run linter subprocesses for all edited files (11.-14. optional)
+    12. diff HEAD and worktree (after isort and Black reformatting) for each file
+        reported by a linter
+    13. extract line numbers in each file reported by a linter for changed lines
+    14. print only linter error lines which fall on changed lines
 
     :param srcs: Directories and files to re-format
     :param revision: The Git revision against which to compare the working tree
@@ -75,7 +81,7 @@ def format_edited_parts(
         max_context_lines = len(edited_lines)
         for context_lines in range(max_context_lines + 1):
             # 2. diff HEAD and worktree for the file
-            # 3. extract line numbers in each edited to-file for changed lines
+            # 3. extract line numbers in the edited to-file for changed lines
             edited_linenums = edited_linenums_differ.revision_vs_lines(
                 path_in_repo, edited_lines, context_lines
             )
@@ -92,7 +98,7 @@ def format_edited_parts(
             logger.debug("Read %s lines from edited file %s", len(edited_lines), src)
             logger.debug("Black reformat resulted in %s lines", len(formatted))
 
-            # 5. get the diff between each edited and reformatted file
+            # 5. get the diff between the edited and reformatted file
             opcodes = diff_and_get_opcodes(edited_lines, formatted)
 
             # 6. convert the diff into chunks
@@ -138,11 +144,11 @@ def format_edited_parts(
                     # Pass them both on to avoid back-and-forth conversion.
                     yield src, worktree_content, result_str, chosen_lines
                 break
-    # 11. start a Mypy process on all edited files
+    # 11. run linter subprocesses for all edited files (11.-14. optional)
     # 12. diff HEAD and worktree (after isort and Black reformatting) for each file
-    #     reported by Mypy
-    # 13. extract line numbers in each file reported by Mypy for changed lines
-    # 14. print only Mypy error lines which fall on changed lines
+    #     reported by a linter
+    # 13. extract line numbers in each file reported by a linter for changed lines
+    # 14. print only linter error lines which fall on changed lines
     for linter_cmdline in linter_cmdlines:
         run_linter(linter_cmdline, git_root, changed_files)
 
