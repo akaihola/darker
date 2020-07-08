@@ -9,12 +9,8 @@ from typing import Dict, Iterable, List, Union
 from darker.black_diff import run_black
 from darker.chooser import choose_lines
 from darker.command_line import ISORT_INSTRUCTION, parse_command_line
-from darker.diff import (
-    diff_and_get_opcodes,
-    opcodes_to_chunks,
-    opcodes_to_edit_linenums,
-)
-from darker.git import git_diff_name_only, git_get_unmodified_content
+from darker.diff import diff_and_get_opcodes, opcodes_to_chunks
+from darker.git import EditedLinenumsDiffer, git_diff_name_only
 from darker.import_sorting import apply_isort, isort
 from darker.utils import get_common_root, joinlines
 from darker.verification import NotEquivalentError, verify_ast_unchanged
@@ -54,52 +50,39 @@ def format_edited_parts(
     """
     git_root = get_common_root(srcs)
     changed_files = git_diff_name_only(srcs, git_root)
-    head_srcs = {
-        src: git_get_unmodified_content(src, git_root) for src in changed_files
-    }
-    worktree_srcs = {src: (git_root / src).read_text() for src in changed_files}
+    edited_linenums_differ = EditedLinenumsDiffer(git_root)
 
-    # 1. run isort
-    if isort:
-        edited_srcs = {
-            src: apply_isort(edited_content)
-            for src, edited_content in worktree_srcs.items()
-        }
-    else:
-        edited_srcs = worktree_srcs
+    for path_in_repo in changed_files:
+        src = git_root / path_in_repo
+        worktree_content = src.read_text()
 
-    for src_relative, edited_content in edited_srcs.items():
-        max_context_lines = len(edited_content)
+        # 1. run isort
+        if isort:
+            edited_content = apply_isort(worktree_content)
+        else:
+            edited_content = worktree_content
+        edited_lines = edited_content.splitlines()
+        max_context_lines = len(edited_lines)
         for context_lines in range(max_context_lines + 1):
-            src = git_root / src_relative
-            edited = edited_content.splitlines()
-            head_lines = head_srcs[src_relative]
-
             # 2. diff HEAD and worktree for the file
-            edited_opcodes = diff_and_get_opcodes(head_lines, edited)
-
             # 3. extract line numbers in each edited to-file for changed lines
-            edited_linenums = list(
-                opcodes_to_edit_linenums(edited_opcodes, context_lines)
+            edited_linenums = edited_linenums_differ.head_vs_lines(
+                path_in_repo, edited_lines, context_lines
             )
-            if (
-                isort
-                and not edited_linenums
-                and edited_content == worktree_srcs[src_relative]
-            ):
+            if isort and not edited_linenums and edited_content == worktree_content:
                 logger.debug("No changes in %s after isort", src)
                 break
 
             # 4. run black
             formatted = run_black(src, edited_content, black_args)
-            logger.debug("Read %s lines from edited file %s", len(edited), src)
+            logger.debug("Read %s lines from edited file %s", len(edited_lines), src)
             logger.debug("Black reformat resulted in %s lines", len(formatted))
 
             # 5. get the diff between each edited and reformatted file
-            opcodes = diff_and_get_opcodes(edited, formatted)
+            opcodes = diff_and_get_opcodes(edited_lines, formatted)
 
             # 6. convert the diff into chunks
-            black_chunks = list(opcodes_to_chunks(opcodes, edited, formatted))
+            black_chunks = list(opcodes_to_chunks(opcodes, edited_lines, formatted))
 
             # 7. choose reformatted content
             chosen_lines: List[str] = list(choose_lines(black_chunks, edited_linenums))
@@ -111,7 +94,7 @@ def format_edited_parts(
             logger.debug(
                 "Verifying that the %s original edited lines and %s reformatted lines "
                 "parse into an identical abstract syntax tree",
-                len(edited),
+                len(edited_lines),
                 len(chosen_lines),
             )
             try:
@@ -138,7 +121,7 @@ def format_edited_parts(
                 if print_diff:
                     difflines = list(
                         unified_diff(
-                            worktree_srcs[src_relative].splitlines(),
+                            worktree_content.splitlines(),
                             chosen_lines,
                             src.as_posix(),
                             src.as_posix(),
