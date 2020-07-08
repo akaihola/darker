@@ -148,7 +148,7 @@ def test_opcodes_to_chunks():
     [
         (0, [1, 4, 5, 13, 14, 17, 20, 22, 23, 27]),
         (1, [[1, 6], [12, 24], [26, 28]]),
-        (2, [[1, 7], [11, 29]]),
+        (2, [[1, 7], [11, 28]]),
     ],
 )
 def test_opcodes_to_edit_linenums(context_lines, expect):

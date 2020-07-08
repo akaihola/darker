@@ -117,12 +117,13 @@ def opcodes_to_edit_linenums(
 
     """
     _validate_opcodes(opcodes)
-    previous_end = 1
+    prev_chunk_end = 1
+    _tag, _i1, _i2, _j1, end = opcodes[-1]
     for tag, _i1, _i2, j1, j2 in opcodes:
         if tag != "equal":
-            end = j2 + 1 + context_lines
-            yield from range(max(j1 + 1 - context_lines, previous_end), end)
-            previous_end = end
+            chunk_end = min(j2 + 1 + context_lines, end + 1)
+            yield from range(max(j1 + 1 - context_lines, prev_chunk_end), chunk_end)
+            prev_chunk_end = chunk_end
 
 
 def opcodes_to_chunks(
