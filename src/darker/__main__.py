@@ -22,9 +22,6 @@ from darker.version import __version__
 
 logger = logging.getLogger(__name__)
 
-# Maximum `git diff -U<context_lines> value to try with
-MAX_CONTEXT_LINES = 1000
-
 
 def format_edited_parts(
     srcs: Iterable[Path],
@@ -72,12 +69,13 @@ def format_edited_parts(
         edited_srcs = worktree_srcs
 
     for src_relative, edited_content in edited_srcs.items():
-        for context_lines in range(MAX_CONTEXT_LINES + 1):
+        max_context_lines = len(edited_content)
+        for context_lines in range(max_context_lines + 1):
             src = git_root / src_relative
             edited = edited_content.splitlines()
             head_lines = head_srcs[src_relative]
 
-            # 2. diff HEAD and worktree for all file & dir paths on the command line
+            # 2. diff HEAD and worktree for the file
             edited_opcodes = diff_and_get_opcodes(head_lines, edited)
 
             # 3. extract line numbers in each edited to-file for changed lines
@@ -125,7 +123,7 @@ def format_edited_parts(
                 # a partially re-formatted Python file which produces an identical AST.
                 # Try again with a larger `-U<context_lines>` option for `git diff`,
                 # or give up if `context_lines` is already very large.
-                if context_lines == MAX_CONTEXT_LINES:
+                if context_lines == max_context_lines:
                     raise
                 logger.debug(
                     "AST verification failed. "
