@@ -4,6 +4,7 @@ from types import SimpleNamespace
 from unittest.mock import Mock, patch
 
 import pytest
+from black import find_project_root
 
 import darker.__main__
 import darker.import_sorting
@@ -23,8 +24,6 @@ def test_isort_option_without_isort(tmpdir, without_isort, caplog):
 
 @pytest.fixture
 def run_isort(git_repo, monkeypatch, caplog, request):
-    from black import find_project_root
-
     find_project_root.cache_clear()
 
     monkeypatch.chdir(git_repo.root)
