@@ -4,6 +4,7 @@ from types import SimpleNamespace
 from unittest.mock import Mock, patch
 
 import pytest
+from black import find_project_root
 
 import darker.__main__
 import darker.import_sorting
@@ -22,14 +23,17 @@ def test_isort_option_without_isort(tmpdir, without_isort, caplog):
 
 
 @pytest.fixture
-def run_isort(git_repo, monkeypatch, caplog):
+def run_isort(git_repo, monkeypatch, caplog, request):
+    find_project_root.cache_clear()
+
     monkeypatch.chdir(git_repo.root)
     paths = git_repo.add({'test1.py': 'original'}, commit='Initial commit')
     paths['test1.py'].write('changed')
+    args = getattr(request, "param", ())
     with patch.multiple(
         darker.__main__, run_black=Mock(return_value=[]), verify_ast_unchanged=Mock(),
     ), patch("darker.import_sorting.isort.code"):
-        darker.__main__.main(["--isort", "./test1.py"])
+        darker.__main__.main(["--isort", "./test1.py", *args])
         return SimpleNamespace(
             isort_code=darker.import_sorting.isort.code, caplog=caplog
         )
@@ -39,15 +43,14 @@ def test_isort_option_with_isort(run_isort):
     assert "Please run" not in run_isort.caplog.text
 
 
-def test_isort_option_with_isort_calls_sortimports(run_isort):
+@pytest.mark.parametrize(
+    "run_isort, isort_args",
+    [((), {}), (("--line-length", "120"), {"line_length": 120})],
+    indirect=["run_isort"],
+)
+def test_isort_option_with_isort_calls_sortimports(tmpdir, run_isort, isort_args):
     run_isort.isort_code.assert_called_once_with(
-        code="changed",
-        force_grid_wrap=0,
-        include_trailing_comma=True,
-        line_length=88,
-        multi_line_output=3,
-        use_parentheses=True,
-        quiet=True,
+        code="changed", settings_path=str(tmpdir), **isort_args
     )
 
 
