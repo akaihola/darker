@@ -4,9 +4,9 @@ import logging
 import sys
 from difflib import unified_diff
 from pathlib import Path
-from typing import Dict, Iterable, List, Union
+from typing import Iterable, List
 
-from darker.black_diff import run_black
+from darker.black_diff import BlackArgs, run_black
 from darker.chooser import choose_lines
 from darker.command_line import ISORT_INSTRUCTION, parse_command_line
 from darker.diff import diff_and_get_opcodes, opcodes_to_chunks
@@ -20,10 +20,7 @@ logger = logging.getLogger(__name__)
 
 
 def format_edited_parts(
-    srcs: Iterable[Path],
-    isort: bool,
-    black_args: Dict[str, Union[bool, int]],
-    print_diff: bool,
+    srcs: Iterable[Path], isort: bool, black_args: BlackArgs, print_diff: bool,
 ) -> None:
     """Black (and optional isort) formatting for chunks with edits since the last commit
 
@@ -50,6 +47,9 @@ def format_edited_parts(
     """
     git_root = get_common_root(srcs)
     changed_files = git_diff_name_only(srcs, git_root)
+    if isort:
+        config = black_args.get("config")
+        line_length = black_args.get("line_length")
     edited_linenums_differ = EditedLinenumsDiffer(git_root)
 
     for path_in_repo in changed_files:
@@ -58,7 +58,7 @@ def format_edited_parts(
 
         # 1. run isort
         if isort:
-            edited_content = apply_isort(worktree_content)
+            edited_content = apply_isort(worktree_content, src, config, line_length)
         else:
             edited_content = worktree_content
         edited_lines = edited_content.splitlines()
@@ -159,7 +159,7 @@ def main(argv: List[str] = None) -> None:
         logger.error(f"{ISORT_INSTRUCTION} to use the `--isort` option.")
         exit(1)
 
-    black_args = {}
+    black_args = BlackArgs()
     if args.config:
         black_args["config"] = args.config
     if args.line_length:

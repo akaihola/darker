@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from darker.black_diff import read_black_config, run_black
+from darker.black_diff import BlackArgs, read_black_config, run_black
 
 
 @pytest.mark.parametrize(
@@ -39,6 +39,6 @@ def test_black_config(tmpdir, config_path, config_lines, expect):
 def test_run_black(tmpdir):
     src_contents = "print ( '42' )\n"
 
-    result = run_black(Path(tmpdir / "src.py"), src_contents, {})
+    result = run_black(Path(tmpdir / "src.py"), src_contents, BlackArgs())
 
     assert result == ['print("42")']
