@@ -157,6 +157,12 @@ PyCharm/IntelliJ IDEA
    - Program: <install_location_from_step_2>
    - Arguments: ``"$FilePath$"``
 
+   If you need any extra command line arguments
+   like the ones which change Black behavior,
+   you can add them to the ``Arguments`` field, e.g.::
+
+       --config /home/myself/black.cfg "$FilePath$"
+
 5. Format the currently opened file by selecting ``Tools -> External Tools -> Darker``.
 
    - Alternatively, you can set a keyboard shortcut by navigating to
