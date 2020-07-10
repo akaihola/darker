@@ -107,13 +107,23 @@ def _validate_opcodes(opcodes: List[Tuple[str, int, int, int, int]]) -> None:
 
 
 def opcodes_to_edit_linenums(
-    opcodes: List[Tuple[str, int, int, int, int]]
+    opcodes: List[Tuple[str, int, int, int, int]], context_lines: int
 ) -> Generator[int, None, None]:
-    """Convert diff opcode to line number of edited lines in the destination file"""
+    """Convert diff opcodes to line numbers of edited lines in the destination file
+
+    :param opcodes: The diff opcodes to convert
+    :param context_lines: The number of lines before and after an edited line to mark
+                          edited as well
+
+    """
     _validate_opcodes(opcodes)
+    prev_chunk_end = 1
+    _tag, _i1, _i2, _j1, end = opcodes[-1]
     for tag, _i1, _i2, j1, j2 in opcodes:
         if tag != "equal":
-            yield from range(j1 + 1, j2 + 1)
+            chunk_end = min(j2 + 1 + context_lines, end + 1)
+            yield from range(max(j1 + 1 - context_lines, prev_chunk_end), chunk_end)
+            prev_chunk_end = chunk_end
 
 
 def opcodes_to_chunks(

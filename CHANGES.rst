@@ -9,6 +9,7 @@ Added
 - Support for ``-l``/``--line-length`` and ``-S``/``--skip-string-normalization``
 - ``--diff`` outputs a diff for each file on standard output
 - Require ``isort`` >= 5.0.1 and be compatible with it
+- Allow to configure ``isort`` through ``pyproject.toml``
 
 
 0.2.0_ - 2020-03-11

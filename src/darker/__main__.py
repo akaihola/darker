@@ -4,9 +4,9 @@ import logging
 import sys
 from difflib import unified_diff
 from pathlib import Path
-from typing import Dict, Iterable, List, Union
+from typing import Iterable, List
 
-from darker.black_diff import run_black
+from darker.black_diff import BlackArgs, run_black
 from darker.chooser import choose_lines
 from darker.command_line import ISORT_INSTRUCTION, parse_command_line
 from darker.diff import (
@@ -22,15 +22,9 @@ from darker.version import __version__
 
 logger = logging.getLogger(__name__)
 
-# Maximum `git diff -U<context_lines> value to try with
-MAX_CONTEXT_LINES = 1000
-
 
 def format_edited_parts(
-    srcs: Iterable[Path],
-    isort: bool,
-    black_args: Dict[str, Union[bool, int]],
-    print_diff: bool,
+    srcs: Iterable[Path], isort: bool, black_args: BlackArgs, print_diff: bool,
 ) -> None:
     """Black (and optional isort) formatting for chunks with edits since the last commit
 
@@ -64,24 +58,29 @@ def format_edited_parts(
 
     # 1. run isort
     if isort:
+        config = black_args.get("config")
+        line_length = black_args.get("line_length")
         edited_srcs = {
-            src: apply_isort(edited_content)
+            src: apply_isort(edited_content, src, config, line_length)
             for src, edited_content in worktree_srcs.items()
         }
     else:
         edited_srcs = worktree_srcs
 
     for src_relative, edited_content in edited_srcs.items():
-        for context_lines in range(MAX_CONTEXT_LINES + 1):
+        max_context_lines = len(edited_content)
+        for context_lines in range(max_context_lines + 1):
             src = git_root / src_relative
             edited = edited_content.splitlines()
             head_lines = head_srcs[src_relative]
 
-            # 2. diff HEAD and worktree for all file & dir paths on the command line
+            # 2. diff HEAD and worktree for the file
             edited_opcodes = diff_and_get_opcodes(head_lines, edited)
 
             # 3. extract line numbers in each edited to-file for changed lines
-            edited_linenums = list(opcodes_to_edit_linenums(edited_opcodes))
+            edited_linenums = list(
+                opcodes_to_edit_linenums(edited_opcodes, context_lines)
+            )
             if (
                 isort
                 and not edited_linenums
@@ -123,7 +122,7 @@ def format_edited_parts(
                 # a partially re-formatted Python file which produces an identical AST.
                 # Try again with a larger `-U<context_lines>` option for `git diff`,
                 # or give up if `context_lines` is already very large.
-                if context_lines == MAX_CONTEXT_LINES:
+                if context_lines == max_context_lines:
                     raise
                 logger.debug(
                     "AST verification failed. "
@@ -176,7 +175,7 @@ def main(argv: List[str] = None) -> None:
         logger.error(f"{ISORT_INSTRUCTION} to use the `--isort` option.")
         exit(1)
 
-    black_args = {}
+    black_args = BlackArgs()
     if args.config:
         black_args["config"] = args.config
     if args.line_length:
