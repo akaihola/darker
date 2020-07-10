@@ -99,7 +99,7 @@ Example:
 Black Command Line Arguments
 ============================
 
-``black`` `command line arguments`_ that are currently supported:
+``black`` `command line arguments`_ that are supported (since `darker` version 1.0.0):
 
 .. code-block:: shell
 
