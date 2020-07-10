@@ -47,9 +47,6 @@ def format_edited_parts(
     """
     git_root = get_common_root(srcs)
     changed_files = git_diff_name_only(srcs, git_root)
-    if isort:
-        config = black_args.get("config")
-        line_length = black_args.get("line_length")
     edited_linenums_differ = EditedLinenumsDiffer(git_root)
 
     for path_in_repo in changed_files:
@@ -58,7 +55,12 @@ def format_edited_parts(
 
         # 1. run isort
         if isort:
-            edited_content = apply_isort(worktree_content, src, config, line_length)
+            edited_content = apply_isort(
+                worktree_content,
+                src,
+                black_args.get("config"),
+                black_args.get("line_length"),
+            )
         else:
             edited_content = worktree_content
         edited_lines = edited_content.splitlines()
