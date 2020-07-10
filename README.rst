@@ -2,7 +2,7 @@
  Darker – Apply Black formatting only in regions changed since last commit
 ===========================================================================
 
-|travis-badge|_ |license-badge|_ |pypi-badge|_ |downloads-badge|_ |black-badge|_ |changelog-badge|
+|travis-badge|_ |license-badge|_ |pypi-badge|_ |downloads-badge|_ |black-badge|_ |changelog-badge|_
 
 .. |travis-badge| image:: https://travis-ci.com/akaihola/darker.svg?branch=master
 .. _travis-badge: https://travis-ci.com/akaihola/darker
