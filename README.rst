@@ -96,10 +96,19 @@ Example:
 
    if False: print('there')
 
-Black Command Line Arguments
-============================
+Customizing Black and isort behavior
+====================================
 
-``black`` `command line arguments`_ that are supported (since `darker` version 1.0.0):
+Project-specific default options for Black_ and isort_
+are read from the project's ``pyproject.toml`` file in the repository root.
+isort_ also looks for a few other places for configuration.
+
+For more details, see:
+
+- `Black documentation about pyproject.toml`_
+- `isort documentation about config files`_
+
+The following `command line arguments`_ can also be used to modify the defaults:
 
 .. code-block:: shell
 
@@ -110,6 +119,8 @@ Black Command Line Arguments
      -l LINE_LENGTH, --line-length LINE_LENGTH
                            How many characters per line to allow [default: 88]
 
+.. _Black documentation about pyproject.toml: https://black.readthedocs.io/en/stable/pyproject_toml.html
+.. _isort documentation about config files: https://timothycrosley.github.io/isort/docs/configuration/config_files/
 .. _command line arguments: https://black.readthedocs.io/en/stable/installation_and_usage.html#command-line-options
 
 Editor integration
