@@ -5,6 +5,7 @@ These features will be included in the next release:
 
 Added
 -----
+- ``-L``/``--lint`` option for running a linter for modified lines.
 
 - ``--check`` returns 1 from the process but leaves files untouched if any file would
   require reformatting
