@@ -2,7 +2,7 @@
  Darker – Apply Black formatting only in regions changed since last commit
 ===========================================================================
 
-|travis-badge|_ |license-badge|_ |pypi-badge|_ |downloads-badge|_ |black-badge|_
+|travis-badge|_ |license-badge|_ |pypi-badge|_ |downloads-badge|_ |black-badge|_ |changelog-badge|_
 
 .. |travis-badge| image:: https://travis-ci.com/akaihola/darker.svg?branch=master
 .. _travis-badge: https://travis-ci.com/akaihola/darker
@@ -14,6 +14,8 @@
 .. _downloads-badge: https://pepy.tech/project/darker
 .. |black-badge| image:: https://img.shields.io/badge/code%20style-black-000000.svg
 .. _black-badge: https://github.com/psf/black
+.. |changelog-badge| image:: https://img.shields.io/badge/-change%20log-purple
+.. _changelog-badge: https://github.com/akaihola/darker/blob/master/CHANGES.rst
 
 What?
 =====
@@ -94,20 +96,35 @@ Example:
 
    if False: print('there')
 
-Black Command Line Arguments
-============================
+Customizing Black and isort behavior
+====================================
 
-``black`` `command line arguments`_ that are currently supported:
+Project-specific default options for Black_ and isort_
+are read from the project's ``pyproject.toml`` file in the repository root.
+isort_ also looks for a few other places for configuration.
+
+For more details, see:
+
+- `Black documentation about pyproject.toml`_
+- `isort documentation about config files`_
+
+The following `command line arguments`_ can also be used to modify the defaults:
 
 .. code-block:: shell
 
      -c PATH, --config PATH
-                           Ask `black` to read configuration from PATH.
+                           Ask `black` and `isort` to read configuration from PATH.
      -S, --skip-string-normalization
                            Don't normalize string quotes or prefixes
      -l LINE_LENGTH, --line-length LINE_LENGTH
                            How many characters per line to allow [default: 88]
 
+*New in version 1.0.0:* The ``-c``, ``-S`` and ``-l`` command line options.
+
+*New in version 1.0.0:* isort_ is configured with ``-c`` and ``-l``, too.
+
+.. _Black documentation about pyproject.toml: https://black.readthedocs.io/en/stable/pyproject_toml.html
+.. _isort documentation about config files: https://timothycrosley.github.io/isort/docs/configuration/config_files/
 .. _command line arguments: https://black.readthedocs.io/en/stable/installation_and_usage.html#command-line-options
 
 Editor integration
@@ -154,6 +171,12 @@ PyCharm/IntelliJ IDEA
    - Description: Use Black to auto-format regions changed since the last git commit.
    - Program: <install_location_from_step_2>
    - Arguments: ``"$FilePath$"``
+
+   If you need any extra command line arguments
+   like the ones which change Black behavior,
+   you can add them to the ``Arguments`` field, e.g.::
+
+       --config /home/myself/black.cfg "$FilePath$"
 
 5. Format the currently opened file by selecting ``Tools -> External Tools -> Darker``.
 
