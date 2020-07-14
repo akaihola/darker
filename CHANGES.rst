@@ -5,6 +5,15 @@ These features will be included in the next release:
 
 Added
 -----
+
+Fixed
+-----
+
+1.0.0_ - 2020-07-15
+===================
+
+Added
+-----
 - Support for black config
 - Support for ``-l``/``--line-length`` and ``-S``/``--skip-string-normalization``
 - ``--diff`` outputs a diff for each file on standard output
@@ -40,7 +49,8 @@ Added
 -----
 - Initial implementation
 
-.. _Unreleased: https://github.com/akaihola/darker/compare/0.2.0..HEAD
+.. _Unreleased: https://github.com/akaihola/darker/compare/1.0.0..HEAD
+.. _1.0.0: https://github.com/akaihola/darker/compare/0.2.0..1.0.0
 .. _0.2.0: https://github.com/akaihola/darker/compare/0.1.1..0.2.0
 .. _0.1.1: https://github.com/akaihola/darker/compare/0.1.0..0.1.1
 .. _0.1.0: https://github.com/akaihola/darker/releases/tag/0.1.0
