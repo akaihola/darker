@@ -2,6 +2,7 @@ from argparse import ArgumentParser, Namespace
 from typing import List
 
 from darker.argparse_helpers import NewlinePreservingFormatter
+from darker.version import __version__
 
 ISORT_INSTRUCTION = "Please run `pip install 'darker[isort]'`"
 
@@ -58,7 +59,10 @@ def parse_command_line(argv: List[str]) -> Namespace:
         help="Reduce amount of output",
     )
     parser.add_argument(
-        "--version", action="store_true", help="Show the version of `darker`"
+        "--version",
+        action="version",
+        version=__version__,
+        help="Show the version of `darker`",
     )
     parser.add_argument(
         "-S",
