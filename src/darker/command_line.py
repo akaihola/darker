@@ -2,6 +2,7 @@ from argparse import ArgumentParser, Namespace
 from typing import List
 
 from darker.argparse_helpers import NewlinePreservingFormatter
+from darker.version import __version__
 
 ISORT_INSTRUCTION = "Please run `pip install 'darker[isort]'`"
 
@@ -23,7 +24,12 @@ def parse_command_line(argv: List[str]) -> Namespace:
     parser = ArgumentParser(
         description="\n".join(description), formatter_class=NewlinePreservingFormatter,
     )
-    parser.add_argument("src", nargs="*")
+    parser.add_argument(
+        "src",
+        nargs="+",
+        help="Path(s) to the Python source file(s) to reformat",
+        metavar="PATH",
+    )
     isort_help = ["Also sort imports using the `isort` package"]
     if not isort:
         isort_help.append(f". {ISORT_INSTRUCTION} to enable usage of this option.")
@@ -58,7 +64,10 @@ def parse_command_line(argv: List[str]) -> Namespace:
         help="Reduce amount of output",
     )
     parser.add_argument(
-        "--version", action="store_true", help="Show the version of `darker`"
+        "--version",
+        action="version",
+        version=__version__,
+        help="Show the version of `darker`",
     )
     parser.add_argument(
         "-S",

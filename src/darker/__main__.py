@@ -18,7 +18,6 @@ from darker.git import git_diff_name_only, git_get_unmodified_content
 from darker.import_sorting import apply_isort, isort
 from darker.utils import get_common_root, joinlines
 from darker.verification import NotEquivalentError, verify_ast_unchanged
-from darker.version import __version__
 
 logger = logging.getLogger(__name__)
 
@@ -167,9 +166,6 @@ def main(argv: List[str] = None) -> None:
 
     # Make sure we don't get excessive debug log output from Black
     logging.getLogger("blib2to3.pgen2.driver").setLevel(logging.WARNING)
-
-    if args.version:
-        print(__version__)
 
     if args.isort and not isort:
         logger.error(f"{ISORT_INSTRUCTION} to use the `--isort` option.")
