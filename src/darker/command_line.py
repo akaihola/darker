@@ -24,7 +24,12 @@ def parse_command_line(argv: List[str]) -> Namespace:
     parser = ArgumentParser(
         description="\n".join(description), formatter_class=NewlinePreservingFormatter,
     )
-    parser.add_argument("src", nargs="+")
+    parser.add_argument(
+        "src",
+        nargs="+",
+        help="Path(s) to the Python source file(s) to reformat",
+        metavar="PATH",
+    )
     isort_help = ["Also sort imports using the `isort` package"]
     if not isort:
         isort_help.append(f". {ISORT_INSTRUCTION} to enable usage of this option.")
