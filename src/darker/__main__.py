@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 def format_edited_parts(
     srcs: Iterable[Path],
-    isort: bool,
+    enable_isort: bool,
     black_args: BlackArgs,
     print_diff: bool,
     check_only: bool,
@@ -43,7 +43,7 @@ def format_edited_parts(
     10. write the reformatted source back to the original file
 
     :param srcs: Directories and files to re-format
-    :param isort: ``True`` to also run ``isort`` first on each changed file
+    :param enable_isort: ``True`` to also run ``isort`` first on each changed file
     :param black_args: Command-line arguments to send to ``black.FileMode``
     :param print_diff: ``True`` to output diffs instead of modifying source files
     :param check_only: ``True`` to not modify files but return a boolean stating whether
@@ -62,7 +62,7 @@ def format_edited_parts(
         worktree_content = src.read_text()
 
         # 1. run isort
-        if isort:
+        if enable_isort:
             edited_content = apply_isort(
                 worktree_content,
                 src,
@@ -79,7 +79,11 @@ def format_edited_parts(
             edited_linenums = edited_linenums_differ.head_vs_lines(
                 path_in_repo, edited_lines, context_lines
             )
-            if isort and not edited_linenums and edited_content == worktree_content:
+            if (
+                enable_isort
+                and not edited_linenums
+                and edited_content == worktree_content
+            ):
                 logger.debug("No changes in %s after isort", src)
                 break
 
@@ -190,5 +194,5 @@ def main(argv: List[str] = None) -> int:
 
 
 if __name__ == "__main__":
-    retval = main()
-    sys.exit(retval)
+    RETVAL = main()
+    sys.exit(RETVAL)

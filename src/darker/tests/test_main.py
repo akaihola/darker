@@ -106,7 +106,7 @@ A_PY_DIFF_BLACK_ISORT = [
 
 
 @pytest.mark.parametrize(
-    'isort, black_args, print_diff, expect_stdout, expect_a_py',
+    'enable_isort, black_args, print_diff, expect_stdout, expect_a_py',
     [
         (False, {}, True, A_PY_DIFF_BLACK, A_PY),
         (True, {}, False, [''], A_PY_BLACK_ISORT,),
@@ -125,7 +125,7 @@ def test_format_edited_parts(
     git_repo,
     monkeypatch,
     capsys,
-    isort,
+    enable_isort,
     black_args,
     print_diff,
     expect_stdout,
@@ -137,7 +137,7 @@ def test_format_edited_parts(
     paths['b.py'].write('print(42 )\n')
 
     all_unchanged = darker.__main__.format_edited_parts(
-        [Path('a.py')], isort, black_args, print_diff, False
+        [Path('a.py')], enable_isort, black_args, print_diff, False
     )
 
     stdout = capsys.readouterr().out.replace(str(git_repo.root), '')
@@ -148,6 +148,7 @@ def test_format_edited_parts(
 
 
 def test_format_edited_parts_all_unchanged(git_repo, monkeypatch):
+    """``format_edited_parts()`` returns ``True`` if no reformatting was needed"""
     monkeypatch.chdir(git_repo.root)
     paths = git_repo.add({'a.py': 'pass\n', 'b.py': 'pass\n'}, commit='Initial commit')
     paths['a.py'].write('"properly"\n"formatted"\n')
