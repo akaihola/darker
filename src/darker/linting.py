@@ -73,6 +73,8 @@ def run_linter(cmdline: List[str], git_root: Path, paths: Set[Path]) -> None:
         stdout=PIPE,
         encoding='utf-8',
     )
+    # assert needed for MyPy (see https://stackoverflow.com/q/57350490/15770)
+    assert linter_process.stdout is not None
     edited_linenums_differ = EditedLinenumsDiffer(git_root)
     for line in linter_process.stdout:
         path_in_repo, linter_error_linenum = _parse_linter_line(line, git_root)

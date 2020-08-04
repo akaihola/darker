@@ -102,6 +102,7 @@ class EditedLinenumsDiffer:
 
     @lru_cache(maxsize=1)
     def revision_vs_worktree(self, path_in_repo: Path, context_lines: int) -> List[int]:
+        """Return numbers of lines changed between HEAD and the working tree"""
         lines = (self.git_root / path_in_repo).read_text('utf-8').splitlines()
         return self.revision_vs_lines(path_in_repo, lines, context_lines)
 
