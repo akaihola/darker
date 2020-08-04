@@ -36,14 +36,16 @@ import logging
 import sys
 from functools import lru_cache
 from pathlib import Path
-from typing import List, Optional, cast
+from typing import List, Optional, Set, cast
 
 if sys.version_info >= (3, 8):
     from typing import TypedDict
 else:
     from typing_extensions import TypedDict
 
-from black import FileMode, format_str, read_pyproject_toml
+# `FileMode as Mode` required to satisfy mypy==0.782. Strange.
+from black import FileMode as Mode
+from black import TargetVersion, format_str, read_pyproject_toml
 from click import Command, Context, Option
 
 logger = logging.getLogger(__name__)
@@ -53,6 +55,13 @@ class BlackArgs(TypedDict, total=False):
     config: str
     line_length: int
     skip_string_normalization: bool
+
+
+class BlackModeAttributes(TypedDict, total=False):
+    target_versions: Set[TargetVersion]
+    line_length: int
+    string_normalization: bool
+    is_pyi: bool
 
 
 @lru_cache(maxsize=1)
@@ -88,16 +97,16 @@ def run_black(src: Path, src_contents: str, black_args: BlackArgs) -> List[str]:
 
     """
     config = black_args.pop("config", None)
-    defaults = read_black_config(src, config)
-    combined_args = {**defaults, **black_args}
+    combined_args = read_black_config(src, config)
+    combined_args.update(black_args)
 
-    effective_args = {}
+    effective_args = BlackModeAttributes()
     if "line_length" in combined_args:
         effective_args["line_length"] = combined_args["line_length"]
     if "skip_string_normalization" in combined_args:
         # The ``black`` command line argument is
         # ``--skip-string-normalization``, but the parameter for
-        # ``black.FileMode`` needs to be the opposite boolean of
+        # ``black.Mode`` needs to be the opposite boolean of
         # ``skip-string-normalization``, hence the inverse boolean
         effective_args["string_normalization"] = not combined_args[
             "skip_string_normalization"
@@ -105,7 +114,7 @@ def run_black(src: Path, src_contents: str, black_args: BlackArgs) -> List[str]:
 
     # Override defaults and pyproject.toml settings if they've been specified
     # from the command line arguments
-    mode = FileMode(**effective_args)
+    mode = Mode(**effective_args)
 
     dst_contents = format_str(src_contents, mode=mode)
     dst_lines: List[str] = dst_contents.splitlines()
