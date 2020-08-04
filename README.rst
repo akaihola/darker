@@ -347,6 +347,19 @@ __ https://github.com/Carreau/darken
 __ https://github.com/Carreau
 
 
+Interesting code formatting projects to watch
+=============================================
+
+The following projects are related to Black_ or Darker in some way or another.
+Some of them we might want to integrate to be part of a Darker run.
+
+- blacken-docs__ – Run Black_ on Python code blocks in documentation files
+- blackdoc__ – Run Black_ on documentation code snippets
+
+
+__ https://github.com/asottile/blacken-docs
+__ https://github.com/keewis/blackdoc
+
 GitHub stars trend
 ==================
 
