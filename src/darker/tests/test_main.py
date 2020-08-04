@@ -135,10 +135,27 @@ def test_format_edited_parts(
     paths = git_repo.add({'a.py': '\n', 'b.py': '\n'}, commit='Initial commit')
     paths['a.py'].write('\n'.join(A_PY))
     paths['b.py'].write('print(42 )\n')
-    darker.__main__.format_edited_parts(
+
+    all_unchanged = darker.__main__.format_edited_parts(
         [Path('a.py')], isort, black_args, print_diff, False
     )
+
     stdout = capsys.readouterr().out.replace(str(git_repo.root), '')
     assert stdout.split('\n') == expect_stdout
     assert paths['a.py'].readlines(cr=False) == expect_a_py
     assert paths['b.py'].readlines(cr=False) == ['print(42 )', '']
+    assert not all_unchanged
+
+
+def test_format_edited_parts_all_unchanged(git_repo, monkeypatch):
+    monkeypatch.chdir(git_repo.root)
+    paths = git_repo.add({'a.py': 'pass\n', 'b.py': 'pass\n'}, commit='Initial commit')
+    paths['a.py'].write('"properly"\n"formatted"\n')
+    paths['b.py'].write('"not"\n"checked"\n')
+
+    all_unchanged = darker.__main__.format_edited_parts(
+        [Path('a.py')], True, {}, False, False
+    )
+
+    assert paths['a.py'].read() == '"properly"\n"formatted"\n'
+    assert all_unchanged

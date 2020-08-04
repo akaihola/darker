@@ -104,6 +104,22 @@ def test_black_options(monkeypatch, tmpdir, git_repo, options, expect):
 def test_options(options, expect):
     with patch('darker.__main__.format_edited_parts') as format_edited_parts:
 
-        main(options)
+        retval = main(options)
 
     format_edited_parts.assert_called_once_with(*expect)
+    assert retval == 0
+
+
+@pytest.mark.parametrize(
+    'check, all_unchanged, expect_retval',
+    [(False, True, 0), (False, False, 0), (True, True, 0), (True, False, 1)],
+)
+def test_main_retval(check, all_unchanged, expect_retval):
+    """main() return value is correct based on --check and the need to reformat files"""
+    with patch("darker.__main__.format_edited_parts") as format_edited_parts:
+        format_edited_parts.return_value = all_unchanged
+        check_arg_maybe = ['--check'] if check else []
+
+        retval = main(check_arg_maybe + ['a.py'])
+
+    assert retval == expect_retval
