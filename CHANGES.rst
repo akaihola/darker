@@ -11,6 +11,9 @@ Added
 
 Fixed
 -----
+- Paths from ``--diff`` are now relative to current working directory, similar to output
+  from ``black --diff``
+
 
 
 1.0.0_ - 2020-07-15
