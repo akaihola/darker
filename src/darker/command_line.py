@@ -39,6 +39,15 @@ def parse_command_line(argv: List[str]) -> Namespace:
         help="Don't write the files back, just output a diff for each file on stdout",
     )
     parser.add_argument(
+        "--check",
+        action="store_true",
+        help=(
+            "Don't write the files back, just return the status.  Return code 0 means"
+            " nothing would change.  Return code 1 means some files would be"
+            " reformatted."
+        ),
+    )
+    parser.add_argument(
         "-i", "--isort", action="store_true", help="".join(isort_help),
     )
     parser.add_argument(
