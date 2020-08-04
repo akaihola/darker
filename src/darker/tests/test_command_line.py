@@ -73,12 +73,12 @@ def test_black_options(monkeypatch, tmpdir, git_repo, options, expect):
         {"main.py": 'print("Hello World!")\n'}, commit="Initial commit"
     )
     added_files["main.py"].write('print ("Hello World!")\n')
-    with patch.object(black_diff, 'FileMode', wraps=black_diff.FileMode) as FileMode:
+    with patch.object(black_diff, 'Mode', wraps=black_diff.Mode) as Mode:
 
         main(options + [str(path) for path in added_files.values()])
 
     _, expect_args, expect_kwargs = expect
-    FileMode.assert_called_once_with(*expect_args, **expect_kwargs)
+    Mode.assert_called_once_with(*expect_args, **expect_kwargs)
 
 
 @pytest.mark.parametrize(
