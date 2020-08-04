@@ -8,6 +8,8 @@ Added
 
 - ``--check`` returns 1 from the process but leaves files untouched if any file would
   require reformatting
+- Include a Pytest plugin. ``pytest --darker`` causes a test failure for each file which
+  needs reformatting.
 
 Fixed
 -----
