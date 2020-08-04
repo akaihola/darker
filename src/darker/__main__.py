@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 def format_edited_parts(
     srcs: Iterable[Path],
-    isort: bool,
+    enable_isort: bool,
     black_args: BlackArgs,
     print_diff: bool,
     check_only: bool,
@@ -47,7 +47,7 @@ def format_edited_parts(
     10. write the reformatted source back to the original file
 
     :param srcs: Directories and files to re-format
-    :param isort: ``True`` to also run ``isort`` first on each changed file
+    :param enable_isort: ``True`` to also run ``isort`` first on each changed file
     :param black_args: Command-line arguments to send to ``black.FileMode``
     :param print_diff: ``True`` to output diffs instead of modifying source files
     :param check_only: ``True`` to not modify files but return a boolean stating whether
@@ -64,7 +64,7 @@ def format_edited_parts(
     worktree_srcs = {src: (git_root / src).read_text() for src in changed_files}
 
     # 1. run isort
-    if isort:
+    if enable_isort:
         config = black_args.get("config")
         line_length = black_args.get("line_length")
         edited_srcs = {
@@ -90,7 +90,7 @@ def format_edited_parts(
                 opcodes_to_edit_linenums(edited_opcodes, context_lines)
             )
             if (
-                isort
+                enable_isort
                 and not edited_linenums
                 and edited_content == worktree_srcs[src_relative]
             ):
@@ -204,5 +204,5 @@ def main(argv: List[str] = None) -> int:
 
 
 if __name__ == "__main__":
-    retval = main()
-    sys.exit(retval)
+    RETVAL = main()
+    sys.exit(RETVAL)

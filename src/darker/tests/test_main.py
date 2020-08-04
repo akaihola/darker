@@ -148,6 +148,7 @@ def test_format_edited_parts(
 
 
 def test_format_edited_parts_all_unchanged(git_repo, monkeypatch):
+    """``format_edited_parts()`` returns ``True`` if no reformatting was needed"""
     monkeypatch.chdir(git_repo.root)
     paths = git_repo.add({'a.py': 'pass\n', 'b.py': 'pass\n'}, commit='Initial commit')
     paths['a.py'].write('"properly"\n"formatted"\n')
