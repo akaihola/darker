@@ -19,8 +19,12 @@ logger = logging.getLogger(__name__)
 
 
 def format_edited_parts(
-    srcs: Iterable[Path], isort: bool, black_args: BlackArgs, print_diff: bool,
-) -> None:
+    srcs: Iterable[Path],
+    isort: bool,
+    black_args: BlackArgs,
+    print_diff: bool,
+    check_only: bool,
+) -> bool:
     """Black (and optional isort) formatting for chunks with edits since the last commit
 
     1. run isort on each edited file
@@ -42,12 +46,17 @@ def format_edited_parts(
     :param isort: ``True`` to also run ``isort`` first on each changed file
     :param black_args: Command-line arguments to send to ``black.FileMode``
     :param print_diff: ``True`` to output diffs instead of modifying source files
+    :param check_only: ``True`` to not modify files but return a boolean stating whether
+                       all files are already Black formatted
+    :return: ``True`` if all files were already properly formatted, or ``False`` if at
+             least one file was (or should be) reformatted
 
     """
     git_root = get_common_root(srcs)
     changed_files = git_diff_name_only(srcs, git_root)
     edited_linenums_differ = EditedLinenumsDiffer(git_root)
 
+    all_unchanged = True
     for path_in_repo in changed_files:
         src = git_root / path_in_repo
         worktree_content = src.read_text()
@@ -117,9 +126,10 @@ def format_edited_parts(
                 continue
             else:
                 # 10. A re-formatted Python file which produces an identical AST was
-                #     created successfully - write an updated file
-                #     or print the diff
-                if print_diff:
+                #     created successfully - write an updated file or print the diff
+                #     if there were any changes to the original
+                if result_str != worktree_content:
+                    all_unchanged = False
                     difflines = list(
                         unified_diff(
                             worktree_content.splitlines(),
@@ -128,19 +138,26 @@ def format_edited_parts(
                             src.as_posix(),
                         )
                     )
-                    if len(difflines) > 2:
+                    if print_diff:
                         h1, h2, *rest = difflines
                         print(h1, end="")
                         print(h2, end="")
                         print("\n".join(rest))
-                else:
-                    logger.info("Writing %s bytes into %s", len(result_str), src)
-                    src.write_text(result_str)
+                    if not check_only and not print_diff:
+                        logger.info("Writing %s bytes into %s", len(result_str), src)
+                        src.write_text(result_str)
                 break
+    return all_unchanged
 
 
-def main(argv: List[str] = None) -> None:
-    """Parse the command line and apply black formatting for each source file"""
+def main(argv: List[str] = None) -> int:
+    """Parse the command line and apply black formatting for each source file
+
+    :param argv: The command line arguments to the ``darker`` command
+    :return: 1 if the ``--check`` argument was provided and at least one file was (or
+             should be) reformatted; 0 otherwise.
+
+    """
     if argv is None:
         argv = sys.argv[1:]
     args = parse_command_line(argv)
@@ -166,8 +183,12 @@ def main(argv: List[str] = None) -> None:
         black_args["skip_string_normalization"] = args.skip_string_normalization
 
     paths = {Path(p) for p in args.src}
-    format_edited_parts(paths, args.isort, black_args, args.diff)
+    all_unchanged = format_edited_parts(
+        paths, args.isort, black_args, args.diff, args.check
+    )
+    return 1 if args.check and not all_unchanged else 0
 
 
 if __name__ == "__main__":
-    main()
+    retval = main()
+    sys.exit(retval)

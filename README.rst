@@ -112,6 +112,9 @@ The following `command line arguments`_ can also be used to modify the defaults:
 
 .. code-block:: shell
 
+     --check               Don't write the files back, just return the status.
+                           Return code 0 means nothing would change. Return code
+                           1 means some files would be reformatted.
      -c PATH, --config PATH
                            Ask `black` and `isort` to read configuration from PATH.
      -S, --skip-string-normalization
@@ -122,6 +125,8 @@ The following `command line arguments`_ can also be used to modify the defaults:
 *New in version 1.0.0:* The ``-c``, ``-S`` and ``-l`` command line options.
 
 *New in version 1.0.0:* isort_ is configured with ``-c`` and ``-l``, too.
+
+*New in version 1.1.0:* The ``--check`` command line option.
 
 .. _Black documentation about pyproject.toml: https://black.readthedocs.io/en/stable/pyproject_toml.html
 .. _isort documentation about config files: https://timothycrosley.github.io/isort/docs/configuration/config_files/

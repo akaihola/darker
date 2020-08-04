@@ -57,7 +57,7 @@ def test_isort_option_with_isort_calls_sortimports(tmpdir, run_isort, isort_args
 def test_format_edited_parts_empty():
     with pytest.raises(ValueError):
 
-        darker.__main__.format_edited_parts([], False, {}, True)
+        darker.__main__.format_edited_parts([], False, {}, True, False)
 
 
 A_PY = ['import sys', 'import os', "print( '42')", '']
@@ -135,7 +135,9 @@ def test_format_edited_parts(
     paths = git_repo.add({'a.py': '\n', 'b.py': '\n'}, commit='Initial commit')
     paths['a.py'].write('\n'.join(A_PY))
     paths['b.py'].write('print(42 )\n')
-    darker.__main__.format_edited_parts([Path('a.py')], isort, black_args, print_diff)
+    darker.__main__.format_edited_parts(
+        [Path('a.py')], isort, black_args, print_diff, False
+    )
     stdout = capsys.readouterr().out.replace(str(git_repo.root), '')
     assert stdout.split('\n') == expect_stdout
     assert paths['a.py'].readlines(cr=False) == expect_a_py
