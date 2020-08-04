@@ -5,8 +5,8 @@ These features will be included in the next release:
 
 Added
 -----
+- Configure Flake8 verification for Darker source code
 - ``-L``/``--lint`` option for running a linter for modified lines.
-
 - ``--check`` returns 1 from the process but leaves files untouched if any file would
   require reformatting
 - Untracked i.e. freshly created Python files are now also reformatted
