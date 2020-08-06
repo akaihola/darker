@@ -116,6 +116,8 @@ def opcodes_to_edit_linenums(
                           edited as well
 
     """
+    if not opcodes:
+        return
     _validate_opcodes(opcodes)
     prev_chunk_end = 1
     _tag, _i1, _i2, _j1, end = opcodes[-1]

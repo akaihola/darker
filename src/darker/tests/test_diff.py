@@ -157,3 +157,9 @@ def test_opcodes_to_edit_linenums(context_lines, expect):
     expect_linenums = list(chain(*(range(n[0], n[1] + 1) for n in expect_ranges)))
 
     assert edit_linenums == expect_linenums
+
+
+def test_opcodes_to_edit_linenums_empty_opcodes():
+    result = list(opcodes_to_edit_linenums([], context_lines=0))
+
+    assert result == []

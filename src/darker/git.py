@@ -5,6 +5,8 @@ from pathlib import Path
 from subprocess import check_output
 from typing import Iterable, List, Set
 
+from darker.diff import diff_and_get_opcodes, opcodes_to_edit_linenums
+
 logger = logging.getLogger(__name__)
 
 
@@ -46,3 +48,17 @@ def git_diff_name_only(paths: Iterable[Path], cwd: Path) -> Set[Path]:
     lines = check_output(cmd, cwd=str(cwd)).decode("utf-8").splitlines()
     changed_paths = (Path(line) for line in lines)
     return {path for path in changed_paths if should_reformat_file(cwd / path)}
+
+
+class EditedLinenumsDiffer:
+    """Find out changed lines for a file compared to Git HEAD"""
+
+    def __init__(self, git_root: Path):
+        self._git_root = git_root
+
+    def head_vs_lines(
+        self, path_in_repo: Path, lines: List[str], context_lines: int
+    ) -> List[int]:
+        head_lines = git_get_unmodified_content(path_in_repo, self._git_root)
+        edited_opcodes = diff_and_get_opcodes(head_lines, lines)
+        return list(opcodes_to_edit_linenums(edited_opcodes, context_lines))

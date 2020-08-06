@@ -3,6 +3,7 @@ from pathlib import Path
 import pytest
 
 from darker.git import (
+    EditedLinenumsDiffer,
     git_diff_name_only,
     git_get_unmodified_content,
     should_reformat_file,
@@ -75,3 +76,23 @@ def test_git_diff_name_only(git_repo, modify_paths, paths, expect):
             absolute_path.write(content, ensure=True)
     result = git_diff_name_only({root / p for p in paths}, cwd=root)
     assert {str(p) for p in result} == set(expect)
+
+
+edited_linenums_differ_cases = pytest.mark.parametrize(
+    "context_lines, expect",
+    [
+        (0, [3, 7]),
+        (1, [2, 3, 4, 6, 7, 8]),
+        (2, [1, 2, 3, 4, 5, 6, 7, 8]),
+        (3, [1, 2, 3, 4, 5, 6, 7, 8]),
+    ],
+)
+
+
+@edited_linenums_differ_cases
+def test_edited_linenums_differ_head_vs_lines(git_repo, context_lines, expect):
+    git_repo.add({'a.py': '1\n2\n3\n4\n5\n6\n7\n8\n'}, commit='Initial commit')
+    lines = ['1', '2', 'three', '4', '5', '6', 'seven', '8']
+    differ = EditedLinenumsDiffer(git_repo.root)
+    result = differ.head_vs_lines(Path('a.py'), lines, context_lines)
+    assert result == expect
