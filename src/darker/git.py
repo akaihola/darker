@@ -1,7 +1,6 @@
 """Helpers for listing modified files and getting unmodified content from Git"""
 
 import logging
-from functools import lru_cache
 from pathlib import Path
 from subprocess import check_output
 from typing import Iterable, List, Set
