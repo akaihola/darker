@@ -4,7 +4,7 @@ import logging
 import sys
 from difflib import unified_diff
 from pathlib import Path
-from typing import Iterable, List
+from typing import Generator, Iterable, List, Tuple
 
 from darker.black_diff import BlackArgs, run_black
 from darker.chooser import choose_lines
@@ -19,12 +19,8 @@ logger = logging.getLogger(__name__)
 
 
 def format_edited_parts(
-    srcs: Iterable[Path],
-    enable_isort: bool,
-    black_args: BlackArgs,
-    print_diff: bool,
-    check_only: bool,
-) -> bool:
+    srcs: Iterable[Path], enable_isort: bool, black_args: BlackArgs
+) -> Generator[Tuple[Path, str, str, List[str]], None, None]:
     """Black (and optional isort) formatting for chunks with edits since the last commit
 
     1. run isort on each edited file
@@ -45,18 +41,14 @@ def format_edited_parts(
     :param srcs: Directories and files to re-format
     :param enable_isort: ``True`` to also run ``isort`` first on each changed file
     :param black_args: Command-line arguments to send to ``black.FileMode``
-    :param print_diff: ``True`` to output diffs instead of modifying source files
-    :param check_only: ``True`` to not modify files but return a boolean stating whether
-                       all files are already Black formatted
-    :return: ``True`` if all files were already properly formatted, or ``False`` if at
-             least one file was (or should be) reformatted
+    :return: A generator which yields details about changes for each file which should
+             be reformatted, and skips unchanged files.
 
     """
     git_root = get_common_root(srcs)
     changed_files = git_diff_name_only(srcs, git_root)
     edited_linenums_differ = EditedLinenumsDiffer(git_root)
 
-    all_unchanged = True
     for path_in_repo in changed_files:
         src = git_root / path_in_repo
         worktree_content = src.read_text()
@@ -133,25 +125,30 @@ def format_edited_parts(
                 #     created successfully - write an updated file or print the diff
                 #     if there were any changes to the original
                 if result_str != worktree_content:
-                    all_unchanged = False
-                    difflines = list(
-                        unified_diff(
-                            worktree_content.splitlines(),
-                            chosen_lines,
-                            src.as_posix(),
-                            src.as_posix(),
-                        )
-                    )
-                    if print_diff:
-                        h1, h2, *rest = difflines
-                        print(h1, end="")
-                        print(h2, end="")
-                        print("\n".join(rest))
-                    if not check_only and not print_diff:
-                        logger.info("Writing %s bytes into %s", len(result_str), src)
-                        src.write_text(result_str)
+                    # `result_str` is just `chosen_lines` concatenated with newlines.
+                    # We need both forms when showing diffs or modifying files.
+                    # Pass them both on to avoid back-and-forth conversion.
+                    yield src, worktree_content, result_str, chosen_lines
                 break
-    return all_unchanged
+
+
+def modify_file(path: Path, new_content: str) -> None:
+    """Write new content to a file and inform the user by logging"""
+    logger.info("Writing %s bytes into %s", len(new_content), path)
+    path.write_text(new_content)
+
+
+def print_diff(path: Path, old_content: str, new_lines: List[str]) -> None:
+    """Print ``black --diff`` style output for the changes"""
+    difflines = list(
+        unified_diff(
+            old_content.splitlines(), new_lines, path.as_posix(), path.as_posix(),
+        )
+    )
+    header1, header2, *rest = difflines
+    print(header1, end="")
+    print(header2, end="")
+    print("\n".join(rest))
 
 
 def main(argv: List[str] = None) -> int:
@@ -187,10 +184,19 @@ def main(argv: List[str] = None) -> int:
         black_args["skip_string_normalization"] = args.skip_string_normalization
 
     paths = {Path(p) for p in args.src}
-    all_unchanged = format_edited_parts(
-        paths, args.isort, black_args, args.diff, args.check
-    )
-    return 1 if args.check and not all_unchanged else 0
+    some_files_changed = False
+    # `new_content` is just `new_lines` concatenated with newlines.
+    # We need both forms when showing diffs or modifying files.
+    # Pass them both on to avoid back-and-forth conversion.
+    for path, old_content, new_content, new_lines in format_edited_parts(
+        paths, args.isort, black_args
+    ):
+        some_files_changed = True
+        if args.diff:
+            print_diff(path, old_content, new_lines)
+        if not args.check and not args.diff:
+            modify_file(path, new_content)
+    return 1 if args.check and some_files_changed else 0
 
 
 if __name__ == "__main__":

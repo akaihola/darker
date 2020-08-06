@@ -1,7 +1,7 @@
 import re
 from pathlib import Path
 from textwrap import dedent
-from unittest.mock import call, patch
+from unittest.mock import DEFAULT, Mock, call, patch
 
 import pytest
 
@@ -84,21 +84,21 @@ def test_black_options(monkeypatch, tmpdir, git_repo, options, expect):
 @pytest.mark.parametrize(
     'options, expect',
     [
-        (['a.py'], ({Path('a.py')}, False, {}, False, False)),
-        (['--isort', 'a.py'], ({Path('a.py')}, True, {}, False, False)),
+        (['a.py'], ({Path('a.py')}, False, {})),
+        (['--isort', 'a.py'], ({Path('a.py')}, True, {})),
         (
             ['--config', 'my.cfg', 'a.py'],
-            ({Path('a.py')}, False, {'config': 'my.cfg'}, False, False),
+            ({Path('a.py')}, False, {'config': 'my.cfg'}),
         ),
         (
             ['--line-length', '90', 'a.py'],
-            ({Path('a.py')}, False, {'line_length': 90}, False, False),
+            ({Path('a.py')}, False, {'line_length': 90}),
         ),
         (
             ['--skip-string-normalization', 'a.py'],
-            ({Path('a.py')}, False, {'skip_string_normalization': True}, False, False),
+            ({Path('a.py')}, False, {'skip_string_normalization': True}),
         ),
-        (['--diff', 'a.py'], ({Path('a.py')}, False, {}, True, False)),
+        (['--diff', 'a.py'], ({Path('a.py')}, False, {})),
     ],
 )
 def test_options(options, expect):
@@ -111,14 +111,19 @@ def test_options(options, expect):
 
 
 @pytest.mark.parametrize(
-    'check, all_unchanged, expect_retval',
-    [(False, True, 0), (False, False, 0), (True, True, 0), (True, False, 1)],
+    'check, changes, expect_retval',
+    [(False, False, 0), (False, True, 0), (True, False, 0), (True, True, 1)],
 )
-def test_main_retval(check, all_unchanged, expect_retval):
+def test_main_retval(check, changes, expect_retval):
     """main() return value is correct based on --check and the need to reformat files"""
-    with patch("darker.__main__.format_edited_parts") as format_edited_parts:
-        format_edited_parts.return_value = all_unchanged
-        check_arg_maybe = ['--check'] if check else []
+    format_edited_parts = Mock()
+    format_edited_parts.return_value = (
+        [(Path('/dummy.py'), 'old\n', 'new\n', ['new'])] if changes else []
+    )
+    check_arg_maybe = ['--check'] if check else []
+    with patch.multiple(
+        'darker.__main__', format_edited_parts=format_edited_parts, modify_file=DEFAULT
+    ):
 
         retval = main(check_arg_maybe + ['a.py'])
 
