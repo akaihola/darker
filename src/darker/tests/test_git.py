@@ -14,7 +14,9 @@ def test_get_unmodified_content(git_repo):
     paths = git_repo.add({'my.txt': 'original content'}, commit='Initial commit')
     paths['my.txt'].write('new content')
 
-    original_content = git_get_unmodified_content(Path('my.txt'), cwd=git_repo.root)
+    original_content = git_get_unmodified_content(
+        Path('my.txt'), cwd=git_repo.root, commitish=''
+    )
 
     assert original_content == ['original content']
 
@@ -93,6 +95,6 @@ edited_linenums_differ_cases = pytest.mark.parametrize(
 def test_edited_linenums_differ_head_vs_lines(git_repo, context_lines, expect):
     git_repo.add({'a.py': '1\n2\n3\n4\n5\n6\n7\n8\n'}, commit='Initial commit')
     lines = ['1', '2', 'three', '4', '5', '6', 'seven', '8']
-    differ = EditedLinenumsDiffer(git_repo.root)
+    differ = EditedLinenumsDiffer(git_repo.root, commitish='')
     result = differ.head_vs_lines(Path('a.py'), lines, context_lines)
     assert result == expect

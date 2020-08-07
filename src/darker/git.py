@@ -26,7 +26,9 @@ def should_reformat_file(path: Path) -> bool:
     return path.exists() and path.suffix == ".py"
 
 
-def git_diff_name_only(paths: Iterable[Path], cwd: Path, commitish=None) -> Set[Path]:
+def git_diff_name_only(
+    paths: Iterable[Path], cwd: Path, commitish: str = ''
+) -> Set[Path]:
     """Run ``git diff --name-only`` and return file names from the output
 
     Return file names relative to the Git repository root.

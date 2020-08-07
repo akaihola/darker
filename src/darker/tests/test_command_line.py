@@ -84,21 +84,25 @@ def test_black_options(monkeypatch, tmpdir, git_repo, options, expect):
 @pytest.mark.parametrize(
     'options, expect',
     [
-        (['a.py'], ({Path('a.py')}, False, {})),
-        (['--isort', 'a.py'], ({Path('a.py')}, True, {})),
+        (['a.py'], ({Path('a.py')}, False, {}, ''),),
+        (['--isort', 'a.py'], ({Path('a.py')}, True, {}, '')),
         (
             ['--config', 'my.cfg', 'a.py'],
-            ({Path('a.py')}, False, {'config': 'my.cfg'}),
+            ({Path('a.py')}, False, {'config': 'my.cfg'}, ''),
         ),
         (
             ['--line-length', '90', 'a.py'],
-            ({Path('a.py')}, False, {'line_length': 90}),
+            ({Path('a.py')}, False, {'line_length': 90}, ''),
         ),
         (
             ['--skip-string-normalization', 'a.py'],
-            ({Path('a.py')}, False, {'skip_string_normalization': True}),
+            ({Path('a.py')}, False, {'skip_string_normalization': True}, ''),
         ),
-        (['--diff', 'a.py'], ({Path('a.py')}, False, {})),
+        (['--diff', 'a.py'], ({Path('a.py')}, False, {}, '')),
+        (
+            ['--diff', 'a.py', '--commitish', 'HEAD~1'],
+            ({Path('a.py')}, False, {}, 'HEAD~1'),
+        ),
     ],
 )
 def test_options(options, expect):

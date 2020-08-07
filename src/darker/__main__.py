@@ -192,7 +192,7 @@ def main(argv: List[str] = None) -> int:
     # We need both forms when showing diffs or modifying files.
     # Pass them both on to avoid back-and-forth conversion.
     for path, old_content, new_content, new_lines in format_edited_parts(
-        paths, args.isort, black_args, commitish=args.commitish[0]
+        paths, args.isort, black_args, args.commitish[0]
     ):
         some_files_changed = True
         if args.diff:
