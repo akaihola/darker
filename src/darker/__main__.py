@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 
 def format_edited_parts(
-    srcs: Iterable[Path], enable_isort: bool, black_args: BlackArgs, commitish:str
+    srcs: Iterable[Path], enable_isort: bool, black_args: BlackArgs, commitish: str
 ) -> Generator[Tuple[Path, str, str, List[str]], None, None]:
     """Black (and optional isort) formatting for chunks with edits since the last commit
 

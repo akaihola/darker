@@ -43,7 +43,7 @@ def parse_command_line(argv: List[str]) -> Namespace:
         help="Commit to consider for the diff, default to HEAD (unstaged changes).",
         nargs=1,
         default=[''],
-        metavar='COMMITISH'
+        metavar='COMMITISH',
     )
     parser.add_argument(
         "--check",

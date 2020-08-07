@@ -10,7 +10,7 @@ from darker.diff import diff_and_get_opcodes, opcodes_to_edit_linenums
 logger = logging.getLogger(__name__)
 
 
-def git_get_unmodified_content(path: Path, cwd: Path, commitish:str) -> List[str]:
+def git_get_unmodified_content(path: Path, cwd: Path, commitish: str) -> List[str]:
     """Get unmodified text lines of a file at Git HEAD
 
     :param path: The relative path of the file in the Git repository
@@ -37,17 +37,12 @@ def git_diff_name_only(paths: Iterable[Path], cwd: Path, commitish=None) -> Set[
 
     """
     relative_paths = {p.resolve().relative_to(cwd) for p in paths}
-    cmd = [
-        "git",
-        "diff",
-        "--name-only",
-        "--relative"]
+    cmd = ["git", "diff", "--name-only", "--relative"]
     if commitish:
         cmd.append(commitish)
-    cmd.extend([
-        "--",
-        *[str(path) for path in relative_paths],
-    ])
+    cmd.extend(
+        ["--", *[str(path) for path in relative_paths],]
+    )
     logger.debug("[%s]$ %s", cwd, " ".join(cmd))
     lines = check_output(cmd, cwd=str(cwd)).decode("utf-8").splitlines()
     changed_paths = (Path(line) for line in lines)
@@ -64,7 +59,9 @@ class EditedLinenumsDiffer:
     def head_vs_lines(
         self, path_in_repo: Path, lines: List[str], context_lines: int
     ) -> List[int]:
-        head_lines = git_get_unmodified_content(path_in_repo, self._git_root, self._commitish)
+        head_lines = git_get_unmodified_content(
+            path_in_repo, self._git_root, self._commitish
+        )
 
         edited_opcodes = diff_and_get_opcodes(head_lines, lines)
         return list(opcodes_to_edit_linenums(edited_opcodes, context_lines))
