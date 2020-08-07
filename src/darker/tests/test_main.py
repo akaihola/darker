@@ -66,8 +66,8 @@ A_PY_BLACK_UNNORMALIZE = ['import sys', 'import os', '', "print('42')", '']
 A_PY_BLACK_ISORT = ['import os', 'import sys', '', 'print("42")', '']
 
 A_PY_DIFF_BLACK = [
-    '--- /a.py',
-    '+++ /a.py',
+    '--- a.py',
+    '+++ a.py',
     '@@ -1,3 +1,4 @@',
     '',
     ' import sys',
@@ -79,8 +79,8 @@ A_PY_DIFF_BLACK = [
 ]
 
 A_PY_DIFF_BLACK_NO_STR_NORMALIZE = [
-    '--- /a.py',
-    '+++ /a.py',
+    '--- a.py',
+    '+++ a.py',
     '@@ -1,3 +1,4 @@',
     '',
     ' import sys',
@@ -92,8 +92,8 @@ A_PY_DIFF_BLACK_NO_STR_NORMALIZE = [
 ]
 
 A_PY_DIFF_BLACK_ISORT = [
-    '--- /a.py',
-    '+++ /a.py',
+    '--- a.py',
+    '+++ a.py',
     '@@ -1,3 +1,4 @@',
     '',
     '+import os',
