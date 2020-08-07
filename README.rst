@@ -122,11 +122,15 @@ The following `command line arguments`_ can also be used to modify the defaults:
      -l LINE_LENGTH, --line-length LINE_LENGTH
                            How many characters per line to allow [default: 88]
 
+     --diff                Don't write the files back, just output a diff for each file on stdout
+
 *New in version 1.0.0:* The ``-c``, ``-S`` and ``-l`` command line options.
 
 *New in version 1.0.0:* isort_ is configured with ``-c`` and ``-l``, too.
 
 *New in version 1.1.0:* The ``--check`` command line option.
+
+*New in version 1.1.0:* The ``--diff`` command line option.
 
 .. _Black documentation about pyproject.toml: https://black.readthedocs.io/en/stable/pyproject_toml.html
 .. _isort documentation about config files: https://timothycrosley.github.io/isort/docs/configuration/config_files/
@@ -225,10 +229,14 @@ Visual Studio Code
      $ where darker
      %LocalAppData%\Programs\Python\Python36-32\Scripts\darker.exe  # possible location
 
-3. Add these configuration options::
+3. Add these configuration options to VS code, ``Cmd-Shift-P``, ``Open Settings (JSON)``::
+   
 
     "python.formatting.provider": "black",
-    "python.formatting.blackPath": "<install_location_from_step_2>"
+    "python.formatting.blackPath": "<install_location_from_step_2>",
+    "python.formatting.blackArgs": ["--diff"],
+
+Extra argument can be passed to ``darker`` along side, but ``--diff`` is necessary.
 
 
 How does it work?
