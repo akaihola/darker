@@ -14,7 +14,9 @@ def test_get_unmodified_content(git_repo):
     paths = git_repo.add({'my.txt': 'original content'}, commit='Initial commit')
     paths['my.txt'].write('new content')
 
-    original_content = git_get_unmodified_content(Path('my.txt'), cwd=git_repo.root)
+    original_content = git_get_unmodified_content(
+        Path("my.txt"), "HEAD", cwd=git_repo.root
+    )
 
     assert original_content == ['original content']
 
@@ -69,7 +71,8 @@ def test_git_get_modified_files(git_repo, modify_paths, paths, expect):
             'c/d.py': 'original',
             'c/e.js': 'original',
             'd/f/g.py': 'original',
-        }
+        },
+        commit="Initial commit",
     )
     for path, content in modify_paths.items():
         absolute_path = git_repo.root / path
@@ -77,7 +80,7 @@ def test_git_get_modified_files(git_repo, modify_paths, paths, expect):
             absolute_path.remove()
         else:
             absolute_path.write(content, ensure=True)
-    result = git_get_modified_files({root / p for p in paths}, cwd=root)
+    result = git_get_modified_files({root / p for p in paths}, "HEAD", cwd=root)
     assert {str(p) for p in result} == set(expect)
 
 
@@ -97,5 +100,5 @@ def test_edited_linenums_differ_head_vs_lines(git_repo, context_lines, expect):
     git_repo.add({'a.py': '1\n2\n3\n4\n5\n6\n7\n8\n'}, commit='Initial commit')
     lines = ['1', '2', 'three', '4', '5', '6', 'seven', '8']
     differ = EditedLinenumsDiffer(git_repo.root)
-    result = differ.head_vs_lines(Path('a.py'), lines, context_lines)
+    result = differ.revision_vs_lines(Path("a.py"), lines, context_lines)
     assert result == expect

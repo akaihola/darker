@@ -2,6 +2,7 @@
 
 import logging
 import sys
+from dataclasses import dataclass
 from pathlib import Path
 from subprocess import CalledProcessError, check_output
 from typing import Iterable, List, Set
@@ -11,16 +12,25 @@ from darker.diff import diff_and_get_opcodes, opcodes_to_edit_linenums
 logger = logging.getLogger(__name__)
 
 
-def git_get_unmodified_content(path: Path, cwd: Path) -> List[str]:
-    """Get unmodified text lines of a file at Git HEAD
+def git_get_unmodified_content(path: Path, revision: str, cwd: Path) -> List[str]:
+    """Get unmodified text lines of a file at a Git revision
 
     :param path: The relative path of the file in the Git repository
+    :param revision: The Git revision for which to get the file content
     :param cwd: The root of the Git repository
 
     """
-    cmd = ["git", "show", f":./{path}"]
+    cmd = ["git", "show", f"{revision}:./{path}"]
     logger.debug("[%s]$ %s", cwd, " ".join(cmd))
-    return check_output(cmd, cwd=str(cwd), encoding='utf-8').splitlines()
+    try:
+        return check_output(cmd, cwd=str(cwd), encoding='utf-8').splitlines()
+    except CalledProcessError as exc_info:
+        if exc_info.returncode == 128:
+            # The file didn't exist at the given revision. Act as if it was an empty
+            # file, so all current lines appear as edited.
+            return []
+        else:
+            raise
 
 
 def should_reformat_file(path: Path) -> bool:
@@ -40,15 +50,18 @@ def _git_check_output_lines(cmd: List[str], cwd: Path) -> List[str]:
             raise
 
 
-def git_get_modified_files(paths: Iterable[Path], cwd: Path) -> Set[Path]:
+def git_get_modified_files(
+    paths: Iterable[Path], revision: str, cwd: Path
+) -> Set[Path]:
     """Ask Git for modified and untracked files
 
-    - ``git diff --name-only --relative HEAD -- <path(s)>``
+    - ``git diff --name-only --relative <rev> -- <path(s)>``
     - ``git ls-files --others --exclude-standard -- <path(s)>``
 
     Return file names relative to the Git repository root.
 
     :paths: Paths to the files to diff
+    :param revision: Git revision to compare current working tree against
     :cwd: The Git repository root
 
     """
@@ -59,9 +72,12 @@ def git_get_modified_files(paths: Iterable[Path], cwd: Path) -> Set[Path]:
         "diff",
         "--name-only",
         "--relative",
+        # `revision` is inserted here if non-empty
         "--",
         *str_paths,
     ]
+    if revision:
+        diff_cmd.insert(diff_cmd.index("--"), revision)
     lines = _git_check_output_lines(diff_cmd, cwd)
     ls_files_cmd = [
         "git",
@@ -76,15 +92,25 @@ def git_get_modified_files(paths: Iterable[Path], cwd: Path) -> Set[Path]:
     return {path for path in changed_paths if should_reformat_file(cwd / path)}
 
 
+@dataclass(frozen=True)
 class EditedLinenumsDiffer:
-    """Find out changed lines for a file compared to Git HEAD"""
+    """Find out changed lines for a file compared to a given Git revision"""
 
-    def __init__(self, git_root: Path):
-        self._git_root = git_root
+    git_root: Path
+    revision: str = "HEAD"
 
-    def head_vs_lines(
+    def revision_vs_lines(
         self, path_in_repo: Path, lines: List[str], context_lines: int
     ) -> List[int]:
-        head_lines = git_get_unmodified_content(path_in_repo, self._git_root)
-        edited_opcodes = diff_and_get_opcodes(head_lines, lines)
+        """For file `path_in_repo`, return changed line numbers from given revision
+
+        :param path_in_repo: Path of the file to compare, relative to repository root
+        :param lines: The contents to compare to, e.g. from current working tree
+        :return: Line numbers of lines changed between the revision and given content
+
+        """
+        revision_lines = git_get_unmodified_content(
+            path_in_repo, self.revision, self.git_root
+        )
+        edited_opcodes = diff_and_get_opcodes(revision_lines, lines)
         return list(opcodes_to_edit_linenums(edited_opcodes, context_lines))

@@ -9,6 +9,8 @@ Added
 - ``--check`` returns 1 from the process but leaves files untouched if any file would
   require reformatting
 - Untracked i.e. freshly created Python files are now also reformatted
+- ``-r <rev>`` / ``--revision <rev>`` can be used to specify the Git revision to compare
+  against when finding out modified lines. Defaults to ``HEAD`` as before.
 - ``--no-skip-string-normalization`` flag to override
   ``skip_string_normalization = true`` from a configuration file
 
