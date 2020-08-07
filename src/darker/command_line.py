@@ -39,6 +39,13 @@ def parse_command_line(argv: List[str]) -> Namespace:
         help="Don't write the files back, just output a diff for each file on stdout",
     )
     parser.add_argument(
+        "--commitish",
+        help="Commit to consider for the diff, default to HEAD (unstaged changes).",
+        nargs=1,
+        default=[''],
+        metavar='COMMITISH'
+    )
+    parser.add_argument(
         "--check",
         action="store_true",
         help=(

@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 
 def format_edited_parts(
-    srcs: Iterable[Path], enable_isort: bool, black_args: BlackArgs
+    srcs: Iterable[Path], enable_isort: bool, black_args: BlackArgs, commitish:str
 ) -> Generator[Tuple[Path, str, str, List[str]], None, None]:
     """Black (and optional isort) formatting for chunks with edits since the last commit
 
@@ -41,13 +41,14 @@ def format_edited_parts(
     :param srcs: Directories and files to re-format
     :param enable_isort: ``True`` to also run ``isort`` first on each changed file
     :param black_args: Command-line arguments to send to ``black.FileMode``
+    :param commitish: Consider lines change since with respect to this ``commitish``
     :return: A generator which yields details about changes for each file which should
              be reformatted, and skips unchanged files.
 
     """
     git_root = get_common_root(srcs)
-    changed_files = git_diff_name_only(srcs, git_root)
-    edited_linenums_differ = EditedLinenumsDiffer(git_root)
+    changed_files = git_diff_name_only(srcs, git_root, commitish=commitish)
+    edited_linenums_differ = EditedLinenumsDiffer(git_root, commitish=commitish)
 
     for path_in_repo in changed_files:
         src = git_root / path_in_repo
@@ -145,6 +146,8 @@ def print_diff(path: Path, old_content: str, new_lines: List[str]) -> None:
             old_content.splitlines(), new_lines, path.as_posix(), path.as_posix(),
         )
     )
+    if not difflines:
+        return
     header1, header2, *rest = difflines
     print(header1, end="")
     print(header2, end="")
@@ -152,7 +155,7 @@ def print_diff(path: Path, old_content: str, new_lines: List[str]) -> None:
 
 
 def main(argv: List[str] = None) -> int:
-    """Parse the command line and apply black formatting for each source file
+    """Parse this e command line and apply black formatting for each source file
 
     :param argv: The command line arguments to the ``darker`` command
     :return: 1 if the ``--check`` argument was provided and at least one file was (or
@@ -189,7 +192,7 @@ def main(argv: List[str] = None) -> int:
     # We need both forms when showing diffs or modifying files.
     # Pass them both on to avoid back-and-forth conversion.
     for path, old_content, new_content, new_lines in format_edited_parts(
-        paths, args.isort, black_args
+        paths, args.isort, black_args, commitish=args.commitish[0]
     ):
         some_files_changed = True
         if args.diff:
