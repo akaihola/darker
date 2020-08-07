@@ -4,7 +4,7 @@ import logging
 import sys
 from difflib import unified_diff
 from pathlib import Path
-from typing import Iterable, List
+from typing import Generator, Iterable, List, Tuple
 
 from darker.black_diff import BlackArgs, run_black
 from darker.chooser import choose_lines
@@ -19,8 +19,8 @@ logger = logging.getLogger(__name__)
 
 
 def format_edited_parts(
-    srcs: Iterable[Path], isort: bool, black_args: BlackArgs, print_diff: bool,
-) -> None:
+    srcs: Iterable[Path], enable_isort: bool, black_args: BlackArgs
+) -> Generator[Tuple[Path, str, str, List[str]], None, None]:
     """Black (and optional isort) formatting for chunks with edits since the last commit
 
     1. run isort on each edited file
@@ -39,9 +39,10 @@ def format_edited_parts(
     10. write the reformatted source back to the original file
 
     :param srcs: Directories and files to re-format
-    :param isort: ``True`` to also run ``isort`` first on each changed file
+    :param enable_isort: ``True`` to also run ``isort`` first on each changed file
     :param black_args: Command-line arguments to send to ``black.FileMode``
-    :param print_diff: ``True`` to output diffs instead of modifying source files
+    :return: A generator which yields details about changes for each file which should
+             be reformatted, and skips unchanged files.
 
     """
     git_root = get_common_root(srcs)
@@ -53,7 +54,7 @@ def format_edited_parts(
         worktree_content = src.read_text()
 
         # 1. run isort
-        if isort:
+        if enable_isort:
             edited_content = apply_isort(
                 worktree_content,
                 src,
@@ -70,7 +71,11 @@ def format_edited_parts(
             edited_linenums = edited_linenums_differ.head_vs_lines(
                 path_in_repo, edited_lines, context_lines
             )
-            if isort and not edited_linenums and edited_content == worktree_content:
+            if (
+                enable_isort
+                and not edited_linenums
+                and edited_content == worktree_content
+            ):
                 logger.debug("No changes in %s after isort", src)
                 break
 
@@ -117,30 +122,43 @@ def format_edited_parts(
                 continue
             else:
                 # 10. A re-formatted Python file which produces an identical AST was
-                #     created successfully - write an updated file
-                #     or print the diff
-                if print_diff:
-                    difflines = list(
-                        unified_diff(
-                            worktree_content.splitlines(),
-                            chosen_lines,
-                            src.as_posix(),
-                            src.as_posix(),
-                        )
-                    )
-                    if len(difflines) > 2:
-                        h1, h2, *rest = difflines
-                        print(h1, end="")
-                        print(h2, end="")
-                        print("\n".join(rest))
-                else:
-                    logger.info("Writing %s bytes into %s", len(result_str), src)
-                    src.write_text(result_str)
+                #     created successfully - write an updated file or print the diff
+                #     if there were any changes to the original
+                if result_str != worktree_content:
+                    # `result_str` is just `chosen_lines` concatenated with newlines.
+                    # We need both forms when showing diffs or modifying files.
+                    # Pass them both on to avoid back-and-forth conversion.
+                    yield src, worktree_content, result_str, chosen_lines
                 break
 
 
-def main(argv: List[str] = None) -> None:
-    """Parse the command line and apply black formatting for each source file"""
+def modify_file(path: Path, new_content: str) -> None:
+    """Write new content to a file and inform the user by logging"""
+    logger.info("Writing %s bytes into %s", len(new_content), path)
+    path.write_text(new_content)
+
+
+def print_diff(path: Path, old_content: str, new_lines: List[str]) -> None:
+    """Print ``black --diff`` style output for the changes"""
+    difflines = list(
+        unified_diff(
+            old_content.splitlines(), new_lines, path.as_posix(), path.as_posix(),
+        )
+    )
+    header1, header2, *rest = difflines
+    print(header1, end="")
+    print(header2, end="")
+    print("\n".join(rest))
+
+
+def main(argv: List[str] = None) -> int:
+    """Parse the command line and apply black formatting for each source file
+
+    :param argv: The command line arguments to the ``darker`` command
+    :return: 1 if the ``--check`` argument was provided and at least one file was (or
+             should be) reformatted; 0 otherwise.
+
+    """
     if argv is None:
         argv = sys.argv[1:]
     args = parse_command_line(argv)
@@ -166,8 +184,21 @@ def main(argv: List[str] = None) -> None:
         black_args["skip_string_normalization"] = args.skip_string_normalization
 
     paths = {Path(p) for p in args.src}
-    format_edited_parts(paths, args.isort, black_args, args.diff)
+    some_files_changed = False
+    # `new_content` is just `new_lines` concatenated with newlines.
+    # We need both forms when showing diffs or modifying files.
+    # Pass them both on to avoid back-and-forth conversion.
+    for path, old_content, new_content, new_lines in format_edited_parts(
+        paths, args.isort, black_args
+    ):
+        some_files_changed = True
+        if args.diff:
+            print_diff(path, old_content, new_lines)
+        if not args.check and not args.diff:
+            modify_file(path, new_content)
+    return 1 if args.check and some_files_changed else 0
 
 
 if __name__ == "__main__":
-    main()
+    RETVAL = main()
+    sys.exit(RETVAL)

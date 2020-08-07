@@ -6,8 +6,12 @@ These features will be included in the next release:
 Added
 -----
 
+- ``--check`` returns 1 from the process but leaves files untouched if any file would
+  require reformatting
+
 Fixed
 -----
+
 
 1.0.0_ - 2020-07-15
 ===================
