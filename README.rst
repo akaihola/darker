@@ -112,9 +112,15 @@ The following `command line arguments`_ can also be used to modify the defaults:
 
 .. code-block:: shell
 
+     --diff                Don't write the files back, just output a diff for
+                           each file on stdout
+
      --check               Don't write the files back, just return the status.
                            Return code 0 means nothing would change. Return code
                            1 means some files would be reformatted.
+
+     -i, --isort           Also sort imports using the `isort` package
+
      -c PATH, --config PATH
                            Ask `black` and `isort` to read configuration from PATH.
      -S, --skip-string-normalization
@@ -127,6 +133,8 @@ The following `command line arguments`_ can also be used to modify the defaults:
 *New in version 1.0.0:* isort_ is configured with ``-c`` and ``-l``, too.
 
 *New in version 1.1.0:* The ``--check`` command line option.
+
+*New in version 1.1.0:* The ``--diff`` command line option.
 
 .. _Black documentation about pyproject.toml: https://black.readthedocs.io/en/stable/pyproject_toml.html
 .. _isort documentation about config files: https://timothycrosley.github.io/isort/docs/configuration/config_files/
@@ -225,10 +233,15 @@ Visual Studio Code
      $ where darker
      %LocalAppData%\Programs\Python\Python36-32\Scripts\darker.exe  # possible location
 
-3. Add these configuration options::
+3. Add these configuration options to VS code, ``Cmd-Shift-P``, ``Open Settings (JSON)``::
+   
 
     "python.formatting.provider": "black",
-    "python.formatting.blackPath": "<install_location_from_step_2>"
+    "python.formatting.blackPath": "<install_location_from_step_2>",
+    "python.formatting.blackArgs": ["--diff"],
+
+You can pass additional arguments to ``darker`` in the ``blackArgs`` option
+(e.g. ``["--diff", "--isort"]``), but make sure at least ``--diff`` is included.
 
 
 How does it work?
