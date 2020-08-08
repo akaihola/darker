@@ -8,6 +8,7 @@ Added
 
 - ``--check`` returns 1 from the process but leaves files untouched if any file would
   require reformatting
+- Untracked i.e. freshly created Python files are now also reformatted
 
 Fixed
 -----

@@ -10,7 +10,7 @@ from darker.black_diff import BlackArgs, run_black
 from darker.chooser import choose_lines
 from darker.command_line import ISORT_INSTRUCTION, parse_command_line
 from darker.diff import diff_and_get_opcodes, opcodes_to_chunks
-from darker.git import EditedLinenumsDiffer, git_diff_name_only
+from darker.git import EditedLinenumsDiffer, git_get_modified_files
 from darker.import_sorting import apply_isort, isort
 from darker.utils import get_common_root, joinlines
 from darker.verification import NotEquivalentError, verify_ast_unchanged
@@ -46,7 +46,7 @@ def format_edited_parts(
 
     """
     git_root = get_common_root(srcs)
-    changed_files = git_diff_name_only(srcs, git_root)
+    changed_files = git_get_modified_files(srcs, git_root)
     edited_linenums_differ = EditedLinenumsDiffer(git_root)
 
     for path_in_repo in changed_files:

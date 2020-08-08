@@ -4,7 +4,7 @@ import pytest
 
 from darker.git import (
     EditedLinenumsDiffer,
-    git_diff_name_only,
+    git_get_modified_files,
     git_get_unmodified_content,
     should_reformat_file,
 )
@@ -55,9 +55,12 @@ def test_should_reformat_file(tmpdir, path, create, expect):
         ({'c/e.js': 'new'}, ['c/e.js'], []),
         ({'a.py': 'original'}, ['a.py'], []),
         ({'a.py': None}, ['a.py'], []),
+        ({"h.py": "untracked"}, ["h.py"], ["h.py"]),
+        ({}, ["h.py"], []),
     ],
 )
-def test_git_diff_name_only(git_repo, modify_paths, paths, expect):
+def test_git_get_modified_files(git_repo, modify_paths, paths, expect):
+    """Tests for `darker.git.git_get_modified_files()`"""
     root = Path(git_repo.root)
     git_repo.add(
         {
@@ -74,7 +77,7 @@ def test_git_diff_name_only(git_repo, modify_paths, paths, expect):
             absolute_path.remove()
         else:
             absolute_path.write(content, ensure=True)
-    result = git_diff_name_only({root / p for p in paths}, cwd=root)
+    result = git_get_modified_files({root / p for p in paths}, cwd=root)
     assert {str(p) for p in result} == set(expect)
 
 
