@@ -50,7 +50,7 @@ def format_edited_parts(
     changed_files = git_get_modified_files(srcs, revision, git_root)
     edited_linenums_differ = EditedLinenumsDiffer(git_root, revision)
 
-    for path_in_repo in changed_files:
+    for path_in_repo in sorted(changed_files):
         src = git_root / path_in_repo
         worktree_content = src.read_text()
 
