@@ -112,16 +112,21 @@ The following `command line arguments`_ can also be used to modify the defaults:
 
 .. code-block:: shell
 
+     --diff                Don't write the files back, just output a diff for
+                           each file on stdout
+
      --check               Don't write the files back, just return the status.
                            Return code 0 means nothing would change. Return code
                            1 means some files would be reformatted.
+
+     -i, --isort           Also sort imports using the `isort` package
+
      -c PATH, --config PATH
                            Ask `black` and `isort` to read configuration from PATH.
      -S, --skip-string-normalization
                            Don't normalize string quotes or prefixes
      -l LINE_LENGTH, --line-length LINE_LENGTH
                            How many characters per line to allow [default: 88]
-     --diff                Don't write the files back, just output a diff for each file on stdout
 
 *New in version 1.0.0:* The ``-c``, ``-S`` and ``-l`` command line options.
 
