@@ -1,7 +1,7 @@
 import sys
 import types
 from subprocess import check_call
-from typing import Dict
+from typing import Dict, Optional
 from unittest.mock import patch
 
 import pytest
@@ -25,15 +25,28 @@ class GitRepoFixture:
         self.root = root
 
     def add(
-        self, paths_and_contents: Dict[str, str], commit: str = None
+        self, paths_and_contents: Dict[str, Optional[str]], commit: str = None
     ) -> Dict[str, LocalPath]:
+        """Add/remove/modify files and optionally commit the changes
+
+        :param paths_and_contents: Paths of the files relative to repository root, and
+                                   new contents for the files as strings. ``None`` can
+                                   be specified as the contents in order to remove a
+                                   file.
+        :param commit: The message for the commit, or ``None`` to skip making a commit.
+
+        """
         absolute_paths = {
             relative_path: self.root / relative_path
             for relative_path in paths_and_contents
         }
         for relative_path, content in paths_and_contents.items():
-            absolute_paths[relative_path].write(content, ensure=True)
-            check_call(["git", "add", relative_path], cwd=self.root)
+            path = absolute_paths[relative_path]
+            if content is None:
+                check_call(["git", "rm", "--", relative_path], cwd=self.root)
+            else:
+                path.write(content, ensure=True)
+                check_call(["git", "add", "--", relative_path], cwd=self.root)
         if commit:
             check_call(["git", "commit", "-m", commit], cwd=self.root)
         return absolute_paths
