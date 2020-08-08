@@ -121,7 +121,6 @@ The following `command line arguments`_ can also be used to modify the defaults:
                            Don't normalize string quotes or prefixes
      -l LINE_LENGTH, --line-length LINE_LENGTH
                            How many characters per line to allow [default: 88]
-
      --diff                Don't write the files back, just output a diff for each file on stdout
 
 *New in version 1.0.0:* The ``-c``, ``-S`` and ``-l`` command line options.
@@ -236,7 +235,7 @@ Visual Studio Code
     "python.formatting.blackPath": "<install_location_from_step_2>",
     "python.formatting.blackArgs": ["--diff"],
 
-Extra argument can be passed to ``darker`` along side, but ``--diff`` is necessary.
+You can pass additional arguments to ``darker`` in the ``blackArgs`` option (e.g. ``["--diff", "--isort"]``), but make sure at least ``--diff`` is included.
 
 
 How does it work?
