@@ -240,7 +240,8 @@ Visual Studio Code
     "python.formatting.blackPath": "<install_location_from_step_2>",
     "python.formatting.blackArgs": ["--diff"],
 
-You can pass additional arguments to ``darker`` in the ``blackArgs`` option (e.g. ``["--diff", "--isort"]``), but make sure at least ``--diff`` is included.
+You can pass additional arguments to ``darker`` in the ``blackArgs`` option
+(e.g. ``["--diff", "--isort"]``), but make sure at least ``--diff`` is included.
 
 
 How does it work?
