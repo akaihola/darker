@@ -141,13 +141,23 @@ def modify_file(path: Path, new_content: str) -> None:
 def print_diff(path: Path, old_content: str, new_lines: List[str]) -> None:
     """Print ``black --diff`` style output for the changes"""
     relative_path = path.resolve().relative_to(Path.cwd()).as_posix()
-    difflines = list(
-        unified_diff(old_content.splitlines(), new_lines, relative_path, relative_path)
+    diff = "\n".join(
+        line.rstrip("\n")
+        for line in unified_diff(
+            old_content.splitlines(), new_lines, relative_path, relative_path,
+        )
     )
-    header1, header2, *rest = difflines
-    print(header1, end="")
-    print(header2, end="")
-    print("\n".join(rest))
+
+    if sys.stdout.isatty():
+        try:
+            from pygments import highlight
+            from pygments.formatters import TerminalFormatter
+            from pygments.lexers import DiffLexer
+
+            diff = highlight(diff, DiffLexer(), TerminalFormatter())
+        except ImportError:
+            pass
+    print(diff)
 
 
 def main(argv: List[str] = None) -> int:

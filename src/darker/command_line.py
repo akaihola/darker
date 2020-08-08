@@ -36,7 +36,10 @@ def parse_command_line(argv: List[str]) -> Namespace:
     parser.add_argument(
         "--diff",
         action="store_true",
-        help="Don't write the files back, just output a diff for each file on stdout",
+        help=(
+            "Don't write the files back, just output a diff for each file on stdout."
+            " Highlight syntax on screen if the `pygments` package is available."
+        ),
     )
     parser.add_argument(
         "--check",
