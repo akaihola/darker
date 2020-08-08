@@ -10,15 +10,20 @@ from darker.git import (
 )
 
 
-def test_get_unmodified_content(git_repo):
-    paths = git_repo.add({'my.txt': 'original content'}, commit='Initial commit')
+@pytest.mark.parametrize(
+    'revision, expect',
+    [("HEAD", ["modified content"]), ("HEAD^", ["original content"]), ("HEAD~2", []),],
+)
+def test_get_unmodified_content(git_repo, revision, expect):
+    git_repo.add({"my.txt": "original content"}, commit="Initial commit")
+    paths = git_repo.add({"my.txt": "modified content"}, commit="Initial commit")
     paths['my.txt'].write('new content')
 
     original_content = git_get_unmodified_content(
-        Path("my.txt"), "HEAD", cwd=git_repo.root
+        Path("my.txt"), revision, cwd=git_repo.root
     )
 
-    assert original_content == ['original content']
+    assert original_content == expect
 
 
 @pytest.mark.parametrize(
