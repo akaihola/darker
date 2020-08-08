@@ -1,8 +1,9 @@
 """Helpers for listing modified files and getting unmodified content from Git"""
 
 import logging
+import sys
 from pathlib import Path
-from subprocess import check_output
+from subprocess import CalledProcessError, check_output
 from typing import Iterable, List, Set
 
 from darker.diff import diff_and_get_opcodes, opcodes_to_edit_linenums
@@ -26,8 +27,24 @@ def should_reformat_file(path: Path) -> bool:
     return path.exists() and path.suffix == ".py"
 
 
-def git_diff_name_only(paths: Iterable[Path], cwd: Path) -> Set[Path]:
-    """Run ``git diff --name-only`` and return file names from the output
+def _git_check_output_lines(cmd: List[str], cwd: Path) -> List[str]:
+    """Log command line, run Git, split stdout to lines, exit with 123 on error"""
+    logger.debug("[%s]$ %s", cwd, " ".join(cmd))
+    try:
+        return check_output(cmd, cwd=str(cwd)).decode("utf-8").splitlines()
+    except CalledProcessError as exc_info:
+        if exc_info.returncode == 128:
+            # Bad revision or another Git failure
+            sys.exit(123)
+        else:
+            raise
+
+
+def git_get_modified_files(paths: Iterable[Path], cwd: Path) -> Set[Path]:
+    """Ask Git for modified and untracked files
+
+    - ``git diff --name-only --relative HEAD -- <path(s)>``
+    - ``git ls-files --others --exclude-standard -- <path(s)>``
 
     Return file names relative to the Git repository root.
 
@@ -36,16 +53,25 @@ def git_diff_name_only(paths: Iterable[Path], cwd: Path) -> Set[Path]:
 
     """
     relative_paths = {p.resolve().relative_to(cwd) for p in paths}
-    cmd = [
+    str_paths = [str(path) for path in relative_paths]
+    diff_cmd = [
         "git",
         "diff",
         "--name-only",
         "--relative",
         "--",
-        *[str(path) for path in relative_paths],
+        *str_paths,
     ]
-    logger.debug("[%s]$ %s", cwd, " ".join(cmd))
-    lines = check_output(cmd, cwd=str(cwd)).decode("utf-8").splitlines()
+    lines = _git_check_output_lines(diff_cmd, cwd)
+    ls_files_cmd = [
+        "git",
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "--",
+        *str_paths,
+    ]
+    lines.extend(_git_check_output_lines(ls_files_cmd, cwd))
     changed_paths = (Path(line) for line in lines)
     return {path for path in changed_paths if should_reformat_file(cwd / path)}
 
