@@ -34,7 +34,10 @@ def parse_command_line(argv: List[str]) -> Namespace:
         "-r",
         "--revision",
         default="HEAD",
-        help="Git revision against which to compare the working tree",
+        help=(
+            "Git revision against which to compare the working tree. Tags, branch"
+            " names, commit hashes, and other expressions like HEAD~5 work here."
+        ),
     )
     isort_help = ["Also sort imports using the `isort` package"]
     if not isort:
