@@ -355,10 +355,13 @@ Some of them we might want to integrate to be part of a Darker run.
 
 - blacken-docs__ – Run Black_ on Python code blocks in documentation files
 - blackdoc__ – Run Black_ on documentation code snippets
-
+- velin__ – Reformat docstrings that follow the numpydoc__ convention
 
 __ https://github.com/asottile/blacken-docs
 __ https://github.com/keewis/blackdoc
+__ https://github.com/Carreau/velin
+__ https://pypi.org/project/numpydoc
+
 
 GitHub stars trend
 ==================
