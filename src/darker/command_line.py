@@ -81,9 +81,20 @@ def parse_command_line(argv: List[str]) -> Namespace:
     parser.add_argument(
         "-S",
         "--skip-string-normalization",
-        action="store_true",
+        action="store_const",
+        const=True,
         dest="skip_string_normalization",
         help="Don't normalize string quotes or prefixes",
+    )
+    parser.add_argument(
+        "--no-skip-string-normalization",
+        action="store_const",
+        const=False,
+        dest="skip_string_normalization",
+        help=(
+            "Normalize string quotes or prefixes. This can be used to override"
+            " `skip_string_normalization = true` from a configuration file."
+        ),
     )
     parser.add_argument(
         "-l",

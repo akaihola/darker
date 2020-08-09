@@ -40,6 +40,8 @@ class GitRepoFixture:
 
 
 @pytest.fixture
-def git_repo(tmpdir):
+def git_repo(tmpdir, monkeypatch):
+    """Create a temporary Git repository and change current working directory into it"""
     check_call(["git", "init"], cwd=tmpdir)
+    monkeypatch.chdir(tmpdir)
     return GitRepoFixture(tmpdir)

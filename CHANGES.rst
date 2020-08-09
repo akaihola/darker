@@ -9,12 +9,13 @@ Added
 - ``--check`` returns 1 from the process but leaves files untouched if any file would
   require reformatting
 - Untracked i.e. freshly created Python files are now also reformatted
+- ``--no-skip-string-normalization`` flag to override
+  ``skip_string_normalization = true`` from a configuration file
 
 Fixed
 -----
 - Paths from ``--diff`` are now relative to current working directory, similar to output
   from ``black --diff``
-
 
 
 1.0.0_ - 2020-07-15

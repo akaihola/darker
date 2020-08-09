@@ -8,6 +8,7 @@ import pytest
 from darker import black_diff
 from darker.__main__ import main
 from darker.command_line import parse_command_line
+from darker.utils import joinlines
 
 
 @pytest.fixture
@@ -79,6 +80,53 @@ def test_black_options(monkeypatch, tmpdir, git_repo, options, expect):
 
     _, expect_args, expect_kwargs = expect
     Mode.assert_called_once_with(*expect_args, **expect_kwargs)
+
+
+@pytest.mark.parametrize(
+    "config, options, expect",
+    [
+        ([], [], call()),
+        ([], ['--skip-string-normalization'], call(string_normalization=False)),
+        ([], ['--no-skip-string-normalization'], call(string_normalization=True)),
+        (['skip_string_normalization = false'], [], call(string_normalization=True)),
+        (
+            ['skip_string_normalization = false'],
+            ['--skip-string-normalization'],
+            call(string_normalization=False),
+        ),
+        (
+            ['skip_string_normalization = false'],
+            ['--no-skip-string-normalization'],
+            call(string_normalization=True),
+        ),
+        (['skip_string_normalization = true'], [], call(string_normalization=False)),
+        (
+            ['skip_string_normalization = true'],
+            ['--skip-string-normalization'],
+            call(string_normalization=False),
+        ),
+        (
+            ['skip_string_normalization = true'],
+            ['--no-skip-string-normalization'],
+            call(string_normalization=True),
+        ),
+    ],
+)
+def test_black_options_skip_string_normalization(git_repo, config, options, expect):
+    """Black string normalization config and cmdline option are combined correctly"""
+    added_files = git_repo.add(
+        {"main.py": "foo", "pyproject.toml": joinlines(["[tool.black]"] + config)},
+        commit="Initial commit",
+    )
+    added_files["main.py"].write("bar")
+    mode_class_mock = Mock(wraps=black_diff.Mode)
+    # Speed up tests by mocking `format_str` to skip running Black
+    format_str = Mock(return_value="bar")
+    with patch.multiple(black_diff, Mode=mode_class_mock, format_str=format_str):
+
+        main(options + [str(path) for path in added_files.values()])
+
+    assert mode_class_mock.call_args_list == [expect]
 
 
 @pytest.mark.parametrize(
