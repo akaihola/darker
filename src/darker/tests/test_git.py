@@ -11,7 +11,7 @@ from darker.git import (
 
 
 @pytest.mark.parametrize(
-    'revision, expect',
+    "revision, expect",
     [("HEAD", ["modified content"]), ("HEAD^", ["original content"]), ("HEAD~2", []),],
 )
 def test_get_unmodified_content(git_repo, revision, expect):

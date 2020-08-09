@@ -23,7 +23,7 @@ def git_get_unmodified_content(path: Path, revision: str, cwd: Path) -> List[str
     cmd = ["git", "show", f"{revision}:./{path}"]
     logger.debug("[%s]$ %s", cwd, " ".join(cmd))
     try:
-        return check_output(cmd, cwd=str(cwd), encoding='utf-8').splitlines()
+        return check_output(cmd, cwd=str(cwd), encoding="utf-8").splitlines()
     except CalledProcessError as exc_info:
         if exc_info.returncode == 128:
             # The file didn't exist at the given revision. Act as if it was an empty

@@ -119,7 +119,7 @@ def test_format_edited_parts(git_repo, monkeypatch, enable_isort, black_args, ex
 
     changes = list(
         darker.__main__.format_edited_parts(
-            [Path('a.py')], "HEAD", enable_isort, black_args
+            [Path("a.py")], "HEAD", enable_isort, black_args
         )
     )
 
@@ -134,7 +134,7 @@ def test_format_edited_parts_all_unchanged(git_repo, monkeypatch):
     paths['a.py'].write('"properly"\n"formatted"\n')
     paths['b.py'].write('"not"\n"checked"\n')
 
-    result = list(darker.__main__.format_edited_parts([Path('a.py')], "HEAD", True, {}))
+    result = list(darker.__main__.format_edited_parts([Path("a.py")], "HEAD", True, {}))
 
     assert result == []
 

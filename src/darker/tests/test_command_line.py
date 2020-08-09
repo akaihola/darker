@@ -132,21 +132,21 @@ def test_black_options_skip_string_normalization(git_repo, config, options, expe
 @pytest.mark.parametrize(
     'options, expect',
     [
-        (['a.py'], ({Path('a.py')}, "HEAD", False, {})),
-        (['--isort', 'a.py'], ({Path('a.py')}, "HEAD", True, {})),
+        (["a.py"], ({Path("a.py")}, "HEAD", False, {})),
+        (["--isort", "a.py"], ({Path("a.py")}, "HEAD", True, {})),
         (
-            ['--config', 'my.cfg', 'a.py'],
-            ({Path('a.py')}, "HEAD", False, {'config': 'my.cfg'}),
+            ["--config", "my.cfg", "a.py"],
+            ({Path("a.py")}, "HEAD", False, {"config": "my.cfg"}),
         ),
         (
-            ['--line-length', '90', 'a.py'],
-            ({Path('a.py')}, "HEAD", False, {'line_length': 90}),
+            ["--line-length", "90", "a.py"],
+            ({Path("a.py")}, "HEAD", False, {"line_length": 90}),
         ),
         (
-            ['--skip-string-normalization', 'a.py'],
-            ({Path('a.py')}, "HEAD", False, {'skip_string_normalization': True}),
+            ["--skip-string-normalization", "a.py"],
+            ({Path("a.py")}, "HEAD", False, {"skip_string_normalization": True}),
         ),
-        (['--diff', 'a.py'], ({Path('a.py')}, "HEAD", False, {})),
+        (["--diff", "a.py"], ({Path("a.py")}, "HEAD", False, {})),
     ],
 )
 def test_options(options, expect):
