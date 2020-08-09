@@ -38,11 +38,11 @@ def _parse_linter_line(
     #       linenum = 123
     #       description = "error: Foo"
     try:
-        location, _ = line[:-1].split(': ', 1)
-        path_str, linenum_bytes, *rest = location.split(':')
+        location, _ = line[:-1].split(": ", 1)
+        path_str, linenum_bytes, *rest = location.split(":")
         linenum = int(linenum_bytes)
         if len(rest) > 1:
-            raise ValueError('Too many colon-separated tokens')
+            raise ValueError("Too many colon-separated tokens")
         if len(rest) == 1:
             # Make sure it column looks like an int on "<path>:<linenum>:<column>"
             _column = int(rest[0])
@@ -51,7 +51,7 @@ def _parse_linter_line(
         # For example, on Mypy:
         # "Found XX errors in YY files (checked ZZ source files)"
         # "Success: no issues found in 1 source file"
-        logger.debug('Unparseable linter output: %s', line[:-1])
+        logger.debug("Unparseable linter output: %s", line[:-1])
         return None, None
     path_from_cwd = Path(path_str).absolute()
     path_in_repo = path_from_cwd.relative_to(git_root)
@@ -71,7 +71,7 @@ def run_linter(cmdline: List[str], git_root: Path, paths: Set[Path]) -> None:
     linter_process = Popen(
         cmdline + [str(git_root / path) for path in sorted(paths)],
         stdout=PIPE,
-        encoding='utf-8',
+        encoding="utf-8",
     )
     # assert needed for MyPy (see https://stackoverflow.com/q/57350490/15770)
     assert linter_process.stdout is not None
@@ -84,4 +84,4 @@ def run_linter(cmdline: List[str], git_root: Path, paths: Set[Path]) -> None:
             path_in_repo, context_lines=0
         )
         if linter_error_linenum in edited_linenums:
-            print(line, end='')
+            print(line, end="")
