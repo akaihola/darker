@@ -125,6 +125,10 @@ The following `command line arguments`_ can also be used to modify the defaults:
                            Ask `black` and `isort` to read configuration from PATH.
      -S, --skip-string-normalization
                            Don't normalize string quotes or prefixes
+     --no-skip-string-normalization
+                           Normalize string quotes or prefixes. This can be used
+                           to override `skip_string_normalization = true` from a
+                           configuration file.
      -l LINE_LENGTH, --line-length LINE_LENGTH
                            How many characters per line to allow [default: 88]
 
@@ -135,6 +139,8 @@ The following `command line arguments`_ can also be used to modify the defaults:
 *New in version 1.1.0:* The ``--check`` command line option.
 
 *New in version 1.1.0:* The ``--diff`` command line option.
+
+*New in version 1.1.0:* The ``--no-skip-string-normalization`` command line option.
 
 .. _Black documentation about pyproject.toml: https://black.readthedocs.io/en/stable/pyproject_toml.html
 .. _isort documentation about config files: https://timothycrosley.github.io/isort/docs/configuration/config_files/

@@ -179,7 +179,7 @@ def main(argv: List[str] = None) -> int:
         black_args["config"] = args.config
     if args.line_length:
         black_args["line_length"] = args.line_length
-    if args.skip_string_normalization:
+    if args.skip_string_normalization is not None:
         black_args["skip_string_normalization"] = args.skip_string_normalization
 
     paths = {Path(p) for p in args.src}
