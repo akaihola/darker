@@ -113,7 +113,8 @@ The following `command line arguments`_ can also be used to modify the defaults:
 .. code-block:: shell
 
      --diff                Don't write the files back, just output a diff for
-                           each file on stdout
+                           each file on stdout. Highlight syntax on screen if
+                           the `pygments` package is available.
 
      --check               Don't write the files back, just return the status.
                            Return code 0 means nothing would change. Return code
