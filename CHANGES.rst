@@ -15,7 +15,8 @@ Added
 Fixed
 -----
 - Paths from ``--diff`` are now relative to current working directory, similar to output
-  from ``black --diff``
+  from ``black --diff``, and blank lines after the lines markers (``@@ ... @@``) have been removed.
+- The ``--diff`` option will highlight syntax on screen if the ``pygments`` package is available.
 
 
 1.0.0_ - 2020-07-15
