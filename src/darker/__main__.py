@@ -153,11 +153,12 @@ def print_diff(path: Path, old_content: str, new_lines: List[str]) -> None:
             from pygments import highlight
             from pygments.formatters import TerminalFormatter
             from pygments.lexers import DiffLexer
-
-            diff = highlight(diff, DiffLexer(), TerminalFormatter())
         except ImportError:
-            pass
-    print(diff)
+            print(diff)
+        else:
+            print(highlight(diff, DiffLexer(), TerminalFormatter()))
+    else:
+        print(diff)
 
 
 def main(argv: List[str] = None) -> int:
