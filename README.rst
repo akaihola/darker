@@ -112,6 +112,11 @@ The following `command line arguments`_ can also be used to modify the defaults:
 
 .. code-block:: shell
 
+     -r REVISION, --revision REVISION
+                           Git revision against which to compare the working
+                           tree. Tags, branch names, commit hashes, and other
+                           expressions like HEAD~5 work here.
+
      --diff                Don't write the files back, just output a diff for
                            each file on stdout. Highlight syntax on screen if
                            the `pygments` package is available.
@@ -137,9 +142,11 @@ The following `command line arguments`_ can also be used to modify the defaults:
 
 *New in version 1.0.0:* isort_ is configured with ``-c`` and ``-l``, too.
 
-*New in version 1.1.0:* The ``--check`` command line option.
+*New in version 1.1.0:* The ``-r`` / ``--revision`` command line option.
 
 *New in version 1.1.0:* The ``--diff`` command line option.
+
+*New in version 1.1.0:* The ``--check`` command line option.
 
 *New in version 1.1.0:* The ``--no-skip-string-normalization`` command line option.
 

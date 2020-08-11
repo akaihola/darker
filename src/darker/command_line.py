@@ -30,6 +30,15 @@ def parse_command_line(argv: List[str]) -> Namespace:
         help="Path(s) to the Python source file(s) to reformat",
         metavar="PATH",
     )
+    parser.add_argument(
+        "-r",
+        "--revision",
+        default="HEAD",
+        help=(
+            "Git revision against which to compare the working tree. Tags, branch"
+            " names, commit hashes, and other expressions like HEAD~5 work here."
+        ),
+    )
     isort_help = ["Also sort imports using the `isort` package"]
     if not isort:
         isort_help.append(f". {ISORT_INSTRUCTION} to enable usage of this option.")

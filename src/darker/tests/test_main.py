@@ -57,7 +57,7 @@ def test_isort_option_with_isort_calls_sortimports(tmpdir, run_isort, isort_args
 def test_format_edited_parts_empty():
     with pytest.raises(ValueError):
 
-        list(darker.__main__.format_edited_parts([], False, {}))
+        list(darker.__main__.format_edited_parts([], "HEAD", False, {}))
 
 
 A_PY = ['import sys', 'import os', "print( '42')", '']
@@ -118,7 +118,9 @@ def test_format_edited_parts(git_repo, monkeypatch, enable_isort, black_args, ex
     paths['b.py'].write('print(42 )\n')
 
     changes = list(
-        darker.__main__.format_edited_parts([Path('a.py')], enable_isort, black_args)
+        darker.__main__.format_edited_parts(
+            [Path("a.py")], "HEAD", enable_isort, black_args
+        )
     )
 
     expect_changes = [(paths['a.py'], '\n'.join(A_PY), '\n'.join(expect), expect[:-1])]
@@ -132,7 +134,7 @@ def test_format_edited_parts_all_unchanged(git_repo, monkeypatch):
     paths['a.py'].write('"properly"\n"formatted"\n')
     paths['b.py'].write('"not"\n"checked"\n')
 
-    result = list(darker.__main__.format_edited_parts([Path('a.py')], True, {}))
+    result = list(darker.__main__.format_edited_parts([Path("a.py")], "HEAD", True, {}))
 
     assert result == []
 
