@@ -29,8 +29,8 @@ def format_edited_parts(
     """Black (and optional isort) formatting for chunks with edits since the last commit
 
     1. run isort on each edited file (optional)
-    2. diff HEAD and worktree (optionally with isort modifications) for all file & dir
-       paths on the command line
+    2. diff the given revision and worktree (optionally with isort modifications) for
+       all file & dir paths on the command line
     3. extract line numbers in each edited to-file for changed lines
     4. run black on the contents of each edited to-file
     5. get a diff between the edited to-file and the reformatted content
@@ -44,8 +44,8 @@ def format_edited_parts(
        the original edited to-file
     10. write the reformatted source back to the original file
     11. run linter subprocesses for all edited files (11.-14. optional)
-    12. diff HEAD and worktree (after isort and Black reformatting) for each file
-        reported by a linter
+    12. diff the given revision and worktree (after isort and Black reformatting) for
+        each file reported by a linter
     13. extract line numbers in each file reported by a linter for changed lines
     14. print only linter error lines which fall on changed lines
 
@@ -80,7 +80,7 @@ def format_edited_parts(
         edited_lines = edited_content.splitlines()
         max_context_lines = len(edited_lines)
         for context_lines in range(max_context_lines + 1):
-            # 2. diff HEAD and worktree for the file
+            # 2. diff the given revision and worktree for the file
             # 3. extract line numbers in the edited to-file for changed lines
             edited_linenums = edited_linenums_differ.revision_vs_lines(
                 path_in_repo, edited_lines, context_lines
@@ -145,8 +145,8 @@ def format_edited_parts(
                     yield src, worktree_content, result_str, chosen_lines
                 break
     # 11. run linter subprocesses for all edited files (11.-14. optional)
-    # 12. diff HEAD and worktree (after isort and Black reformatting) for each file
-    #     reported by a linter
+    # 12. diff the given revision and worktree (after isort and Black reformatting) for
+    #     each file reported by a linter
     # 13. extract line numbers in each file reported by a linter for changed lines
     # 14. print only linter error lines which fall on changed lines
     for linter_cmdline in linter_cmdlines:
