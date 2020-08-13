@@ -5,8 +5,17 @@ These features will be included in the next release:
 
 Added
 -----
-- ``-L``/``--lint`` option for running a linter for modified lines.
 
+Fixed
+-----
+
+
+1.1.0_ - 2020-08-dd
+===================
+
+Added
+-----
+- ``-L``/``--lint`` option for running a linter for modified lines.
 - ``--check`` returns 1 from the process but leaves files untouched if any file would
   require reformatting
 - Untracked i.e. freshly created Python files are now also reformatted
@@ -18,8 +27,10 @@ Added
 Fixed
 -----
 - Paths from ``--diff`` are now relative to current working directory, similar to output
-  from ``black --diff``, and blank lines after the lines markers (``@@ ... @@``) have been removed.
-- The ``--diff`` option will highlight syntax on screen if the ``pygments`` package is available.
+  from ``black --diff``, and blank lines after the lines markers (``@@ ... @@``) have
+  been removed.
+- The ``--diff`` option will highlight syntax on screen if the ``pygments`` package is
+  available.
 
 
 1.0.0_ - 2020-07-15
@@ -62,7 +73,8 @@ Added
 -----
 - Initial implementation
 
-.. _Unreleased: https://github.com/akaihola/darker/compare/1.0.0...HEAD
+.. _Unreleased: https://github.com/akaihola/darker/compare/1.1.0...HEAD
+.. _1.1.0: https://github.com/akaihola/darker/compare/1.0.0...1.1.0
 .. _1.0.0: https://github.com/akaihola/darker/compare/0.2.0...1.0.0
 .. _0.2.0: https://github.com/akaihola/darker/compare/0.1.1...0.2.0
 .. _0.1.1: https://github.com/akaihola/darker/compare/0.1.0...0.1.1
