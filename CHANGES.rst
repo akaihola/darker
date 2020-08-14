@@ -16,21 +16,21 @@ Fixed
 Added
 -----
 - ``-L``/``--lint`` option for running a linter for modified lines.
-- ``--check`` returns 1 from the process but leaves files untouched if any file would
-  require reformatting
-- Untracked i.e. freshly created Python files are now also reformatted
+- ``--check`` returns ``1`` from the process but leaves files untouched if any file
+  would require reformatting
+- Untracked Python files – e.g. those added recently – are now also reformatted
 - ``-r <rev>`` / ``--revision <rev>`` can be used to specify the Git revision to compare
   against when finding out modified lines. Defaults to ``HEAD`` as before.
 - ``--no-skip-string-normalization`` flag to override
   ``skip_string_normalization = true`` from a configuration file
+- The ``--diff`` option will highlight syntax on screen if the ``pygments`` package is
+  available.
 
 Fixed
 -----
 - Paths from ``--diff`` are now relative to current working directory, similar to output
   from ``black --diff``, and blank lines after the lines markers (``@@ ... @@``) have
   been removed.
-- The ``--diff`` option will highlight syntax on screen if the ``pygments`` package is
-  available.
 
 
 1.0.0_ - 2020-07-15
