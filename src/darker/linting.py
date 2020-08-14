@@ -58,12 +58,15 @@ def _parse_linter_line(
     return path_in_repo, linenum
 
 
-def run_linter(cmdline: List[str], git_root: Path, paths: Set[Path]) -> None:
+def run_linter(
+    cmdline: List[str], git_root: Path, paths: Set[Path], revision: str
+) -> None:
     """Run the given linter and print linting errors falling on changed lines
 
     :param cmdline: The command line for running the linter
     :param git_root: The repository root for the changed files
     :param paths: Paths of files to check, relative to ``git_root``
+    :param revision: The Git revision against which to compare the working tree
 
     """
     if not paths:
@@ -75,7 +78,7 @@ def run_linter(cmdline: List[str], git_root: Path, paths: Set[Path]) -> None:
     )
     # assert needed for MyPy (see https://stackoverflow.com/q/57350490/15770)
     assert linter_process.stdout is not None
-    edited_linenums_differ = EditedLinenumsDiffer(git_root)
+    edited_linenums_differ = EditedLinenumsDiffer(git_root, revision)
     for line in linter_process.stdout:
         path_in_repo, linter_error_linenum = _parse_linter_line(line, git_root)
         if path_in_repo is None:
