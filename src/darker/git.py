@@ -3,6 +3,7 @@
 import logging
 import sys
 from dataclasses import dataclass
+from functools import lru_cache
 from pathlib import Path
 from subprocess import CalledProcessError, check_output
 from typing import Iterable, List, Set
@@ -98,6 +99,12 @@ class EditedLinenumsDiffer:
 
     git_root: Path
     revision: str = "HEAD"
+
+    @lru_cache(maxsize=1)
+    def revision_vs_worktree(self, path_in_repo: Path, context_lines: int) -> List[int]:
+        """Return numbers of lines changed between a given revision and the worktree"""
+        lines = (self.git_root / path_in_repo).read_text("utf-8").splitlines()
+        return self.revision_vs_lines(path_in_repo, lines, context_lines)
 
     def revision_vs_lines(
         self, path_in_repo: Path, lines: List[str], context_lines: int

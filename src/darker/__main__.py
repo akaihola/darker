@@ -12,6 +12,7 @@ from darker.command_line import ISORT_INSTRUCTION, parse_command_line
 from darker.diff import diff_and_get_opcodes, opcodes_to_chunks
 from darker.git import EditedLinenumsDiffer, git_get_modified_files
 from darker.import_sorting import apply_isort, isort
+from darker.linting import run_linter
 from darker.utils import get_common_root, joinlines
 from darker.verification import NotEquivalentError, verify_ast_unchanged
 
@@ -19,12 +20,17 @@ logger = logging.getLogger(__name__)
 
 
 def format_edited_parts(
-    srcs: Iterable[Path], revision: str, enable_isort: bool, black_args: BlackArgs
+    srcs: Iterable[Path],
+    revision: str,
+    enable_isort: bool,
+    linter_cmdlines: List[List[str]],
+    black_args: BlackArgs,
 ) -> Generator[Tuple[Path, str, str, List[str]], None, None]:
     """Black (and optional isort) formatting for chunks with edits since the last commit
 
-    1. run isort on each edited file
-    2. diff HEAD and worktree for all file & dir paths on the command line
+    1. run isort on each edited file (optional)
+    2. diff the given revision and worktree (optionally with isort modifications) for
+       all file & dir paths on the command line
     3. extract line numbers in each edited to-file for changed lines
     4. run black on the contents of each edited to-file
     5. get a diff between the edited to-file and the reformatted content
@@ -37,10 +43,17 @@ def format_edited_parts(
     9. verify that the resulting reformatted source code parses to an identical AST as
        the original edited to-file
     10. write the reformatted source back to the original file
+    11. run linter subprocesses for all edited files (11.-14. optional)
+    12. diff the given revision and worktree (after isort and Black reformatting) for
+        each file reported by a linter
+    13. extract line numbers in each file reported by a linter for changed lines
+    14. print only linter error lines which fall on changed lines
 
     :param srcs: Directories and files to re-format
     :param revision: The Git revision against which to compare the working tree
     :param enable_isort: ``True`` to also run ``isort`` first on each changed file
+    :param linter_cmdlines: The command line(s) for running linters on the changed
+                            files. Each entry is a list of tokens on the command line.
     :param black_args: Command-line arguments to send to ``black.FileMode``
     :return: A generator which yields details about changes for each file which should
              be reformatted, and skips unchanged files.
@@ -67,8 +80,8 @@ def format_edited_parts(
         edited_lines = edited_content.splitlines()
         max_context_lines = len(edited_lines)
         for context_lines in range(max_context_lines + 1):
-            # 2. diff HEAD and worktree for the file
-            # 3. extract line numbers in each edited to-file for changed lines
+            # 2. diff the given revision and worktree for the file
+            # 3. extract line numbers in the edited to-file for changed lines
             edited_linenums = edited_linenums_differ.revision_vs_lines(
                 path_in_repo, edited_lines, context_lines
             )
@@ -85,7 +98,7 @@ def format_edited_parts(
             logger.debug("Read %s lines from edited file %s", len(edited_lines), src)
             logger.debug("Black reformat resulted in %s lines", len(formatted))
 
-            # 5. get the diff between each edited and reformatted file
+            # 5. get the diff between the edited and reformatted file
             opcodes = diff_and_get_opcodes(edited_lines, formatted)
 
             # 6. convert the diff into chunks
@@ -131,6 +144,13 @@ def format_edited_parts(
                     # Pass them both on to avoid back-and-forth conversion.
                     yield src, worktree_content, result_str, chosen_lines
                 break
+    # 11. run linter subprocesses for all edited files (11.-14. optional)
+    # 12. diff the given revision and worktree (after isort and Black reformatting) for
+    #     each file reported by a linter
+    # 13. extract line numbers in each file reported by a linter for changed lines
+    # 14. print only linter error lines which fall on changed lines
+    for linter_cmdline in linter_cmdlines:
+        run_linter(linter_cmdline, git_root, changed_files)
 
 
 def modify_file(path: Path, new_content: str) -> None:
@@ -200,7 +220,7 @@ def main(argv: List[str] = None) -> int:
     # We need both forms when showing diffs or modifying files.
     # Pass them both on to avoid back-and-forth conversion.
     for path, old_content, new_content, new_lines in format_edited_parts(
-        paths, args.revision, args.isort, black_args
+        paths, args.revision, args.isort, args.lint, black_args
     ):
         some_files_changed = True
         if args.diff:

@@ -63,6 +63,18 @@ def parse_command_line(argv: List[str]) -> Namespace:
         "-i", "--isort", action="store_true", help="".join(isort_help),
     )
     parser.add_argument(
+        "-L",
+        "--lint",
+        action="append",
+        metavar="CMD",
+        type=lambda s: s.split(),
+        default=[],
+        help=(
+            "Also run a linter on changed files. CMD can be a name of path of the "
+            "linter binary, or a full quoted command line"
+        ),
+    )
+    parser.add_argument(
         "-c",
         "--config",
         metavar="PATH",

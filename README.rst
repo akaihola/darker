@@ -1,6 +1,6 @@
-===========================================================================
- Darker – Apply Black formatting only in regions changed since last commit
-===========================================================================
+=================================================
+ Darker – reformat and lint modified Python code
+=================================================
 
 |travis-badge|_ |license-badge|_ |pypi-badge|_ |downloads-badge|_ |black-badge|_ |changelog-badge|_
 
@@ -20,18 +20,34 @@
 What?
 =====
 
-This is a small utility built on top of the black_ and isort_ Python code formatters
-to enable formatting of only regions which have changed in the Git working tree
-since the last commit.
+This utility reformats and checks Python source code files in a Git repository.
+However, it only applies reformatting and reports errors
+in regions which have changed in the Git working tree since the last commit.
+
+The reformatters and linters supported are:
+
+- Black_ for code reformatting
+- isort_ for sorting imports
+- Mypy_ for static type checking
+- Pylint_ for generic static checking of code
+- Flake8_ for style guide enforcement
+
+*New in version 1.1.0:* Support for Mypy_, Pylint_ and other linters.
 
 .. _black: https://github.com/python/black
 .. _isort: https://github.com/timothycrosley/isort
+.. _Mypy: https://pypi.org/project/mypy
+.. _Pylint: https://pypi.org/project/pylint
+.. _Flake8: https://pypi.org/project/flake8
 
 Why?
 ====
 
 You want to start unifying code style in your project using black_.
-But instead of formatting the whole code base in one giant commit,
+Maybe you also like to standardize on how to order your imports,
+or do static type checking or other static analysis for your code.
+
+However, instead of formatting the whole code base in one giant commit,
 you'd like to only change formatting when you're touching the code for other reasons.
 
 This can also be useful
@@ -53,7 +69,7 @@ This tool is for those who want to do partial formatting anyway.
 
 Note that this tool is meant for special situations
 when dealing with existing code bases.
-You should just use black_ as is when starting a project from scratch.
+You should just use Black_ and isort_ as is when starting a project from scratch.
 
 How?
 ====
@@ -71,6 +87,18 @@ and writes back over the original file.
 Alternatively, you can invoke the module directly through the ``python`` executable,
 which may be preferable depending on your setup.
 Use ``python -m darker`` instead of ``darker`` in that case.
+
+By default, ``darker`` just runs Black_ to reformat the code.
+You can enable additional features with command line options:
+
+- ``-i`` / ``--isort``: Reorder imports using isort_
+- ``-L <linter>`` / ``--lint <linter>``: Run a supported linter:
+
+  - ``-L mypy``: do static type checking using Mypy_
+  - ``-L pylint``: analyze code using Pylint_
+  - ``-L flake8``: enforce the Python style guide using Flake8_
+
+*New in version 1.1.0:* The ``-L`` / ``--lint`` option.
 
 Example:
 
@@ -127,6 +155,9 @@ The following `command line arguments`_ can also be used to modify the defaults:
 
      -i, --isort           Also sort imports using the `isort` package
 
+     -L CMD, --lint CMD    Also run a linter on changed files. CMD can be a name
+                           of path of the linter binary, or a full quoted command
+                           line
      -c PATH, --config PATH
                            Ask `black` and `isort` to read configuration from PATH.
      -S, --skip-string-normalization
@@ -149,6 +180,8 @@ The following `command line arguments`_ can also be used to modify the defaults:
 *New in version 1.1.0:* The ``--check`` command line option.
 
 *New in version 1.1.0:* The ``--no-skip-string-normalization`` command line option.
+
+*New in version 1.1.0:* The ``-L`` / ``--lint`` command line option.
 
 .. _Black documentation about pyproject.toml: https://black.readthedocs.io/en/stable/pyproject_toml.html
 .. _isort documentation about config files: https://timothycrosley.github.io/isort/docs/configuration/config_files/
@@ -269,6 +302,8 @@ are applied to the edited file.
 
 Also, in case the ``--isort`` option was specified,
 isort_ is run on each edited file before applying black_.
+Similarly, each linter requested using the `--lint <command>` option is run,
+and only linting errors/warnings on modified lines are displayed.
 
 
 License
