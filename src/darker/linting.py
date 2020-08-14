@@ -45,7 +45,7 @@ def _parse_linter_line(
             raise ValueError("Too many colon-separated tokens")
         if len(rest) == 1:
             # Make sure it column looks like an int on "<path>:<linenum>:<column>"
-            _column = int(rest[0])
+            _column = int(rest[0])  # noqa: F841
     except ValueError:
         # Encountered a non-parseable line which doesn't express a linting error.
         # For example, on Mypy:
