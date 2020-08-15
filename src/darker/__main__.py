@@ -150,7 +150,7 @@ def format_edited_parts(
     # 13. extract line numbers in each file reported by a linter for changed lines
     # 14. print only linter error lines which fall on changed lines
     for linter_cmdline in linter_cmdlines:
-        run_linter(linter_cmdline, git_root, changed_files)
+        run_linter(linter_cmdline, git_root, changed_files, revision)
 
 
 def modify_file(path: Path, new_content: str) -> None:

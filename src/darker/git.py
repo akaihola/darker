@@ -98,7 +98,7 @@ class EditedLinenumsDiffer:
     """Find out changed lines for a file compared to a given Git revision"""
 
     git_root: Path
-    revision: str = "HEAD"
+    revision: str
 
     @lru_cache(maxsize=1)
     def revision_vs_worktree(self, path_in_repo: Path, context_lines: int) -> List[int]:
