@@ -1,13 +1,67 @@
-from argparse import ArgumentParser, Namespace
-from typing import List
+import logging
+from argparse import Action, ArgumentParser, Namespace
+from typing import Any, List, Sequence, Tuple, Union
 
 from darker.argparse_helpers import NewlinePreservingFormatter
+from darker.config import (
+    DarkerConfig,
+    get_effective_config,
+    get_modified_config,
+    load_config,
+)
 from darker.version import __version__
 
 ISORT_INSTRUCTION = "Please run `pip install 'darker[isort]'`"
 
 
-def parse_command_line(argv: List[str]) -> Namespace:
+class _LogLevelAction(Action):
+    def __init__(
+        self,
+        option_strings: List[str],
+        dest: str,
+        const: int,
+        default: int = logging.WARNING,
+        required: bool = False,
+        help: str = None,
+        metavar: str = None,
+    ):
+        super().__init__(
+            option_strings=option_strings,
+            dest=dest,
+            nargs=0,
+            const=const,
+            default=default,
+            required=required,
+            help=help,
+            metavar=metavar,
+        )
+
+    def __call__(
+        self,
+        parser: ArgumentParser,
+        namespace: Namespace,
+        values: Union[str, Sequence[Any], None],
+        option_string: str = None,
+    ) -> None:
+        assert isinstance(values, list)
+        assert all(isinstance(v, str) for v in values)
+        current_level = getattr(namespace, self.dest, self.default)
+        new_level = current_level + self.const
+        new_level = max(new_level, logging.DEBUG)
+        new_level = min(new_level, logging.CRITICAL)
+        setattr(namespace, self.dest, new_level)
+
+
+def parse_command_line(argv: List[str]) -> Tuple[Namespace, DarkerConfig, DarkerConfig]:
+    """Return the parsed command line, using defaults from a configuration file
+
+    Also return the effective configuration which combines defaults, the configuration
+    read from ``pyproject.toml`` (or the path given in ``--config``), and command line
+    arguments.
+
+    Finally, also return the set of configuration options which differ from defaults.
+
+    """
     description = [
         "Re-format Python source files by using",
         "- `isort` to sort Python import definitions alphabetically within logical"
@@ -24,6 +78,7 @@ def parse_command_line(argv: List[str]) -> Namespace:
     parser = ArgumentParser(
         description="\n".join(description), formatter_class=NewlinePreservingFormatter,
     )
+    parser.register('action', 'log_level', _LogLevelAction)
     parser.add_argument(
         "src",
         nargs="+",
@@ -67,7 +122,6 @@ def parse_command_line(argv: List[str]) -> Namespace:
         "--lint",
         action="append",
         metavar="CMD",
-        type=lambda s: s.split(),
         default=[],
         help=(
             "Also run a linter on changed files. CMD can be a name of path of the "
@@ -84,16 +138,16 @@ def parse_command_line(argv: List[str]) -> Namespace:
         "-v",
         "--verbose",
         dest="log_level",
-        action="append_const",
-        const=10,
+        action="log_level",
+        const=-10,
         help="Show steps taken and summarize modifications",
     )
     parser.add_argument(
         "-q",
         "--quiet",
         dest="log_level",
-        action="append_const",
-        const=-10,
+        action="log_level",
+        const=10,
         help="Reduce amount of output",
     )
     parser.add_argument(
@@ -127,4 +181,8 @@ def parse_command_line(argv: List[str]) -> Namespace:
         dest="line_length",
         help="How many characters per line to allow [default: 88]",
     )
-    return parser.parse_args(argv)
+    args, unknown = parser.parse_known_args(argv)
+    config = load_config(args.config, args.src)
+    parser.set_defaults(**config)
+    args = parser.parse_args(argv)
+    return args, get_effective_config(args), get_modified_config(parser, args)

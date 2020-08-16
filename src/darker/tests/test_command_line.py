@@ -149,7 +149,14 @@ def test_black_options_skip_string_normalization(git_repo, config, options, expe
         (["--diff", "a.py"], ({Path("a.py")}, "HEAD", False, [], {})),
     ],
 )
-def test_options(options, expect):
+def test_options(tmpdir, monkeypatch, options, expect):
+    """The main engine is called with correct parameters based on the command line
+
+    Executed in a clean directory so Darker's own ``pyproject.toml`` doesn't interfere.
+
+    """
+    monkeypatch.chdir(tmpdir)
+    (tmpdir / "my.cfg").write("")
     with patch('darker.__main__.format_edited_parts') as format_edited_parts:
 
         retval = main(options)

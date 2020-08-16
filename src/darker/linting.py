@@ -58,9 +58,7 @@ def _parse_linter_line(
     return path_in_repo, linenum
 
 
-def run_linter(
-    cmdline: List[str], git_root: Path, paths: Set[Path], revision: str
-) -> None:
+def run_linter(cmdline: str, git_root: Path, paths: Set[Path], revision: str) -> None:
     """Run the given linter and print linting errors falling on changed lines
 
     :param cmdline: The command line for running the linter
@@ -72,7 +70,7 @@ def run_linter(
     if not paths:
         return
     linter_process = Popen(
-        cmdline + [str(git_root / path) for path in sorted(paths)],
+        cmdline.split() + [str(git_root / path) for path in sorted(paths)],
         stdout=PIPE,
         encoding="utf-8",
     )

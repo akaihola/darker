@@ -6,6 +6,7 @@ These features will be included in the next release:
 Added
 -----
 - Configure Flake8 verification for Darker source code
+- Configuration can now be loaded from ``pyproject.toml``.
 
 Fixed
 -----

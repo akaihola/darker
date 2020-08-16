@@ -6,9 +6,12 @@ from difflib import unified_diff
 from pathlib import Path
 from typing import Generator, Iterable, List, Tuple
 
+import toml
+
 from darker.black_diff import BlackArgs, run_black
 from darker.chooser import choose_lines
 from darker.command_line import ISORT_INSTRUCTION, parse_command_line
+from darker.config import dump_config
 from darker.diff import diff_and_get_opcodes, opcodes_to_chunks
 from darker.git import EditedLinenumsDiffer, git_get_modified_files
 from darker.import_sorting import apply_isort, isort
@@ -23,7 +26,7 @@ def format_edited_parts(
     srcs: Iterable[Path],
     revision: str,
     enable_isort: bool,
-    linter_cmdlines: List[List[str]],
+    linter_cmdlines: List[str],
     black_args: BlackArgs,
 ) -> Generator[Tuple[Path, str, str, List[str]], None, None]:
     """Black (and optional isort) formatting for chunks with edits since the last commit
@@ -53,7 +56,7 @@ def format_edited_parts(
     :param revision: The Git revision against which to compare the working tree
     :param enable_isort: ``True`` to also run ``isort`` first on each changed file
     :param linter_cmdlines: The command line(s) for running linters on the changed
-                            files. Each entry is a list of tokens on the command line.
+                            files.
     :param black_args: Command-line arguments to send to ``black.FileMode``
     :return: A generator which yields details about changes for each file which should
              be reformatted, and skips unchanged files.
@@ -192,15 +195,21 @@ def main(argv: List[str] = None) -> int:
     """
     if argv is None:
         argv = sys.argv[1:]
-    args = parse_command_line(argv)
-    log_level = logging.WARNING - sum(args.log_level or ())
-    logging.basicConfig(level=log_level)
-    if log_level == logging.INFO:
+    args, config, config_nondefault = parse_command_line(argv)
+    logging.basicConfig(level=args.log_level)
+    if args.log_level == logging.INFO:
         formatter = logging.Formatter("%(levelname)s: %(message)s")
         logging.getLogger().handlers[0].setFormatter(formatter)
 
     # Make sure we don't get excessive debug log output from Black
     logging.getLogger("blib2to3.pgen2.driver").setLevel(logging.WARNING)
+
+    if args.log_level <= logging.DEBUG:
+        print("\n# Effective configuration:\n")
+        dump_config(config)
+        print("\n# Configuration options which differ from defaults:\n")
+        dump_config(config_nondefault)
+        print("\n")
 
     if args.isort and not isort:
         logger.error(f"{ISORT_INSTRUCTION} to use the `--isort` option.")
