@@ -281,7 +281,6 @@ Visual Studio Code
      %LocalAppData%\Programs\Python\Python36-32\Scripts\darker.exe  # possible location
 
 3. Add these configuration options to VS code, ``Cmd-Shift-P``, ``Open Settings (JSON)``::
-   
 
     "python.formatting.provider": "black",
     "python.formatting.blackPath": "<install_location_from_step_2>",
