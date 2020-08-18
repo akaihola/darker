@@ -4,7 +4,7 @@ from typing import List, Tuple
 
 from black import assert_equivalent
 
-from darker.utils import debug_dump, joinlines
+from darker.utils import debug_dump
 
 
 class NotEquivalentError(Exception):

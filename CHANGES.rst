@@ -5,6 +5,7 @@ These features will be included in the next release:
 
 Added
 -----
+- Configure Flake8 verification for Darker source code
 
 Fixed
 -----

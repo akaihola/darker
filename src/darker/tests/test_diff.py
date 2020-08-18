@@ -36,7 +36,7 @@ FUNCTIONS2_PY = dedent(
         def inner():
             pass
         print("Inner defs should breathe a little.")
-"""
+"""  # noqa: E501
 )
 
 OPCODES = [
@@ -90,7 +90,7 @@ def test_opcodes_to_chunks():
             ],
             [
                 "            result = CliRunner().invoke(",
-                '                black.main, [str(src1), str(src2), "--diff", "--check"]',
+                '                black.main, [str(src1), str(src2), "--diff", "--check"]',  # noqa: E501
             ],
         ),
         (
