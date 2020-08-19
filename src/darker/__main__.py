@@ -6,8 +6,6 @@ from difflib import unified_diff
 from pathlib import Path
 from typing import Generator, Iterable, List, Tuple
 
-import toml
-
 from darker.black_diff import BlackArgs, run_black
 from darker.chooser import choose_lines
 from darker.command_line import ISORT_INSTRUCTION, parse_command_line

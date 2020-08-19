@@ -22,7 +22,7 @@ provided that the ``<linenum>`` falls on a changed line.
 import logging
 from pathlib import Path
 from subprocess import PIPE, Popen
-from typing import List, Set, Tuple, Union
+from typing import Set, Tuple, Union
 
 from darker.git import EditedLinenumsDiffer
 
