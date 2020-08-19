@@ -12,3 +12,15 @@ force_grid_wrap = 0
 use_parentheses = true
 line_length = 88
 known_third_party = ["pytest"]
+
+[tool.darker]
+src = [
+    "src",
+]
+revision = "master"
+isort = true
+lint = [
+    "flake8",
+    "mypy",
+    "pylint",
+]
