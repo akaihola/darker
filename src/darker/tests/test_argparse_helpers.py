@@ -1,3 +1,5 @@
+"""Tests for the ``darker.argparse_helpers`` module"""
+
 from argparse import ArgumentParser, Namespace
 from contextlib import suppress
 from logging import CRITICAL, DEBUG, ERROR, INFO, NOTSET, WARNING
@@ -27,9 +29,12 @@ from darker import argparse_helpers
     ],
 )
 def test_fill_line(line, width, indent, expect):
-    with pytest.raises(expect) if type(expect) is type else suppress():
+    """``_fill_line()`` wraps lines correctly"""
+    with pytest.raises(expect) if isinstance(expect, type) else suppress():
 
-        result = argparse_helpers._fill_line(line, width, indent)
+        result = argparse_helpers._fill_line(  # pylint: disable=protected-access
+            line, width, indent
+        )
 
         assert result.splitlines() == expect
 
@@ -52,9 +57,12 @@ def test_fill_line(line, width, indent, expect):
     ],
 )
 def test_newline_preserving_formatter(text, width, indent, expect):
+    """``NewlinePreservingFormatter`` wraps lines and keeps newlines correctly"""
     formatter = argparse_helpers.NewlinePreservingFormatter("dummy")
 
-    result = formatter._fill_text(text, width, indent)
+    result = formatter._fill_text(  # pylint: disable=protected-access
+        text, width, indent
+    )
 
     assert result.splitlines() == expect
 
@@ -76,9 +84,11 @@ def test_newline_preserving_formatter(text, width, indent, expect):
     ],
 )
 def test_log_level_action(const, initial, expect):
+    """``LogLevelAction`` increments/decrements the log level value correctly"""
     action = argparse_helpers.LogLevelAction([], "log_level", const)
     parser = ArgumentParser()
-    namespace = Namespace(log_level=initial)
+    namespace = Namespace()
+    namespace.log_level = initial
 
     action(parser, namespace, [])
 
@@ -99,6 +109,7 @@ def test_log_level_action(const, initial, expect):
     ],
 )
 def test_argumentparser_log_level_action(const, count, expect):
+    """The log level action works correctly with an ``ArgumentParser``"""
     parser = ArgumentParser()
     parser.register("action", "log_level", argparse_helpers.LogLevelAction)
     parser.add_argument("-l", dest="log_level", action="log_level", const=const)

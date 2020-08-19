@@ -1,3 +1,5 @@
+"""Load and save configuration in TOML format"""
+
 import logging
 from argparse import ArgumentParser, Namespace
 from typing import Dict, List, Optional, Union
@@ -53,5 +55,6 @@ def get_modified_config(parser: ArgumentParser, args: Namespace) -> DarkerConfig
 
 
 def dump_config(config: DarkerConfig) -> None:
+    """Print the configuration in TOML format"""
     print('[tool.darker]')
     print(toml.dumps(config, encoder=TomlArrayLinesEncoder()))  # type: ignore[call-arg]

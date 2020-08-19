@@ -1,3 +1,5 @@
+"""Custom formatter and action for argparse"""
+
 import logging
 import re
 from argparse import Action, ArgumentParser, HelpFormatter, Namespace
@@ -27,15 +29,17 @@ class NewlinePreservingFormatter(HelpFormatter):
         return super()._fill_text(text, width, indent)
 
 
-class LogLevelAction(Action):
-    def __init__(
+class LogLevelAction(Action):  # pylint: disable=too-few-public-methods
+    """Support for command line actions which increment/decrement the log level"""
+
+    def __init__(  # pylint: disable=too-many-arguments
         self,
         option_strings: List[str],
         dest: str,
         const: int,
         default: int = logging.WARNING,
         required: bool = False,
-        help: str = None,
+        help: str = None,  # pylint: disable=redefined-builtin
         metavar: str = None,
     ):
         super().__init__(
