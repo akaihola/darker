@@ -1,6 +1,8 @@
+import logging
 import re
-from argparse import HelpFormatter
+from argparse import Action, ArgumentParser, HelpFormatter, Namespace
 from textwrap import fill
+from typing import Any, List, Sequence, Union
 
 WORD_RE = re.compile(r"\w")
 
@@ -23,3 +25,41 @@ class NewlinePreservingFormatter(HelpFormatter):
                 _fill_line(line, width, indent) for line in text.split("\n")
             )
         return super()._fill_text(text, width, indent)
+
+
+class LogLevelAction(Action):
+    def __init__(
+        self,
+        option_strings: List[str],
+        dest: str,
+        const: int,
+        default: int = logging.WARNING,
+        required: bool = False,
+        help: str = None,
+        metavar: str = None,
+    ):
+        super().__init__(
+            option_strings=option_strings,
+            dest=dest,
+            nargs=0,
+            const=const,
+            default=default,
+            required=required,
+            help=help,
+            metavar=metavar,
+        )
+
+    def __call__(
+        self,
+        parser: ArgumentParser,
+        namespace: Namespace,
+        values: Union[str, Sequence[Any], None],
+        option_string: str = None,
+    ) -> None:
+        assert isinstance(values, list)
+        assert all(isinstance(v, str) for v in values)
+        current_level = getattr(namespace, self.dest, self.default)
+        new_level = current_level + self.const
+        new_level = max(new_level, logging.DEBUG)
+        new_level = min(new_level, logging.CRITICAL)
+        setattr(namespace, self.dest, new_level)

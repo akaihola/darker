@@ -1,8 +1,7 @@
-import logging
-from argparse import Action, ArgumentParser, Namespace
-from typing import Any, List, Sequence, Tuple, Union
+from argparse import ArgumentParser, Namespace
+from typing import List, Tuple
 
-from darker.argparse_helpers import NewlinePreservingFormatter
+from darker.argparse_helpers import LogLevelAction, NewlinePreservingFormatter
 from darker.config import (
     DarkerConfig,
     get_effective_config,
@@ -12,44 +11,6 @@ from darker.config import (
 from darker.version import __version__
 
 ISORT_INSTRUCTION = "Please run `pip install 'darker[isort]'`"
-
-
-class _LogLevelAction(Action):
-    def __init__(
-        self,
-        option_strings: List[str],
-        dest: str,
-        const: int,
-        default: int = logging.WARNING,
-        required: bool = False,
-        help: str = None,
-        metavar: str = None,
-    ):
-        super().__init__(
-            option_strings=option_strings,
-            dest=dest,
-            nargs=0,
-            const=const,
-            default=default,
-            required=required,
-            help=help,
-            metavar=metavar,
-        )
-
-    def __call__(
-        self,
-        parser: ArgumentParser,
-        namespace: Namespace,
-        values: Union[str, Sequence[Any], None],
-        option_string: str = None,
-    ) -> None:
-        assert isinstance(values, list)
-        assert all(isinstance(v, str) for v in values)
-        current_level = getattr(namespace, self.dest, self.default)
-        new_level = current_level + self.const
-        new_level = max(new_level, logging.DEBUG)
-        new_level = min(new_level, logging.CRITICAL)
-        setattr(namespace, self.dest, new_level)
 
 
 def parse_command_line(argv: List[str]) -> Tuple[Namespace, DarkerConfig, DarkerConfig]:
@@ -78,7 +39,7 @@ def parse_command_line(argv: List[str]) -> Tuple[Namespace, DarkerConfig, Darker
     parser = ArgumentParser(
         description="\n".join(description), formatter_class=NewlinePreservingFormatter,
     )
-    parser.register('action', 'log_level', _LogLevelAction)
+    parser.register("action", "log_level", LogLevelAction)
     parser.add_argument(
         "src",
         nargs="+",
