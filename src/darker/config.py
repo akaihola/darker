@@ -2,7 +2,7 @@
 
 import logging
 from argparse import ArgumentParser, Namespace
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional, Union, cast
 
 import toml
 from black import find_project_root
@@ -21,6 +21,12 @@ class TomlArrayLinesEncoder(toml.TomlEncoder):  # type: ignore[name-defined]
 DarkerConfig = Dict[str, Union[str, bool, List[str]]]
 
 
+def replace_log_level_name(config: DarkerConfig) -> None:
+    """Replace numeric log level in configuration with the name of the log level"""
+    if "log_level" in config:
+        config["log_level"] = logging.getLevelName(cast(int, config["log_level"]))
+
+
 def load_config(path: Optional[str], srcs: List[str]) -> DarkerConfig:
     """Find and load Darker configuration from given path or pyproject.toml"""
     if not path:
@@ -28,9 +34,8 @@ def load_config(path: Optional[str], srcs: List[str]) -> DarkerConfig:
         path = str(path_pyproject_toml) if path_pyproject_toml.is_file() else None
     if path:
         pyproject_toml = toml.load(path)
-        config = pyproject_toml.get("tool", {}).get("darker", {}) or {}
-        if "log_level" in config:
-            config["log_level"] = logging.getLevelName(config["log_level"])
+        config: DarkerConfig = pyproject_toml.get("tool", {}).get("darker", {}) or {}
+        replace_log_level_name(config)
         return config
     return {}
 
@@ -38,7 +43,7 @@ def load_config(path: Optional[str], srcs: List[str]) -> DarkerConfig:
 def get_effective_config(args: Namespace) -> DarkerConfig:
     """Return all configuration options"""
     config = vars(args).copy()
-    config["log_level"] = logging.getLevelName(config["log_level"])
+    replace_log_level_name(config)
     return config
 
 
@@ -49,8 +54,7 @@ def get_modified_config(parser: ArgumentParser, args: Namespace) -> DarkerConfig
         for argument, value in vars(args).items()
         if value != parser.get_default(argument)
     }
-    if "log_level" in not_default:
-        not_default["log_level"] = logging.getLevelName(not_default["log_level"])
+    replace_log_level_name(not_default)
     return not_default
 
 
