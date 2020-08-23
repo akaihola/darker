@@ -13,14 +13,11 @@ from darker.version import __version__
 ISORT_INSTRUCTION = "Please run `pip install 'darker[isort]'`"
 
 
-def parse_command_line(argv: List[str]) -> Tuple[Namespace, DarkerConfig, DarkerConfig]:
-    """Return the parsed command line, using defaults from a configuration file
+def make_argument_parser(require_src: bool) -> ArgumentParser:
+    """Create the argument parser object
 
-    Also return the effective configuration which combines defaults, the configuration
-    read from ``pyproject.toml`` (or the path given in ``--config``), and command line
-    arguments.
-
-    Finally, also return the set of configuration options which differ from defaults.
+    :param require_src: ``True`` to require at least one path as a positional argument
+                        on the command line. ``False`` to not require on.
 
     """
     description = [
@@ -42,7 +39,7 @@ def parse_command_line(argv: List[str]) -> Tuple[Namespace, DarkerConfig, Darker
     parser.register("action", "log_level", LogLevelAction)
     parser.add_argument(
         "src",
-        nargs="+",
+        nargs="+" if require_src else "*",
         help="Path(s) to the Python source file(s) to reformat",
         metavar="PATH",
     )
@@ -142,8 +139,26 @@ def parse_command_line(argv: List[str]) -> Tuple[Namespace, DarkerConfig, Darker
         dest="line_length",
         help="How many characters per line to allow [default: 88]",
     )
-    args, unknown = parser.parse_known_args(argv)
-    config = load_config(args.config, args.src)
+    return parser
+
+
+def parse_command_line(argv: List[str]) -> Tuple[Namespace, DarkerConfig, DarkerConfig]:
+    """Return the parsed command line, using defaults from a configuration file
+
+    Also return the effective configuration which combines defaults, the configuration
+    read from ``pyproject.toml`` (or the path given in ``--config``), and command line
+    arguments.
+
+    Finally, also return the set of configuration options which differ from defaults.
+
+    """
+    config = load_config()
+    parser = make_argument_parser(require_src=not config.get("src"))
     parser.set_defaults(**config)
     args = parser.parse_args(argv)
-    return args, get_effective_config(args), get_modified_config(parser, args)
+    parser_with_original_defaults = make_argument_parser(require_src=True)
+    return (
+        args,
+        get_effective_config(args),
+        get_modified_config(parser_with_original_defaults, args),
+    )

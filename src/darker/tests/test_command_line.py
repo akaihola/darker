@@ -1,14 +1,32 @@
 import re
+import sys
 from pathlib import Path
 from textwrap import dedent
 from unittest.mock import DEFAULT, Mock, call, patch
 
 import pytest
+import toml
+from black import find_project_root
 
 from darker import black_diff
 from darker.__main__ import main
 from darker.command_line import parse_command_line
+from darker.tests.helpers import filter_dict
 from darker.utils import joinlines
+
+if sys.version_info >= (3, 7):
+    from contextlib import nullcontext
+else:
+    from contextlib import suppress as nullcontext
+
+
+pytestmark = pytest.mark.usefixtures("lru_cache_clear")
+
+
+@pytest.fixture
+def lru_cache_clear():
+    """Clear LRU caching in :func:`black.find_project_root` before each test"""
+    find_project_root.cache_clear()
 
 
 @pytest.fixture
@@ -16,6 +34,32 @@ def darker_help_output(capsys):
     with pytest.raises(SystemExit):
         parse_command_line(["--help"])
     return re.sub(r'\s+', ' ', capsys.readouterr().out)
+
+
+@pytest.mark.parametrize(
+    "config, argv, expect",
+    [
+        (None, [], SystemExit),
+        (None, ["file.py"], {"src": ["file.py"]},),
+        ({"src": ["file.py"]}, [], {"src": ["file.py"]},),
+        ({"src": ["file.py"]}, ["file.py"], {"src": ["file.py"]},),
+        ({"src": ["file1.py"]}, ["file2.py"], {"src": ["file2.py"]},),
+    ],
+)
+def test_parse_command_line_config_src(
+    tmpdir, monkeypatch, config, argv, expect,
+):
+    """The ``src`` positional argument from config and cmdline is handled correctly"""
+    monkeypatch.chdir(tmpdir)
+    if config is not None:
+        toml.dump({"tool": {"darker": config}}, tmpdir / "pyproject.toml")
+    with pytest.raises(SystemExit) if isinstance(expect, type) else nullcontext():
+
+        args, effective_cfg, modified_cfg = parse_command_line(argv)
+
+        assert filter_dict(args.__dict__, "src") == expect
+        assert filter_dict(effective_cfg, "src") == expect
+        assert filter_dict(modified_cfg, "src") == expect
 
 
 def test_help_description_without_isort_package(without_isort, darker_help_output):
