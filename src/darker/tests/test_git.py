@@ -12,7 +12,11 @@ from darker.git import (
 
 @pytest.mark.parametrize(
     "revision, expect",
-    [("HEAD", ["modified content"]), ("HEAD^", ["original content"]), ("HEAD~2", []),],
+    [
+        ("HEAD", ["modified content"]),
+        ("HEAD^", ["original content"]),
+        ("HEAD~2", []),
+    ],
 )
 def test_get_unmodified_content(git_repo, revision, expect):
     git_repo.add({"my.txt": "original content"}, commit="Initial commit")

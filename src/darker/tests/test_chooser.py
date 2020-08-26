@@ -6,10 +6,22 @@ from darker.chooser import choose_lines
 @pytest.mark.parametrize(
     "edited_line_numbers, expect",
     [
-        ([], ["original first line", "original second line", "original third line"],),
-        ([0], ["original first line", "original second line", "original third line"],),
-        ([1], ["original first line", "changed second line", "original third line"],),
-        ([2], ["original first line", "original second line", "original third line"],),
+        (
+            [],
+            ["original first line", "original second line", "original third line"],
+        ),
+        (
+            [0],
+            ["original first line", "original second line", "original third line"],
+        ),
+        (
+            [1],
+            ["original first line", "changed second line", "original third line"],
+        ),
+        (
+            [2],
+            ["original first line", "original second line", "original third line"],
+        ),
         (
             [0, 1],
             ["original first line", "changed second line", "original third line"],

@@ -53,7 +53,8 @@ def _any_item_in_range(items: List[int], start: int, length: int) -> bool:
 
 
 def choose_lines(
-    black_chunks: Iterable[Tuple[int, List[str], List[str]]], edit_linenums: List[int],
+    black_chunks: Iterable[Tuple[int, List[str], List[str]]],
+    edit_linenums: List[int],
 ) -> Generator[str, None, None]:
     """Choose formatted chunks for edited areas, original chunks for non-edited"""
     for original_lines_offset, original_lines, formatted_lines in black_chunks:

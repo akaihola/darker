@@ -52,7 +52,7 @@ from darker.__main__ import main
         ("", "ORIGINAL=1\n", ["+1M0", "+2-1", "+2M1-0", "+2M1"]),
         ("", "MODIFIED=1\n", ["+1", "+2-1", "+2", "+2M1-0"]),
         ("HEAD", "USERMOD=1\n", ["+1", "+1M0", "+2-1", "+2", "+2M1-0", "+2M1"]),
-        ("HEAD", "ORIGINAL=1\n", ["+1M0", "+2-1", "+2M1-0", "+2M1"],),
+        ("HEAD", "ORIGINAL=1\n", ["+1M0", "+2-1", "+2M1-0", "+2M1"]),
         ("HEAD", "MODIFIED=1\n", ["+1", "+2-1", "+2", "+2M1-0"]),
         ("HEAD^", "USERMOD=1\n", ["+1", "+1M0", "+2-1", "+2", "+2M1-0", "+2M1"]),
         ("HEAD^", "USERMOD=1\n", ["+1", "+1M0", "+2-1", "+2", "+2M1-0", "+2M1"]),
@@ -91,7 +91,8 @@ def test_revision(git_repo, monkeypatch, capsys, revision, worktree_content, exp
     )
     # 0: HEAD~0 i.e. HEAD:
     git_repo.add(
-        {"+1M0.py": "MODIFIED=1\n", "+2M1-0.py": None}, commit="Third commit",
+        {"+1M0.py": "MODIFIED=1\n", "+2M1-0.py": None},
+        commit="Third commit",
     )
     # Working tree:
     for path in paths.values():

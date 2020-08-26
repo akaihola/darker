@@ -165,7 +165,10 @@ def print_diff(path: Path, old_content: str, new_lines: List[str]) -> None:
     diff = "\n".join(
         line.rstrip("\n")
         for line in unified_diff(
-            old_content.splitlines(), new_lines, relative_path, relative_path,
+            old_content.splitlines(),
+            new_lines,
+            relative_path,
+            relative_path,
         )
     )
 

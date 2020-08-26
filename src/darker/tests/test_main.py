@@ -31,7 +31,9 @@ def run_isort(git_repo, monkeypatch, caplog, request):
     paths['test1.py'].write('changed')
     args = getattr(request, "param", ())
     with patch.multiple(
-        darker.__main__, run_black=Mock(return_value=[]), verify_ast_unchanged=Mock(),
+        darker.__main__,
+        run_black=Mock(return_value=[]),
+        verify_ast_unchanged=Mock(),
     ), patch("darker.import_sorting.isort.code"):
         darker.__main__.main(["--isort", "./test1.py", *args])
         return SimpleNamespace(

@@ -22,7 +22,8 @@ def parse_command_line(argv: List[str]) -> Namespace:
             ["", f"{ISORT_INSTRUCTION} to enable sorting of import definitions"]
         )
     parser = ArgumentParser(
-        description="\n".join(description), formatter_class=NewlinePreservingFormatter,
+        description="\n".join(description),
+        formatter_class=NewlinePreservingFormatter,
     )
     parser.add_argument(
         "src",
@@ -60,7 +61,10 @@ def parse_command_line(argv: List[str]) -> Namespace:
         ),
     )
     parser.add_argument(
-        "-i", "--isort", action="store_true", help="".join(isort_help),
+        "-i",
+        "--isort",
+        action="store_true",
+        help="".join(isort_help),
     )
     parser.add_argument(
         "-L",
