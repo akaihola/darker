@@ -290,6 +290,27 @@ You can pass additional arguments to ``darker`` in the ``blackArgs`` option
 (e.g. ``["--diff", "--isort"]``), but make sure at least ``--diff`` is included.
 
 
+Vim
+---
+
+Unlike black and many other formatter darker needs access to the git history,
+therefore it does not work properly with the classical auto reformat plugins.
+
+You can though ask vim to run doarker on file save with the following in your
+`.vimrc`:
+
+```
+autocmd BufWritePost *.py silent :!darker %
+```
+
+  - `BufWritePost` to run darker _once the file has been saved_,
+  - `silent` to not ask for confirmation each time,
+  - `:!` to run an external command,
+  - `%` for current file name.
+
+Vim should automatically reload the file.
+
+
 How does it work?
 =================
 
