@@ -2,9 +2,6 @@
 # Minimum requirements for the build system to execute.
 requires = ["setuptools", "wheel"]  # PEP 508 specifications.
 
-[tool.black]
-skip-string-normalization = true
-
 [tool.isort]
 multi_line_output = 3
 include_trailing_comma = true
@@ -18,9 +15,3 @@ src = [
     "src",
 ]
 revision = "master"
-isort = true
-lint = [
-    "flake8",
-    "mypy",
-    "pylint",
-]

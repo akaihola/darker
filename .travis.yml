@@ -6,5 +6,6 @@ python:
   - "3.8"
   - "3.8-dev"  # 3.8 development branch
 install:
+  - git fetch origin --depth=1 master:master
   - pip install -e '.[isort,test]'
 script: pytest
