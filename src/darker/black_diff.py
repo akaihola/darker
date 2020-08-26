@@ -36,7 +36,7 @@ import logging
 import sys
 from functools import lru_cache
 from pathlib import Path
-from typing import List, Optional, Set, cast
+from typing import Callable, Dict, List, Optional, Set, Union, cast
 
 if sys.version_info >= (3, 8):
     from typing import TypedDict
@@ -64,6 +64,12 @@ class BlackModeAttributes(TypedDict, total=False):
     is_pyi: bool
 
 
+BLACK_ARG_CONVERSIONS: Dict[str, Callable[[str], Union[int, bool]]] = {
+    "line_length": int,
+    "skip_string_normalization": lambda value: value == "True",
+}
+
+
 @lru_cache(maxsize=1)
 def read_black_config(src: Path, value: Optional[str]) -> BlackArgs:
     """Read the black configuration from pyproject.toml"""
@@ -79,7 +85,7 @@ def read_black_config(src: Path, value: Optional[str]) -> BlackArgs:
     return cast(
         BlackArgs,
         {
-            key: value
+            key: BLACK_ARG_CONVERSIONS[key](value)
             for key, value in (context.default_map or {}).items()
             if key in ["line_length", "skip_string_normalization"]
         },
