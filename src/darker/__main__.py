@@ -204,9 +204,9 @@ def main(argv: List[str] = None) -> int:
 
     if args.log_level <= logging.DEBUG:
         print("\n# Effective configuration:\n")
-        dump_config(config)
+        print(dump_config(config))
         print("\n# Configuration options which differ from defaults:\n")
-        dump_config(config_nondefault)
+        print(dump_config(config_nondefault))
         print("\n")
 
     if args.isort and not isort:

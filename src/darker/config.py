@@ -56,7 +56,7 @@ def get_modified_config(parser: ArgumentParser, args: Namespace) -> DarkerConfig
     return not_default
 
 
-def dump_config(config: DarkerConfig) -> None:
-    """Print the configuration in TOML format"""
-    print("[tool.darker]")
-    print(toml.dumps(config, encoder=TomlArrayLinesEncoder()))  # type: ignore[call-arg]
+def dump_config(config: DarkerConfig) -> str:
+    """Return the configuration in TOML format"""
+    dump = toml.dumps(config, encoder=TomlArrayLinesEncoder())  # type: ignore[call-arg]
+    return f"[tool.darker]\n{dump}"
