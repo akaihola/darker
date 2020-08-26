@@ -40,14 +40,34 @@ def darker_help_output(capsys):
     "config, argv, expect",
     [
         (None, [], SystemExit),
-        (None, ["file.py"], {"src": ["file.py"]},),
-        ({"src": ["file.py"]}, [], {"src": ["file.py"]},),
-        ({"src": ["file.py"]}, ["file.py"], {"src": ["file.py"]},),
-        ({"src": ["file1.py"]}, ["file2.py"], {"src": ["file2.py"]},),
+        (
+            None,
+            ["file.py"],
+            {"src": ["file.py"]},
+        ),
+        (
+            {"src": ["file.py"]},
+            [],
+            {"src": ["file.py"]},
+        ),
+        (
+            {"src": ["file.py"]},
+            ["file.py"],
+            {"src": ["file.py"]},
+        ),
+        (
+            {"src": ["file1.py"]},
+            ["file2.py"],
+            {"src": ["file2.py"]},
+        ),
     ],
 )
 def test_parse_command_line_config_src(
-    tmpdir, monkeypatch, config, argv, expect,
+    tmpdir,
+    monkeypatch,
+    config,
+    argv,
+    expect,
 ):
     """The ``src`` positional argument from config and cmdline is handled correctly"""
     monkeypatch.chdir(tmpdir)
