@@ -2,7 +2,6 @@ from itertools import chain
 from textwrap import dedent
 
 import pytest
-from black import FileMode, format_str
 
 from darker.diff import (
     diff_and_get_opcodes,
@@ -39,47 +38,83 @@ FUNCTIONS2_PY = dedent(
 """  # noqa: E501
 )
 
-OPCODES = [
-    ("replace", 0, 4, 0, 1),
-    ("equal", 4, 6, 1, 3),
-    ("replace", 6, 8, 3, 5),
-    ("equal", 8, 15, 5, 12),
-    ("insert", 15, 15, 12, 14),
-    ("equal", 15, 17, 14, 16),
-    ("insert", 17, 17, 16, 17),
-    ("equal", 17, 19, 17, 19),
-    ("insert", 19, 19, 19, 20),
-    ("equal", 19, 20, 20, 21),
-    ("insert", 20, 20, 21, 23),
-    ("equal", 20, 23, 23, 26),
-    ("insert", 23, 23, 26, 27),
-    ("equal", 23, 24, 27, 28),
+
+FUNCTIONS2_PY_REFORMATTED = dedent(
+    """\
+    def f(
+        a,
+        **kwargs,
+    ) -> A:
+        with cache_dir():
+            if something:
+                result = CliRunner().invoke(
+                    black.main, [str(src1), str(src2), "--diff", "--check"]
+                )
+        limited.append(-limited.pop())  # negate top
+        return A(
+            very_long_argument_name1=very_long_value_for_the_argument,
+            very_long_argument_name2=-very.long.value.for_the_argument,
+            **kwargs,
+        )
+
+
+    def g():
+        "Docstring."
+
+        def inner():
+            pass
+
+        print("Inner defs should breathe a little.")
+
+
+    def h():
+        def inner():
+            pass
+
+        print("Inner defs should breathe a little.")
+    """
+)
+
+
+EXPECT_OPCODES = [
+    ("equal", 0, 1, 0, 1),
+    ("replace", 1, 3, 1, 3),
+    ("equal", 3, 6, 3, 6),
+    ("replace", 6, 8, 6, 8),
+    ("equal", 8, 15, 8, 15),
+    ("insert", 15, 15, 15, 17),
+    ("equal", 15, 17, 17, 19),
+    ("insert", 17, 17, 19, 20),
+    ("equal", 17, 19, 20, 22),
+    ("insert", 19, 19, 22, 23),
+    ("equal", 19, 20, 23, 24),
+    ("insert", 20, 20, 24, 26),
+    ("equal", 20, 23, 26, 29),
+    ("insert", 23, 23, 29, 30),
+    ("equal", 23, 24, 30, 31),
 ]
 
 
 def test_diff_and_get_opcodes():
     src_lines = FUNCTIONS2_PY.splitlines()
-    dst_lines = format_str(FUNCTIONS2_PY, mode=FileMode()).splitlines()
+    dst_lines = FUNCTIONS2_PY_REFORMATTED.splitlines()
     opcodes = diff_and_get_opcodes(src_lines, dst_lines)
-    assert opcodes == OPCODES
+    assert opcodes == EXPECT_OPCODES
 
 
 def test_opcodes_to_chunks():
     src_lines = FUNCTIONS2_PY.splitlines()
-    dst_lines = format_str(FUNCTIONS2_PY, mode=FileMode()).splitlines()
+    dst_lines = FUNCTIONS2_PY_REFORMATTED.splitlines()
 
-    chunks = list(opcodes_to_chunks(OPCODES, src_lines, dst_lines))
+    chunks = list(opcodes_to_chunks(EXPECT_OPCODES, src_lines, dst_lines))
 
     assert chunks == [
+        (1, ["def f("], ["def f("]),
+        (2, ["  a,", "  **kwargs,"], ["    a,", "    **kwargs,"]),
         (
-            1,
-            ["def f(", "  a,", "  **kwargs,", ") -> A:"],
-            ["def f(a, **kwargs,) -> A:"],
-        ),
-        (
-            5,
-            ["    with cache_dir():", "        if something:"],
-            ["    with cache_dir():", "        if something:"],
+            4,
+            [") -> A:", "    with cache_dir():", "        if something:"],
+            [") -> A:", "    with cache_dir():", "        if something:"],
         ),
         (
             7,
@@ -143,6 +178,24 @@ def test_opcodes_to_chunks():
     ]
 
 
+EXAMPLE_OPCODES = [
+    ("replace", 0, 4, 0, 1),
+    ("equal", 4, 6, 1, 3),
+    ("replace", 6, 8, 3, 5),
+    ("equal", 8, 15, 5, 12),
+    ("insert", 15, 15, 12, 14),
+    ("equal", 15, 17, 14, 16),
+    ("insert", 17, 17, 16, 17),
+    ("equal", 17, 19, 17, 19),
+    ("insert", 19, 19, 19, 20),
+    ("equal", 19, 20, 20, 21),
+    ("insert", 20, 20, 21, 23),
+    ("equal", 20, 23, 23, 26),
+    ("insert", 23, 23, 26, 27),
+    ("equal", 23, 24, 27, 28),
+]
+
+
 @pytest.mark.parametrize(
     'context_lines, expect',
     [
@@ -152,7 +205,7 @@ def test_opcodes_to_chunks():
     ],
 )
 def test_opcodes_to_edit_linenums(context_lines, expect):
-    edit_linenums = list(opcodes_to_edit_linenums(OPCODES, context_lines))
+    edit_linenums = list(opcodes_to_edit_linenums(EXAMPLE_OPCODES, context_lines))
     expect_ranges = [[n, n] if isinstance(n, int) else n for n in expect]
     expect_linenums = list(chain(*(range(n[0], n[1] + 1) for n in expect_ranges)))
 
