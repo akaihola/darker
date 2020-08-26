@@ -2,7 +2,7 @@
 
 import logging
 from argparse import ArgumentParser, Namespace
-from typing import Dict, List, Union, cast
+from typing import Dict, Iterable, List, Union, cast
 
 import toml
 from black import find_project_root
@@ -27,9 +27,14 @@ def replace_log_level_name(config: DarkerConfig) -> None:
         config["log_level"] = logging.getLevelName(cast(int, config["log_level"]))
 
 
-def load_config() -> DarkerConfig:
-    """Find and load Darker configuration from given path or pyproject.toml"""
-    path = find_project_root((".",)) / "pyproject.toml"
+def load_config(srcs: Iterable[str]) -> DarkerConfig:
+    """Find and load Darker configuration from given path or pyproject.toml
+
+    :param srcs: File(s) and directory/directories which will be processed. Their paths
+                 are used to look for the ``pyproject.toml`` configuration file.
+
+    """
+    path = find_project_root(tuple(srcs or ["."])) / "pyproject.toml"
     if path.is_file():
         pyproject_toml = toml.load(path)
         config: DarkerConfig = pyproject_toml.get("tool", {}).get("darker", {}) or {}

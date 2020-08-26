@@ -152,10 +152,23 @@ def parse_command_line(argv: List[str]) -> Tuple[Namespace, DarkerConfig, Darker
     Finally, also return the set of configuration options which differ from defaults.
 
     """
-    config = load_config()
+    # 1. Parse the paths of files/directories to process into `args.src`.
+    parser_for_srcs = make_argument_parser(require_src=False)
+    args = parser_for_srcs.parse_args(argv)
+
+    # 2. Locate `pyproject.toml` based on those paths, or in the current directory if no
+    #    paths were given. Load Darker configuration from it.
+    config = load_config(args.src)
+
+    # 3. Use configuration as defaults for re-parsing command line arguments, and don't
+    #    require file/directory paths if they are specified in configuration.
     parser = make_argument_parser(require_src=not config.get("src"))
     parser.set_defaults(**config)
     args = parser.parse_args(argv)
+
+    # 4. Also create a parser which uses the original default configuration values.
+    #    This is used to find out differences between the effective configuration and
+    #    default configuration values, and print them out in verbose mode.
     parser_with_original_defaults = make_argument_parser(require_src=True)
     return (
         args,
