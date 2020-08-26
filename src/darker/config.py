@@ -14,7 +14,7 @@ class TomlArrayLinesEncoder(toml.TomlEncoder):  # type: ignore[name-defined]
     def dump_list(self, v: List[str]) -> str:
         """Format a list value"""
         return "[{}\n]".format(
-            "".join("\n    {}".format(self.dump_value(item)) for item in v)
+            "".join("\n    {},".format(self.dump_value(item)) for item in v)
         )
 
 
