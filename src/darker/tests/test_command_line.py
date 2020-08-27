@@ -10,7 +10,7 @@ from black import find_project_root
 
 from darker import black_diff
 from darker.__main__ import main
-from darker.command_line import parse_command_line
+from darker.command_line import make_argument_parser, parse_command_line
 from darker.tests.helpers import filter_dict
 from darker.utils import joinlines
 
@@ -27,6 +27,17 @@ pytestmark = pytest.mark.usefixtures("lru_cache_clear")
 def lru_cache_clear():
     """Clear LRU caching in :func:`black.find_project_root` before each test"""
     find_project_root.cache_clear()
+
+
+@pytest.mark.parametrize("require_src, expect", [(False, []), (True, SystemExit)])
+def test_make_argument_parser(require_src, expect):
+    """Parser from ``make_argument_parser()`` fails if src required but not provided"""
+    parser = make_argument_parser(require_src)
+    with pytest.raises(expect) if isinstance(expect, type) else nullcontext():
+
+        args = parser.parse_args([])
+
+        assert args.src == expect
 
 
 @pytest.fixture
