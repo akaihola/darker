@@ -143,7 +143,9 @@ The following `command line arguments`_ can also be used to modify the defaults:
      -r REVISION, --revision REVISION
                            Git revision against which to compare the working
                            tree. Tags, branch names, commit hashes, and other
-                           expressions like HEAD~5 work here.
+                           expressions like HEAD~5 work here. Also a range like
+                           master...HEAD or master... can be used to compare the
+                           best common ancestor.
 
      --diff                Don't write the files back, just output a diff for
                            each file on stdout. Highlight syntax on screen if

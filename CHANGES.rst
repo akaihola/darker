@@ -11,6 +11,8 @@ Added
   pytest-darker_. Currently the formatting is a mix of `Black 19.10`_ and `Black 20.8`_
   rules, and Travis CI only requires Black 20.8 formatting for lines modified in merge
   requests. In a way, Darker is now eating its own dogfood.
+- Support commit ranges for ``-r``/``--revision``. Useful for comparing to the best
+  common ancestor, e.g. ``master...``.
 
 Fixed
 -----
