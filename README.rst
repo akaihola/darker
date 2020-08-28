@@ -296,17 +296,17 @@ Vim
 Unlike black and many other formatters ``darker`` needs access to the Git history,
 therefore it does not work properly with the classical auto reformat plugins.
 
-You can though ask vim to run doarker on file save with the following in your
-`.vimrc`:
+You can though ask vim to run ``darker`` on file save with the following in your
+``.vimrc``:
 
-```
-autocmd BufWritePost *.py silent :!darker %
-```
+.. code-block:: vim
 
-  - `BufWritePost` to run darker _once the file has been saved_,
-  - `silent` to not ask for confirmation each time,
-  - `:!` to run an external command,
-  - `%` for current file name.
+   autocmd BufWritePost *.py silent :!darker %
+
+- ``BufWritePost`` to run darker *once the file has been saved*,
+- ``silent`` to not ask for confirmation each time,
+- ``:!`` to run an external command,
+- ``%`` for current file name.
 
 Vim should automatically reload the file.
 
