@@ -1,4 +1,4 @@
-from argparse import Namespace
+from argparse import ArgumentParser, Namespace
 from textwrap import dedent
 
 import pytest
@@ -6,6 +6,7 @@ import pytest
 from darker.config import (
     TomlArrayLinesEncoder,
     get_effective_config,
+    get_modified_config,
     load_config,
     replace_log_level_name,
 )
@@ -189,5 +190,27 @@ def test_load_config(
 )
 def test_get_effective_config(args, expect):
     result = get_effective_config(args)
+
+    assert result == expect
+
+
+@pytest.mark.parametrize(
+    "args, expect",
+    [
+        (Namespace(), {}),
+        (Namespace(unknown="option"), {"unknown": "option"}),
+        (Namespace(log_level=10), {"log_level": "DEBUG"}),
+        (Namespace(names=[], int=42, string="fourty-two"), {"names": []}),
+        (Namespace(names=["bar"], int=42, string="fourty-two"), {"names": ["bar"]}),
+        (Namespace(names=["foo"], int=43, string="fourty-two"), {"int": 43}),
+        (Namespace(names=["foo"], int=42, string="one"), {"string": "one"}),
+    ],
+)
+def test_get_modified_config(args, expect):
+    parser = ArgumentParser()
+    parser.add_argument("names", nargs="*", default=["foo"])
+    parser.add_argument("--int", dest="int", default=42)
+    parser.add_argument("--string", default="fourty-two")
+    result = get_modified_config(parser, args)
 
     assert result == expect
