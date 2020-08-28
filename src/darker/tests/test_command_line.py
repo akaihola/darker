@@ -6,7 +6,6 @@ from unittest.mock import DEFAULT, Mock, call, patch
 
 import pytest
 import toml
-from black import find_project_root
 
 from darker import black_diff
 from darker.__main__ import main
@@ -20,13 +19,7 @@ else:
     from contextlib import suppress as nullcontext
 
 
-pytestmark = pytest.mark.usefixtures("lru_cache_clear")
-
-
-@pytest.fixture
-def lru_cache_clear():
-    """Clear LRU caching in :func:`black.find_project_root` before each test"""
-    find_project_root.cache_clear()
+pytestmark = pytest.mark.usefixtures("find_project_root_cache_clear")
 
 
 @pytest.mark.parametrize("require_src, expect", [(False, []), (True, SystemExit)])
