@@ -293,7 +293,7 @@ You can pass additional arguments to ``darker`` in the ``blackArgs`` option
 Vim
 ---
 
-Unlike black and many other formatter darker needs access to the git history,
+Unlike black and many other formatters ``darker`` needs access to the Git history,
 therefore it does not work properly with the classical auto reformat plugins.
 
 You can though ask vim to run doarker on file save with the following in your
