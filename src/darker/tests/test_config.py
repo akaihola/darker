@@ -1,8 +1,14 @@
+from argparse import Namespace
 from textwrap import dedent
 
 import pytest
 
-from darker.config import TomlArrayLinesEncoder, load_config, replace_log_level_name
+from darker.config import (
+    TomlArrayLinesEncoder,
+    get_effective_config,
+    load_config,
+    replace_log_level_name,
+)
 
 
 @pytest.mark.parametrize(
@@ -165,5 +171,23 @@ def test_load_config(
     monkeypatch.chdir(tmp_path / cwd)
 
     result = load_config(srcs)
+
+    assert result == expect
+
+
+@pytest.mark.parametrize(
+    "args, expect",
+    [
+        (Namespace(), {}),
+        (Namespace(one="option"), {"one": "option"}),
+        (Namespace(log_level=10), {"log_level": "DEBUG"}),
+        (
+            Namespace(two="options", log_level=20),
+            {"two": "options", "log_level": "INFO"},
+        ),
+    ],
+)
+def test_get_effective_config(args, expect):
+    result = get_effective_config(args)
 
     assert result == expect
