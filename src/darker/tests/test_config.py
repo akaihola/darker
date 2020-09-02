@@ -64,11 +64,7 @@ def test_toml_array_lines_encoder(list_value, expect):
     ],
 )
 def test_replace_log_level_name(log_level, expect):
-    if log_level is None:
-        config = {}
-    else:
-        config = {"log_level": log_level}
-
+    config = {} if log_level is None else {"log_level": log_level}
     replace_log_level_name(config)
 
     assert config["log_level"] == expect
