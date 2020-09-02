@@ -78,11 +78,11 @@ To install, use::
 
   pip install darker
 
-The ``darker <myfile.py>`` command
-reads the original file,
-formats it using black_,
+The ``darker <myfile.py>`` or ``darker <directory>`` command
+reads the original file(s),
+formats them using black_,
 combines original and formatted regions based on edits,
-and writes back over the original file.
+and writes back over the original file(s).
 
 Alternatively, you can invoke the module directly through the ``python`` executable,
 which may be preferable depending on your setup.
@@ -106,22 +106,36 @@ Example:
 
    $ mkdir test && cd test && git init
    Initialized empty Git repository in /tmp/test/.git/
-   $ echo "if True: print('hi')\n\nif False: print('there')" | tee test.py
-   if True: print('hi')
 
+   $ echo "if True: print('hi')\nprint()\nif False: print('there')" | tee test.py
+   if True: print('hi')
+   print()
    if False: print('there')
+
    $ git add test.py && git commit -m "Initial commit"
    [master (root-commit) a0c7c32] Initial commit
     1 file changed, 3 insertions(+)
     create mode 100644 test.py
-   $ echo "if True: print('changed')\n\nif False: print('there')" | tee test.py
-   if True: print('changed')
 
+   $ echo "if True: print('changed')\nprint()\nif False: print('there')" | tee test.py
+   if True: print('changed')
+   print()
    if False: print('there')
-   $ darker test.py && cat test.py
+
+   $ darker --diff .   # show changes in any file under current directory
+   --- test.py
+   +++ test.py
+   @@ -1,3 +1,4 @@
+   -if True: print('changed')
+   +if True:
+   +    print("changed")
+   print()
+   if False: print('there')
+
+   $ darker test.py && cat test.py   # apply changes just to test.py
    if True:
        print("changed")
-
+   print()
    if False: print('there')
 
 Customizing ``darker``, Black and isort behavior
