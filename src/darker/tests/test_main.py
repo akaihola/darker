@@ -9,6 +9,7 @@ from black import find_project_root
 import darker.__main__
 import darker.import_sorting
 from darker.git import RevisionRange
+from darker.utils import TextDocument
 
 
 def test_isort_option_without_isort(tmpdir, without_isort, caplog):
@@ -32,7 +33,9 @@ def run_isort(git_repo, monkeypatch, caplog, request):
     paths['test1.py'].write('changed')
     args = getattr(request, "param", ())
     with patch.multiple(
-        darker.__main__, run_black=Mock(return_value=[]), verify_ast_unchanged=Mock(),
+        darker.__main__,
+        run_black=Mock(return_value=TextDocument()),
+        verify_ast_unchanged=Mock(),
     ), patch("darker.import_sorting.isort.code"):
         darker.__main__.main(["--isort", "./test1.py", *args])
         return SimpleNamespace(
@@ -65,10 +68,10 @@ def test_format_edited_parts_empty():
         )
 
 
-A_PY = ['import sys', 'import os', "print( '42')", '']
-A_PY_BLACK = ['import sys', 'import os', '', 'print("42")', '']
-A_PY_BLACK_UNNORMALIZE = ['import sys', 'import os', '', "print('42')", '']
-A_PY_BLACK_ISORT = ['import os', 'import sys', '', 'print("42")', '']
+A_PY = ["import sys", "import os", "print( '42')", ""]
+A_PY_BLACK = ["import sys", "import os", "", 'print("42")', ""]
+A_PY_BLACK_UNNORMALIZE = ("import sys", "import os", "", "print('42')", "")
+A_PY_BLACK_ISORT = ["import os", "import sys", "", 'print("42")', ""]
 
 A_PY_DIFF_BLACK = [
     '--- a.py',
@@ -122,13 +125,16 @@ def test_format_edited_parts(git_repo, monkeypatch, enable_isort, black_args, ex
     paths['a.py'].write('\n'.join(A_PY))
     paths['b.py'].write('print(42 )\n')
 
-    changes = list(
-        darker.__main__.format_edited_parts(
+    changes = [
+        (path, worktree_content.string, chosen.string, chosen.lines)
+        for path, worktree_content, chosen in darker.__main__.format_edited_parts(
             [Path("a.py")], RevisionRange("HEAD"), enable_isort, [], black_args
         )
-    )
+    ]
 
-    expect_changes = [(paths['a.py'], '\n'.join(A_PY), '\n'.join(expect), expect[:-1])]
+    expect_changes = [
+        (paths["a.py"], "\n".join(A_PY), "\n".join(expect), tuple(expect[:-1]))
+    ]
     assert changes == expect_changes
 
 
@@ -189,8 +195,12 @@ def test_output_diff(capsys):
     """output_diff() prints Black-style diff output"""
     darker.__main__.print_diff(
         Path('a.py'),
-        'unchanged\nremoved\nkept 1\n2\n3\n4\n5\n6\n7\nchanged\n',
-        ['inserted', 'unchanged', 'kept 1', '2', '3', '4', '5', '6', '7', 'Changed'],
+        TextDocument.from_lines(
+            ["unchanged", "removed", "kept 1", "2", "3", "4", "5", "6", "7", "changed"]
+        ),
+        TextDocument.from_lines(
+            ["inserted", "unchanged", "kept 1", "2", "3", "4", "5", "6", "7", "Changed"]
+        ),
     )
 
     assert capsys.readouterr().out.splitlines() == [

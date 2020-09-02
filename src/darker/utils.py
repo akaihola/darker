@@ -5,11 +5,54 @@ from itertools import chain
 from pathlib import Path
 from typing import Iterable, List, Tuple, Union
 
+TextLines = Tuple[str, ...]
+
+
+class TextDocument:
+    def __init__(self, string: str = None, lines: Iterable[str] = None):
+        self._string = string
+        self._lines = None if lines is None else tuple(lines)
+
+    @property
+    def string(self) -> str:
+        if self._string is None:
+            self._string = joinlines(self._lines or ())
+        return self._string
+
+    @property
+    def lines(self) -> TextLines:
+        if self._lines is None:
+            self._lines = tuple((self._string or "").splitlines())
+        return self._lines
+
+    @classmethod
+    def from_str(cls, s: str) -> "TextDocument":
+        return cls(s, None)
+
+    @classmethod
+    def from_lines(cls, lines: Iterable[str]) -> "TextDocument":
+        return cls(None, lines)
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, TextDocument):
+            return NotImplemented
+        if not self._string:
+            if not self._lines:
+                return not other._string and not other._lines
+            return self._lines == other.lines
+        return self._string == other.string
+
+    def __repr__(self) -> str:
+        return f"{type(self).__name__}([{len(self.lines)} lines])"
+
+
+DiffChunk = Tuple[int, TextLines, TextLines]
+
 
 def debug_dump(
-    black_chunks: List[Tuple[int, List[str], List[str]]],
-    old_content: str,
-    new_content: str,
+    black_chunks: List[DiffChunk],
+    old_content: TextDocument,
+    new_content: TextDocument,
     edited_linenums: List[int],
 ) -> None:
     """Print debug output. This is used in case of an unexpected failure."""
@@ -24,7 +67,7 @@ def debug_dump(
     print(80 * "-")
 
 
-def joinlines(lines: List[str]) -> str:
+def joinlines(lines: TextLines) -> str:
     """Join a list of lines back, adding a linefeed after each line
 
     This is the reverse of ``str.splitlines()``.
@@ -68,7 +111,7 @@ class Buf:
         for _ in range(-lines_delta):
             self._buf.seek(self._line_starts.pop())
 
-    def next_line_startswith(self, prefix: Union[str, Tuple[str, ...]]) -> bool:
+    def next_line_startswith(self, prefix: Union[str, TextLines]) -> bool:
         try:
             return next(self).startswith(prefix)
         except StopIteration:

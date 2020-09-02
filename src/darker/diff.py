@@ -10,16 +10,20 @@ In our case, we run a diff between original and user-edited source code.
 Another diff is done between user-edited and Black-reformatted source code
 as returned by :func:`black.black_diff.run_black_for_content`.
 
-    >>> src_lines = [
-    ...     'for i in range(5): print(i)',
-    ...     'print("done")'
-    ... ]
+    >>> src = TextDocument.from_lines(
+    ...     [
+    ...         'for i in range(5): print(i)',
+    ...         'print("done")'
+    ...     ]
+    ... )
 
-    >>> dst_lines = [
-    ...     'for i in range(5):',
-    ...     '    print(i)',
-    ...     'print("done")'
-    ... ]
+    >>> dst = TextDocument.from_lines(
+    ...     [
+    ...         'for i in range(5):',
+    ...         '    print(i)',
+    ...         'print("done")'
+    ...     ]
+    ... )
 
 :func:`diff_and_get_opcodes`.
 divides a diff between the original and reformatted content
@@ -29,7 +33,7 @@ modified ('delete', 'replace' or 'insert' tag) lines.
 Each chunk is an opcode represented by the tag and the corresponding 0-based line ranges
 in the original and reformatted content, e.g.::
 
-    >>> opcodes = diff_and_get_opcodes(src_lines, dst_lines)
+    >>> opcodes = diff_and_get_opcodes(src, dst)
     >>> len(opcodes)
     2
     >>> opcodes[0]  # split 'for' loop into two lines
@@ -41,18 +45,18 @@ in the original and reformatted content, e.g.::
 from original and reformatted content for each opcode.
 It combines line content with the 1-based line offset in the original content, e.g.::
 
-    >>> chunks = list(opcodes_to_chunks(opcodes, src_lines, dst_lines))
+    >>> chunks = list(opcodes_to_chunks(opcodes, src, dst))
     >>> len(chunks)
     2
     >>> chunks[0]  # (<offset in orig content>, <original lines>, <reformatted lines>)
     (1,
-     ['for i in range(5): print(i)'],
-     ['for i in range(5):',
-      '    print(i)'])
+     ('for i in range(5): print(i)',),
+     ('for i in range(5):',
+      '    print(i)'))
     >>> chunks[1]
     (2,
-     ['print("done")'],
-     ['print("done")'])
+     ('print("done")',),
+     ('print("done")',))
 
 By concatenating the second items in these tuples, i.e. original lines,
 the original file can be reconstructed.
@@ -69,11 +73,13 @@ import logging
 from difflib import SequenceMatcher
 from typing import Generator, List, Tuple
 
+from darker.utils import DiffChunk, TextDocument
+
 logger = logging.getLogger(__name__)
 
 
 def diff_and_get_opcodes(
-    src_lines: List[str], dst_lines: List[str]
+    src: TextDocument, dst: TextDocument
 ) -> List[Tuple[str, int, int, int, int]]:
     """Return opcodes and line numbers for chunks in the diff of two lists of strings
 
@@ -88,7 +94,7 @@ def diff_and_get_opcodes(
     Line numbers are zero based.
 
     """
-    matcher = SequenceMatcher(None, src_lines, dst_lines, autojunk=False)
+    matcher = SequenceMatcher(None, src.lines, dst.lines, autojunk=False)
     opcodes = matcher.get_opcodes()
     logger.debug(
         "Diff between edited and reformatted has %s opcode%s",
@@ -130,9 +136,9 @@ def opcodes_to_edit_linenums(
 
 def opcodes_to_chunks(
     opcodes: List[Tuple[str, int, int, int, int]],
-    src_lines: List[str],
-    dst_lines: List[str],
-) -> Generator[Tuple[int, List[str], List[str]], None, None]:
+    src: TextDocument,
+    dst: TextDocument,
+) -> Generator[DiffChunk, None, None]:
     """Convert each diff opcode to a line number and original plus modified lines
 
     Each chunk is a 3-tuple with
@@ -147,4 +153,4 @@ def opcodes_to_chunks(
     """
     _validate_opcodes(opcodes)
     for tag, i1, i2, j1, j2 in opcodes:
-        yield i1 + 1, src_lines[i1:i2], dst_lines[j1:j2]
+        yield i1 + 1, src.lines[i1:i2], dst.lines[j1:j2]

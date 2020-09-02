@@ -14,7 +14,7 @@ from darker.diff import diff_and_get_opcodes, opcodes_to_chunks
 from darker.git import EditedLinenumsDiffer, RevisionRange, git_get_modified_files
 from darker.import_sorting import apply_isort, isort
 from darker.linting import run_linter
-from darker.utils import get_common_root, joinlines
+from darker.utils import TextDocument, get_common_root
 from darker.verification import NotEquivalentError, verify_ast_unchanged
 
 logger = logging.getLogger(__name__)
@@ -26,7 +26,7 @@ def format_edited_parts(
     enable_isort: bool,
     linter_cmdlines: List[str],
     black_args: BlackArgs,
-) -> Generator[Tuple[Path, str, str, List[str]], None, None]:
+) -> Generator[Tuple[Path, TextDocument, TextDocument], None, None]:
     """Black (and optional isort) formatting for chunks with edits since the last commit
 
     1. run isort on each edited file (optional)
@@ -40,15 +40,14 @@ def format_edited_parts(
     7. choose reformatted content for each chunk if there were any changed lines inside
        the chunk in the edited to-file, or choose the chunk's original contents if no
        edits were done in that chunk
-    8. concatenate all chosen chunks
-    9. verify that the resulting reformatted source code parses to an identical AST as
+    8. verify that the resulting reformatted source code parses to an identical AST as
        the original edited to-file
-    10. write the reformatted source back to the original file
-    11. run linter subprocesses for all edited files (11.-14. optional)
-    12. diff the given revision and worktree (after isort and Black reformatting) for
+    9. write the reformatted source back to the original file
+    10. run linter subprocesses for all edited files (11.-14. optional)
+    11. diff the given revision and worktree (after isort and Black reformatting) for
         each file reported by a linter
-    13. extract line numbers in each file reported by a linter for changed lines
-    14. print only linter error lines which fall on changed lines
+    12. extract line numbers in each file reported by a linter for changed lines
+    13. print only linter error lines which fall on changed lines
 
     :param srcs: Directories and files to re-format
     :param revrange: The Git revision against which to compare the working tree
@@ -66,62 +65,54 @@ def format_edited_parts(
 
     for path_in_repo in sorted(changed_files):
         src = git_root / path_in_repo
-        worktree_content = src.read_text()
+        worktree_content = TextDocument.from_str(src.read_text())
 
         # 1. run isort
         if enable_isort:
-            edited_content = apply_isort(
+            edited = apply_isort(
                 worktree_content,
                 src,
                 black_args.get("config"),
                 black_args.get("line_length"),
             )
         else:
-            edited_content = worktree_content
-        edited_lines = edited_content.splitlines()
-        max_context_lines = len(edited_lines)
+            edited = worktree_content
+        max_context_lines = len(edited.lines)
         for context_lines in range(max_context_lines + 1):
             # 2. diff the given revision and worktree for the file
             # 3. extract line numbers in the edited to-file for changed lines
             edited_linenums = edited_linenums_differ.revision_vs_lines(
-                path_in_repo, edited_lines, context_lines
+                path_in_repo, edited, context_lines
             )
-            if (
-                enable_isort
-                and not edited_linenums
-                and edited_content == worktree_content
-            ):
+            if enable_isort and not edited_linenums and edited == worktree_content:
                 logger.debug("No changes in %s after isort", src)
                 break
 
             # 4. run black
-            formatted = run_black(src, edited_content, black_args)
-            logger.debug("Read %s lines from edited file %s", len(edited_lines), src)
-            logger.debug("Black reformat resulted in %s lines", len(formatted))
+            formatted = run_black(src, edited, black_args)
+            logger.debug("Read %s lines from edited file %s", len(edited.lines), src)
+            logger.debug("Black reformat resulted in %s lines", len(formatted.lines))
 
             # 5. get the diff between the edited and reformatted file
-            opcodes = diff_and_get_opcodes(edited_lines, formatted)
+            opcodes = diff_and_get_opcodes(edited, formatted)
 
             # 6. convert the diff into chunks
-            black_chunks = list(opcodes_to_chunks(opcodes, edited_lines, formatted))
+            black_chunks = list(opcodes_to_chunks(opcodes, edited, formatted))
 
             # 7. choose reformatted content
-            chosen_lines: List[str] = list(choose_lines(black_chunks, edited_linenums))
+            chosen = TextDocument.from_lines(
+                choose_lines(black_chunks, edited_linenums)
+            )
 
-            # 8. concatenate chosen chunks
-            result_str = joinlines(chosen_lines)
-
-            # 9. verify
+            # 8. verify
             logger.debug(
                 "Verifying that the %s original edited lines and %s reformatted lines "
                 "parse into an identical abstract syntax tree",
-                len(edited_lines),
-                len(chosen_lines),
+                len(edited.lines),
+                len(chosen.lines),
             )
             try:
-                verify_ast_unchanged(
-                    edited_content, result_str, black_chunks, edited_linenums
-                )
+                verify_ast_unchanged(edited, chosen, black_chunks, edited_linenums)
             except NotEquivalentError:
                 # Diff produced misaligned chunks which couldn't be reconstructed into
                 # a partially re-formatted Python file which produces an identical AST.
@@ -136,38 +127,33 @@ def format_edited_parts(
                 )
                 continue
             else:
-                # 10. A re-formatted Python file which produces an identical AST was
-                #     created successfully - write an updated file or print the diff
-                #     if there were any changes to the original
-                if result_str != worktree_content:
-                    # `result_str` is just `chosen_lines` concatenated with newlines.
-                    # We need both forms when showing diffs or modifying files.
-                    # Pass them both on to avoid back-and-forth conversion.
-                    yield src, worktree_content, result_str, chosen_lines
+                # 9. A re-formatted Python file which produces an identical AST was
+                #    created successfully - write an updated file or print the diff if
+                #    there were any changes to the original
+                if chosen != worktree_content:
+                    yield src, worktree_content, chosen
                 break
-    # 11. run linter subprocesses for all edited files (11.-14. optional)
-    # 12. diff the given revision and worktree (after isort and Black reformatting) for
+    # 10. run linter subprocesses for all edited files (11.-14. optional)
+    # 11. diff the given revision and worktree (after isort and Black reformatting) for
     #     each file reported by a linter
-    # 13. extract line numbers in each file reported by a linter for changed lines
-    # 14. print only linter error lines which fall on changed lines
+    # 12. extract line numbers in each file reported by a linter for changed lines
+    # 13. print only linter error lines which fall on changed lines
     for linter_cmdline in linter_cmdlines:
         run_linter(linter_cmdline, git_root, changed_files, revrange)
 
 
-def modify_file(path: Path, new_content: str) -> None:
+def modify_file(path: Path, new_content: TextDocument) -> None:
     """Write new content to a file and inform the user by logging"""
-    logger.info("Writing %s bytes into %s", len(new_content), path)
-    path.write_text(new_content)
+    logger.info("Writing %s bytes into %s", len(new_content.string), path)
+    path.write_text(new_content.string)
 
 
-def print_diff(path: Path, old_content: str, new_lines: List[str]) -> None:
+def print_diff(path: Path, old: TextDocument, new: TextDocument) -> None:
     """Print ``black --diff`` style output for the changes"""
     relative_path = path.resolve().relative_to(Path.cwd()).as_posix()
     diff = "\n".join(
         line.rstrip("\n")
-        for line in unified_diff(
-            old_content.splitlines(), new_lines, relative_path, relative_path,
-        )
+        for line in unified_diff(old.lines, new.lines, relative_path, relative_path)
     )
 
     if sys.stdout.isatty():
@@ -223,18 +209,15 @@ def main(argv: List[str] = None) -> int:
 
     paths = {Path(p) for p in args.src}
     some_files_changed = False
-    # `new_content` is just `new_lines` concatenated with newlines.
-    # We need both forms when showing diffs or modifying files.
-    # Pass them both on to avoid back-and-forth conversion.
     revrange = RevisionRange.parse(args.revision)
-    for path, old_content, new_content, new_lines in format_edited_parts(
+    for path, old, new in format_edited_parts(
         paths, revrange, args.isort, args.lint, black_args
     ):
         some_files_changed = True
         if args.diff:
-            print_diff(path, old_content, new_lines)
+            print_diff(path, old, new)
         if not args.check and not args.diff:
-            modify_file(path, new_content)
+            modify_file(path, new)
     return 1 if args.check and some_files_changed else 0
 
 

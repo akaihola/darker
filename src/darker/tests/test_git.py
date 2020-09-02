@@ -17,22 +17,29 @@ from darker.git import (
 )
 from darker.tests.conftest import GitRepoFixture
 from darker.tests.helpers import raises_if_exception
+from darker.utils import TextDocument
 
 
 @pytest.mark.parametrize(
     "revision, expect",
-    [("HEAD", ["modified content"]), ("HEAD^", ["original content"]), ("HEAD~2", [])],
+    [
+        (":WORKTREE:", ("new content",)),
+        ("HEAD", ("modified content",)),
+        ("HEAD^", ("original content",)),
+        ("HEAD~2", ()),
+    ],
 )
 def test_git_get_content_at_revision(git_repo, revision, expect):
+    """darker.git.git_get_content_at_revision()"""
     git_repo.add({"my.txt": "original content"}, commit="Initial commit")
     paths = git_repo.add({"my.txt": "modified content"}, commit="Initial commit")
-    paths['my.txt'].write('new content')
+    paths["my.txt"].write("new content")
 
-    original_content = git_get_content_at_revision(
-        Path("my.txt"), revision, cwd=git_repo.root
+    original = git_get_content_at_revision(
+        Path("my.txt"), revision, cwd=Path(git_repo.root)
     )
 
-    assert original_content == expect
+    assert original.lines == expect
 
 
 @pytest.mark.parametrize(
@@ -310,7 +317,7 @@ def test_edited_linenums_differ_revision_vs_worktree(git_repo, context_lines, ex
     """Tests for EditedLinenumsDiffer.revision_vs_worktree()"""
     paths = git_repo.add({"a.py": "1\n2\n3\n4\n5\n6\n7\n8\n"}, commit="Initial commit")
     paths["a.py"].write("1\n2\nthree\n4\n5\n6\nseven\n8\n")
-    differ = EditedLinenumsDiffer(git_repo.root, RevisionRange("HEAD"))
+    differ = EditedLinenumsDiffer(Path(git_repo.root), RevisionRange("HEAD"))
 
     result = differ.compare_revisions(Path("a.py"), context_lines)
 
@@ -321,9 +328,9 @@ def test_edited_linenums_differ_revision_vs_worktree(git_repo, context_lines, ex
 def test_edited_linenums_differ_revision_vs_lines(git_repo, context_lines, expect):
     """Tests for EditedLinenumsDiffer.revision_vs_lines()"""
     git_repo.add({'a.py': '1\n2\n3\n4\n5\n6\n7\n8\n'}, commit='Initial commit')
-    lines = ['1', '2', 'three', '4', '5', '6', 'seven', '8']
+    content = TextDocument.from_lines(["1", "2", "three", "4", "5", "6", "seven", "8"])
     differ = EditedLinenumsDiffer(git_repo.root, RevisionRange("HEAD"))
 
-    result = differ.revision_vs_lines(Path("a.py"), lines, context_lines)
+    result = differ.revision_vs_lines(Path("a.py"), content, context_lines)
 
     assert result == expect
