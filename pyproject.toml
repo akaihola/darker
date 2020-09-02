@@ -2,9 +2,6 @@
 # Minimum requirements for the build system to execute.
 requires = ["setuptools", "wheel"]  # PEP 508 specifications.
 
-[tool.black]
-skip-string-normalization = true
-
 [tool.isort]
 multi_line_output = 3
 include_trailing_comma = true
@@ -12,3 +9,9 @@ force_grid_wrap = 0
 use_parentheses = true
 line_length = 88
 known_third_party = ["pytest"]
+
+[tool.darker]
+src = [
+    "src",
+]
+revision = "master"

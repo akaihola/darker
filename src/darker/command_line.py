@@ -1,13 +1,25 @@
 from argparse import ArgumentParser, Namespace
-from typing import List
+from typing import List, Tuple
 
-from darker.argparse_helpers import NewlinePreservingFormatter
+from darker.argparse_helpers import LogLevelAction, NewlinePreservingFormatter
+from darker.config import (
+    DarkerConfig,
+    get_effective_config,
+    get_modified_config,
+    load_config,
+)
 from darker.version import __version__
 
 ISORT_INSTRUCTION = "Please run `pip install 'darker[isort]'`"
 
 
-def parse_command_line(argv: List[str]) -> Namespace:
+def make_argument_parser(require_src: bool) -> ArgumentParser:
+    """Create the argument parser object
+
+    :param require_src: ``True`` to require at least one path as a positional argument
+                        on the command line. ``False`` to not require on.
+
+    """
     description = [
         "Re-format Python source files by using",
         "- `isort` to sort Python import definitions alphabetically within logical"
@@ -24,9 +36,10 @@ def parse_command_line(argv: List[str]) -> Namespace:
     parser = ArgumentParser(
         description="\n".join(description), formatter_class=NewlinePreservingFormatter,
     )
+    parser.register("action", "log_level", LogLevelAction)
     parser.add_argument(
         "src",
-        nargs="+",
+        nargs="+" if require_src else "*",
         help="Path(s) to the Python source file(s) to reformat",
         metavar="PATH",
     )
@@ -67,7 +80,6 @@ def parse_command_line(argv: List[str]) -> Namespace:
         "--lint",
         action="append",
         metavar="CMD",
-        type=lambda s: s.split(),
         default=[],
         help=(
             "Also run a linter on changed files. CMD can be a name of path of the "
@@ -84,16 +96,16 @@ def parse_command_line(argv: List[str]) -> Namespace:
         "-v",
         "--verbose",
         dest="log_level",
-        action="append_const",
-        const=10,
+        action="log_level",
+        const=-10,
         help="Show steps taken and summarize modifications",
     )
     parser.add_argument(
         "-q",
         "--quiet",
         dest="log_level",
-        action="append_const",
-        const=-10,
+        action="log_level",
+        const=10,
         help="Reduce amount of output",
     )
     parser.add_argument(
@@ -127,4 +139,39 @@ def parse_command_line(argv: List[str]) -> Namespace:
         dest="line_length",
         help="How many characters per line to allow [default: 88]",
     )
-    return parser.parse_args(argv)
+    return parser
+
+
+def parse_command_line(argv: List[str]) -> Tuple[Namespace, DarkerConfig, DarkerConfig]:
+    """Return the parsed command line, using defaults from a configuration file
+
+    Also return the effective configuration which combines defaults, the configuration
+    read from ``pyproject.toml`` (or the path given in ``--config``), and command line
+    arguments.
+
+    Finally, also return the set of configuration options which differ from defaults.
+
+    """
+    # 1. Parse the paths of files/directories to process into `args.src`.
+    parser_for_srcs = make_argument_parser(require_src=False)
+    args = parser_for_srcs.parse_args(argv)
+
+    # 2. Locate `pyproject.toml` based on those paths, or in the current directory if no
+    #    paths were given. Load Darker configuration from it.
+    config = load_config(args.src)
+
+    # 3. Use configuration as defaults for re-parsing command line arguments, and don't
+    #    require file/directory paths if they are specified in configuration.
+    parser = make_argument_parser(require_src=not config.get("src"))
+    parser.set_defaults(**config)
+    args = parser.parse_args(argv)
+
+    # 4. Also create a parser which uses the original default configuration values.
+    #    This is used to find out differences between the effective configuration and
+    #    default configuration values, and print them out in verbose mode.
+    parser_with_original_defaults = make_argument_parser(require_src=True)
+    return (
+        args,
+        get_effective_config(args),
+        get_modified_config(parser_with_original_defaults, args),
+    )

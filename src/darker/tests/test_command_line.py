@@ -1,14 +1,36 @@
 import re
+import sys
 from pathlib import Path
 from textwrap import dedent
 from unittest.mock import DEFAULT, Mock, call, patch
 
 import pytest
+import toml
 
 from darker import black_diff
 from darker.__main__ import main
-from darker.command_line import parse_command_line
+from darker.command_line import make_argument_parser, parse_command_line
+from darker.tests.helpers import filter_dict
 from darker.utils import joinlines
+
+if sys.version_info >= (3, 7):
+    from contextlib import nullcontext
+else:
+    from contextlib import suppress as nullcontext
+
+
+pytestmark = pytest.mark.usefixtures("find_project_root_cache_clear")
+
+
+@pytest.mark.parametrize("require_src, expect", [(False, []), (True, SystemExit)])
+def test_make_argument_parser(require_src, expect):
+    """Parser from ``make_argument_parser()`` fails if src required but not provided"""
+    parser = make_argument_parser(require_src)
+    with pytest.raises(expect) if isinstance(expect, type) else nullcontext():
+
+        args = parser.parse_args([])
+
+        assert args.src == expect
 
 
 @pytest.fixture
@@ -16,6 +38,198 @@ def darker_help_output(capsys):
     with pytest.raises(SystemExit):
         parse_command_line(["--help"])
     return re.sub(r'\s+', ' ', capsys.readouterr().out)
+
+
+@pytest.mark.parametrize(
+    "config, argv, expect",
+    [
+        (None, [], SystemExit),
+        (
+            None,
+            ["file.py"],
+            {"src": ["file.py"]},
+        ),
+        (
+            {"src": ["file.py"]},
+            [],
+            {"src": ["file.py"]},
+        ),
+        (
+            {"src": ["file.py"]},
+            ["file.py"],
+            {"src": ["file.py"]},
+        ),
+        (
+            {"src": ["file1.py"]},
+            ["file2.py"],
+            {"src": ["file2.py"]},
+        ),
+    ],
+)
+def test_parse_command_line_config_src(
+    tmpdir,
+    monkeypatch,
+    config,
+    argv,
+    expect,
+):
+    """The ``src`` positional argument from config and cmdline is handled correctly"""
+    monkeypatch.chdir(tmpdir)
+    if config is not None:
+        toml.dump({"tool": {"darker": config}}, tmpdir / "pyproject.toml")
+    with pytest.raises(SystemExit) if isinstance(expect, type) else nullcontext():
+
+        args, effective_cfg, modified_cfg = parse_command_line(argv)
+
+        assert filter_dict(args.__dict__, "src") == expect
+        assert filter_dict(effective_cfg, "src") == expect
+        assert filter_dict(modified_cfg, "src") == expect
+
+
+@pytest.mark.parametrize(
+    "argv, expect_value, expect_config, expect_modified",
+    [
+        (["."], ("src", ["."]), ("src", ["."]), ("src", ["."])),
+        (
+            ["."],
+            ("revision", "HEAD"),
+            ("revision", "HEAD"),
+            ("revision", ...),
+        ),
+        (
+            ["-rmaster", "."],
+            ("revision", "master"),
+            ("revision", "master"),
+            ("revision", "master"),
+        ),
+        (
+            ["--revision", "HEAD", "."],
+            ("revision", "HEAD"),
+            ("revision", "HEAD"),
+            ("revision", ...),
+        ),
+        (["."], ("diff", False), ("diff", False), ("diff", ...)),
+        (["--diff", "."], ("diff", True), ("diff", True), ("diff", True)),
+        (["."], ("check", False), ("check", False), ("check", ...)),
+        (["--check", "."], ("check", True), ("check", True), ("check", True)),
+        (["."], ("isort", False), ("isort", False), ("isort", ...)),
+        (["-i", "."], ("isort", True), ("isort", True), ("isort", True)),
+        (["--isort", "."], ("isort", True), ("isort", True), ("isort", True)),
+        (["."], ("lint", []), ("lint", []), ("lint", ...)),
+        (
+            ["-L", "pylint", "."],
+            ("lint", ["pylint"]),
+            ("lint", ["pylint"]),
+            ("lint", ["pylint"]),
+        ),
+        (
+            ["--lint", "flake8", "-L", "mypy", "."],
+            ("lint", ["flake8", "mypy"]),
+            ("lint", ["flake8", "mypy"]),
+            ("lint", ["flake8", "mypy"]),
+        ),
+        (["."], ("config", None), ("config", None), ("config", ...)),
+        (
+            ["-c", "my.cfg", "."],
+            ("config", "my.cfg"),
+            ("config", "my.cfg"),
+            ("config", "my.cfg"),
+        ),
+        (
+            ["--config=my.cfg", "."],
+            ("config", "my.cfg"),
+            ("config", "my.cfg"),
+            ("config", "my.cfg"),
+        ),
+        (["."], ("log_level", 30), ("log_level", "WARNING"), ("log_level", ...)),
+        (
+            ["-v", "."],
+            ("log_level", 20),
+            ("log_level", "INFO"),
+            ("log_level", "INFO"),
+        ),
+        (
+            ["--verbose", "-v", "."],
+            ("log_level", 10),
+            ("log_level", "DEBUG"),
+            ("log_level", "DEBUG"),
+        ),
+        (
+            ["-q", "."],
+            ("log_level", 40),
+            ("log_level", "ERROR"),
+            ("log_level", "ERROR"),
+        ),
+        (
+            ["--quiet", "-q", "."],
+            ("log_level", 50),
+            ("log_level", "CRITICAL"),
+            ("log_level", "CRITICAL"),
+        ),
+        (
+            ["."],
+            ("skip_string_normalization", None),
+            ("skip_string_normalization", None),
+            ("skip_string_normalization", ...),
+        ),
+        (
+            ["-S", "."],
+            ("skip_string_normalization", True),
+            ("skip_string_normalization", True),
+            ("skip_string_normalization", True),
+        ),
+        (
+            ["--skip-string-normalization", "."],
+            ("skip_string_normalization", True),
+            ("skip_string_normalization", True),
+            ("skip_string_normalization", True),
+        ),
+        (
+            ["--no-skip-string-normalization", "."],
+            ("skip_string_normalization", False),
+            ("skip_string_normalization", False),
+            ("skip_string_normalization", False),
+        ),
+        (
+            ["."],
+            ("line_length", None),
+            ("line_length", None),
+            ("line_length", ...),
+        ),
+        (
+            ["-l=88", "."],
+            ("line_length", 88),
+            ("line_length", 88),
+            ("line_length", 88),
+        ),
+        (
+            ["--line-length", "99", "."],
+            ("line_length", 99),
+            ("line_length", 99),
+            ("line_length", 99),
+        ),
+    ],
+)
+def test_parse_command_line(
+    tmpdir, monkeypatch, argv, expect_value, expect_config, expect_modified
+):
+    monkeypatch.chdir(tmpdir)
+    args, effective_cfg, modified_cfg = parse_command_line(argv)
+
+    arg_name, expect_arg_value = expect_value
+    assert getattr(args, arg_name) == expect_arg_value
+
+    option, expect_config_value = expect_config
+    if expect_config_value is ...:
+        assert option not in effective_cfg
+    else:
+        assert effective_cfg[option] == expect_config_value
+
+    modified_option, expect_modified_value = expect_modified
+    if expect_modified_value is ...:
+        assert modified_option not in modified_cfg
+    else:
+        assert modified_cfg[modified_option] == expect_modified_value
 
 
 def test_help_description_without_isort_package(without_isort, darker_help_output):
@@ -149,7 +363,14 @@ def test_black_options_skip_string_normalization(git_repo, config, options, expe
         (["--diff", "a.py"], ({Path("a.py")}, "HEAD", False, [], {})),
     ],
 )
-def test_options(options, expect):
+def test_options(tmpdir, monkeypatch, options, expect):
+    """The main engine is called with correct parameters based on the command line
+
+    Executed in a clean directory so Darker's own ``pyproject.toml`` doesn't interfere.
+
+    """
+    monkeypatch.chdir(tmpdir)
+    (tmpdir / "my.cfg").write("")
     with patch('darker.__main__.format_edited_parts') as format_edited_parts:
 
         retval = main(options)

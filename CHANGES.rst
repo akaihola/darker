@@ -6,6 +6,11 @@ These features will be included in the next release:
 Added
 -----
 - Configure Flake8 verification for Darker source code
+- Configuration for Darker can now be done in ``pyproject.toml``.
+- The formatting of the Darker code base itself is now checked using Darker itself and
+  pytest-darker_. Currently the formatting is a mix of `Black 19.10`_ and `Black 20.8`_
+  rules, and Travis CI only requires Black 20.8 formatting for lines modified in merge
+  requests. In a way, Darker is now eating its own dogfood.
 
 Fixed
 -----
@@ -80,3 +85,6 @@ Added
 .. _0.2.0: https://github.com/akaihola/darker/compare/0.1.1...0.2.0
 .. _0.1.1: https://github.com/akaihola/darker/compare/0.1.0...0.1.1
 .. _0.1.0: https://github.com/akaihola/darker/releases/tag/0.1.0
+.. _pytest-darker: https://pypi.org/project/pytest-darker/
+.. _Black 19.10: https://github.com/psf/black/blob/master/CHANGES.md#1910b0
+.. _Black 20.8: https://github.com/psf/black/blob/master/CHANGES.md#208b0

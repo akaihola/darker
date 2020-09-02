@@ -45,8 +45,7 @@ else:
 
 # `FileMode as Mode` required to satisfy mypy==0.782. Strange.
 from black import FileMode as Mode
-from black import TargetVersion, format_str, read_pyproject_toml
-from click import Command, Context, Option
+from black import TargetVersion, find_pyproject_toml, format_str, parse_pyproject_toml
 
 logger = logging.getLogger(__name__)
 
@@ -67,20 +66,18 @@ class BlackModeAttributes(TypedDict, total=False):
 @lru_cache(maxsize=1)
 def read_black_config(src: Path, value: Optional[str]) -> BlackArgs:
     """Read the black configuration from pyproject.toml"""
-    command = Command("main")
+    value = value or find_pyproject_toml((str(src),))
 
-    context = Context(command)
-    context.params["src"] = (str(src),)
+    if not value:
+        return BlackArgs()
 
-    parameter = Option(["--config"])
-
-    read_pyproject_toml(context, parameter, value)
+    config = parse_pyproject_toml(value)
 
     return cast(
         BlackArgs,
         {
             key: value
-            for key, value in (context.default_map or {}).items()
+            for key, value in config.items()
             if key in ["line_length", "skip_string_normalization"]
         },
     )

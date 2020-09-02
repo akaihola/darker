@@ -5,6 +5,7 @@ from typing import Dict, Optional
 from unittest.mock import patch
 
 import pytest
+from black import find_project_root
 from py.path import local as LocalPath
 
 
@@ -58,3 +59,9 @@ def git_repo(tmpdir, monkeypatch):
     check_call(["git", "init"], cwd=tmpdir)
     monkeypatch.chdir(tmpdir)
     return GitRepoFixture(tmpdir)
+
+
+@pytest.fixture
+def find_project_root_cache_clear():
+    """Clear LRU caching in :func:`black.find_project_root` before each test"""
+    find_project_root.cache_clear()
