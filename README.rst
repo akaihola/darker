@@ -100,43 +100,93 @@ You can enable additional features with command line options:
 
 *New in version 1.1.0:* The ``-L`` / ``--lint`` option.
 
-Example:
+Example
+=======
+
+This example walks you through a minimal practical use case for Darker.
+
+First, create an empty Git repository:
 
 .. code-block:: shell
 
-   $ mkdir test && cd test && git init
+   $ mkdir /tmp/test
+   $ cd /tmp/test
+   $ git init
    Initialized empty Git repository in /tmp/test/.git/
 
-   $ echo "if True: print('hi')\nprint()\nif False: print('there')" | tee test.py
+In the root of that directory, create the ill-formatted Python file ``our_file.py``:
+
+.. code-block:: python
+
    if True: print('hi')
    print()
    if False: print('there')
 
-   $ git add test.py && git commit -m "Initial commit"
+Commit that file:
+
+.. code-block:: shell
+
+   $ git add our_file.py
+   $ git commit -m "Initial commit"
    [master (root-commit) a0c7c32] Initial commit
     1 file changed, 3 insertions(+)
-    create mode 100644 test.py
+    create mode 100644 our_file.py
 
-   $ echo "if True: print('changed')\nprint()\nif False: print('there')" | tee test.py
-   if True: print('changed')
+Now modify the first line in that file:
+
+.. code-block:: python
+
+   if True: print('CHANGED TEXT')
    print()
    if False: print('there')
 
-   $ darker --diff .   # show changes in any file under current directory
-   --- test.py
-   +++ test.py
+You can ask Darker to show the diff for minimal reformatting
+which makes edited lines conform to Black rules:
+
+.. code-block:: diff
+
+   $ darker --diff our_file.py
+   --- our_file.py
+   +++ our_file.py
    @@ -1,3 +1,4 @@
-   -if True: print('changed')
+   -if True: print('CHANGED TEXT')
    +if True:
-   +    print("changed")
+   +    print("CHANGED TEXT")
    print()
    if False: print('there')
 
-   $ darker test.py && cat test.py   # apply changes just to test.py
+If you omit the ``--diff`` option,
+Darker replaces the files listed on the command line
+with partially reformatted ones as shown above:
+
+.. code-block:: shell
+
+   $ darker our_file.py
+
+Now the contents of ``our_file.py`` will have changed.
+Note that the original ``print()`` and ``if False: ...`` lines have not been reformatted
+since they had not been edited!
+
+.. code-block:: python
+
    if True:
-       print("changed")
+       print("CHANGED TEXT")
    print()
    if False: print('there')
+
+You can also ask Darker to reformat edited lines in all Python files in the repository:
+
+.. code-block:: shell
+
+   $ darker .
+
+Or, if you want to compare to another branch (or, in fact, any commit)
+instead of the last commit:
+
+.. code-block:: shell
+
+   $ darker --revision master .
+
 
 Customizing ``darker``, Black and isort behavior
 ================================================
