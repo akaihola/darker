@@ -5,6 +5,7 @@ import pytest
 
 from darker.config import (
     TomlArrayLinesEncoder,
+    dump_config,
     get_effective_config,
     get_modified_config,
     load_config,
@@ -208,5 +209,61 @@ def test_get_modified_config(args, expect):
     parser.add_argument("--int", dest="int", default=42)
     parser.add_argument("--string", default="fourty-two")
     result = get_modified_config(parser, args)
+
+    assert result == expect
+
+
+@pytest.mark.parametrize(
+    "config, expect",
+    [
+        ({}, "[tool.darker]\n"),
+        ({"str": "value"}, '[tool.darker]\nstr = "value"\n'),
+        ({"int": 42}, "[tool.darker]\nint = 42\n"),
+        ({"float": 4.2}, "[tool.darker]\nfloat = 4.2\n"),
+        (
+            {"list": ["foo", "bar"]},
+            dedent(
+                """\
+                [tool.darker]
+                list = [
+                    "foo",
+                    "bar",
+                ]
+                """
+            ),
+        ),
+        (
+            {
+                "src": ["main.py"],
+                "revision": "master",
+                "diff": False,
+                "check": False,
+                "isort": False,
+                "lint": [],
+                "config": None,
+                "log_level": "DEBUG",
+                "skip_string_normalization": None,
+                "line_length": None,
+            },
+            dedent(
+                """\
+                [tool.darker]
+                src = [
+                    "main.py",
+                ]
+                revision = "master"
+                diff = false
+                check = false
+                isort = false
+                lint = [
+                ]
+                log_level = "DEBUG"
+                """
+            ),
+        ),
+    ],
+)
+def test_dump_config(config, expect):
+    result = dump_config(config)
 
     assert result == expect
