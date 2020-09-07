@@ -1,6 +1,7 @@
 """Helpers for listing modified files and getting unmodified content from Git"""
 
 import logging
+import re
 import sys
 from dataclasses import dataclass
 from functools import lru_cache
@@ -13,15 +14,21 @@ from darker.diff import diff_and_get_opcodes, opcodes_to_edit_linenums
 logger = logging.getLogger(__name__)
 
 
+COMMIT_RANGE_SPLIT_RE = re.compile(r"\.{2,3}")
+
+
 def git_get_unmodified_content(path: Path, revision: str, cwd: Path) -> List[str]:
     """Get unmodified text lines of a file at a Git revision
 
     :param path: The relative path of the file in the Git repository
-    :param revision: The Git revision for which to get the file content
+    :param revision: The Git revision for which to get the file content. This can also
+                     be a range of commits like ``master..HEAD`` or ``master...HEAD``,
+                     in which case the leftmost end of the range is used.
     :param cwd: The root of the Git repository
 
     """
-    cmd = ["git", "show", f"{revision}:./{path}"]
+    commit = COMMIT_RANGE_SPLIT_RE.split(revision, 1)[0]
+    cmd = ["git", "show", f"{commit}:./{path}"]
     logger.debug("[%s]$ %s", cwd, " ".join(cmd))
     try:
         return check_output(cmd, cwd=str(cwd), encoding="utf-8").splitlines()

@@ -1,4 +1,5 @@
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 
@@ -14,7 +15,7 @@ from darker.git import (
     "revision, expect",
     [("HEAD", ["modified content"]), ("HEAD^", ["original content"]), ("HEAD~2", []),],
 )
-def test_get_unmodified_content(git_repo, revision, expect):
+def test_git_get_unmodified_content(git_repo, revision, expect):
     git_repo.add({"my.txt": "original content"}, commit="Initial commit")
     paths = git_repo.add({"my.txt": "modified content"}, commit="Initial commit")
     paths['my.txt'].write('new content')
@@ -24,6 +25,26 @@ def test_get_unmodified_content(git_repo, revision, expect):
     )
 
     assert original_content == expect
+
+
+@pytest.mark.parametrize(
+    "revision, expect",
+    [
+        ("HEAD^", "git show HEAD^:./my.txt"),
+        ("master..HEAD", "git show master:./my.txt"),
+        ("master...HEAD", "git show master:./my.txt"),
+        ("master..", "git show master:./my.txt"),
+        ("master...", "git show master:./my.txt"),
+    ],
+)
+def test_git_get_unmodified_content_range(revision, expect):
+    with patch("darker.git.check_output") as check_output:
+
+        git_get_unmodified_content(Path("my.txt"), revision, Path("cwd"))
+
+        check_output.assert_called_once_with(
+            expect.split(), cwd="cwd", encoding="utf-8"
+        )
 
 
 @pytest.mark.parametrize(
