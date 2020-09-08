@@ -5,7 +5,16 @@ These features will be included in the next release:
 
 Added
 -----
-- Configure Flake8 verification for Darker source code
+
+Fixed
+-----
+
+
+1.2.0_ - 2020-09-09
+===================
+
+Added
+-----
 - Configuration for Darker can now be done in ``pyproject.toml``.
 - The formatting of the Darker code base itself is now checked using Darker itself and
   pytest-darker_. Currently the formatting is a mix of `Black 19.10`_ and `Black 20.8`_
@@ -13,9 +22,7 @@ Added
   requests. In a way, Darker is now eating its own dogfood.
 - Support commit ranges for ``-r``/``--revision``. Useful for comparing to the best
   common ancestor, e.g. ``master...``.
-
-Fixed
------
+- Configure Flake8 verification for Darker's own source code
 
 
 1.1.0_ - 2020-08-15
@@ -81,7 +88,8 @@ Added
 -----
 - Initial implementation
 
-.. _Unreleased: https://github.com/akaihola/darker/compare/1.1.0...HEAD
+.. _Unreleased: https://github.com/akaihola/darker/compare/1.2.0...HEAD
+.. _1.2.0: https://github.com/akaihola/darker/compare/1.1.0...1.2.0
 .. _1.1.0: https://github.com/akaihola/darker/compare/1.0.0...1.1.0
 .. _1.0.0: https://github.com/akaihola/darker/compare/0.2.0...1.0.0
 .. _0.2.0: https://github.com/akaihola/darker/compare/0.1.1...0.2.0
