@@ -124,10 +124,10 @@ Example:
 
    if False: print('there')
 
-Customizing Black and isort behavior
-====================================
+Customizing ``darker``, Black and isort behavior
+================================================
 
-Project-specific default options for Black_ and isort_
+Project-specific default options for ``darker``, Black_ and isort_
 are read from the project's ``pyproject.toml`` file in the repository root.
 isort_ also looks for a few other places for configuration.
 
@@ -171,19 +171,42 @@ The following `command line arguments`_ can also be used to modify the defaults:
      -l LINE_LENGTH, --line-length LINE_LENGTH
                            How many characters per line to allow [default: 88]
 
-*New in version 1.0.0:* The ``-c``, ``-S`` and ``-l`` command line options.
+To change default values for these options for a given project,
+add a ``[tool.darker]`` section to ``pyproject.toml`` in the project's root directory.
+For example:
 
-*New in version 1.0.0:* isort_ is configured with ``-c`` and ``-l``, too.
+.. code-block:: toml
 
-*New in version 1.1.0:* The ``-r`` / ``--revision`` command line option.
+   [tool.darker]
+   src = [
+       "src/mypackage",
+   ]
+   revision = "master"
+   diff = true
+   check = true
+   isort = true
+   lint = [
+       "pylint",
+   ]
+   log_level = "INFO"
 
-*New in version 1.1.0:* The ``--diff`` command line option.
+*New in version 1.0.0:*
 
-*New in version 1.1.0:* The ``--check`` command line option.
+- The ``-c``, ``-S`` and ``-l`` command line options.
+- isort_ is configured with ``-c`` and ``-l``, too.
 
-*New in version 1.1.0:* The ``--no-skip-string-normalization`` command line option.
+*New in version 1.1.0:* The command line options
 
-*New in version 1.1.0:* The ``-L`` / ``--lint`` command line option.
+- ``-r`` / ``--revision``
+- ``--diff``
+- ``--check``
+- ``--no-skip-string-normalization``
+- ``-L`` / ``--lint``
+
+*New in version 1.2.0:* Support for
+
+- commit ranges in ``-r`` / ``--revision``.
+- a ``[tool.darker]`` section in ``pyproject.toml``.
 
 .. _Black documentation about pyproject.toml: https://black.readthedocs.io/en/stable/pyproject_toml.html
 .. _isort documentation about config files: https://timothycrosley.github.io/isort/docs/configuration/config_files/
