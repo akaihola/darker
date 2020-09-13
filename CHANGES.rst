@@ -8,6 +8,7 @@ Added
 
 Fixed
 -----
+- Improve example in ``README`` and clarify that path argument can also be a directory
 
 
 1.2.0_ - 2020-09-09
