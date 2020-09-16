@@ -379,6 +379,27 @@ You can pass additional arguments to ``darker`` in the ``blackArgs`` option
 (e.g. ``["--diff", "--isort"]``), but make sure at least ``--diff`` is included.
 
 
+Vim
+---
+
+Unlike Black_ and many other formatters, ``darker`` needs access to the Git history.
+Therefore it does not work properly with classical auto reformat plugins.
+
+You can though ask vim to run ``darker`` on file save with the following in your
+``.vimrc``:
+
+.. code-block:: vim
+
+   autocmd BufWritePost *.py silent :!darker %
+
+- ``BufWritePost`` to run ``darker`` *once the file has been saved*,
+- ``silent`` to not ask for confirmation each time,
+- ``:!`` to run an external command,
+- ``%`` for current file name.
+
+Vim should automatically reload the file.
+
+
 How does it work?
 =================
 
