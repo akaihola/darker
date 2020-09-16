@@ -347,8 +347,8 @@ __ https://github.com/Carreau/darken
 __ https://github.com/Carreau
 
 
-Interesting code formatting projects to watch
-=============================================
+Interesting code formatting and analysis projects to watch
+==========================================================
 
 The following projects are related to Black_ or Darker in some way or another.
 Some of them we might want to integrate to be part of a Darker run.
@@ -357,12 +357,17 @@ Some of them we might want to integrate to be part of a Darker run.
 - blackdoc__ – Run Black_ on documentation code snippets
 - velin__ – Reformat docstrings that follow the numpydoc__ convention
 - diff-cov-lint__ – Pylint and coverage reports for git diff only
+- xenon__ – Monitor code complexity
+- pyupgrade__ – Upgrade syntax for newer versions of the language (see `#51`_)
 
 __ https://github.com/asottile/blacken-docs
 __ https://github.com/keewis/blackdoc
 __ https://github.com/Carreau/velin
 __ https://pypi.org/project/numpydoc
 __ https://gitlab.com/sVerentsov/diff-cov-lint
+__ https://github.com/rubik/xenon
+__ https://github.com/asottile/pyupgrade
+.. _#51: https://github.com/akaihola/darker/pull/51
 
 
 GitHub stars trend
