@@ -34,7 +34,7 @@ The reformatters and linters supported are:
 
 *New in version 1.1.0:* Support for Mypy_, Pylint_ and other linters.
 
-.. _black: https://github.com/python/black
+.. _Black: https://github.com/python/black
 .. _isort: https://github.com/timothycrosley/isort
 .. _Mypy: https://pypi.org/project/mypy
 .. _Pylint: https://pypi.org/project/pylint
@@ -43,7 +43,7 @@ The reformatters and linters supported are:
 Why?
 ====
 
-You want to start unifying code style in your project using black_.
+You want to start unifying code style in your project using Black_.
 Maybe you also like to standardize on how to order your imports,
 or do static type checking or other static analysis for your code.
 
@@ -53,7 +53,7 @@ you'd like to only change formatting when you're touching the code for other rea
 This can also be useful
 when contributing to upstream codebases that are not under your complete control.
 
-However, partial formatting is not supported by black_ itself,
+However, partial formatting is not supported by Black_ itself,
 for various good reasons, and it won't be implemented either
 (`134`__, `142`__, `245`__, `370`__, `511`__, `830`__).
 
@@ -80,7 +80,7 @@ To install, use::
 
 The ``darker <myfile.py>`` command
 reads the original file,
-formats it using black_,
+formats it using Black_,
 combines original and formatted regions based on edits,
 and writes back over the original file.
 
@@ -215,9 +215,9 @@ For example:
 Editor integration
 ==================
 
-Many editors have plugins or recipes for integrating black_.
+Many editors have plugins or recipes for integrating Black_.
 You may be able to adapt them to be used with ``darker``.
-See `editor integration`__ in the black_ documentation.
+See `editor integration`__ in the Black_ documentation.
 
 __ https://github.com/psf/black/#editor-integration
 
@@ -320,12 +320,12 @@ How does it work?
 
 Darker takes a ``git diff`` of your Python files,
 records which lines of current files have been edited or added since the last commit.
-It then runs black_ and notes which chunks of lines were reformatted.
+It then runs Black_ and notes which chunks of lines were reformatted.
 Finally, only those reformatted chunks on which edited lines fall (even partially)
 are applied to the edited file.
 
 Also, in case the ``--isort`` option was specified,
-isort_ is run on each edited file before applying black_.
+isort_ is run on each edited file before applying Black_.
 Similarly, each linter requested using the `--lint <command>` option is run,
 and only linting errors/warnings on modified lines are displayed.
 
