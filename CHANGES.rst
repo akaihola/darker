@@ -5,6 +5,8 @@ These features will be included in the next release:
 
 Added
 -----
+=======
+- Travis CI now runs Pylint_ on modified lines via pytest-darker_.
 
 Fixed
 -----
@@ -99,3 +101,4 @@ Added
 .. _pytest-darker: https://pypi.org/project/pytest-darker/
 .. _Black 19.10: https://github.com/psf/black/blob/master/CHANGES.md#1910b0
 .. _Black 20.8: https://github.com/psf/black/blob/master/CHANGES.md#208b0
+.. _Pylint: https://pypi.org/project/pylint
