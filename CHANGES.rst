@@ -8,6 +8,7 @@ Added
 
 Fixed
 -----
+- ``<commit>...`` now compares always correctly to the latest common ancestor
 
 
 1.2.1_ - 2020-11-30
