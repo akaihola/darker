@@ -1,13 +1,7 @@
-import sys
-
-if sys.version_info >= (3, 7):
-    from contextlib import nullcontext
-else:
-    from contextlib import suppress as nullcontext
-
 import pytest
 
 from darker.__main__ import main
+from darker.tests.helpers import raises_if_exception
 
 # The following test is a bit dense, so some explanation is due.
 #
@@ -97,12 +91,10 @@ def test_revision(git_repo, monkeypatch, capsys, revision, worktree_content, exp
     for path in paths.values():
         path.write(worktree_content)
     arguments = ["--diff", "--revision", revision, "."]
-    should_raise = expect is SystemExit
 
-    with pytest.raises(SystemExit) if should_raise else nullcontext():
+    with raises_if_exception(expect):
         main(arguments)
 
-    if not should_raise:
         modified_files = [
             line[4:-3]
             for line in capsys.readouterr().out.splitlines()
