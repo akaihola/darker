@@ -1,5 +1,4 @@
 import re
-import sys
 from pathlib import Path
 from textwrap import dedent
 from unittest.mock import DEFAULT, Mock, call, patch
@@ -10,14 +9,8 @@ import toml
 from darker import black_diff
 from darker.__main__ import main
 from darker.command_line import make_argument_parser, parse_command_line
-from darker.tests.helpers import filter_dict
+from darker.tests.helpers import filter_dict, raises_if_exception
 from darker.utils import joinlines
-
-if sys.version_info >= (3, 7):
-    from contextlib import nullcontext
-else:
-    from contextlib import suppress as nullcontext
-
 
 pytestmark = pytest.mark.usefixtures("find_project_root_cache_clear")
 
@@ -26,7 +19,7 @@ pytestmark = pytest.mark.usefixtures("find_project_root_cache_clear")
 def test_make_argument_parser(require_src, expect):
     """Parser from ``make_argument_parser()`` fails if src required but not provided"""
     parser = make_argument_parser(require_src)
-    with pytest.raises(expect) if isinstance(expect, type) else nullcontext():
+    with raises_if_exception(expect):
 
         args = parser.parse_args([])
 
@@ -77,7 +70,7 @@ def test_parse_command_line_config_src(
     monkeypatch.chdir(tmpdir)
     if config is not None:
         toml.dump({"tool": {"darker": config}}, tmpdir / "pyproject.toml")
-    with pytest.raises(SystemExit) if isinstance(expect, type) else nullcontext():
+    with raises_if_exception(expect):
 
         args, effective_cfg, modified_cfg = parse_command_line(argv)
 

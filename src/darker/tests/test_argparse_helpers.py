@@ -1,12 +1,12 @@
 """Tests for the ``darker.argparse_helpers`` module"""
 
 from argparse import ArgumentParser, Namespace
-from contextlib import suppress
 from logging import CRITICAL, DEBUG, ERROR, INFO, NOTSET, WARNING
 
 import pytest
 
 from darker import argparse_helpers
+from darker.tests.helpers import raises_if_exception
 
 
 @pytest.mark.parametrize(
@@ -30,7 +30,7 @@ from darker import argparse_helpers
 )
 def test_fill_line(line, width, indent, expect):
     """``_fill_line()`` wraps lines correctly"""
-    with pytest.raises(expect) if isinstance(expect, type) else suppress():
+    with raises_if_exception(expect):
 
         result = argparse_helpers._fill_line(  # pylint: disable=protected-access
             line, width, indent
