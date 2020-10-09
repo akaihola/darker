@@ -1,6 +1,7 @@
 """Miscellaneous utility functions"""
 
 import io
+from datetime import datetime
 from itertools import chain
 from pathlib import Path
 from typing import Iterable, List, Tuple, Union
@@ -8,10 +9,16 @@ from typing import Iterable, List, Tuple, Union
 TextLines = Tuple[str, ...]
 
 
+GIT_DATEFORMAT = "%Y-%m-%d %H:%M:%S.%f +0000"
+
+
 class TextDocument:
-    def __init__(self, string: str = None, lines: Iterable[str] = None):
+    def __init__(
+        self, string: str = None, lines: Iterable[str] = None, mtime: str = ""
+    ):
         self._string = string
         self._lines = None if lines is None else tuple(lines)
+        self._mtime = mtime
 
     @property
     def string(self) -> str:
@@ -25,13 +32,22 @@ class TextDocument:
             self._lines = tuple((self._string or "").splitlines())
         return self._lines
 
-    @classmethod
-    def from_str(cls, s: str) -> "TextDocument":
-        return cls(s, None)
+    @property
+    def mtime(self) -> str:
+        return self._mtime
 
     @classmethod
-    def from_lines(cls, lines: Iterable[str]) -> "TextDocument":
-        return cls(None, lines)
+    def from_str(cls, s: str, mtime: str = "") -> "TextDocument":
+        return cls(s, None, mtime=mtime)
+
+    @classmethod
+    def from_file(cls, path: Path) -> "TextDocument":
+        mtime = datetime.utcfromtimestamp(path.stat().st_mtime).strftime(GIT_DATEFORMAT)
+        return cls.from_str(path.read_text(encoding="utf-8"), mtime=mtime)
+
+    @classmethod
+    def from_lines(cls, lines: Iterable[str], mtime: str = "") -> "TextDocument":
+        return cls(None, lines, mtime=mtime)
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, TextDocument):

@@ -1,3 +1,6 @@
+"""Unit tests for :mod:`darker.utils`"""
+
+import os
 from pathlib import Path
 from textwrap import dedent
 
@@ -128,3 +131,29 @@ def test_textdocument_repr(document, expect):
     result = document.__repr__()
 
     assert result == expect
+
+
+@pytest.mark.parametrize(
+    "document, expect",
+    [
+        (TextDocument(), ""),
+        (TextDocument(mtime=""), ""),
+        (TextDocument(mtime="dummy mtime"), "dummy mtime"),
+    ],
+)
+def test_textdocument_mtime(document, expect):
+    """TextDocument.mtime"""
+    assert document.mtime == expect
+
+
+def test_textdocument_from_file(tmp_path):
+    """TextDocument.from_file()"""
+    dummy_txt = tmp_path / "dummy.txt"
+    dummy_txt.write_text("dummy\ncontent\n")
+    os.utime(dummy_txt, (1_000_000_000, 1_000_000_000))
+
+    document = TextDocument.from_file(dummy_txt)
+
+    assert document.string == "dummy\ncontent\n"
+    assert document.lines == ("dummy", "content")
+    assert document.mtime == "2001-09-09 01:46:40.000000 +0000"
