@@ -1,5 +1,8 @@
+"""Configuration and fixtures for the Pytest based test suite"""
+
 import sys
 import types
+from pathlib import Path
 from subprocess import check_call
 from typing import Dict, Optional
 from unittest.mock import patch
@@ -7,6 +10,8 @@ from unittest.mock import patch
 import pytest
 from black import find_project_root
 from py.path import local as LocalPath
+
+from darker.git import _git_check_output_lines
 
 
 @pytest.fixture
@@ -24,6 +29,16 @@ def with_isort():
 class GitRepoFixture:
     def __init__(self, root: LocalPath):
         self.root = root
+
+    @classmethod
+    def create_repository(cls, root: LocalPath) -> "GitRepoFixture":
+        """Fixture method for creating a Git repository in the given directory"""
+        check_call(["git", "init"], cwd=root)
+        return cls(root)
+
+    def _run(self, *args: str) -> None:
+        """Helper method to run a Git command line in the repository root"""
+        check_call(["git"] + list(args), cwd=self.root)
 
     def add(
         self, paths_and_contents: Dict[str, Optional[str]], commit: str = None
@@ -44,21 +59,29 @@ class GitRepoFixture:
         for relative_path, content in paths_and_contents.items():
             path = absolute_paths[relative_path]
             if content is None:
-                check_call(["git", "rm", "--", relative_path], cwd=self.root)
+                self._run("rm", "--", relative_path)
             else:
                 path.write(content, ensure=True)
-                check_call(["git", "add", "--", relative_path], cwd=self.root)
+                self._run("add", "--", relative_path)
         if commit:
-            check_call(["git", "commit", "-m", commit], cwd=self.root)
+            self._run("commit", "-m", commit)
         return absolute_paths
+
+    def get_hash(self) -> str:
+        """Return the commit hash at HEAD in the Git repository"""
+        return _git_check_output_lines(["git", "rev-parse", "HEAD"], Path(self.root))[0]
+
+    def create_branch(self, new_branch: str, start_point: str) -> None:
+        """Fixture method to create and check out new branch at given starting point"""
+        self._run("checkout", "-b", new_branch, start_point)
 
 
 @pytest.fixture
 def git_repo(tmpdir, monkeypatch):
     """Create a temporary Git repository and change current working directory into it"""
-    check_call(["git", "init"], cwd=tmpdir)
+    repository = GitRepoFixture.create_repository(tmpdir)
     monkeypatch.chdir(tmpdir)
-    return GitRepoFixture(tmpdir)
+    return repository
 
 
 @pytest.fixture
