@@ -503,13 +503,23 @@ Contributors
                   title="Bug reports">🐛</a>
            </td>
            <td align="center">
+               <a href="https://github.com/leotrs">
+                   <img src="https://avatars.githubusercontent.com/u/1096704?v=3" width="100px;" alt="@leotrs"/>
+                   <br />
+                   <sub><b>Leo Torres</b></sub>
+               </a>
+               <br />
+               <a href="https://github.com/akaihola/darker/isses?q=author&3Aleotrs"
+                  title="Bug reports">🐛</a>
+           </td>
+           <td align="center">
                <a href="https://github.com/shangxiao">
                    <img src="https://avatars.githubusercontent.com/u/1845938?v=3" width="100px;" alt="@shangxiao"/>
                    <br />
                    <sub><b>David Sanders</b></sub>
                </a>
                <br />
-               <a href="https://github.com/akaihola/darker/isses?q=author&3Acasio"
+               <a href="https://github.com/akaihola/darker/isses?q=author&3Ashangxiao"
                   title="Bug reports">🐛</a>
            </td>
        </tr>
