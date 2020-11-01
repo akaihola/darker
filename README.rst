@@ -502,7 +502,7 @@ Thanks goes to these wonderful people (`emoji key`_):
                    <sub><b>Carsten Kraus</b></sub>
                </a>
                <br />
-               <a href="https://github.com/akaihola/darker/isses?q=author&3Acasio"
+               <a href="https://github.com/akaihola/darker/issues?q=author&3Acasio"
                   title="Bug reports">🐛</a>
            </td>
            <td align="center">
@@ -512,7 +512,7 @@ Thanks goes to these wonderful people (`emoji key`_):
                    <sub><b>Nutchanon Ninyawee</b></sub>
                </a>
                <br />
-               <a href="https://github.com/akaihola/darker/isses?q=author&3ACircleOnCircles"
+               <a href="https://github.com/akaihola/darker/issues?q=author&3ACircleOnCircles"
                   title="Bug reports">🐛</a>
            </td>
            <td>
@@ -536,7 +536,7 @@ Thanks goes to these wonderful people (`emoji key`_):
                    <sub><b>@DylanYoung</b></sub>
                </a>
                <br />
-               <a href="https://github.com/akaihola/darker/isses?q=author&3ADylanYoung"
+               <a href="https://github.com/akaihola/darker/issues?q=author&3ADylanYoung"
                   title="Bug reports">🐛</a>
            </td>
            <td align="center">
@@ -546,7 +546,7 @@ Thanks goes to these wonderful people (`emoji key`_):
                    <sub><b>Will</b></sub>
                </a>
                <br />
-               <a href="https://github.com/akaihola/darker/isses?q=author&3AHainguyen1210"
+               <a href="https://github.com/akaihola/darker/issues?q=author&3AHainguyen1210"
                   title="Bug reports">🐛</a>
            </td>
        </tr>
@@ -558,7 +558,7 @@ Thanks goes to these wonderful people (`emoji key`_):
                    <sub><b>Leo Torres</b></sub>
                </a>
                <br />
-               <a href="https://github.com/akaihola/darker/isses?q=author&3Aleotrs"
+               <a href="https://github.com/akaihola/darker/issues?q=author&3Aleotrs"
                   title="Bug reports">🐛</a>
            </td>
            <td align="center">
@@ -568,7 +568,7 @@ Thanks goes to these wonderful people (`emoji key`_):
                    <sub><b>Mark Davidoff</b></sub>
                </a>
                <br />
-               <a href="https://github.com/akaihola/darker/isses?q=author&3Amarkddavidoff"
+               <a href="https://github.com/akaihola/darker/issues?q=author&3Amarkddavidoff"
                   title="Bug reports">🐛</a>
            </td>
            <td>
@@ -614,7 +614,7 @@ Thanks goes to these wonderful people (`emoji key`_):
                <br />
                <a href="https://github.com/akaihola/darker/pulls?q=is%3Apr+author%3Ashangxiao"
                   title="Code">💻</a>
-               <a href="https://github.com/akaihola/darker/isses?q=author&3Ashangxiao"
+               <a href="https://github.com/akaihola/darker/issues?q=author&3Ashangxiao"
                   title="Bug reports">🐛</a>
            </td>
            <td align="center">
@@ -624,7 +624,7 @@ Thanks goes to these wonderful people (`emoji key`_):
                    <sub><b>Dustin Spicuzza</b></sub>
                </a>
                <br />
-               <a href="https://github.com/akaihola/darker/isses?q=author&3Avirtuald"
+               <a href="https://github.com/akaihola/darker/issues?q=author&3Avirtuald"
                   title="Bug reports">🐛</a>
            </td>
        </tr>
