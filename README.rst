@@ -568,6 +568,20 @@ Contributors
                <a href="https://github.com/akaihola/darker/isses?q=author&3Amarkddavidoff"
                   title="Bug reports">🐛</a>
            </td>
+           <td>
+               <a href="https://github.com/Mystic-Mirage">
+                   <img src="https://avatars.githubusercontent.com/u/1079805?v=3" width="100px;" alt="@Mystic-Mirage"/>
+                   <br />
+                   <sub><b>Mystic-Mirage</b></sub>
+               </a>
+               <br />
+               <a href="https://github.com/akaihola/darker/commits?author=Mystic-Mirage"
+                  title="Code">💻</a>
+               <a href="https://github.com/akaihola/darker/commits?author=Mystic-Mirage"
+                  title="Documentation">📖</a>
+               <a href="https://github.com/akaihola/darker/pulls?q=is%3Apr+reviewed-by%3AMystic-Mirage"
+                  title="Reviewed Pull Requests">👀</a>
+           </td>
            <td align="center">
                <a href="https://github.com/Pacu2">
                    <img src="https://avatars.githubusercontent.com/u/21290461?v=3" width="100px;" alt="@Pacu2"/>
