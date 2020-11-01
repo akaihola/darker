@@ -575,7 +575,7 @@ Thanks goes to these wonderful people (`emoji key`_):
                <a href="https://github.com/Mystic-Mirage">
                    <img src="https://avatars.githubusercontent.com/u/1079805?v=3" width="100px;" alt="@Mystic-Mirage"/>
                    <br />
-                   <sub><b>Mystic-Mirage</b></sub>
+                   <sub><b>Alexander Tishin</b></sub>
                </a>
                <br />
                <a href="https://github.com/akaihola/darker/commits?author=Mystic-Mirage"
