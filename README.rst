@@ -455,8 +455,10 @@ __ https://github.com/asottile/pyupgrade
 .. _#51: https://github.com/akaihola/darker/pull/51
 
 
-Contributors
-============
+Contributors ✨
+===============
+
+Thanks goes to these wonderful people (`emoji key`_):
 
 .. raw:: html
 
@@ -477,6 +479,7 @@ Contributors
                   title="Documentation">📖</a>
                <a href="https://github.com/akaihola/darker/pulls?q=is%3Apr+reviewed-by%3Aakaihola"
                   title="Reviewed Pull Requests">👀</a>
+               <a href="#maintenance-akaihola" title="Maintenance">🚧</a>
            </td>
            <td align="center">
                <a href="https://github.com/Carreau">
@@ -627,6 +630,12 @@ Contributors
        </tr>
    </table>
    <!-- ALL-CONTRIBUTORS-LIST:END -->
+
+This project follows the all-contributors_ specification.
+Contributions of any kind are welcome!
+
+.. _emoji key: https://allcontributors.org/docs/en/emoji-key
+.. _all-contributors: https://allcontributors.org
 
 
 GitHub stars trend
