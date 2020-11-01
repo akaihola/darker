@@ -523,6 +523,16 @@ Contributors
                   title="Bug reports">🐛</a>
            </td>
            <td align="center">
+               <a href="https://github.com/Hainguyen1210">
+                   <img src="https://avatars.githubusercontent.com/u/15359217?v=3" width="100px;" alt="@Hainguyen1210"/>
+                   <br />
+                   <sub><b>Will</b></sub>
+               </a>
+               <br />
+               <a href="https://github.com/akaihola/darker/isses?q=author&3AHainguyen1210"
+                  title="Bug reports">🐛</a>
+           </td>
+           <td align="center">
                <a href="https://github.com/leotrs">
                    <img src="https://avatars.githubusercontent.com/u/1096704?v=3" width="100px;" alt="@leotrs"/>
                    <br />
@@ -532,6 +542,8 @@ Contributors
                <a href="https://github.com/akaihola/darker/isses?q=author&3Aleotrs"
                   title="Bug reports">🐛</a>
            </td>
+       </tr>
+       <tr>
            <td align="center">
                <a href="https://github.com/markddavidoff">
                    <img src="https://avatars.githubusercontent.com/u/1360543?v=3" width="100px;" alt="@markddavidoff"/>
@@ -542,8 +554,6 @@ Contributors
                <a href="https://github.com/akaihola/darker/isses?q=author&3Amarkddavidoff"
                   title="Bug reports">🐛</a>
            </td>
-       </tr>
-       <tr>
            <td align="center">
                <a href="https://github.com/shangxiao">
                    <img src="https://avatars.githubusercontent.com/u/1845938?v=3" width="100px;" alt="@shangxiao"/>
