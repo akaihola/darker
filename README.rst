@@ -492,6 +492,16 @@ Contributors
                <a href="https://github.com/akaihola/darker/pulls?q=is%3Apr+reviewed-by%3ACarreau"
                   title="Reviewed Pull Requests">👀</a>
            </td>
+           <td align="center">
+               <a href="https://github.com/casio">
+                   <img src="https://avatars.githubusercontent.com/u/29784?v=3" width="100px;" alt="@casio"/>
+                   <br />
+                   <sub><b>Carsten Kraus</b></sub>
+               </a>
+               <br />
+               <a href="https://github.com/akaihola/darker/isses?q=author&3Acasio"
+                  title="Bug reports">🐛</a>
+           </td>
        </tr>
    </table>
    <!-- ALL-CONTRIBUTORS-LIST:END -->
