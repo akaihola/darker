@@ -561,6 +561,8 @@ Contributors
                    <sub><b>David Sanders</b></sub>
                </a>
                <br />
+               <a href="https://github.com/akaihola/darker/pulls?q=is%3Apr+author%3Ashangxiao"
+                  title="Code">💻</a>
                <a href="https://github.com/akaihola/darker/isses?q=author&3Ashangxiao"
                   title="Bug reports">🐛</a>
            </td>
