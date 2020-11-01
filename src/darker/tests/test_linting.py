@@ -6,6 +6,7 @@ from pathlib import Path
 
 import pytest
 
+from darker.git import RevisionRange
 from darker.linting import _parse_linter_line, run_linter
 
 
@@ -99,7 +100,7 @@ def test_run_linter(git_repo, monkeypatch, capsys, _descr, paths, location, expe
     monkeypatch.chdir(git_repo.root)
     cmdline = f"echo {location}"
 
-    run_linter(cmdline, git_repo.root, {Path(p) for p in paths}, "HEAD")
+    run_linter(cmdline, git_repo.root, {Path(p) for p in paths}, RevisionRange("HEAD"))
 
     # We can now verify that the linter received the correct paths on its command line
     # by checking standard output from the our `echo` "linter".

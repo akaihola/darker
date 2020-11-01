@@ -14,7 +14,6 @@ from darker.diff import diff_and_get_opcodes, opcodes_to_edit_linenums
 logger = logging.getLogger(__name__)
 
 
-COMMIT_RANGE_SPLIT_RE = re.compile(r"\.{2,3}")
 # Split a revision range into the "from" and "to" revisions and the dots in between.
 # Handles these cases:
 # <rev>..   <rev>..<rev>   ..<rev>
@@ -27,18 +26,18 @@ COMMIT_RANGE_RE = re.compile(r"(.*?)(\.{2,3})(.*)$")
 WORKTREE = ":WORKTREE:"
 
 
-def git_get_unmodified_content(path: Path, revision: str, cwd: Path) -> List[str]:
+def git_get_content_at_revision(path: Path, revision: str, cwd: Path) -> List[str]:
     """Get unmodified text lines of a file at a Git revision
 
     :param path: The relative path of the file in the Git repository
-    :param revision: The Git revision for which to get the file content. This can also
-                     be a range of commits like ``master..HEAD`` or ``master...HEAD``,
-                     in which case the leftmost end of the range is used.
+    :param revision: The Git revision for which to get the file content, or ``WORKTREE``
+                     to get what's on disk right now.
     :param cwd: The root of the Git repository
 
     """
-    commit = COMMIT_RANGE_SPLIT_RE.split(revision, 1)[0]
-    cmd = ["git", "show", f"{commit}:./{path}"]
+    if revision == WORKTREE:
+        return (cwd / path).read_text("utf-8").splitlines()
+    cmd = ["git", "show", f"{revision}:./{path}"]
     logger.debug("[%s]$ %s", cwd, " ".join(cmd))
     try:
         return check_output(cmd, cwd=str(cwd), encoding="utf-8").splitlines()
@@ -120,7 +119,7 @@ def _git_check_output_lines(cmd: List[str], cwd: Path) -> List[str]:
 
 
 def git_get_modified_files(
-    paths: Iterable[Path], revision: str, cwd: Path
+    paths: Iterable[Path], revrange: RevisionRange, cwd: Path
 ) -> Set[Path]:
     """Ask Git for modified and untracked files
 
@@ -129,49 +128,59 @@ def git_get_modified_files(
 
     Return file names relative to the Git repository root.
 
-    :paths: Paths to the files to diff
-    :param revision: Git revision to compare current working tree against
-    :cwd: The Git repository root
+    :param paths: Paths to the files to diff
+    :param revrange: Git revision range to compare
+    :param cwd: The Git repository root
 
     """
     relative_paths = {p.resolve().relative_to(cwd) for p in paths}
     str_paths = [str(path) for path in relative_paths]
+    if revrange.use_common_ancestor:
+        rev2 = "HEAD" if revrange.rev2 == WORKTREE else revrange.rev2
+        merge_base_cmd = ["git", "merge-base", revrange.rev1, rev2]
+        rev1 = _git_check_output_lines(merge_base_cmd, cwd)[0]
+    else:
+        rev1 = revrange.rev1
     diff_cmd = [
         "git",
         "diff",
         "--name-only",
         "--relative",
-        # `revision` is inserted here if non-empty
+        rev1,
+        # revrange.rev2 is inserted here if not WORKTREE
         "--",
         *str_paths,
     ]
-    if revision:
-        diff_cmd.insert(diff_cmd.index("--"), revision)
+    if revrange.rev2 != WORKTREE:
+        diff_cmd.insert(diff_cmd.index("--"), revrange.rev2)
     lines = _git_check_output_lines(diff_cmd, cwd)
-    ls_files_cmd = [
-        "git",
-        "ls-files",
-        "--others",
-        "--exclude-standard",
-        "--",
-        *str_paths,
-    ]
-    lines.extend(_git_check_output_lines(ls_files_cmd, cwd))
+    if revrange.rev2 == WORKTREE:
+        ls_files_cmd = [
+            "git",
+            "ls-files",
+            "--others",
+            "--exclude-standard",
+            "--",
+            *str_paths,
+        ]
+        lines.extend(_git_check_output_lines(ls_files_cmd, cwd))
     changed_paths = (Path(line) for line in lines)
     return {path for path in changed_paths if should_reformat_file(cwd / path)}
 
 
 @dataclass(frozen=True)
 class EditedLinenumsDiffer:
-    """Find out changed lines for a file compared to a given Git revision"""
+    """Find out changed lines for a file between given Git revisions"""
 
     git_root: Path
-    revision: str
+    revrange: RevisionRange
 
     @lru_cache(maxsize=1)
-    def revision_vs_worktree(self, path_in_repo: Path, context_lines: int) -> List[int]:
+    def compare_revisions(self, path_in_repo: Path, context_lines: int) -> List[int]:
         """Return numbers of lines changed between a given revision and the worktree"""
-        lines = (self.git_root / path_in_repo).read_text("utf-8").splitlines()
+        lines = git_get_content_at_revision(
+            path_in_repo, self.revrange.rev2, self.git_root
+        )
         return self.revision_vs_lines(path_in_repo, lines, context_lines)
 
     def revision_vs_lines(
@@ -181,11 +190,12 @@ class EditedLinenumsDiffer:
 
         :param path_in_repo: Path of the file to compare, relative to repository root
         :param lines: The contents to compare to, e.g. from current working tree
+        :param context_lines: The number of lines to include before and after a change
         :return: Line numbers of lines changed between the revision and given content
 
         """
-        revision_lines = git_get_unmodified_content(
-            path_in_repo, self.revision, self.git_root
+        revision_lines = git_get_content_at_revision(
+            path_in_repo, self.revrange.rev1, self.git_root
         )
         edited_opcodes = diff_and_get_opcodes(revision_lines, lines)
         return list(opcodes_to_edit_linenums(edited_opcodes, context_lines))

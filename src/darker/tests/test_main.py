@@ -8,6 +8,7 @@ from black import find_project_root
 
 import darker.__main__
 import darker.import_sorting
+from darker.git import RevisionRange
 
 
 def test_isort_option_without_isort(tmpdir, without_isort, caplog):
@@ -57,7 +58,11 @@ def test_isort_option_with_isort_calls_sortimports(tmpdir, run_isort, isort_args
 def test_format_edited_parts_empty():
     with pytest.raises(ValueError):
 
-        list(darker.__main__.format_edited_parts([], "HEAD", False, [], {}))
+        list(
+            darker.__main__.format_edited_parts(
+                [], RevisionRange("HEAD"), False, [], {}
+            )
+        )
 
 
 A_PY = ['import sys', 'import os', "print( '42')", '']
@@ -119,7 +124,7 @@ def test_format_edited_parts(git_repo, monkeypatch, enable_isort, black_args, ex
 
     changes = list(
         darker.__main__.format_edited_parts(
-            [Path("a.py")], "HEAD", enable_isort, [], black_args
+            [Path("a.py")], RevisionRange("HEAD"), enable_isort, [], black_args
         )
     )
 
@@ -135,7 +140,9 @@ def test_format_edited_parts_all_unchanged(git_repo, monkeypatch):
     paths['b.py'].write('"not"\n"checked"\n')
 
     result = list(
-        darker.__main__.format_edited_parts([Path("a.py")], "HEAD", True, [], {})
+        darker.__main__.format_edited_parts(
+            [Path("a.py")], RevisionRange("HEAD"), True, [], {}
+        )
     )
 
     assert result == []
