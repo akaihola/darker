@@ -592,6 +592,16 @@ Contributors
                <a href="https://github.com/akaihola/darker/pulls?q=is%3Apr+author%3APacu2"
                   title="Code">💻</a>
            </td>
+           <td>
+               <a href="https://github.com/samoylovfp">
+                   <img src="https://avatars.githubusercontent.com/u/17025459?v=3" width="100px;" alt="@samoylovfp"/>
+                   <br />
+                   <sub><b>samoylovfp</b></sub>
+               </a>
+               <br />
+               <a href="https://github.com/akaihola/darker/pulls?q=is%3Apr+reviewed-by%3Asamoylovfp"
+                  title="Reviewed Pull Requests">👀</a>
+           </td>
            <td align="center">
                <a href="https://github.com/shangxiao">
                    <img src="https://avatars.githubusercontent.com/u/1845938?v=3" width="100px;" alt="@shangxiao"/>
