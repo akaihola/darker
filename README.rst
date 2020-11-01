@@ -513,6 +513,16 @@ Contributors
                   title="Bug reports">🐛</a>
            </td>
            <td align="center">
+               <a href="https://github.com/DylanYoung">
+                   <img src="https://avatars.githubusercontent.com/u/5795220?v=3" width="100px;" alt="@DylanYoung"/>
+                   <br />
+                   <sub><b>@DylanYoung</b></sub>
+               </a>
+               <br />
+               <a href="https://github.com/akaihola/darker/isses?q=author&3ADylanYoung"
+                  title="Bug reports">🐛</a>
+           </td>
+           <td align="center">
                <a href="https://github.com/leotrs">
                    <img src="https://avatars.githubusercontent.com/u/1096704?v=3" width="100px;" alt="@leotrs"/>
                    <br />
@@ -532,6 +542,8 @@ Contributors
                <a href="https://github.com/akaihola/darker/isses?q=author&3Amarkddavidoff"
                   title="Bug reports">🐛</a>
            </td>
+       </tr>
+       <tr>
            <td align="center">
                <a href="https://github.com/shangxiao">
                    <img src="https://avatars.githubusercontent.com/u/1845938?v=3" width="100px;" alt="@shangxiao"/>
