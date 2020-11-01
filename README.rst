@@ -502,6 +502,16 @@ Contributors
                <a href="https://github.com/akaihola/darker/isses?q=author&3Acasio"
                   title="Bug reports">🐛</a>
            </td>
+           <td align="center">
+               <a href="https://github.com/shangxiao">
+                   <img src="https://avatars.githubusercontent.com/u/1845938?v=3" width="100px;" alt="@shangxiao"/>
+                   <br />
+                   <sub><b>David Sanders</b></sub>
+               </a>
+               <br />
+               <a href="https://github.com/akaihola/darker/isses?q=author&3Acasio"
+                  title="Bug reports">🐛</a>
+           </td>
        </tr>
    </table>
    <!-- ALL-CONTRIBUTORS-LIST:END -->
