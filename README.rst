@@ -512,6 +512,20 @@ Contributors
                <a href="https://github.com/akaihola/darker/isses?q=author&3ACircleOnCircles"
                   title="Bug reports">🐛</a>
            </td>
+           <td>
+               <a href="https://github.com/CorreyL">
+                   <img src="https://avatars.githubusercontent.com/u/16601729?v=3" width="100px;" alt="@CorreyL"/>
+                   <br />
+                   <sub><b>Correy Lim</b></sub>
+               </a>
+               <br />
+               <a href="https://github.com/akaihola/darker/commits?author=CorreyL"
+                  title="Code">💻</a>
+               <a href="https://github.com/akaihola/darker/commits?author=CorreyL"
+                  title="Documentation">📖</a>
+               <a href="https://github.com/akaihola/darker/pulls?q=is%3Apr+reviewed-by%3ACorreyL"
+                  title="Reviewed Pull Requests">👀</a>
+           </td>
            <td align="center">
                <a href="https://github.com/DylanYoung">
                    <img src="https://avatars.githubusercontent.com/u/5795220?v=3" width="100px;" alt="@DylanYoung"/>
@@ -532,6 +546,8 @@ Contributors
                <a href="https://github.com/akaihola/darker/isses?q=author&3AHainguyen1210"
                   title="Bug reports">🐛</a>
            </td>
+       </tr>
+       <tr>
            <td align="center">
                <a href="https://github.com/leotrs">
                    <img src="https://avatars.githubusercontent.com/u/1096704?v=3" width="100px;" alt="@leotrs"/>
@@ -542,8 +558,6 @@ Contributors
                <a href="https://github.com/akaihola/darker/isses?q=author&3Aleotrs"
                   title="Bug reports">🐛</a>
            </td>
-       </tr>
-       <tr>
            <td align="center">
                <a href="https://github.com/markddavidoff">
                    <img src="https://avatars.githubusercontent.com/u/1360543?v=3" width="100px;" alt="@markddavidoff"/>
