@@ -455,6 +455,13 @@ __ https://github.com/asottile/pyupgrade
 .. _#51: https://github.com/akaihola/darker/pull/51
 
 
+Contributors
+============
+
+.. raw:: html
+   :file: CONTRIBUTORS.html
+
+
 GitHub stars trend
 ==================
 
