@@ -522,6 +522,16 @@ Contributors
                <a href="https://github.com/akaihola/darker/isses?q=author&3Ashangxiao"
                   title="Bug reports">🐛</a>
            </td>
+           <td align="center">
+               <a href="https://github.com/virtuald">
+                   <img src="https://avatars.githubusercontent.com/u/567900?v=3" width="100px;" alt="@virtuald"/>
+                   <br />
+                   <sub><b>Dustin Spicuzza</b></sub>
+               </a>
+               <br />
+               <a href="https://github.com/akaihola/darker/isses?q=author&3Avirtuald"
+                  title="Bug reports">🐛</a>
+           </td>
        </tr>
    </table>
    <!-- ALL-CONTRIBUTORS-LIST:END -->
