@@ -555,6 +555,16 @@ Contributors
                   title="Bug reports">🐛</a>
            </td>
            <td align="center">
+               <a href="https://github.com/Pacu2">
+                   <img src="https://avatars.githubusercontent.com/u/21290461?v=3" width="100px;" alt="@Pacu2"/>
+                   <br />
+                   <sub><b>Filip Kucharczyk</b></sub>
+               </a>
+               <br />
+               <a href="https://github.com/akaihola/darker/pulls?q=is%3Apr+author%3APacu2"
+                  title="Code">💻</a>
+           </td>
+           <td align="center">
                <a href="https://github.com/shangxiao">
                    <img src="https://avatars.githubusercontent.com/u/1845938?v=3" width="100px;" alt="@shangxiao"/>
                    <br />
