@@ -513,6 +513,16 @@ Contributors
                   title="Bug reports">🐛</a>
            </td>
            <td align="center">
+               <a href="https://github.com/markddavidoff">
+                   <img src="https://avatars.githubusercontent.com/u/1360543?v=3" width="100px;" alt="@markddavidoff"/>
+                   <br />
+                   <sub><b>Mark Davidoff</b></sub>
+               </a>
+               <br />
+               <a href="https://github.com/akaihola/darker/isses?q=author&3Amarkddavidoff"
+                  title="Bug reports">🐛</a>
+           </td>
+           <td align="center">
                <a href="https://github.com/shangxiao">
                    <img src="https://avatars.githubusercontent.com/u/1845938?v=3" width="100px;" alt="@shangxiao"/>
                    <br />
