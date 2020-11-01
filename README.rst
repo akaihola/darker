@@ -472,8 +472,24 @@ Contributors
                <br />
                <a href="#question-akaihola" title="Answering Questions">💬</a>
                <a href="https://github.com/akaihola/darker/commits?author=akaihola"
+                  title="Code">💻</a>
+               <a href="https://github.com/akaihola/darker/commits?author=akaihola"
                   title="Documentation">📖</a>
                <a href="https://github.com/akaihola/darker/pulls?q=is%3Apr+reviewed-by%3Aakaihola"
+                  title="Reviewed Pull Requests">👀</a>
+           </td>
+           <td align="center">
+               <a href="https://github.com/Carreau">
+                   <img src="https://avatars.githubusercontent.com/u/335567?v=3" width="100px;" alt="@Carreau"/>
+                   <br />
+                   <sub><b>Matthias Bussonnier</b></sub>
+               </a>
+               <br />
+               <a href="https://github.com/akaihola/darker/commits?author=Carreau"
+                  title="Code">💻</a>
+               <a href="https://github.com/akaihola/darker/commits?author=Carreau"
+                  title="Documentation">📖</a>
+               <a href="https://github.com/akaihola/darker/pulls?q=is%3Apr+reviewed-by%3ACarreau"
                   title="Reviewed Pull Requests">👀</a>
            </td>
        </tr>
