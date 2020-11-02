@@ -455,11 +455,187 @@ __ https://github.com/asottile/pyupgrade
 .. _#51: https://github.com/akaihola/darker/pull/51
 
 
-Contributors
-============
+Contributors ✨
+===============
+
+Thanks goes to these wonderful people (`emoji key`_):
 
 .. raw:: html
-   :file: CONTRIBUTORS.html
+
+   <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
+   <table>
+       <tr>
+           <td align="center">
+               <a href="https://github.com/akaihola">
+                   <img src="https://avatars.githubusercontent.com/u/13725?v=3" width="100px;" alt="@akaihola"/>
+                   <br />
+                   <sub><b>Antti Kaihola</b></sub>
+               </a>
+               <br />
+               <a href="#question-akaihola" title="Answering Questions">💬</a>
+               <a href="https://github.com/akaihola/darker/commits?author=akaihola"
+                  title="Code">💻</a>
+               <a href="https://github.com/akaihola/darker/commits?author=akaihola"
+                  title="Documentation">📖</a>
+               <a href="https://github.com/akaihola/darker/pulls?q=is%3Apr+reviewed-by%3Aakaihola"
+                  title="Reviewed Pull Requests">👀</a>
+               <a href="#maintenance-akaihola" title="Maintenance">🚧</a>
+           </td>
+           <td align="center">
+               <a href="https://github.com/Carreau">
+                   <img src="https://avatars.githubusercontent.com/u/335567?v=3" width="100px;" alt="@Carreau"/>
+                   <br />
+                   <sub><b>Matthias Bussonnier</b></sub>
+               </a>
+               <br />
+               <a href="https://github.com/akaihola/darker/commits?author=Carreau"
+                  title="Code">💻</a>
+               <a href="https://github.com/akaihola/darker/commits?author=Carreau"
+                  title="Documentation">📖</a>
+               <a href="https://github.com/akaihola/darker/pulls?q=is%3Apr+reviewed-by%3ACarreau"
+                  title="Reviewed Pull Requests">👀</a>
+           </td>
+           <td align="center">
+               <a href="https://github.com/casio">
+                   <img src="https://avatars.githubusercontent.com/u/29784?v=3" width="100px;" alt="@casio"/>
+                   <br />
+                   <sub><b>Carsten Kraus</b></sub>
+               </a>
+               <br />
+               <a href="https://github.com/akaihola/darker/issues?q=author%3Acasio"
+                  title="Bug reports">🐛</a>
+           </td>
+           <td align="center">
+               <a href="https://github.com/CircleOnCircles">
+                   <img src="https://avatars.githubusercontent.com/u/8089231?v=3" width="100px;" alt="@CircleOnCircles"/>
+                   <br />
+                   <sub><b>Nutchanon Ninyawee</b></sub>
+               </a>
+               <br />
+               <a href="https://github.com/akaihola/darker/issues?q=author%3ACircleOnCircles"
+                  title="Bug reports">🐛</a>
+           </td>
+           <td>
+               <a href="https://github.com/CorreyL">
+                   <img src="https://avatars.githubusercontent.com/u/16601729?v=3" width="100px;" alt="@CorreyL"/>
+                   <br />
+                   <sub><b>Correy Lim</b></sub>
+               </a>
+               <br />
+               <a href="https://github.com/akaihola/darker/commits?author=CorreyL"
+                  title="Code">💻</a>
+               <a href="https://github.com/akaihola/darker/commits?author=CorreyL"
+                  title="Documentation">📖</a>
+               <a href="https://github.com/akaihola/darker/pulls?q=is%3Apr+reviewed-by%3ACorreyL"
+                  title="Reviewed Pull Requests">👀</a>
+           </td>
+           <td align="center">
+               <a href="https://github.com/DylanYoung">
+                   <img src="https://avatars.githubusercontent.com/u/5795220?v=3" width="100px;" alt="@DylanYoung"/>
+                   <br />
+                   <sub><b>@DylanYoung</b></sub>
+               </a>
+               <br />
+               <a href="https://github.com/akaihola/darker/issues?q=author%3ADylanYoung"
+                  title="Bug reports">🐛</a>
+           </td>
+           <td align="center">
+               <a href="https://github.com/Hainguyen1210">
+                   <img src="https://avatars.githubusercontent.com/u/15359217?v=3" width="100px;" alt="@Hainguyen1210"/>
+                   <br />
+                   <sub><b>Will</b></sub>
+               </a>
+               <br />
+               <a href="https://github.com/akaihola/darker/issues?q=author%3AHainguyen1210"
+                  title="Bug reports">🐛</a>
+           </td>
+       </tr>
+       <tr>
+           <td align="center">
+               <a href="https://github.com/leotrs">
+                   <img src="https://avatars.githubusercontent.com/u/1096704?v=3" width="100px;" alt="@leotrs"/>
+                   <br />
+                   <sub><b>Leo Torres</b></sub>
+               </a>
+               <br />
+               <a href="https://github.com/akaihola/darker/issues?q=author%3Aleotrs"
+                  title="Bug reports">🐛</a>
+           </td>
+           <td align="center">
+               <a href="https://github.com/markddavidoff">
+                   <img src="https://avatars.githubusercontent.com/u/1360543?v=3" width="100px;" alt="@markddavidoff"/>
+                   <br />
+                   <sub><b>Mark Davidoff</b></sub>
+               </a>
+               <br />
+               <a href="https://github.com/akaihola/darker/issues?q=author%3Amarkddavidoff"
+                  title="Bug reports">🐛</a>
+           </td>
+           <td>
+               <a href="https://github.com/Mystic-Mirage">
+                   <img src="https://avatars.githubusercontent.com/u/1079805?v=3" width="100px;" alt="@Mystic-Mirage"/>
+                   <br />
+                   <sub><b>Alexander Tishin</b></sub>
+               </a>
+               <br />
+               <a href="https://github.com/akaihola/darker/commits?author=Mystic-Mirage"
+                  title="Code">💻</a>
+               <a href="https://github.com/akaihola/darker/commits?author=Mystic-Mirage"
+                  title="Documentation">📖</a>
+               <a href="https://github.com/akaihola/darker/pulls?q=is%3Apr+reviewed-by%3AMystic-Mirage"
+                  title="Reviewed Pull Requests">👀</a>
+           </td>
+           <td align="center">
+               <a href="https://github.com/Pacu2">
+                   <img src="https://avatars.githubusercontent.com/u/21290461?v=3" width="100px;" alt="@Pacu2"/>
+                   <br />
+                   <sub><b>Filip Kucharczyk</b></sub>
+               </a>
+               <br />
+               <a href="https://github.com/akaihola/darker/pulls?q=is%3Apr+author%3APacu2"
+                  title="Code">💻</a>
+           </td>
+           <td>
+               <a href="https://github.com/samoylovfp">
+                   <img src="https://avatars.githubusercontent.com/u/17025459?v=3" width="100px;" alt="@samoylovfp"/>
+                   <br />
+                   <sub><b>samoylovfp</b></sub>
+               </a>
+               <br />
+               <a href="https://github.com/akaihola/darker/pulls?q=is%3Apr+reviewed-by%3Asamoylovfp"
+                  title="Reviewed Pull Requests">👀</a>
+           </td>
+           <td align="center">
+               <a href="https://github.com/shangxiao">
+                   <img src="https://avatars.githubusercontent.com/u/1845938?v=3" width="100px;" alt="@shangxiao"/>
+                   <br />
+                   <sub><b>David Sanders</b></sub>
+               </a>
+               <br />
+               <a href="https://github.com/akaihola/darker/pulls?q=is%3Apr+author%3Ashangxiao"
+                  title="Code">💻</a>
+               <a href="https://github.com/akaihola/darker/issues?q=author%3Ashangxiao"
+                  title="Bug reports">🐛</a>
+           </td>
+           <td align="center">
+               <a href="https://github.com/virtuald">
+                   <img src="https://avatars.githubusercontent.com/u/567900?v=3" width="100px;" alt="@virtuald"/>
+                   <br />
+                   <sub><b>Dustin Spicuzza</b></sub>
+               </a>
+               <br />
+               <a href="https://github.com/akaihola/darker/issues?q=author%3Avirtuald"
+                  title="Bug reports">🐛</a>
+           </td>
+       </tr>
+   </table>
+   <!-- ALL-CONTRIBUTORS-LIST:END -->
+
+This project follows the all-contributors_ specification.
+Contributions of any kind are welcome!
+
+.. _emoji key: https://allcontributors.org/docs/en/emoji-key
+.. _all-contributors: https://allcontributors.org
 
 
 GitHub stars trend
