@@ -163,10 +163,11 @@ def modify_file(path: Path, new_content: str) -> None:
 def print_diff(path: Path, old_content: str, new_lines: List[str]) -> None:
     """Print ``black --diff`` style output for the changes"""
     relative_path = path.resolve().relative_to(Path.cwd()).as_posix()
+    print(old_content, new_lines, relative_path)
     diff = "\n".join(
         line.rstrip("\n")
         for line in unified_diff(
-            old_content.splitlines(), new_lines, relative_path, relative_path,
+        old_content.splitlines(), new_lines, relative_path, relative_path,
         )
     )
 
@@ -181,6 +182,105 @@ def print_diff(path: Path, old_content: str, new_lines: List[str]) -> None:
             print(highlight(diff, DiffLexer(), TerminalFormatter()))
     else:
         print(diff)
+
+COMFORT_FADE = "application/vnd.github.comfort-fade-preview+json"
+
+
+
+def post_gh_suggestion(path, old_content: str, new_lines):
+    assert (
+        os.environ["GITHUB_EVENT_NAME"] == "pull_request"
+    ), "This action runs only on pull request events."
+    github_token = os.environ["GITHUB_TOKEN"]
+
+    
+    with open(os.environ["GITHUB_EVENT_PATH"]) as f:
+        event_data = json.load(f)
+    comment_url = event_data["pull_request"]["review_comments_url"]
+    commit_id = event_data["pull_request"]["head"]["sha"]
+
+
+    if debug:
+        print("Event data:")
+        print(json.dumps(event_data, indent=4))
+
+    changes =[]
+    new_content = '\n'.join(new_lines)
+    for action, x,y,z,t in diff_and_get_opcodes(old_content, new_content):
+        sugg = ''
+        if action in ('replace', 'insert'):
+            sugg = "\n"+'\n'.join(new_content[z:t])+''
+        elif action == 'delete':
+            sugg = ''
+        elif action == 'equal':
+            continue
+        else: 
+            raise ValueError(action)
+        body = (f"""
+    from {x} to {y}        
+    ```suggestion{sugg}
+    ```
+            """)
+        changes.append((path, x, y, body))
+    def suggests(changes, head_sha, comment_url):
+        import requests
+        def post(action, url, json, header=None):
+            print('===========')
+            print(action)
+            print(url)
+            print(json)
+            print(header)
+            print('===')
+        for path, start, end, body in changes:
+            if start + 1 != end:
+                data = {
+                    "body": body,
+                    "commit_id": head_sha,
+                    "path": path,
+                    "start_line": start + 1,
+                    "start_side": "RIGHT",
+                    "line": end,
+                    "side": "RIGHT",
+                }
+
+                try:
+                    post(
+                        "POST",
+                        comment_url,
+                        json=data,
+                        header=headers = {
+                            "authorization": f"Bearer {github_token}",
+                            "Accept": COMFORT_FADE,
+                        },
+                    )
+                except Exception:
+                    # likely unprecessable entity out of range
+                    raise
+                    pass
+            else:
+                # we can't seem to do single line with COMFORT_FADE
+                data = {
+                    "body": body,
+                    "commit_id": head_sha,
+                    "path": path,
+                    "line": end,
+                    "side": "RIGHT",
+                }
+
+                try:
+                    post(
+                        "POST",
+                        comment_url,
+                        json=data,
+                        headers = {
+                            "authorization": f"Bearer {github_token}",
+                            "Accept": "application/vnd.github.v3.raw+json",
+                        }
+                    )
+                except Exception:
+                    # likely unprecessable entity out of range
+                    pass
+    suggests(changes, commit_id, comment_url)
 
 
 def main(argv: List[str] = None) -> int:
@@ -231,7 +331,8 @@ def main(argv: List[str] = None) -> int:
     ):
         some_files_changed = True
         if args.diff:
-            print_diff(path, old_content, new_lines)
+            post_gh_suggestion(path, old_content, new_lines)
+            #print_diff(path, old_content, new_lines)
         if not args.check and not args.diff:
             modify_file(path, new_content)
     return 1 if args.check and some_files_changed else 0
