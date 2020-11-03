@@ -15,6 +15,16 @@ logger = logging.getLogger(__name__)
 
 
 COMMIT_RANGE_SPLIT_RE = re.compile(r"\.{2,3}")
+# Split a revision range into the "from" and "to" revisions and the dots in between.
+# Handles these cases:
+# <rev>..   <rev>..<rev>   ..<rev>
+# <rev>...  <rev>...<rev>  ...<rev>
+COMMIT_RANGE_RE = re.compile(r"(.*?)(\.{2,3})(.*)$")
+
+
+# A colon is an invalid character in tag/branch names. Use that in the special value for
+# denoting the working tree as one of the "revisions" in revision ranges.
+WORKTREE = ":WORKTREE:"
 
 
 def git_get_unmodified_content(path: Path, revision: str, cwd: Path) -> List[str]:
@@ -39,6 +49,57 @@ def git_get_unmodified_content(path: Path, revision: str, cwd: Path) -> List[str
             return []
         else:
             raise
+
+
+@dataclass(frozen=True)
+class RevisionRange:
+    """Represent a range of commits in a Git repository for comparing differences
+
+    ``rev1`` is the "old" revision, and ``rev2``, the "new" revision which should be
+    compared against ``rev1``.
+
+    If ``use_common_ancestor`` is true, the comparison should not be made against
+    ``rev1`` but instead against the branch point, i.e. the latest commit which is
+    common to both ``rev1`` and ``rev2``. This is useful e.g. when CI is doing a check
+    on a feature branch, and there have been commits in the main branch after the branch
+    point. Without the ability to compare to the branch point, Darker would suggest
+    corrections to formatting on lines changes in the main branch even if those lines
+    haven't been touched in the feature branch.
+
+    """
+
+    rev1: str
+    rev2: str = WORKTREE
+    use_common_ancestor: bool = False
+
+    def __post_init__(self) -> None:
+        if self.rev2 == "":
+            super().__setattr__("rev2", WORKTREE)
+
+    @classmethod
+    def parse(cls, revision_range: str) -> "RevisionRange":
+        """Convert a range expression to a ``RevisionRange`' object
+
+        >>> RevisionRange.parse("a..b")
+        RevisionRange(rev1='a', rev2='b', use_common_ancestor=False)
+        >>> RevisionRange.parse("a...b")
+        RevisionRange(rev1='a', rev2='b', use_common_ancestor=True)
+        >>> RevisionRange.parse("a..")
+        RevisionRange(rev1='a', rev2=':WORKTREE:', use_common_ancestor=False)
+        >>> RevisionRange.parse("a...")
+        RevisionRange(rev1='a', rev2=':WORKTREE:', use_common_ancestor=True)
+
+        """
+        match = COMMIT_RANGE_RE.match(revision_range)
+        if match:
+            rev1, range_dots, rev2 = match.groups()
+            use_common_ancestor = range_dots == "..."
+            return cls(rev1 or "HEAD", rev2, use_common_ancestor)
+        return cls(
+            revision_range or "HEAD",
+            WORKTREE,
+            use_common_ancestor=revision_range not in ["", "HEAD"],
+        )
 
 
 def should_reformat_file(path: Path) -> bool:
