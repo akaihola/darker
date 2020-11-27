@@ -5,6 +5,7 @@ These features will be included in the next release:
 
 Added
 -----
+- Configure a pre-commit hook for Darker itself
 
 Fixed
 -----

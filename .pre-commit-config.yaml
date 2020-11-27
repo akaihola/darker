@@ -1,0 +1,19 @@
+# See https://pre-commit.com for more information
+repos:
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v3.3.0
+    hooks:
+    -   id: trailing-whitespace
+    -   id: end-of-file-fixer
+    -   id: check-yaml
+    -   id: check-added-large-files
+-   repo: https://github.com/akaihola/darker
+    rev: pre-commit-hook
+    hooks:
+    -   id: darker
+        args: [--revision HEAD]
+-   repo: https://github.com/akaihola/pre-commit-hooks-markup
+    rev: raw-enable-option
+    hooks:
+    -   id: rst-linter
+        args: [--allow-raw]
