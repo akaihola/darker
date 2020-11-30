@@ -17,4 +17,5 @@
 - Mark Davidoff (@markddavidoff)
 - Matthias Bussonnier (@Carreau)
 - Nutchanon Ninyawee (@CircleOnCircles)
+- Sean Hammond (@sherbie)
 - Will (@Hainguyen1210)

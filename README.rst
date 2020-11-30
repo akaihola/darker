@@ -646,6 +646,18 @@ Thanks goes to these wonderful people (`emoji key`_):
                   title="Bug reports">🐛</a>
            </td>
            <td align="center">
+               <a href="https://github.com/sherbie">
+                   <img src="https://avatars.githubusercontent.com/u/15087653?v=3" width="100px;" alt="@sherbie"/>
+                   <br />
+                   <sub><b>Sean Hammond</b></sub>
+               </a>
+               <br />
+               <a href="https://github.com/akaihola/darker/pulls?q=is%3Apr+reviewed-by%3Asherbie"
+                  title="Reviewed Pull Requests">👀</a>
+           </td>
+       </tr>
+       <tr>
+           <td align="center">
                <a href="https://github.com/virtuald">
                    <img src="https://avatars.githubusercontent.com/u/567900?v=3" width="100px;" alt="@virtuald"/>
                    <br />
