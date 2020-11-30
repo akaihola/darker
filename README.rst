@@ -400,6 +400,34 @@ You can though ask vim to run ``darker`` on file save with the following in your
 Vim should automatically reload the file.
 
 
+Using as a pre-commit hook
+==========================
+
+To use Darker locally as a Git pre-commit hook for a Python project,
+do the following:
+
+1. Install pre-commit_ in your environment
+   (see `pre-commit Installation`_ for details).
+
+1. Create a base pre-commit configuration::
+
+       pre-commit sample-config >.pre-commit-config.yaml
+
+1. Append to the created ``.pre-commit-config.yaml`` the following lines::
+
+       -   repo: https://github.com/akaihola/darker
+           rev: 1.2.1
+           hooks:
+           -   id: darker
+
+1. install the Git hook scripts::
+
+       pre-commit install
+
+.. _pre-commit: https://pre-commit.com/
+.. _pre-commit Installation: https://pre-commit.com/#installation
+
+
 How does it work?
 =================
 
