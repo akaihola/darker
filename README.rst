@@ -662,6 +662,7 @@ Thanks goes to these wonderful people (`emoji key`_):
 This project follows the all-contributors_ specification.
 Contributions of any kind are welcome!
 
+.. _README.rst: https://github.com/akaihola/darker/README.rst
 .. _emoji key: https://allcontributors.org/docs/en/emoji-key
 .. _all-contributors: https://allcontributors.org
 
