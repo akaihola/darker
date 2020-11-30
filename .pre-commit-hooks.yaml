@@ -1,6 +1,6 @@
 - id: darker
   name: darker
-  description: "Black reformatting to Python files in only regions changed since last commit"
+  description: "Black reformatting to Python files only in regions changed since last commit"
   entry: darker
   language: python
   language_version: python3
