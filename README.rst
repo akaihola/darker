@@ -403,6 +403,8 @@ Vim should automatically reload the file.
 Using as a pre-commit hook
 ==========================
 
+*New in version 1.2.1*
+
 To use Darker locally as a Git pre-commit hook for a Python project,
 do the following:
 

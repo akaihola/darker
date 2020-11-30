@@ -5,8 +5,22 @@ These features will be included in the next release:
 
 Added
 -----
+
+Fixed
+-----
+
+
+1.2.1_ - 2020-11-30
+===================
+
+Added
+-----
 - Travis CI now runs Pylint_ on modified lines via pytest-darker_
 - Darker can now be used as a pre-commit hook (see pre-commit_)
+- Document integration with Vim
+- Thank all contributors right in the ``README``
+- ``RevisionRange`` class and Git repository test fixture improvements in preparation
+  for a larger refactoring coming in `#80`_
 
 Fixed
 -----
@@ -91,7 +105,8 @@ Added
 -----
 - Initial implementation
 
-.. _Unreleased: https://github.com/akaihola/darker/compare/1.2.0...HEAD
+.. _Unreleased: https://github.com/akaihola/darker/compare/1.2.1...HEAD
+.. _1.2.1: https://github.com/akaihola/darker/compare/1.2.0...1.2.1
 .. _1.2.0: https://github.com/akaihola/darker/compare/1.1.0...1.2.0
 .. _1.1.0: https://github.com/akaihola/darker/compare/1.0.0...1.1.0
 .. _1.0.0: https://github.com/akaihola/darker/compare/0.2.0...1.0.0
@@ -99,6 +114,7 @@ Added
 .. _0.1.1: https://github.com/akaihola/darker/compare/0.1.0...0.1.1
 .. _0.1.0: https://github.com/akaihola/darker/releases/tag/0.1.0
 .. _pre-commit: https://pre-commit.com/
+.. _#80: https://github.com/akaihola/darker/issues/80
 .. _pytest-darker: https://pypi.org/project/pytest-darker/
 .. _Black 19.10: https://github.com/psf/black/blob/master/CHANGES.md#1910b0
 .. _Black 20.8: https://github.com/psf/black/blob/master/CHANGES.md#208b0
