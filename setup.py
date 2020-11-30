@@ -21,7 +21,7 @@ def make_pypi_compliant_readme() -> str:
     with open("README.rst") as fp:
         original_readme = fp.read()
     modified_readme = CONTRIBUTORS_RE.sub(
-        "\nSee README.rst_ for the list of contributors.\n" "\nThis project follows ",
+        "\nSee README.rst_ for the list of contributors.\n\nThis project follows ",
         original_readme,
     )
     if modified_readme == original_readme:
