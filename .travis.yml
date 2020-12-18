@@ -7,5 +7,6 @@ python:
   - "3.8-dev"  # 3.8 development branch
 install:
   - git fetch origin --depth=1 master:master
+  - pip install 'pip>=20.3'  # strict dependency resolution added in pip 20.3
   - pip install -e '.[isort,test]'
 script: pytest
