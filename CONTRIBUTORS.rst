@@ -14,6 +14,7 @@
 - @DylanYoung
 - Filip Kucharczyk (@Pacu2)
 - Filipp Samoylov (@samoylovfp)
+- Krischtopp (@Krischtopp)
 - Leo Torres (@leotrs)
 - Mark Davidoff (@markddavidoff)
 - Matthias Bussonnier (@Carreau)
