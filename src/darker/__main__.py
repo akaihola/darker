@@ -11,7 +11,7 @@ from darker.chooser import choose_lines
 from darker.command_line import ISORT_INSTRUCTION, parse_command_line
 from darker.config import dump_config
 from darker.diff import diff_and_get_opcodes, opcodes_to_chunks
-from darker.git import EditedLinenumsDiffer, git_get_modified_files
+from darker.git import EditedLinenumsDiffer, RevisionRange, git_get_modified_files
 from darker.import_sorting import apply_isort, isort
 from darker.linting import run_linter
 from darker.utils import get_common_root, joinlines
@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 def format_edited_parts(
     srcs: Iterable[Path],
-    revision: str,
+    revrange: RevisionRange,
     enable_isort: bool,
     linter_cmdlines: List[str],
     black_args: BlackArgs,
@@ -51,7 +51,7 @@ def format_edited_parts(
     14. print only linter error lines which fall on changed lines
 
     :param srcs: Directories and files to re-format
-    :param revision: The Git revision against which to compare the working tree
+    :param revrange: The Git revision against which to compare the working tree
     :param enable_isort: ``True`` to also run ``isort`` first on each changed file
     :param linter_cmdlines: The command line(s) for running linters on the changed
                             files.
@@ -61,8 +61,8 @@ def format_edited_parts(
 
     """
     git_root = get_common_root(srcs)
-    changed_files = git_get_modified_files(srcs, revision, git_root)
-    edited_linenums_differ = EditedLinenumsDiffer(git_root, revision)
+    changed_files = git_get_modified_files(srcs, revrange, git_root)
+    edited_linenums_differ = EditedLinenumsDiffer(git_root, revrange)
 
     for path_in_repo in sorted(changed_files):
         src = git_root / path_in_repo
@@ -151,7 +151,7 @@ def format_edited_parts(
     # 13. extract line numbers in each file reported by a linter for changed lines
     # 14. print only linter error lines which fall on changed lines
     for linter_cmdline in linter_cmdlines:
-        run_linter(linter_cmdline, git_root, changed_files, revision)
+        run_linter(linter_cmdline, git_root, changed_files, revrange)
 
 
 def modify_file(path: Path, new_content: str) -> None:
@@ -226,8 +226,9 @@ def main(argv: List[str] = None) -> int:
     # `new_content` is just `new_lines` concatenated with newlines.
     # We need both forms when showing diffs or modifying files.
     # Pass them both on to avoid back-and-forth conversion.
+    revrange = RevisionRange.parse(args.revision)
     for path, old_content, new_content, new_lines in format_edited_parts(
-        paths, args.revision, args.isort, args.lint, black_args
+        paths, revrange, args.isort, args.lint, black_args
     ):
         some_files_changed = True
         if args.diff:

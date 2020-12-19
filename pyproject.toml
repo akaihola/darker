@@ -14,7 +14,7 @@ known_third_party = ["pytest"]
 src = [
     "src",
 ]
-revision = "master"
+revision = "master..."
 lint = [
     "pylint",
 ]

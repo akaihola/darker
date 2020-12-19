@@ -9,6 +9,7 @@ import toml
 from darker import black_diff
 from darker.__main__ import main
 from darker.command_line import make_argument_parser, parse_command_line
+from darker.git import RevisionRange
 from darker.tests.helpers import filter_dict, raises_if_exception
 from darker.utils import joinlines
 
@@ -339,21 +340,27 @@ def test_black_options_skip_string_normalization(git_repo, config, options, expe
 @pytest.mark.parametrize(
     'options, expect',
     [
-        (["a.py"], ({Path("a.py")}, "HEAD", False, [], {})),
-        (["--isort", "a.py"], ({Path("a.py")}, "HEAD", True, [], {})),
+        (["a.py"], ({Path("a.py")}, RevisionRange("HEAD"), False, [], {})),
+        (["--isort", "a.py"], ({Path("a.py")}, RevisionRange("HEAD"), True, [], {})),
         (
             ["--config", "my.cfg", "a.py"],
-            ({Path("a.py")}, "HEAD", False, [], {"config": "my.cfg"}),
+            ({Path("a.py")}, RevisionRange("HEAD"), False, [], {"config": "my.cfg"}),
         ),
         (
             ["--line-length", "90", "a.py"],
-            ({Path("a.py")}, "HEAD", False, [], {"line_length": 90}),
+            ({Path("a.py")}, RevisionRange("HEAD"), False, [], {"line_length": 90}),
         ),
         (
             ["--skip-string-normalization", "a.py"],
-            ({Path("a.py")}, "HEAD", False, [], {"skip_string_normalization": True}),
+            (
+                {Path("a.py")},
+                RevisionRange("HEAD"),
+                False,
+                [],
+                {"skip_string_normalization": True},
+            ),
         ),
-        (["--diff", "a.py"], ({Path("a.py")}, "HEAD", False, [], {})),
+        (["--diff", "a.py"], ({Path("a.py")}, RevisionRange("HEAD"), False, [], {})),
     ],
 )
 def test_options(tmpdir, monkeypatch, options, expect):
