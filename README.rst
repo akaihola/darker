@@ -582,6 +582,26 @@ Thanks goes to these wonderful people (`emoji key`_):
        </tr>
        <tr>
            <td align="center">
+               <a href="https://github.com/KangOl">
+                   <img src="https://avatars.githubusercontent.com/u/38731?v=3" width="100px;" alt="@KangOl"/>
+                   <br />
+                   <sub><b>Christophe Simonis</b></sub>
+               </a>
+               <br />
+               <a href="https://github.com/akaihola/darker/issues?q=author%3AKangOl"
+                  title="Bug reports">🐛</a>
+           </td>
+           <td align="center">
+               <a href="https://github.com/Krischtopp">
+                   <img src="https://avatars.githubusercontent.com/u/56152637?v=3" width="100px;" alt="@Krischtopp"/>
+                   <br />
+                   <sub><b>Krischtopp</b></sub>
+               </a>
+               <br />
+               <a href="https://github.com/akaihola/darker/issues?q=author%3AKrischtopp"
+                  title="Bug reports">🐛</a>
+           </td>
+           <td align="center">
                <a href="https://github.com/leotrs">
                    <img src="https://avatars.githubusercontent.com/u/1096704?v=3" width="100px;" alt="@leotrs"/>
                    <br />
@@ -635,6 +655,8 @@ Thanks goes to these wonderful people (`emoji key`_):
                <a href="https://github.com/akaihola/darker/pulls?q=is%3Apr+reviewed-by%3Asamoylovfp"
                   title="Reviewed Pull Requests">👀</a>
            </td>
+       </tr>
+       <tr>
            <td align="center">
                <a href="https://github.com/shangxiao">
                    <img src="https://avatars.githubusercontent.com/u/1845938?v=3" width="100px;" alt="@shangxiao"/>
@@ -657,8 +679,6 @@ Thanks goes to these wonderful people (`emoji key`_):
                <a href="https://github.com/akaihola/darker/pulls?q=is%3Apr+reviewed-by%3Asherbie"
                   title="Reviewed Pull Requests">👀</a>
            </td>
-       </tr>
-       <tr>
            <td align="center">
                <a href="https://github.com/virtuald">
                    <img src="https://avatars.githubusercontent.com/u/567900?v=3" width="100px;" alt="@virtuald"/>
