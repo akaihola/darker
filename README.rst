@@ -205,11 +205,13 @@ The following `command line arguments`_ can also be used to modify the defaults:
 .. code-block:: shell
 
      -r REVISION, --revision REVISION
-                           Git revision against which to compare the working
-                           tree. Tags, branch names, commit hashes, and other
-                           expressions like HEAD~5 work here. Also a range like
-                           master...HEAD or master... can be used to compare the
-                           best common ancestor.
+                           Git revision against which to compare the working tree.
+                           Tags, branch names, commit hashes, and other expressions
+                           like HEAD~5 work here. Also a range like master...HEAD or
+                           master... can be used to compare the best common ancestor.
+                           With the magic value :PRE-COMMIT:, Darker expects the
+                           revision range from the PRE_COMMIT_FROM_REF and
+                           PRE_COMMIT_TO_REF environment variables.
 
      --diff                Don't write the files back, just output a diff for
                            each file on stdout. Highlight syntax on screen if
@@ -271,6 +273,8 @@ For example:
 
 - commit ranges in ``-r`` / ``--revision``.
 - a ``[tool.darker]`` section in ``pyproject.toml``.
+
+*New in version 1.2.2:* Support for ``-r :PRE-COMMIT:`` / ``--revision=:PRE_COMMIT:``
 
 .. _Black documentation about pyproject.toml: https://black.readthedocs.io/en/stable/pyproject_toml.html
 .. _isort documentation about config files: https://timothycrosley.github.io/isort/docs/configuration/config_files/
@@ -418,7 +422,7 @@ do the following:
 1. Append to the created ``.pre-commit-config.yaml`` the following lines::
 
        -   repo: https://github.com/akaihola/darker
-           rev: 1.2.1
+           rev: 1.2.2
            hooks:
            -   id: darker
 
