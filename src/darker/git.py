@@ -1,6 +1,7 @@
 """Helpers for listing modified files and getting unmodified content from Git"""
 
 import logging
+import os
 import re
 import sys
 from dataclasses import dataclass
@@ -22,8 +23,11 @@ COMMIT_RANGE_RE = re.compile(r"(.*?)(\.{2,3})(.*)$")
 
 
 # A colon is an invalid character in tag/branch names. Use that in the special value for
-# denoting the working tree as one of the "revisions" in revision ranges.
+# - denoting the working tree as one of the "revisions" in revision ranges
+# - referring to the `PRE_COMMIT_FROM_REF` and `PRE_COMMIT_TO_REF` environment variables
+#   for determining the revision range
 WORKTREE = ":WORKTREE:"
+PRE_COMMIT_FROM_TO_REFS = ":PRE-COMMIT:"
 
 
 def git_get_content_at_revision(path: Path, revision: str, cwd: Path) -> List[str]:
@@ -89,6 +93,20 @@ class RevisionRange:
         RevisionRange(rev1='a', rev2=':WORKTREE:', use_common_ancestor=True)
 
         """
+        if revision_range == PRE_COMMIT_FROM_TO_REFS:
+            try:
+                return cls(
+                    os.environ["PRE_COMMIT_FROM_REF"],
+                    os.environ["PRE_COMMIT_TO_REF"],
+                    use_common_ancestor=True,
+                )
+            except KeyError:
+                logger.error(
+                    "The environment variables PRE_COMMIT_FROM_REF and"
+                    " PRE_COMMIT_TO_REF must be defined when using -r / --revision"
+                    " :PRE-COMMIT:"
+                )
+                sys.exit(123)
         match = COMMIT_RANGE_RE.match(revision_range)
         if match:
             rev1, range_dots, rev2 = match.groups()

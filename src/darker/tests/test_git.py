@@ -2,6 +2,7 @@
 
 # pylint: disable=redefined-outer-name
 
+import os
 from pathlib import Path
 from unittest.mock import patch
 
@@ -15,6 +16,7 @@ from darker.git import (
     should_reformat_file,
 )
 from darker.tests.conftest import GitRepoFixture
+from darker.tests.helpers import raises_if_exception
 
 
 @pytest.mark.parametrize(
@@ -269,6 +271,27 @@ def test_git_get_modified_files_revision_range(
     )
 
     assert {path.name for path in result} == expect
+
+
+@pytest.mark.parametrize(
+    "environ, expect",
+    [
+        ({}, SystemExit),
+        ({"PRE_COMMIT_FROM_REF": "old"}, SystemExit),
+        ({"PRE_COMMIT_TO_REF": "new"}, SystemExit),
+        ({"PRE_COMMIT_FROM_REF": "old", "PRE_COMMIT_TO_REF": "new"}, ["old", "new"]),
+    ],
+)
+def test_revisionrange_parse_pre_commit(environ, expect):
+    """RevisionRange.parse(':PRE-COMMIT:') gets the range from environment variables"""
+    with patch.dict(os.environ, environ), raises_if_exception(expect):
+
+        result = RevisionRange.parse(":PRE-COMMIT:")
+
+        expect_rev1, expect_rev2 = expect
+        assert result.rev1 == expect_rev1
+        assert result.rev2 == expect_rev2
+        assert result.use_common_ancestor
 
 
 edited_linenums_differ_cases = pytest.mark.parametrize(
