@@ -34,6 +34,8 @@ class GitRepoFixture:
     def create_repository(cls, root: LocalPath) -> "GitRepoFixture":
         """Fixture method for creating a Git repository in the given directory"""
         check_call(["git", "init"], cwd=root)
+        check_call(["git", "config", "user.email", "ci@example.com"], cwd=root)
+        check_call(["git", "config", "user.name", "CI system"], cwd=root)
         return cls(root)
 
     def _run(self, *args: str) -> None:
