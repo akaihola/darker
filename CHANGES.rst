@@ -9,6 +9,7 @@ Added
 Fixed
 -----
 - ``<commit>...`` now compares always correctly to the latest common ancestor
+- Migrate from Travis CI to GitHub Actions
 
 
 1.2.1_ - 2020-11-30
