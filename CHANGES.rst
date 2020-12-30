@@ -5,6 +5,16 @@ These features will be included in the next release:
 
 Added
 -----
+
+Fixed
+-----
+
+
+1.2.2_ - 2020-12-30
+===================
+
+Added
+-----
 - Get revision range from pre-commit_'s ``PRE_COMMIT_FROM_REF`` and
   ``PRE_COMMIT_TO_REF`` environment variables when using the ``--revision :PRE-COMMIT:``
   option
@@ -111,7 +121,8 @@ Added
 -----
 - Initial implementation
 
-.. _Unreleased: https://github.com/akaihola/darker/compare/1.2.1...HEAD
+.. _Unreleased: https://github.com/akaihola/darker/compare/1.2.2...HEAD
+.. _1.2.2: https://github.com/akaihola/darker/compare/1.2.1...1.2.2
 .. _1.2.1: https://github.com/akaihola/darker/compare/1.2.0...1.2.1
 .. _1.2.0: https://github.com/akaihola/darker/compare/1.1.0...1.2.0
 .. _1.1.0: https://github.com/akaihola/darker/compare/1.0.0...1.1.0
