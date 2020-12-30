@@ -5,6 +5,9 @@ These features will be included in the next release:
 
 Added
 -----
+- Get revision range from pre-commit_'s ``PRE_COMMIT_FROM_REF`` and
+  ``PRE_COMMIT_TO_REF`` environment variables when using the ``--revision :PRE-COMMIT:``
+  option
 - Configure a pre-commit hook for Darker itself
 
 Fixed

@@ -1,7 +1,7 @@
 - id: darker
   name: darker
   description: "Black reformatting to Python files only in regions changed since last commit"
-  entry: darker
+  entry: "darker -r :PRE-COMMIT:"
   language: python
   language_version: python3
   require_serial: true
