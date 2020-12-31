@@ -5,12 +5,14 @@ import os
 import re
 import sys
 from dataclasses import dataclass
+from datetime import datetime
 from functools import lru_cache
 from pathlib import Path
 from subprocess import CalledProcessError, check_output
 from typing import Iterable, List, Set
 
 from darker.diff import diff_and_get_opcodes, opcodes_to_edit_linenums
+from darker.utils import TextDocument
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +32,7 @@ WORKTREE = ":WORKTREE:"
 PRE_COMMIT_FROM_TO_REFS = ":PRE-COMMIT:"
 
 
-def git_get_content_at_revision(path: Path, revision: str, cwd: Path) -> List[str]:
+def git_get_content_at_revision(path: Path, revision: str, cwd: Path) -> TextDocument:
     """Get unmodified text lines of a file at a Git revision
 
     :param path: The relative path of the file in the Git repository
@@ -40,16 +42,18 @@ def git_get_content_at_revision(path: Path, revision: str, cwd: Path) -> List[st
 
     """
     if revision == WORKTREE:
-        return (cwd / path).read_text("utf-8").splitlines()
+        abspath = cwd / path
+        mtime = datetime.utcfromtimestamp(abspath.stat().st_mtime)
+        return TextDocument.from_str(abspath.read_text("utf-8"), f"{mtime} +0000")
     cmd = ["git", "show", f"{revision}:./{path}"]
     logger.debug("[%s]$ %s", cwd, " ".join(cmd))
     try:
-        return check_output(cmd, cwd=str(cwd), encoding="utf-8").splitlines()
+        return TextDocument.from_str(check_output(cmd, cwd=str(cwd), encoding="utf-8"))
     except CalledProcessError as exc_info:
         if exc_info.returncode == 128:
             # The file didn't exist at the given revision. Act as if it was an empty
             # file, so all current lines appear as edited.
-            return []
+            return TextDocument()
         else:
             raise
 
@@ -196,24 +200,24 @@ class EditedLinenumsDiffer:
     @lru_cache(maxsize=1)
     def compare_revisions(self, path_in_repo: Path, context_lines: int) -> List[int]:
         """Return numbers of lines changed between a given revision and the worktree"""
-        lines = git_get_content_at_revision(
+        content = git_get_content_at_revision(
             path_in_repo, self.revrange.rev2, self.git_root
         )
-        return self.revision_vs_lines(path_in_repo, lines, context_lines)
+        return self.revision_vs_lines(path_in_repo, content, context_lines)
 
     def revision_vs_lines(
-        self, path_in_repo: Path, lines: List[str], context_lines: int
+        self, path_in_repo: Path, content: TextDocument, context_lines: int
     ) -> List[int]:
         """For file `path_in_repo`, return changed line numbers from given revision
 
         :param path_in_repo: Path of the file to compare, relative to repository root
-        :param lines: The contents to compare to, e.g. from current working tree
+        :param content: The contents to compare to, e.g. from current working tree
         :param context_lines: The number of lines to include before and after a change
         :return: Line numbers of lines changed between the revision and given content
 
         """
-        revision_lines = git_get_content_at_revision(
+        old = git_get_content_at_revision(
             path_in_repo, self.revrange.rev1, self.git_root
         )
-        edited_opcodes = diff_and_get_opcodes(revision_lines, lines)
+        edited_opcodes = diff_and_get_opcodes(old, content)
         return list(opcodes_to_edit_linenums(edited_opcodes, context_lines))

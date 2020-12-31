@@ -3,6 +3,7 @@ from pathlib import Path
 import pytest
 
 from darker.black_diff import BlackArgs, read_black_config, run_black
+from darker.utils import TextDocument
 
 
 @pytest.mark.parametrize(
@@ -37,8 +38,8 @@ def test_black_config(tmpdir, config_path, config_lines, expect):
 
 
 def test_run_black(tmpdir):
-    src_contents = "print ( '42' )\n"
+    src = TextDocument.from_lines(["print ( '42' )"])
 
-    result = run_black(Path(tmpdir / "src.py"), src_contents, BlackArgs())
+    result = run_black(Path(tmpdir / "src.py"), src, BlackArgs())
 
-    assert result == ['print("42")']
+    assert result.lines == ('print("42")',)

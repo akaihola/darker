@@ -1,15 +1,92 @@
 """Miscellaneous utility functions"""
 
 import io
+from datetime import datetime
 from itertools import chain
 from pathlib import Path
 from typing import Iterable, List, Tuple, Union
 
+TextLines = Tuple[str, ...]
+
+
+GIT_DATEFORMAT = "%Y-%m-%d %H:%M:%S.%f +0000"
+
+
+class TextDocument:
+    """Store & handle a multi-line text document, either as a string or list of lines"""
+
+    def __init__(
+        self, string: str = None, lines: Iterable[str] = None, mtime: str = ""
+    ):
+        self._string = string
+        self._lines = None if lines is None else tuple(lines)
+        self._mtime = mtime
+
+    @property
+    def string(self) -> str:
+        """Return the document as a string, converting and caching if necessary"""
+        if self._string is None:
+            self._string = joinlines(self._lines or ())
+        return self._string
+
+    @property
+    def lines(self) -> TextLines:
+        """Return the document as a list of lines converting and caching if necessary"""
+        if self._lines is None:
+            self._lines = tuple((self._string or "").splitlines())
+        return self._lines
+
+    @property
+    def mtime(self) -> str:
+        """Return the last modification time of the document"""
+        return self._mtime
+
+    @classmethod
+    def from_str(cls, string: str, mtime: str = "") -> "TextDocument":
+        """Create a document object from a string"""
+        return cls(string, None, mtime=mtime)
+
+    @classmethod
+    def from_file(cls, path: Path) -> "TextDocument":
+        """Create a document object by reading an UTF-8 encoded text file
+
+        Also store the last modification time of the file.
+
+        """
+        mtime = datetime.utcfromtimestamp(path.stat().st_mtime).strftime(GIT_DATEFORMAT)
+        return cls.from_str(path.read_text(encoding="utf-8"), mtime=mtime)
+
+    @classmethod
+    def from_lines(cls, lines: Iterable[str], mtime: str = "") -> "TextDocument":
+        """Create a document object from a list of lines
+
+        The lines should be UTF-8 strings without trailing newlines.
+
+        """
+        return cls(None, lines, mtime=mtime)
+
+    def __eq__(self, other: object) -> bool:
+        """Compare the equality two text documents, ignoring the modification times"""
+        if not isinstance(other, TextDocument):
+            return NotImplemented
+        if not self._string:
+            if not self._lines:
+                return not other._string and not other._lines
+            return self._lines == other.lines
+        return self._string == other.string
+
+    def __repr__(self) -> str:
+        """Return a Python representation of the document object"""
+        return f"{type(self).__name__}([{len(self.lines)} lines])"
+
+
+DiffChunk = Tuple[int, TextLines, TextLines]
+
 
 def debug_dump(
-    black_chunks: List[Tuple[int, List[str], List[str]]],
-    old_content: str,
-    new_content: str,
+    black_chunks: List[DiffChunk],
+    old_content: TextDocument,
+    new_content: TextDocument,
     edited_linenums: List[int],
 ) -> None:
     """Print debug output. This is used in case of an unexpected failure."""
@@ -24,7 +101,7 @@ def debug_dump(
     print(80 * "-")
 
 
-def joinlines(lines: List[str]) -> str:
+def joinlines(lines: TextLines) -> str:
     """Join a list of lines back, adding a linefeed after each line
 
     This is the reverse of ``str.splitlines()``.
@@ -68,7 +145,8 @@ class Buf:
         for _ in range(-lines_delta):
             self._buf.seek(self._line_starts.pop())
 
-    def next_line_startswith(self, prefix: Union[str, Tuple[str, ...]]) -> bool:
+    def next_line_startswith(self, prefix: Union[str, TextLines]) -> bool:
+        """Peek at the next line, return ``True`` if it starts with the given prefix"""
         try:
             return next(self).startswith(prefix)
         except StopIteration:

@@ -5,15 +5,16 @@ import pytest
 from black import find_project_root
 
 from darker.import_sorting import apply_isort
+from darker.utils import TextDocument
 
-ORIGINAL_SOURCE = "import sys\nimport os\n"
-ISORTED_SOURCE = "import os\nimport sys\n"
+ORIGINAL_SOURCE = ("import sys", "import os")
+ISORTED_SOURCE = ("import os", "import sys")
 
 
 def test_apply_isort():
-    result = apply_isort(ORIGINAL_SOURCE, Path("test1.py"))
+    result = apply_isort(TextDocument.from_lines(ORIGINAL_SOURCE), Path("test1.py"))
 
-    assert result == ISORTED_SOURCE
+    assert result.lines == ISORTED_SOURCE
 
 
 @pytest.mark.parametrize(
@@ -60,5 +61,5 @@ def test_isort_config(monkeypatch, tmpdir, line_length, settings_file, expect):
     content = "from module import ab, cd, ef, gh, ij, kl, mn, op, qr, st, uv, wx, yz"
     config = str(tmpdir / settings_file) if settings_file else None
 
-    actual = apply_isort(content, Path("test1.py"), config)
-    assert actual == expect
+    actual = apply_isort(TextDocument.from_str(content), Path("test1.py"), config)
+    assert actual.string == expect

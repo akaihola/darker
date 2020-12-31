@@ -8,6 +8,7 @@ from darker.diff import (
     opcodes_to_chunks,
     opcodes_to_edit_linenums,
 )
+from darker.utils import TextDocument
 
 FUNCTIONS2_PY = dedent(
     """\
@@ -96,41 +97,41 @@ EXPECT_OPCODES = [
 
 
 def test_diff_and_get_opcodes():
-    src_lines = FUNCTIONS2_PY.splitlines()
-    dst_lines = FUNCTIONS2_PY_REFORMATTED.splitlines()
-    opcodes = diff_and_get_opcodes(src_lines, dst_lines)
+    src = TextDocument.from_str(FUNCTIONS2_PY)
+    dst = TextDocument.from_str(FUNCTIONS2_PY_REFORMATTED)
+    opcodes = diff_and_get_opcodes(src, dst)
     assert opcodes == EXPECT_OPCODES
 
 
 def test_opcodes_to_chunks():
-    src_lines = FUNCTIONS2_PY.splitlines()
-    dst_lines = FUNCTIONS2_PY_REFORMATTED.splitlines()
+    src = TextDocument.from_str(FUNCTIONS2_PY)
+    dst = TextDocument.from_str(FUNCTIONS2_PY_REFORMATTED)
 
-    chunks = list(opcodes_to_chunks(EXPECT_OPCODES, src_lines, dst_lines))
+    chunks = list(opcodes_to_chunks(EXPECT_OPCODES, src, dst))
 
     assert chunks == [
-        (1, ["def f("], ["def f("]),
-        (2, ["  a,", "  **kwargs,"], ["    a,", "    **kwargs,"]),
+        (1, ("def f(",), ("def f(",)),
+        (2, ("  a,", "  **kwargs,"), ("    a,", "    **kwargs,")),
         (
             4,
-            [") -> A:", "    with cache_dir():", "        if something:"],
-            [") -> A:", "    with cache_dir():", "        if something:"],
+            (") -> A:", "    with cache_dir():", "        if something:"),
+            (") -> A:", "    with cache_dir():", "        if something:"),
         ),
         (
             7,
-            [
+            (
                 "            result = (",
                 "                CliRunner().invoke(black.main, [str(src1), str(src2), "
                 '"--diff", "--check"])',
-            ],
-            [
+            ),
+            (
                 "            result = CliRunner().invoke(",
                 '                black.main, [str(src1), str(src2), "--diff", "--check"]',  # noqa: E501
-            ],
+            ),
         ),
         (
             9,
-            [
+            (
                 "            )",
                 "    limited.append(-limited.pop())  # negate top",
                 "    return A(",
@@ -138,8 +139,8 @@ def test_opcodes_to_chunks():
                 "        very_long_argument_name2=-very.long.value.for_the_argument,",
                 "        **kwargs,",
                 "    )",
-            ],
-            [
+            ),
+            (
                 "            )",
                 "    limited.append(-limited.pop())  # negate top",
                 "    return A(",
@@ -147,33 +148,33 @@ def test_opcodes_to_chunks():
                 "        very_long_argument_name2=-very.long.value.for_the_argument,",
                 "        **kwargs,",
                 "    )",
-            ],
+            ),
         ),
-        (16, [], ["", ""]),
-        (16, ["def g():", '    "Docstring."'], ["def g():", '    "Docstring."']),
-        (18, [], [""]),
+        (16, (), ("", "")),
+        (16, ("def g():", '    "Docstring."'), ("def g():", '    "Docstring."')),
+        (18, (), ("",)),
         (
             18,
-            ["    def inner():", "        pass"],
-            ["    def inner():", "        pass"],
+            ("    def inner():", "        pass"),
+            ("    def inner():", "        pass"),
         ),
-        (20, [], [""]),
+        (20, (), ("",)),
         (
             20,
-            ['    print("Inner defs should breathe a little.")'],
-            ['    print("Inner defs should breathe a little.")'],
+            ('    print("Inner defs should breathe a little.")',),
+            ('    print("Inner defs should breathe a little.")',),
         ),
-        (21, [], ["", ""]),
+        (21, (), ("", "")),
         (
             21,
-            ["def h():", "    def inner():", "        pass"],
-            ["def h():", "    def inner():", "        pass"],
+            ("def h():", "    def inner():", "        pass"),
+            ("def h():", "    def inner():", "        pass"),
         ),
-        (24, [], [""]),
+        (24, (), ("",)),
         (
             24,
-            ['    print("Inner defs should breathe a little.")'],
-            ['    print("Inner defs should breathe a little.")'],
+            ('    print("Inner defs should breathe a little.")',),
+            ('    print("Inner defs should breathe a little.")',),
         ),
     ]
 

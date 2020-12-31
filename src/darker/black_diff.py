@@ -5,19 +5,21 @@ The first line will be reformatted by Black, and the second left intact::
 
     >>> from unittest.mock import Mock
     >>> src = Mock()
-    >>> src_content = '''\\
-    ... for i in range(5): print(i)
-    ... print("done")
-    ... '''
+    >>> src_content = TextDocument.from_lines(
+    ...     [
+    ...         "for i in range(5): print(i)",
+    ...         'print("done")',
+    ...     ]
+    ... )
 
 First, :func:`run_black` uses Black to reformat the contents of a given file.
 Reformatted lines are returned e.g.::
 
-    >>> dst_lines = run_black(src, src_content, black_args={})
-    >>> dst_lines
-    ['for i in range(5):',
+    >>> dst = run_black(src, src_content, black_args={})
+    >>> dst.lines
+    ('for i in range(5):',
      '    print(i)',
-     'print("done")']
+     'print("done")')
 
 See :mod:`darker.diff` and :mod:`darker.chooser`
 for how this result is further processed with:
@@ -36,7 +38,9 @@ import logging
 import sys
 from functools import lru_cache
 from pathlib import Path
-from typing import List, Optional, Set, cast
+from typing import Optional, Set, cast
+
+from darker.utils import TextDocument
 
 if sys.version_info >= (3, 8):
     from typing import TypedDict
@@ -83,13 +87,15 @@ def read_black_config(src: Path, value: Optional[str]) -> BlackArgs:
     )
 
 
-def run_black(src: Path, src_contents: str, black_args: BlackArgs) -> List[str]:
+def run_black(
+    src: Path, src_contents: TextDocument, black_args: BlackArgs
+) -> TextDocument:
     """Run the black formatter for the Python source code given as a string
 
     Return lines of the original file as well as the formatted content.
 
     :param src: The originating file path for the source code
-    :param src_contents: The source code as a string
+    :param src_contents: The source code
     :param black_args: Command-line arguments to send to ``black.FileMode``
 
     """
@@ -112,7 +118,4 @@ def run_black(src: Path, src_contents: str, black_args: BlackArgs) -> List[str]:
     # Override defaults and pyproject.toml settings if they've been specified
     # from the command line arguments
     mode = Mode(**effective_args)
-
-    dst_contents = format_str(src_contents, mode=mode)
-    dst_lines: List[str] = dst_contents.splitlines()
-    return dst_lines
+    return TextDocument.from_str(format_str(src_contents.string, mode=mode))

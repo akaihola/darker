@@ -11,7 +11,7 @@ from darker.__main__ import main
 from darker.command_line import make_argument_parser, parse_command_line
 from darker.git import RevisionRange
 from darker.tests.helpers import filter_dict, raises_if_exception
-from darker.utils import joinlines
+from darker.utils import TextDocument, joinlines
 
 pytestmark = pytest.mark.usefixtures("find_project_root_cache_clear")
 
@@ -387,7 +387,15 @@ def test_main_retval(check, changes, expect_retval):
     """main() return value is correct based on --check and the need to reformat files"""
     format_edited_parts = Mock()
     format_edited_parts.return_value = (
-        [(Path('/dummy.py'), 'old\n', 'new\n', ['new'])] if changes else []
+        [
+            (
+                Path("/dummy.py"),
+                TextDocument.from_lines(["old"]),
+                TextDocument.from_lines(["new"]),
+            )
+        ]
+        if changes
+        else []
     )
     check_arg_maybe = ['--check'] if check else []
     with patch.multiple(
