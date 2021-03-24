@@ -12,6 +12,9 @@ Fixed
 - Compatibility with MyPy 0.812
 - Keep newline character sequence and text encoding intact when modifying files
 
+- Improve compatibility with pre-commit. Fallback to compare against HEAD if
+  ``--revision :PRE-COMMIT:`` is set, but ``PRE_COMMIT_FROM_REF`` or
+  ``PRE_COMMIT_TO_REF`` are not set.
 
 1.2.2_ - 2020-12-30
 ===================

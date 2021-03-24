@@ -51,9 +51,10 @@ def make_argument_parser(require_src: bool) -> ArgumentParser:
             "Git revision against which to compare the working tree. Tags, branch"
             " names, commit hashes, and other expressions like HEAD~5 work here. Also"
             " a range like master...HEAD or master... can be used to compare the best"
-            " common ancestor. With the magic value :PRE-COMMIT:, Darker expects the"
-            " revision range from the PRE_COMMIT_FROM_REF and PRE_COMMIT_TO_REF"
-            " environment variables."
+            " common ancestor. With the magic value :PRE-COMMIT:, Darker works in"
+            " pre-commit compatible mode. Darker expects the revision range from the"
+            " PRE_COMMIT_FROM_REF and PRE_COMMIT_TO_REF environment variables. If those"
+            " are not found, darker works against HEAD."
         ),
     )
     isort_help = ["Also sort imports using the `isort` package"]
