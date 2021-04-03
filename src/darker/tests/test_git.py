@@ -51,6 +51,7 @@ def test_git_get_content_at_revision(git_repo, revision, expect):
 )
 def test_git_get_content_at_revision_git_calls(revision, expect):
     with patch("darker.git.check_output") as check_output:
+        check_output.return_value = "dummy output"
 
         git_get_content_at_revision(Path("my.txt"), revision, Path("cwd"))
 

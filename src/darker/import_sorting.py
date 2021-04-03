@@ -51,4 +51,6 @@ def apply_isort(
             ", ".join(f"{k}={v!r}" for k, v in isort_args.items())
         )
     )
-    return TextDocument.from_str(isort_code(code=content.string, **isort_args))
+    return TextDocument.from_str(
+        isort_code(code=content.string, **isort_args), encoding=content.encoding
+    )

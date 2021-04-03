@@ -1,6 +1,7 @@
 """Miscellaneous utility functions"""
 
 import io
+import tokenize
 from datetime import datetime
 from itertools import chain
 from pathlib import Path
@@ -15,19 +16,34 @@ GIT_DATEFORMAT = "%Y-%m-%d %H:%M:%S.%f +0000"
 class TextDocument:
     """Store & handle a multi-line text document, either as a string or list of lines"""
 
+    DEFAULT_ENCODING = "utf-8"
+    DEFAULT_NEWLINE = "\n"
+
     def __init__(
-        self, string: str = None, lines: Iterable[str] = None, mtime: str = ""
+        self,
+        string: str = None,
+        lines: Iterable[str] = None,
+        encoding: str = DEFAULT_ENCODING,
+        newline: str = DEFAULT_NEWLINE,
+        mtime: str = "",
     ):
         self._string = string
         self._lines = None if lines is None else tuple(lines)
+        self._encoding = encoding
+        self._newline = newline
         self._mtime = mtime
 
     @property
     def string(self) -> str:
         """Return the document as a string, converting and caching if necessary"""
         if self._string is None:
-            self._string = joinlines(self._lines or ())
+            self._string = joinlines(self._lines or (), self.newline)
         return self._string
+
+    @property
+    def encoded_string(self) -> bytes:
+        """Return the document as a string, converting and caching if necessary"""
+        return self.string.encode(self.encoding)
 
     @property
     def lines(self) -> TextLines:
@@ -37,14 +53,45 @@ class TextDocument:
         return self._lines
 
     @property
+    def encoding(self) -> str:
+        """Return the encoding used in the document"""
+        return self._encoding
+
+    @property
+    def newline(self) -> str:
+        """Return the newline character sequence used in the document"""
+        return self._newline
+
+    @property
     def mtime(self) -> str:
         """Return the last modification time of the document"""
         return self._mtime
 
     @classmethod
-    def from_str(cls, string: str, mtime: str = "") -> "TextDocument":
-        """Create a document object from a string"""
-        return cls(string, None, mtime=mtime)
+    def from_str(
+        cls,
+        string: str,
+        encoding: str = DEFAULT_ENCODING,
+        override_newline: str = None,
+        mtime: str = "",
+    ) -> "TextDocument":
+        """Create a document object from a string
+
+        :param string: The contents of the new text document
+        :param encoding: The character encoding to be used when writing out the bytes
+        :param override_newline: Replace existing newlines with the given newline string
+        :param mtime: The modification time of the original file
+
+        """
+        first_lf_pos = string.find("\n")
+        if first_lf_pos > 0 and string[first_lf_pos - 1] == "\r":
+            newline = "\r\n"
+        else:
+            newline = "\n"
+        if override_newline and override_newline != newline:
+            string = string.replace(newline, override_newline)
+            newline = override_newline
+        return cls(string, None, encoding=encoding, newline=newline, mtime=mtime)
 
     @classmethod
     def from_file(cls, path: Path) -> "TextDocument":
@@ -54,30 +101,57 @@ class TextDocument:
 
         """
         mtime = datetime.utcfromtimestamp(path.stat().st_mtime).strftime(GIT_DATEFORMAT)
-        return cls.from_str(path.read_text(encoding="utf-8"), mtime=mtime)
+        srcbuf = path.open("rb")
+        encoding, lines = tokenize.detect_encoding(srcbuf.readline)
+        if not lines:
+            return cls(lines=[], encoding=encoding)
+        srcbuf.seek(0)
+        return cls.from_str(
+            srcbuf.read().decode(encoding), encoding=encoding, mtime=mtime
+        )
 
     @classmethod
-    def from_lines(cls, lines: Iterable[str], mtime: str = "") -> "TextDocument":
+    def from_lines(
+        cls,
+        lines: Iterable[str],
+        encoding: str = DEFAULT_ENCODING,
+        newline: str = DEFAULT_NEWLINE,
+        mtime: str = "",
+    ) -> "TextDocument":
         """Create a document object from a list of lines
 
-        The lines should be UTF-8 strings without trailing newlines.
+        The lines should be strings without trailing newlines. They should be encoded in
+        UTF-8 unless a different encoding is specified with the ``encoding`` argument.
 
         """
-        return cls(None, lines, mtime=mtime)
+        return cls(None, lines, encoding=encoding, newline=newline, mtime=mtime)
 
     def __eq__(self, other: object) -> bool:
         """Compare the equality two text documents, ignoring the modification times"""
         if not isinstance(other, TextDocument):
             return NotImplemented
-        if not self._string:
-            if not self._lines:
-                return not other._string and not other._lines
-            return self._lines == other.lines
-        return self._string == other.string
+        if not self._string and not self._lines:
+            return not other._string and not other._lines
+        return self.lines == other.lines
 
     def __repr__(self) -> str:
         """Return a Python representation of the document object"""
-        return f"{type(self).__name__}([{len(self.lines)} lines])"
+        encoding = (
+            ""
+            if self._encoding == self.DEFAULT_ENCODING
+            else f", encoding={self.encoding!r}"
+        )
+        newline = (
+            ""
+            if self.newline == self.DEFAULT_NEWLINE
+            else f", newline={self.newline!r}"
+        )
+        mtime = "" if not self._mtime else f", mtime={self._mtime!r}"
+        return (
+            f"{type(self).__name__}("
+            f"[{len(self.lines)} lines]"
+            f"{encoding}{newline}{mtime})"
+        )
 
 
 DiffChunk = Tuple[int, TextLines, TextLines]
@@ -101,13 +175,13 @@ def debug_dump(
     print(80 * "-")
 
 
-def joinlines(lines: TextLines) -> str:
+def joinlines(lines: TextLines, newline: str = "\n") -> str:
     """Join a list of lines back, adding a linefeed after each line
 
     This is the reverse of ``str.splitlines()``.
 
     """
-    return "".join(f"{line}\n" for line in lines)
+    return "".join(f"{line}{newline}" for line in lines)
 
 
 def get_path_ancestry(path: Path) -> Iterable[Path]:

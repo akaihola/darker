@@ -65,7 +65,7 @@ def format_edited_parts(
 
     for path_in_repo in sorted(changed_files):
         src = git_root / path_in_repo
-        worktree_content = TextDocument.from_str(src.read_text())
+        worktree_content = TextDocument.from_file(src)
 
         # 1. run isort
         if enable_isort:
@@ -101,7 +101,9 @@ def format_edited_parts(
 
             # 7. choose reformatted content
             chosen = TextDocument.from_lines(
-                choose_lines(black_chunks, edited_linenums)
+                choose_lines(black_chunks, edited_linenums),
+                encoding=worktree_content.encoding,
+                newline=worktree_content.newline,
             )
 
             # 8. verify
@@ -145,7 +147,7 @@ def format_edited_parts(
 def modify_file(path: Path, new_content: TextDocument) -> None:
     """Write new content to a file and inform the user by logging"""
     logger.info("Writing %s bytes into %s", len(new_content.string), path)
-    path.write_text(new_content.string)
+    path.write_bytes(new_content.encoded_string)
 
 
 def print_diff(path: Path, old: TextDocument, new: TextDocument) -> None:

@@ -37,9 +37,21 @@ def test_black_config(tmpdir, config_path, config_lines, expect):
     assert config == expect
 
 
-def test_run_black(tmpdir):
-    src = TextDocument.from_lines(["print ( '42' )"])
+@pytest.mark.parametrize("encoding", ["utf-8", "iso-8859-1"])
+@pytest.mark.parametrize("newline", ["\n", "\r\n"])
+def test_run_black(tmpdir, encoding, newline):
+    """Running Black through its Python internal API gives correct results"""
+    src = TextDocument.from_lines(
+        [f"# coding: {encoding}", "print ( 'touché' )"],
+        encoding=encoding,
+        newline=newline,
+    )
 
     result = run_black(Path(tmpdir / "src.py"), src, BlackArgs())
 
-    assert result.lines == ('print("42")',)
+    assert result.lines == (
+        f"# coding: {encoding}",
+        'print("touché")',
+    )
+    assert result.encoding == encoding
+    assert result.newline == newline
