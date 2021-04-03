@@ -11,10 +11,18 @@ ORIGINAL_SOURCE = ("import sys", "import os")
 ISORTED_SOURCE = ("import os", "import sys")
 
 
-def test_apply_isort():
-    result = apply_isort(TextDocument.from_lines(ORIGINAL_SOURCE), Path("test1.py"))
+@pytest.mark.parametrize("encoding", ["utf-8", "iso-8859-1"])
+@pytest.mark.parametrize("newline", ["\n", "\r\n"])
+def test_apply_isort(encoding, newline):
+    """Import sorting is applied correctly, with encoding and newline intact"""
+    result = apply_isort(
+        TextDocument.from_lines(ORIGINAL_SOURCE, encoding=encoding, newline=newline),
+        Path("test1.py"),
+    )
 
     assert result.lines == ISORTED_SOURCE
+    assert result.encoding == encoding
+    assert result.newline == newline
 
 
 @pytest.mark.parametrize(

@@ -36,7 +36,8 @@ def run_isort(git_repo, monkeypatch, caplog, request):
         darker.__main__,
         run_black=Mock(return_value=TextDocument()),
         verify_ast_unchanged=Mock(),
-    ), patch("darker.import_sorting.isort_code"):
+    ), patch("darker.import_sorting.isort_code") as isort_code:
+        isort_code.return_value = "dummy isort output"
         darker.__main__.main(["--isort", "./test1.py", *args])
         return SimpleNamespace(
             isort_code=darker.import_sorting.isort_code, caplog=caplog
@@ -118,22 +119,25 @@ A_PY_DIFF_BLACK_ISORT = [
         (True, {}, A_PY_BLACK_ISORT),
         (False, {'skip_string_normalization': True}, A_PY_BLACK_UNNORMALIZE),
     ],
+    ids=["black", "black_isort", "black_unnormalize"],
 )
-def test_format_edited_parts(git_repo, monkeypatch, enable_isort, black_args, expect):
-    monkeypatch.chdir(git_repo.root)
-    paths = git_repo.add({'a.py': '\n', 'b.py': '\n'}, commit='Initial commit')
-    paths['a.py'].write('\n'.join(A_PY))
-    paths['b.py'].write('print(42 )\n')
+@pytest.mark.parametrize("newline", ["\n", "\r\n"], ids=["unix", "windows"])
+def test_format_edited_parts(git_repo, enable_isort, black_args, newline, expect):
+    """Correct reformatting and import sorting changes are produced"""
+    paths = git_repo.add({"a.py": newline, "b.py": newline}, commit="Initial commit")
+    paths["a.py"].write(newline.join(A_PY))
+    paths["b.py"].write(f"print(42 ){newline}")
+
+    result = darker.__main__.format_edited_parts(
+        [Path("a.py")], RevisionRange("HEAD"), enable_isort, [], black_args
+    )
 
     changes = [
         (path, worktree_content.string, chosen.string, chosen.lines)
-        for path, worktree_content, chosen in darker.__main__.format_edited_parts(
-            [Path("a.py")], RevisionRange("HEAD"), enable_isort, [], black_args
-        )
+        for path, worktree_content, chosen in result
     ]
-
     expect_changes = [
-        (paths["a.py"], "\n".join(A_PY), "\n".join(expect), tuple(expect[:-1]))
+        (paths["a.py"], newline.join(A_PY), newline.join(expect), tuple(expect[:-1]))
     ]
     assert changes == expect_changes
 
@@ -173,22 +177,48 @@ def test_format_edited_parts_all_unchanged(git_repo, monkeypatch):
         (['--check', '--diff', '--isort'], A_PY_DIFF_BLACK_ISORT, A_PY, 1),
     ],
 )
+@pytest.mark.parametrize("newline", ["\n", "\r\n"], ids=["unix", "windows"])
 def test_main(
-    git_repo, monkeypatch, capsys, arguments, expect_stdout, expect_a_py, expect_retval
+    git_repo,
+    monkeypatch,
+    capsys,
+    arguments,
+    newline,
+    expect_stdout,
+    expect_a_py,
+    expect_retval,
 ):  # pylint: disable=too-many-arguments
     """Main function outputs diffs and modifies files correctly"""
     monkeypatch.chdir(git_repo.root)
-    paths = git_repo.add({'a.py': '\n', 'b.py': '\n'}, commit='Initial commit')
-    paths['a.py'].write('\n'.join(A_PY))
-    paths['b.py'].write('print(42 )\n')
+    paths = git_repo.add({"a.py": newline, "b.py": newline}, commit="Initial commit")
+    paths["a.py"].write(newline.join(A_PY))
+    paths["b.py"].write("print(42 ){newline}")
 
     retval = darker.__main__.main(arguments + ['a.py'])
 
     stdout = capsys.readouterr().out.replace(str(git_repo.root), '')
-    assert stdout.split('\n') == expect_stdout
-    assert paths['a.py'].readlines(cr=False) == expect_a_py
-    assert paths['b.py'].readlines(cr=False) == ['print(42 )', '']
+    assert stdout.split("\n") == expect_stdout
+    assert paths["a.py"].read("br").decode("ascii") == newline.join(expect_a_py)
+    assert paths["b.py"].read("br").decode("ascii") == "print(42 ){newline}"
     assert retval == expect_retval
+
+
+@pytest.mark.parametrize(
+    "encoding, text", [(b"utf-8", b"touch\xc3\xa9"), (b"iso-8859-1", b"touch\xe9")]
+)
+@pytest.mark.parametrize("newline", [b"\n", b"\r\n"])
+def test_main_encoding(git_repo, encoding, text, newline):
+    """Encoding and newline of the file is kept unchanged after reformatting"""
+    paths = git_repo.add({"a.py": newline}, commit="Initial commit")
+    edited = [b"# coding: ", encoding, newline, b's="', text, b'"', newline]
+    expect = [b"# coding: ", encoding, newline, b's = "', text, b'"', newline]
+    paths["a.py"].write(b"".join(edited), "wb")
+
+    retval = darker.__main__.main(["a.py"])
+
+    result = paths["a.py"].read("br")
+    assert retval == 0
+    assert result == b"".join(expect)
 
 
 def test_output_diff(capsys):
@@ -220,3 +250,22 @@ def test_output_diff(capsys):
         '-changed',
         '+Changed',
     ]
+
+
+@pytest.mark.parametrize(
+    "new_content, expect",
+    [
+        (TextDocument(), b""),
+        (TextDocument(lines=["touché"]), b"touch\xc3\xa9\n"),
+        (TextDocument(lines=["touché"], newline="\r\n"), b"touch\xc3\xa9\r\n"),
+        (TextDocument(lines=["touché"], encoding="iso-8859-1"), b"touch\xe9\n"),
+    ],
+)
+def test_modify_file(tmp_path, new_content, expect):
+    """Encoding and newline are respected when writing a text file on disk"""
+    path = tmp_path / "test.py"
+
+    darker.__main__.modify_file(path, new_content)
+
+    result = path.read_bytes()
+    assert result == expect
