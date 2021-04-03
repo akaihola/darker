@@ -16,7 +16,12 @@ else:
 try:
     import isort
 except ImportError:
-    isort = None
+    isort = None  # type: ignore
+# Work around Mypy problem
+# https://github.com/python/mypy/issues/7030#issuecomment-504128883
+isort_code = getattr(isort, "code")
+
+__all__ = ["apply_isort", "isort"]
 
 logger = logging.getLogger(__name__)
 
@@ -46,4 +51,4 @@ def apply_isort(
             ", ".join(f"{k}={v!r}" for k, v in isort_args.items())
         )
     )
-    return TextDocument.from_str(isort.code(code=content.string, **isort_args))
+    return TextDocument.from_str(isort_code(code=content.string, **isort_args))

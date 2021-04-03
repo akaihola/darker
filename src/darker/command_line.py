@@ -29,7 +29,7 @@ def make_argument_parser(require_src: bool) -> ArgumentParser:
     try:
         import isort
     except ImportError:
-        isort = None
+        isort = None  # type: ignore
         description.extend(
             ["", f"{ISORT_INSTRUCTION} to enable sorting of import definitions"]
         )

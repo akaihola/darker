@@ -36,10 +36,10 @@ def run_isort(git_repo, monkeypatch, caplog, request):
         darker.__main__,
         run_black=Mock(return_value=TextDocument()),
         verify_ast_unchanged=Mock(),
-    ), patch("darker.import_sorting.isort.code"):
+    ), patch("darker.import_sorting.isort_code"):
         darker.__main__.main(["--isort", "./test1.py", *args])
         return SimpleNamespace(
-            isort_code=darker.import_sorting.isort.code, caplog=caplog
+            isort_code=darker.import_sorting.isort_code, caplog=caplog
         )
 
 

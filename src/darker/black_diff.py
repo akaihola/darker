@@ -51,6 +51,8 @@ else:
 from black import FileMode as Mode
 from black import TargetVersion, find_pyproject_toml, format_str, parse_pyproject_toml
 
+__all__ = ["BlackArgs", "Mode", "run_black"]
+
 logger = logging.getLogger(__name__)
 
 
