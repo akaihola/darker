@@ -394,6 +394,7 @@ You can though ask vim to run ``darker`` on file save with the following in your
 
 .. code-block:: vim
 
+   set autoread
    autocmd BufWritePost *.py silent :!darker %
 
 - ``BufWritePost`` to run ``darker`` *once the file has been saved*,
