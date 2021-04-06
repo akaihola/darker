@@ -282,24 +282,30 @@ def test_git_get_modified_files_revision_range(
 
 
 @pytest.mark.parametrize(
-    "environ, expect",
+    "environ, expect_rev1, expect_rev2, expect_use_common_ancestor",
     [
-        ({}, SystemExit),
-        ({"PRE_COMMIT_FROM_REF": "old"}, SystemExit),
-        ({"PRE_COMMIT_TO_REF": "new"}, SystemExit),
-        ({"PRE_COMMIT_FROM_REF": "old", "PRE_COMMIT_TO_REF": "new"}, ["old", "new"]),
+        ({}, "HEAD", ":WORKTREE:", False),
+        ({"PRE_COMMIT_FROM_REF": "old"}, "HEAD", ":WORKTREE:", False),
+        ({"PRE_COMMIT_TO_REF": "new"}, "HEAD", ":WORKTREE:", False),
+        (
+            {"PRE_COMMIT_FROM_REF": "old", "PRE_COMMIT_TO_REF": "new"},
+            "old",
+            "new",
+            True,
+        ),
     ],
 )
-def test_revisionrange_parse_pre_commit(environ, expect):
+def test_revisionrange_parse_pre_commit(
+    environ, expect_rev1, expect_rev2, expect_use_common_ancestor
+):
     """RevisionRange.parse(':PRE-COMMIT:') gets the range from environment variables"""
-    with patch.dict(os.environ, environ), raises_if_exception(expect):
+    with patch.dict(os.environ, environ):
 
         result = RevisionRange.parse(":PRE-COMMIT:")
 
-        expect_rev1, expect_rev2 = expect
         assert result.rev1 == expect_rev1
         assert result.rev2 == expect_rev2
-        assert result.use_common_ancestor
+        assert result.use_common_ancestor == expect_use_common_ancestor
 
 
 edited_linenums_differ_cases = pytest.mark.parametrize(
