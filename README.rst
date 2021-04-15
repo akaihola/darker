@@ -648,6 +648,8 @@ Thanks goes to these wonderful people (`emoji key`_):
                <br />
                <a href="https://github.com/akaihola/darker/pulls?q=is%3Apr+author%3APacu2"
                   title="Code">💻</a>
+               <a href="https://github.com/akaihola/darker/pulls?q=is%3Apr+reviewed-by%3APacu2"
+                  title="Reviewed Pull Requests">👀</a>
            </td>
            <td align="center">
                <a href="https://github.com/philipgian">
