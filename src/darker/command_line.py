@@ -1,7 +1,7 @@
 from argparse import ArgumentParser, Namespace
-from typing import List, Tuple
+from typing import Any, List, Optional, Text, Tuple
 
-import darker.help
+from darker import help as hlp
 from darker.argparse_helpers import LogLevelAction, NewlinePreservingFormatter
 from darker.config import (
     DarkerConfig,
@@ -20,73 +20,46 @@ def make_argument_parser(require_src: bool) -> ArgumentParser:
 
     """
     parser = ArgumentParser(
-        description="\n".join(darker.help.DESCRIPTION),
-        formatter_class=NewlinePreservingFormatter,
+        description=hlp.DESCRIPTION, formatter_class=NewlinePreservingFormatter
     )
     parser.register("action", "log_level", LogLevelAction)
-    parser.add_argument(
-        "src",
-        nargs="+" if require_src else "*",
-        help=darker.help.SRC,
-        metavar="PATH",
-    )
-    parser.add_argument("-r", "--revision", default="HEAD", help=darker.help.REVISION)
-    parser.add_argument("--diff", action="store_true", help=darker.help.DIFF)
-    parser.add_argument("--check", action="store_true", help=darker.help.CHECK)
-    parser.add_argument("-i", "--isort", action="store_true", help=darker.help.ISORT)
-    parser.add_argument(
-        "-L",
-        "--lint",
-        action="append",
-        metavar="CMD",
-        default=[],
-        help=darker.help.LINT,
-    )
-    parser.add_argument("-c", "--config", metavar="PATH", help=darker.help.CONFIG)
-    parser.add_argument(
+
+    def add_arg(help_text: Optional[Text], *name_or_flags: Text, **kwargs: Any) -> None:
+        kwargs["help"] = help_text
+        parser.add_argument(*name_or_flags, **kwargs)
+
+    add_arg(hlp.SRC, "src", nargs="+" if require_src else "*", metavar="PATH")
+    add_arg(hlp.REVISION, "-r", "--revision", default="HEAD")
+    add_arg(hlp.DIFF, "--diff", action="store_true")
+    add_arg(hlp.CHECK, "--check", action="store_true")
+    add_arg(hlp.ISORT, "-i", "--isort", action="store_true")
+    add_arg(hlp.LINT, "-L", "--lint", action="append", metavar="CMD", default=[])
+    add_arg(hlp.CONFIG, "-c", "--config", metavar="PATH")
+    add_arg(
+        hlp.VERBOSE,
         "-v",
         "--verbose",
-        dest="log_level",
         action="log_level",
+        dest="log_level",
         const=-10,
-        help=darker.help.VERBOSE,
     )
-    parser.add_argument(
-        "-q",
-        "--quiet",
-        dest="log_level",
-        action="log_level",
-        const=10,
-        help=darker.help.QUIET,
-    )
-    parser.add_argument(
-        "--version",
-        action="version",
-        version=__version__,
-        help=darker.help.VERSION,
-    )
-    parser.add_argument(
+    add_arg(hlp.QUIET, "-q", "--quiet", action="log_level", dest="log_level", const=10)
+    add_arg(hlp.VERSION, "--version", action="version", version=__version__)
+    add_arg(
+        hlp.SKIP_STRING_NORMALIZATION,
         "-S",
         "--skip-string-normalization",
         action="store_const",
         const=True,
-        dest="skip_string_normalization",
-        help=darker.help.SKIP_STRING_NORMALIZATION,
     )
-    parser.add_argument(
+    add_arg(
+        hlp.NO_SKIP_STRING_NORMALIZATION,
         "--no-skip-string-normalization",
         action="store_const",
-        const=False,
         dest="skip_string_normalization",
-        help=darker.help.NO_SKIP_STRING_NORMALIZATION,
+        const=False,
     )
-    parser.add_argument(
-        "-l",
-        "--line-length",
-        type=int,
-        dest="line_length",
-        help=darker.help.LINE_LENGTH,
-    )
+    add_arg(hlp.LINE_LENGTH, "-l", "--line-length", type=int, dest="line_length")
     return parser
 
 
