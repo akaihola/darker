@@ -18,7 +18,7 @@ def make_pypi_compliant_readme() -> str:
     :return: The contents of a PyPI compliant ``README.rst``
 
     """
-    with open("README.rst") as fp:
+    with open("README.rst", encoding="utf-8") as fp:
         original_readme = fp.read()
     modified_readme = CONTRIBUTORS_RE.sub(
         "\nSee README.rst_ for the list of contributors.\n\nThis project follows ",

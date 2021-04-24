@@ -11,6 +11,7 @@ Fixed
 -----
 - Compatibility with MyPy 0.812
 - Keep newline character sequence and text encoding intact when modifying files
+- Installation now works on Windows
 
 
 1.2.2_ - 2020-12-30
