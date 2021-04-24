@@ -8,10 +8,11 @@ from typing import Generator, Iterable, List, Tuple
 
 from darker.black_diff import BlackArgs, run_black
 from darker.chooser import choose_lines
-from darker.command_line import ISORT_INSTRUCTION, parse_command_line
+from darker.command_line import parse_command_line
 from darker.config import dump_config
 from darker.diff import diff_and_get_opcodes, opcodes_to_chunks
 from darker.git import EditedLinenumsDiffer, RevisionRange, git_get_modified_files
+from darker.help import ISORT_INSTRUCTION
 from darker.import_sorting import apply_isort, isort
 from darker.linting import run_linter
 from darker.utils import TextDocument, get_common_root
