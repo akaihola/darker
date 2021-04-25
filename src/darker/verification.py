@@ -21,5 +21,5 @@ def verify_ast_unchanged(
     try:
         assert_equivalent(edited_to_file.string, reformatted.string)
     except AssertionError as exc_info:
-        debug_dump(black_chunks, edited_to_file, reformatted, edited_linenums)
+        debug_dump(black_chunks, edited_linenums)
         raise NotEquivalentError(str(exc_info))

@@ -16,12 +16,7 @@ from darker.utils import (
 
 
 def test_debug_dump(capsys):
-    debug_dump(
-        [(1, ("black",), ("chunks",))],
-        TextDocument.from_str("old content"),
-        TextDocument.from_str("new content"),
-        [2, 3],
-    )
+    debug_dump([(1, ("black",), ("chunks",))], [2, 3])
     assert capsys.readouterr().out == (
         dedent(
             """\
