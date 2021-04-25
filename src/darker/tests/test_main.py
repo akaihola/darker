@@ -156,51 +156,74 @@ def test_format_edited_parts_all_unchanged(git_repo, monkeypatch):
     assert result == []
 
 
-def test_format_edited_parts_lint(git_repo):
-    """Unit test for ``format_edited_parts`` with linters"""
-    paths = git_repo.add({"a.py": "pass\n"}, commit="Initial commit")
-    paths["a.py"].write_bytes(b'"properly"\n"formatted"\n')
+def test_run_linters():
+    """Unit test for ``run_linters()``"""
     with patch.object(darker.__main__, "run_linter") as run_linter:
 
-        _ = list(
-            darker.__main__.format_edited_parts(
-                [Path("a.py")],
-                RevisionRange("HEAD"),
-                False,
-                ["linter1", "linter2 command line"],
-                {},
-            )
+        result = darker.__main__.run_linters(
+            ["linter1", "linter2 command line"],
+            "dummy git_root",
+            "dummy paths",
+            "dummy revrange",
         )
 
         assert run_linter.call_args_list == [
-            call("linter1", git_repo.root, {Path("a.py")}, RevisionRange("HEAD")),
+            call("linter1", "dummy git_root", "dummy paths", "dummy revrange"),
             call(
                 "linter2 command line",
-                git_repo.root,
-                {Path("a.py")},
-                RevisionRange("HEAD"),
+                "dummy git_root",
+                "dummy paths",
+                "dummy revrange",
             ),
         ]
+        assert result
 
 
-@pytest.mark.parametrize(
-    'arguments, expect_stdout, expect_a_py, expect_retval',
-    [
-        (['--diff'], A_PY_DIFF_BLACK, A_PY, 0),
-        (['--isort'], [''], A_PY_BLACK_ISORT, 0),
-        (
-            ['--skip-string-normalization', '--diff'],
-            A_PY_DIFF_BLACK_NO_STR_NORMALIZE,
-            A_PY,
-            0,
-        ),
-        ([], [''], A_PY_BLACK, 0),
-        (['--isort', '--diff'], A_PY_DIFF_BLACK_ISORT, A_PY, 0),
-        (['--check'], [''], A_PY, 1),
-        (['--check', '--diff'], A_PY_DIFF_BLACK, A_PY, 1),
-        (['--check', '--isort'], [''], A_PY, 1),
-        (['--check', '--diff', '--isort'], A_PY_DIFF_BLACK_ISORT, A_PY, 1),
-    ],
+@pytest.mark.kwparametrize(
+    dict(
+        arguments=["--diff"],
+        expect_stdout=A_PY_DIFF_BLACK,
+        expect_a_py=A_PY,
+        expect_retval=0,
+    ),
+    dict(
+        arguments=["--isort"],
+        expect_stdout=[""],
+        expect_a_py=A_PY_BLACK_ISORT,
+        expect_retval=0,
+    ),
+    dict(
+        arguments=["--skip-string-normalization", "--diff"],
+        expect_stdout=A_PY_DIFF_BLACK_NO_STR_NORMALIZE,
+        expect_a_py=A_PY,
+        expect_retval=0,
+    ),
+    dict(arguments=[], expect_stdout=[""], expect_a_py=A_PY_BLACK, expect_retval=0),
+    dict(
+        arguments=["--isort", "--diff"],
+        expect_stdout=A_PY_DIFF_BLACK_ISORT,
+        expect_a_py=A_PY,
+        expect_retval=0,
+    ),
+    dict(arguments=["--check"], expect_stdout=[""], expect_a_py=A_PY, expect_retval=1),
+    dict(
+        arguments=["--check", "--diff"],
+        expect_stdout=A_PY_DIFF_BLACK,
+        expect_a_py=A_PY,
+        expect_retval=1,
+    ),
+    dict(
+        arguments=["--check", "--isort"],
+        expect_stdout=[""],
+        expect_a_py=A_PY,
+        expect_retval=1,
+    ),
+    dict(
+        arguments=["--check", "--diff", "--isort"],
+        expect_stdout=A_PY_DIFF_BLACK_ISORT,
+        expect_a_py=A_PY,
+        expect_retval=1,
+    ),
 )
 @pytest.mark.parametrize("newline", ["\n", "\r\n"], ids=["unix", "windows"])
 def test_main(
