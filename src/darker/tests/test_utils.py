@@ -1,5 +1,6 @@
 """Unit tests for :mod:`darker.utils`"""
 
+import logging
 import os
 from pathlib import Path
 from textwrap import dedent
@@ -15,7 +16,9 @@ from darker.utils import (
 )
 
 
-def test_debug_dump(capsys):
+def test_debug_dump(caplog, capsys):
+    """darker.utils.debug_dump()"""
+    caplog.set_level(logging.DEBUG)
     debug_dump([(1, ("black",), ("chunks",))], [2, 3])
     assert capsys.readouterr().out == (
         dedent(
