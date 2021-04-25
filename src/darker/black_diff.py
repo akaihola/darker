@@ -3,8 +3,9 @@
 In examples below, a simple two-line snippet is used.
 The first line will be reformatted by Black, and the second left intact::
 
+    >>> from pathlib import Path
     >>> from unittest.mock import Mock
-    >>> src = Mock()
+    >>> src = Path("dummy/file/path.py")
     >>> src_content = TextDocument.from_lines(
     ...     [
     ...         "for i in range(5): print(i)",
@@ -17,9 +18,7 @@ Reformatted lines are returned e.g.::
 
     >>> dst = run_black(src, src_content, black_args={})
     >>> dst.lines
-    ('for i in range(5):',
-     '    print(i)',
-     'print("done")')
+    ('for i in range(5):', '    print(i)', 'print("done")')
 
 See :mod:`darker.diff` and :mod:`darker.chooser`
 for how this result is further processed with:
