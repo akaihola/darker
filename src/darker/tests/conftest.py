@@ -42,6 +42,10 @@ class GitRepoFixture:
         """Helper method to run a Git command line in the repository root"""
         check_call(["git"] + list(args), cwd=self.root)
 
+    def _run_and_get_first_line(self, *args: str) -> str:
+        """Helper method to run Git in repo root and return first line of output"""
+        return _git_check_output_lines(list(args), Path(self.root))[0]
+
     def add(
         self, paths_and_contents: Dict[str, Optional[str]], commit: str = None
     ) -> Dict[str, LocalPath]:
@@ -71,8 +75,7 @@ class GitRepoFixture:
 
     def get_hash(self, revision: str = "HEAD") -> str:
         """Return the commit hash at the given revision in the Git repository"""
-        lines = _git_check_output_lines(["rev-parse", revision], Path(self.root))
-        return lines[0]
+        return self._run_and_get_first_line("rev-parse", revision)
 
     def create_branch(self, new_branch: str, start_point: str) -> None:
         """Fixture method to create and check out new branch at given starting point"""
