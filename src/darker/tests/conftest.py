@@ -71,7 +71,7 @@ class GitRepoFixture:
 
     def get_hash(self, revision: str = "HEAD") -> str:
         """Return the commit hash at the given revision in the Git repository"""
-        lines = _git_check_output_lines(["git", "rev-parse", revision], Path(self.root))
+        lines = _git_check_output_lines(["rev-parse", revision], Path(self.root))
         return lines[0]
 
     def create_branch(self, new_branch: str, start_point: str) -> None:

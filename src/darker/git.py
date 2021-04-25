@@ -131,7 +131,7 @@ def _git_check_output_lines(cmd: List[str], cwd: Path) -> List[str]:
     """Log command line, run Git, split stdout to lines, exit with 123 on error"""
     logger.debug("[%s]$ %s", cwd, " ".join(cmd))
     try:
-        return check_output(cmd, cwd=str(cwd)).decode("utf-8").splitlines()
+        return check_output(["git"] + cmd, cwd=str(cwd)).decode("utf-8").splitlines()
     except CalledProcessError as exc_info:
         if exc_info.returncode == 128:
             # Bad revision or another Git failure
@@ -159,12 +159,11 @@ def git_get_modified_files(
     str_paths = [str(path) for path in relative_paths]
     if revrange.use_common_ancestor:
         rev2 = "HEAD" if revrange.rev2 == WORKTREE else revrange.rev2
-        merge_base_cmd = ["git", "merge-base", revrange.rev1, rev2]
+        merge_base_cmd = ["merge-base", revrange.rev1, rev2]
         rev1 = _git_check_output_lines(merge_base_cmd, cwd)[0]
     else:
         rev1 = revrange.rev1
     diff_cmd = [
-        "git",
         "diff",
         "--name-only",
         "--relative",
@@ -178,7 +177,6 @@ def git_get_modified_files(
     lines = _git_check_output_lines(diff_cmd, cwd)
     if revrange.rev2 == WORKTREE:
         ls_files_cmd = [
-            "git",
             "ls-files",
             "--others",
             "--exclude-standard",
