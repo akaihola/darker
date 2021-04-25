@@ -106,12 +106,8 @@ class RevisionRange:
                     use_common_ancestor=True,
                 )
             except KeyError:
-                logger.error(
-                    "The environment variables PRE_COMMIT_FROM_REF and"
-                    " PRE_COMMIT_TO_REF must be defined when using -r / --revision"
-                    " :PRE-COMMIT:"
-                )
-                sys.exit(123)
+                # Fallback to running against HEAD
+                revision_range = "HEAD"
         match = COMMIT_RANGE_RE.match(revision_range)
         if match:
             rev1, range_dots, rev2 = match.groups()
