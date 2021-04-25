@@ -122,3 +122,24 @@ def test_run_linter_non_worktree():
             {Path("dummy.py")},
             RevisionRange.parse("..HEAD"),
         )
+
+
+@pytest.mark.parametrize(
+    "location, expect",
+    [
+        ("", 0),
+        ("test.py:1:", 1),
+        ("test.py:2:", 0),
+    ],
+)
+def test_run_linter_return_value(git_repo, location, expect):
+    """``run_linter()`` returns the number of linter errors on modified lines"""
+    src_paths = git_repo.add({"test.py": "1\n2\n"}, commit="Initial commit")
+    src_paths["test.py"].write_bytes(b"one\n2\n")
+    cmdline = f"echo {location}"
+
+    result = run_linter(
+        cmdline, Path(git_repo.root), {Path("test.py")}, RevisionRange("HEAD")
+    )
+
+    assert result == expect

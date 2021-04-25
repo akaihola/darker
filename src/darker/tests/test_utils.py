@@ -37,6 +37,13 @@ def test_joinlines():
     assert result == "a\nb\nc\n"
 
 
+def test_get_common_root_empty():
+    """``get_common_root()`` raises a ``ValueError`` if ``paths`` argument is empty"""
+    with pytest.raises(ValueError):
+
+        get_common_root([])
+
+
 def test_get_common_root(tmpdir):
     tmpdir = Path(tmpdir)
     path1 = tmpdir / "a" / "b" / "c" / "d"

@@ -22,7 +22,7 @@ provided that the ``<linenum>`` falls on a changed line.
 import logging
 from pathlib import Path
 from subprocess import PIPE, Popen
-from typing import Set, Tuple, Union
+from typing import Optional, Set, Tuple, Union
 
 from darker.git import WORKTREE, EditedLinenumsDiffer, RevisionRange
 
@@ -60,22 +60,25 @@ def _parse_linter_line(
 
 def run_linter(
     cmdline: str, git_root: Path, paths: Set[Path], revrange: RevisionRange
-) -> None:
+) -> Optional[int]:
     """Run the given linter and print linting errors falling on changed lines
 
     :param cmdline: The command line for running the linter
     :param git_root: The repository root for the changed files
     :param paths: Paths of files to check, relative to ``git_root``
     :param revrange: The Git revision rango to compare
+    :return: The number of modified lines with linting errors from this linter, or
+             ``None`` if there are no paths to check
 
     """
     if not paths:
-        return
+        return None
     if revrange.rev2 is not WORKTREE:
         raise NotImplementedError(
             "Linting arbitrary commits is not supported. "
             "Please use -r {<rev>|<rev>..|<rev>...} instead."
         )
+    error_count = 0
     linter_process = Popen(
         cmdline.split() + [str(git_root / path) for path in sorted(paths)],
         stdout=PIPE,
@@ -93,3 +96,5 @@ def run_linter(
         )
         if linter_error_linenum in edited_linenums:
             print(line, end="")
+            error_count += 1
+    return error_count

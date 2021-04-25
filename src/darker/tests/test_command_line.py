@@ -343,44 +343,67 @@ def test_black_options_skip_string_normalization(git_repo, config, options, expe
     assert mode_class_mock.call_args_list == [expect]
 
 
-@pytest.mark.parametrize(
-    'options, expect',
-    [
-        (["a.py"], ({Path("a.py")}, RevisionRange("HEAD"), False, [], {})),
-        (["--isort", "a.py"], ({Path("a.py")}, RevisionRange("HEAD"), True, [], {})),
-        (
-            ["--config", "my.cfg", "a.py"],
-            ({Path("a.py")}, RevisionRange("HEAD"), False, [], {"config": "my.cfg"}),
+@pytest.mark.kwparametrize(
+    dict(
+        options=["a.py"],
+        # Expected arguments to the `format_edited_parts()` call.
+        # `Path("git_root")` will be replaced with the temporary Git repository root:
+        expect=(Path("git_root"), {Path("a.py")}, RevisionRange("HEAD"), False, {}),
+    ),
+    dict(
+        options=["--isort", "a.py"],
+        expect=(Path("git_root"), {Path("a.py")}, RevisionRange("HEAD"), True, {}),
+    ),
+    dict(
+        options=["--config", "my.cfg", "a.py"],
+        expect=(
+            Path("git_root"),
+            {Path("a.py")},
+            RevisionRange("HEAD"),
+            False,
+            {"config": "my.cfg"},
         ),
-        (
-            ["--line-length", "90", "a.py"],
-            ({Path("a.py")}, RevisionRange("HEAD"), False, [], {"line_length": 90}),
+    ),
+    dict(
+        options=["--line-length", "90", "a.py"],
+        expect=(
+            Path("git_root"),
+            {Path("a.py")},
+            RevisionRange("HEAD"),
+            False,
+            {"line_length": 90},
         ),
-        (
-            ["--skip-string-normalization", "a.py"],
-            (
-                {Path("a.py")},
-                RevisionRange("HEAD"),
-                False,
-                [],
-                {"skip_string_normalization": True},
-            ),
+    ),
+    dict(
+        options=["--skip-string-normalization", "a.py"],
+        expect=(
+            Path("git_root"),
+            {Path("a.py")},
+            RevisionRange("HEAD"),
+            False,
+            {"skip_string_normalization": True},
         ),
-        (["--diff", "a.py"], ({Path("a.py")}, RevisionRange("HEAD"), False, [], {})),
-    ],
+    ),
+    dict(
+        options=["--diff", "a.py"],
+        expect=(Path("git_root"), {Path("a.py")}, RevisionRange("HEAD"), False, {}),
+    ),
 )
-def test_options(tmpdir, monkeypatch, options, expect):
+def test_options(git_repo, options, expect):
     """The main engine is called with correct parameters based on the command line
 
     Executed in a clean directory so Darker's own ``pyproject.toml`` doesn't interfere.
 
     """
-    monkeypatch.chdir(tmpdir)
-    (tmpdir / "my.cfg").write("")
+    paths = git_repo.add(
+        {"a.py": "1\n", "b.py": "2\n", "my.cfg": ""}, commit="Initial commit"
+    )
+    paths["a.py"].write_bytes(b"one\n")
     with patch('darker.__main__.format_edited_parts') as format_edited_parts:
 
         retval = main(options)
 
+    expect = (Path(git_repo.root), expect[1]) + expect[2:]
     format_edited_parts.assert_called_once_with(*expect)
     assert retval == 0
 
