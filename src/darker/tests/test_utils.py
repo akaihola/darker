@@ -294,7 +294,7 @@ def test_textdocument_mtime(document, expect):
 def test_textdocument_from_file(tmp_path):
     """TextDocument.from_file()"""
     dummy_txt = tmp_path / "dummy.txt"
-    dummy_txt.write_text("# coding: iso-8859-1\r\ndummy\r\ncontent\r\n")
+    dummy_txt.write_bytes(b"# coding: iso-8859-1\r\ndummy\r\ncontent\r\n")
     os.utime(dummy_txt, (1_000_000_000, 1_000_000_000))
 
     document = TextDocument.from_file(dummy_txt)
