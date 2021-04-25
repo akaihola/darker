@@ -42,20 +42,24 @@ from darker.tests.helpers import raises_if_exception
 @pytest.mark.parametrize(
     "revision, worktree_content, expect",
     [
-        ("", "USERMOD=1\n", ["+1", "+1M0", "+2-1", "+2", "+2M1-0", "+2M1"]),
-        ("", "ORIGINAL=1\n", ["+1M0", "+2-1", "+2M1-0", "+2M1"]),
-        ("", "MODIFIED=1\n", ["+1", "+2-1", "+2", "+2M1-0"]),
-        ("HEAD", "USERMOD=1\n", ["+1", "+1M0", "+2-1", "+2", "+2M1-0", "+2M1"]),
-        ("HEAD", "ORIGINAL=1\n", ["+1M0", "+2-1", "+2M1-0", "+2M1"],),
-        ("HEAD", "MODIFIED=1\n", ["+1", "+2-1", "+2", "+2M1-0"]),
-        ("HEAD^", "USERMOD=1\n", ["+1", "+1M0", "+2-1", "+2", "+2M1-0", "+2M1"]),
-        ("HEAD^", "USERMOD=1\n", ["+1", "+1M0", "+2-1", "+2", "+2M1-0", "+2M1"]),
-        ("HEAD^", "ORIGINAL=1\n", ["+2-1", "+2M1-0", "+2M1"]),
-        ("HEAD^", "MODIFIED=1\n", ["+1", "+1M0", "+2-1", "+2"]),
-        ("HEAD~2", "USERMOD=1\n", ["+1", "+1M0", "+2-1", "+2", "+2M1-0", "+2M1"]),
-        ("HEAD~2", "ORIGINAL=1\n", ["+1", "+1M0"]),
-        ("HEAD~2", "MODIFIED=1\n", ["+1", "+1M0", "+2-1", "+2", "+2M1-0", "+2M1"]),
-        ("HEAD~3", "USERMOD=1\n", SystemExit),
+        ("", b"USERMOD=1\n", ["+1", "+1M0", "+2-1", "+2", "+2M1-0", "+2M1"]),
+        ("", b"ORIGINAL=1\n", ["+1M0", "+2-1", "+2M1-0", "+2M1"]),
+        ("", b"MODIFIED=1\n", ["+1", "+2-1", "+2", "+2M1-0"]),
+        ("HEAD", b"USERMOD=1\n", ["+1", "+1M0", "+2-1", "+2", "+2M1-0", "+2M1"]),
+        (
+            "HEAD",
+            b"ORIGINAL=1\n",
+            ["+1M0", "+2-1", "+2M1-0", "+2M1"],
+        ),
+        ("HEAD", b"MODIFIED=1\n", ["+1", "+2-1", "+2", "+2M1-0"]),
+        ("HEAD^", b"USERMOD=1\n", ["+1", "+1M0", "+2-1", "+2", "+2M1-0", "+2M1"]),
+        ("HEAD^", b"USERMOD=1\n", ["+1", "+1M0", "+2-1", "+2", "+2M1-0", "+2M1"]),
+        ("HEAD^", b"ORIGINAL=1\n", ["+2-1", "+2M1-0", "+2M1"]),
+        ("HEAD^", b"MODIFIED=1\n", ["+1", "+1M0", "+2-1", "+2"]),
+        ("HEAD~2", b"USERMOD=1\n", ["+1", "+1M0", "+2-1", "+2", "+2M1-0", "+2M1"]),
+        ("HEAD~2", b"ORIGINAL=1\n", ["+1", "+1M0"]),
+        ("HEAD~2", b"MODIFIED=1\n", ["+1", "+1M0", "+2-1", "+2", "+2M1-0", "+2M1"]),
+        ("HEAD~3", b"USERMOD=1\n", SystemExit),
     ],
 )
 def test_revision(git_repo, monkeypatch, capsys, revision, worktree_content, expect):
@@ -89,7 +93,7 @@ def test_revision(git_repo, monkeypatch, capsys, revision, worktree_content, exp
     )
     # Working tree:
     for path in paths.values():
-        path.write(worktree_content)
+        path.write_bytes(worktree_content)
     arguments = ["--diff", "--revision", revision, "."]
 
     with raises_if_exception(expect):

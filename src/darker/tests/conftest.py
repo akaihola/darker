@@ -9,7 +9,6 @@ from unittest.mock import patch
 
 import pytest
 from black import find_project_root
-from py.path import local as LocalPath
 
 from darker.git import _git_check_output_lines
 
@@ -27,11 +26,11 @@ def with_isort():
 
 
 class GitRepoFixture:
-    def __init__(self, root: LocalPath):
+    def __init__(self, root: Path):
         self.root = root
 
     @classmethod
-    def create_repository(cls, root: LocalPath) -> "GitRepoFixture":
+    def create_repository(cls, root: Path) -> "GitRepoFixture":
         """Fixture method for creating a Git repository in the given directory"""
         check_call(["git", "init"], cwd=root)
         check_call(["git", "config", "user.email", "ci@example.com"], cwd=root)
@@ -48,7 +47,7 @@ class GitRepoFixture:
 
     def add(
         self, paths_and_contents: Dict[str, Optional[str]], commit: str = None
-    ) -> Dict[str, LocalPath]:
+    ) -> Dict[str, Path]:
         """Add/remove/modify files and optionally commit the changes
 
         :param paths_and_contents: Paths of the files relative to repository root, and
@@ -67,7 +66,8 @@ class GitRepoFixture:
             if content is None:
                 self._run("rm", "--", relative_path)
             else:
-                path.write(content, ensure=True)
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_bytes(content.encode("utf-8"))
                 self._run("add", "--", relative_path)
         if commit:
             self._run("commit", "-m", commit)
@@ -83,10 +83,10 @@ class GitRepoFixture:
 
 
 @pytest.fixture
-def git_repo(tmpdir, monkeypatch):
+def git_repo(tmp_path, monkeypatch):
     """Create a temporary Git repository and change current working directory into it"""
-    repository = GitRepoFixture.create_repository(tmpdir)
-    monkeypatch.chdir(tmpdir)
+    repository = GitRepoFixture.create_repository(tmp_path)
+    monkeypatch.chdir(tmp_path)
     return repository
 
 

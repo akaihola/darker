@@ -67,7 +67,7 @@ def test_git_get_content_at_revision(git_repo, revision, expect):
     """darker.git.git_get_content_at_revision()"""
     git_repo.add({"my.txt": "original content"}, commit="Initial commit")
     paths = git_repo.add({"my.txt": "modified content"}, commit="Initial commit")
-    paths["my.txt"].write("new content")
+    paths["my.txt"].write_bytes(b"new content")
 
     original = git_get_content_at_revision(
         Path("my.txt"), revision, cwd=Path(git_repo.root)
@@ -223,9 +223,10 @@ def test_git_get_modified_files(git_repo, modify_paths, paths, expect):
     for path, content in modify_paths.items():
         absolute_path = git_repo.root / path
         if content is None:
-            absolute_path.remove()
+            absolute_path.unlink()
         else:
-            absolute_path.write(content, ensure=True)
+            absolute_path.parent.mkdir(parents=True, exist_ok=True)
+            absolute_path.write_bytes(content.encode("ascii"))
 
     result = git_get_modified_files(
         {root / p for p in paths}, RevisionRange("HEAD"), cwd=root
@@ -235,7 +236,7 @@ def test_git_get_modified_files(git_repo, modify_paths, paths, expect):
 
 
 @pytest.fixture(scope="module")
-def branched_repo(tmpdir_factory):
+def branched_repo(tmp_path_factory):
     """Create an example Git repository with a master branch and a feature branch
 
     The history created is::
@@ -248,7 +249,7 @@ def branched_repo(tmpdir_factory):
         * Initial commit
 
     """
-    tmpdir = tmpdir_factory.mktemp("branched_repo")
+    tmpdir = tmp_path_factory.mktemp("branched_repo")
     git_repo = GitRepoFixture.create_repository(tmpdir)
     git_repo.add(
         {
@@ -288,9 +289,9 @@ def branched_repo(tmpdir_factory):
     git_repo.add(
         {"del_index.py": None, "add_index.py": "index", "mod_index.py": "index"}
     )
-    (git_repo.root / "del_worktree.py").remove()
-    (git_repo.root / "add_worktree.py").write_binary(b"worktree")
-    (git_repo.root / "mod_worktree.py").write_binary(b"worktree")
+    (git_repo.root / "del_worktree.py").unlink()
+    (git_repo.root / "add_worktree.py").write_bytes(b"worktree")
+    (git_repo.root / "mod_worktree.py").write_bytes(b"worktree")
     return git_repo
 
 
@@ -430,7 +431,7 @@ edited_linenums_differ_cases = pytest.mark.parametrize(
 def test_edited_linenums_differ_revision_vs_worktree(git_repo, context_lines, expect):
     """Tests for EditedLinenumsDiffer.revision_vs_worktree()"""
     paths = git_repo.add({"a.py": "1\n2\n3\n4\n5\n6\n7\n8\n"}, commit="Initial commit")
-    paths["a.py"].write("1\n2\nthree\n4\n5\n6\nseven\n8\n")
+    paths["a.py"].write_bytes(b"1\n2\nthree\n4\n5\n6\nseven\n8\n")
     differ = EditedLinenumsDiffer(Path(git_repo.root), RevisionRange("HEAD"))
 
     result = differ.compare_revisions(Path("a.py"), context_lines)

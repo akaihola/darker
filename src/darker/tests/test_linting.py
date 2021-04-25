@@ -96,7 +96,7 @@ def test_run_linter(git_repo, monkeypatch, capsys, _descr, paths, location, expe
 
     """
     src_paths = git_repo.add({"test.py": "1\n2\n"}, commit="Initial commit")
-    src_paths["test.py"].write("one\n2\n")
+    src_paths["test.py"].write_bytes(b"one\n2\n")
     monkeypatch.chdir(git_repo.root)
     cmdline = f"echo {location}"
 
