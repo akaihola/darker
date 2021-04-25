@@ -1,4 +1,5 @@
 import re
+from importlib import reload
 from pathlib import Path
 from textwrap import dedent
 from unittest.mock import DEFAULT, Mock, call, patch
@@ -6,6 +7,7 @@ from unittest.mock import DEFAULT, Mock, call, patch
 import pytest
 import toml
 
+import darker.help
 from darker import black_diff
 from darker.__main__ import main
 from darker.command_line import make_argument_parser, parse_command_line
@@ -29,6 +31,10 @@ def test_make_argument_parser(require_src, expect):
 
 @pytest.fixture
 def darker_help_output(capsys):
+    """Test for ``--help`` option output"""
+    # Make sure the description is re-rendered since its content depends on whether
+    # isort is installed or not:
+    reload(darker.help)
     with pytest.raises(SystemExit):
         parse_command_line(["--help"])
     return re.sub(r'\s+', ' ', capsys.readouterr().out)
