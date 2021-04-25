@@ -1,11 +1,14 @@
 """Miscellaneous utility functions"""
 
 import io
+import logging
 import tokenize
 from datetime import datetime
 from itertools import chain
 from pathlib import Path
 from typing import Iterable, List, Tuple, Union
+
+logger = logging.getLogger(__name__)
 
 TextLines = Tuple[str, ...]
 
@@ -157,13 +160,10 @@ class TextDocument:
 DiffChunk = Tuple[int, TextLines, TextLines]
 
 
-def debug_dump(
-    black_chunks: List[DiffChunk],
-    old_content: TextDocument,
-    new_content: TextDocument,
-    edited_linenums: List[int],
-) -> None:
+def debug_dump(black_chunks: List[DiffChunk], edited_linenums: List[int]) -> None:
     """Print debug output. This is used in case of an unexpected failure."""
+    if logger.getEffectiveLevel() > logging.DEBUG:
+        return
     for offset, old_lines, new_lines in black_chunks:
         print(80 * "-")
         for delta, old_line in enumerate(old_lines):
