@@ -183,47 +183,40 @@ def test_run_linters():
     dict(
         arguments=["--diff"],
         expect_stdout=A_PY_DIFF_BLACK,
-        expect_a_py=A_PY,
-        expect_retval=0,
     ),
     dict(
         arguments=["--isort"],
-        expect_stdout=[""],
         expect_a_py=A_PY_BLACK_ISORT,
-        expect_retval=0,
     ),
     dict(
         arguments=["--skip-string-normalization", "--diff"],
         expect_stdout=A_PY_DIFF_BLACK_NO_STR_NORMALIZE,
-        expect_a_py=A_PY,
-        expect_retval=0,
     ),
     dict(arguments=[], expect_stdout=[""], expect_a_py=A_PY_BLACK, expect_retval=0),
     dict(
         arguments=["--isort", "--diff"],
         expect_stdout=A_PY_DIFF_BLACK_ISORT,
-        expect_a_py=A_PY,
-        expect_retval=0,
     ),
     dict(arguments=["--check"], expect_stdout=[""], expect_a_py=A_PY, expect_retval=1),
     dict(
         arguments=["--check", "--diff"],
         expect_stdout=A_PY_DIFF_BLACK,
-        expect_a_py=A_PY,
         expect_retval=1,
     ),
     dict(
         arguments=["--check", "--isort"],
-        expect_stdout=[""],
-        expect_a_py=A_PY,
         expect_retval=1,
     ),
     dict(
         arguments=["--check", "--diff", "--isort"],
         expect_stdout=A_PY_DIFF_BLACK_ISORT,
-        expect_a_py=A_PY,
         expect_retval=1,
     ),
+    # for all test cases, by default there's no output, `a.py` stays unmodified, and the
+    # return value is a zero:
+    expect_stdout=[""],
+    expect_a_py=A_PY,
+    expect_retval=0,
 )
 @pytest.mark.parametrize("newline", ["\n", "\r\n"], ids=["unix", "windows"])
 def test_main(
