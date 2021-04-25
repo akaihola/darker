@@ -9,6 +9,8 @@ from unittest.mock import patch
 import pytest
 
 from darker.git import (
+    COMMIT_RANGE_RE,
+    WORKTREE,
     EditedLinenumsDiffer,
     RevisionRange,
     git_get_content_at_revision,
@@ -18,6 +20,35 @@ from darker.git import (
 from darker.tests.conftest import GitRepoFixture
 from darker.tests.helpers import raises_if_exception
 from darker.utils import TextDocument
+
+
+@pytest.mark.parametrize(
+    "revision_range, expect",
+    [
+        ("", None),
+        ("..", ("", "..", "")),
+        ("...", ("", "...", "")),
+        ("a..", ("a", "..", "")),
+        ("a...", ("a", "...", "")),
+        ("a..b", ("a", "..", "b")),
+        ("a...b", ("a", "...", "b")),
+        ("..b", ("", "..", "b")),
+        ("...b", ("", "...", "b")),
+    ],
+)
+def test_commit_range_re(revision_range, expect):
+    """Test for ``COMMIT_RANGE_RE``"""
+    match = COMMIT_RANGE_RE.match(revision_range)
+    if expect is None:
+        assert match is None
+    else:
+        assert match is not None
+        assert match.groups() == expect
+
+
+def test_worktree_symbol():
+    """Test for the ``WORKTREE`` symbol"""
+    assert WORKTREE == ":WORKTREE:"
 
 
 @pytest.mark.parametrize(
@@ -40,6 +71,28 @@ def test_git_get_content_at_revision(git_repo, revision, expect):
     )
 
     assert original.lines == expect
+
+
+@pytest.mark.parametrize(
+    "revision_range, expect",
+    [
+        ("", ("HEAD", ":WORKTREE:", False)),
+        ("HEAD", ("HEAD", ":WORKTREE:", False)),
+        ("a", ("a", ":WORKTREE:", True)),
+        ("a..", ("a", ":WORKTREE:", False)),
+        ("a...", ("a", ":WORKTREE:", True)),
+        ("..HEAD", ("HEAD", "HEAD", False)),
+        ("...HEAD", ("HEAD", "HEAD", True)),
+        ("a..HEAD", ("a", "HEAD", False)),
+        ("a...HEAD", ("a", "HEAD", True)),
+        ("a..b", ("a", "b", False)),
+        ("a...b", ("a", "b", True)),
+    ],
+)
+def test_revisionrange_parse(revision_range, expect):
+    """Test for :meth:`RevisionRange.parse`"""
+    revrange = RevisionRange.parse(revision_range)
+    assert (revrange.rev1, revrange.rev2, revrange.use_common_ancestor) == expect
 
 
 @pytest.mark.parametrize(
