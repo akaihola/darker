@@ -231,7 +231,7 @@ def test_git_get_modified_files(git_repo, modify_paths, paths, expect):
         {root / p for p in paths}, RevisionRange("HEAD"), cwd=root
     )
 
-    assert {str(p) for p in result} == set(expect)
+    assert result == {Path(p) for p in expect}
 
 
 @pytest.fixture(scope="module")
