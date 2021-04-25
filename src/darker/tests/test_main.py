@@ -248,8 +248,10 @@ def test_main_encoding(git_repo, encoding, text, newline):
     assert result == b"".join(expect)
 
 
-def test_output_diff(capsys):
+def test_output_diff(tmp_path, monkeypatch, capsys):
     """output_diff() prints Black-style diff output"""
+    monkeypatch.chdir(tmp_path)
+    Path("a.py").write_text("dummy\n")
     darker.__main__.print_diff(
         Path('a.py'),
         TextDocument.from_lines(
