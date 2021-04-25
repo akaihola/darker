@@ -69,9 +69,10 @@ class GitRepoFixture:
             self._run("commit", "-m", commit)
         return absolute_paths
 
-    def get_hash(self) -> str:
-        """Return the commit hash at HEAD in the Git repository"""
-        return _git_check_output_lines(["git", "rev-parse", "HEAD"], Path(self.root))[0]
+    def get_hash(self, revision: str = "HEAD") -> str:
+        """Return the commit hash at the given revision in the Git repository"""
+        lines = _git_check_output_lines(["git", "rev-parse", revision], Path(self.root))
+        return lines[0]
 
     def create_branch(self, new_branch: str, start_point: str) -> None:
         """Fixture method to create and check out new branch at given starting point"""

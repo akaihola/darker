@@ -109,3 +109,15 @@ def test_run_linter(git_repo, monkeypatch, capsys, _descr, paths, location, expe
     # The test cases also verify that only linter reports on modified lines are output.
     result = capsys.readouterr().out.splitlines()
     assert result == [line.format(git_repo=git_repo) for line in expect]
+
+
+def test_run_linter_non_worktree():
+    """``run_linter()`` doesn't support linting commits, only the worktree"""
+    with pytest.raises(NotImplementedError):
+
+        run_linter(
+            "dummy-linter",
+            Path("/dummy"),
+            {Path("dummy.py")},
+            RevisionRange.parse("..HEAD"),
+        )

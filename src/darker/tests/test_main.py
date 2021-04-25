@@ -1,7 +1,7 @@
 from pathlib import Path
 from subprocess import check_call
 from types import SimpleNamespace
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, call, patch
 
 import pytest
 from black import find_project_root
@@ -156,6 +156,33 @@ def test_format_edited_parts_all_unchanged(git_repo, monkeypatch):
     )
 
     assert result == []
+
+
+def test_format_edited_parts_lint(git_repo):
+    """Unit test for ``format_edited_parts`` with linters"""
+    paths = git_repo.add({"a.py": "pass\n"}, commit="Initial commit")
+    paths["a.py"].write('"properly"\n"formatted"\n')
+    with patch.object(darker.__main__, "run_linter") as run_linter:
+
+        _ = list(
+            darker.__main__.format_edited_parts(
+                [Path("a.py")],
+                RevisionRange("HEAD"),
+                False,
+                ["linter1", "linter2 command line"],
+                {},
+            )
+        )
+
+        assert run_linter.call_args_list == [
+            call("linter1", git_repo.root, {Path("a.py")}, RevisionRange("HEAD")),
+            call(
+                "linter2 command line",
+                git_repo.root,
+                {Path("a.py")},
+                RevisionRange("HEAD"),
+            ),
+        ]
 
 
 @pytest.mark.parametrize(
