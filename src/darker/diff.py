@@ -49,14 +49,9 @@ It combines line content with the 1-based line offset in the original content, e
     >>> len(chunks)
     2
     >>> chunks[0]  # (<offset in orig content>, <original lines>, <reformatted lines>)
-    (1,
-     ('for i in range(5): print(i)',),
-     ('for i in range(5):',
-      '    print(i)'))
+    (1, ('for i in range(5): print(i)',), ('for i in range(5):', '    print(i)'))
     >>> chunks[1]
-    (2,
-     ('print("done")',),
-     ('print("done")',))
+    (2, ('print("done")',), ('print("done")',))
 
 By concatenating the second items in these tuples, i.e. original lines,
 the original file can be reconstructed.
