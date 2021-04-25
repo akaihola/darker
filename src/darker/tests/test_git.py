@@ -4,6 +4,8 @@
 
 import os
 from pathlib import Path
+from subprocess import CalledProcessError
+from typing import List, Union
 from unittest.mock import patch
 
 import pytest
@@ -13,12 +15,13 @@ from darker.git import (
     WORKTREE,
     EditedLinenumsDiffer,
     RevisionRange,
+    _git_check_output_lines,
     git_get_content_at_revision,
     git_get_modified_files,
     should_reformat_file,
 )
 from darker.tests.conftest import GitRepoFixture
-from darker.tests.helpers import raises_if_exception
+from darker.tests.helpers import raises_if_exception, raises_or_matches
 from darker.utils import TextDocument
 
 
@@ -104,13 +107,11 @@ def test_revisionrange_parse(revision_range, expect):
 )
 def test_git_get_content_at_revision_git_calls(revision, expect):
     with patch("darker.git.check_output") as check_output:
-        check_output.return_value = "dummy output"
+        check_output.return_value = b"dummy output"
 
         git_get_content_at_revision(Path("my.txt"), revision, Path("cwd"))
 
-        check_output.assert_called_once_with(
-            expect.split(), cwd="cwd", encoding="utf-8"
-        )
+        check_output.assert_called_once_with(expect.split(), cwd="cwd")
 
 
 @pytest.mark.parametrize(
@@ -135,6 +136,59 @@ def test_should_reformat_file(tmpdir, path, create, expect):
     result = should_reformat_file(Path(tmpdir / path))
 
     assert result == expect
+
+
+@pytest.mark.parametrize(
+    "cmd, exit_on_error, expect_template",
+    [
+        ([], True, CalledProcessError(1, "")),
+        (
+            ["status", "-sb"],
+            True,
+            [
+                "## branch",
+                "A  add_index.py",
+                "D  del_index.py",
+                " D del_worktree.py",
+                "A  mod_index.py",
+                "?? add_worktree.py",
+                "?? mod_worktree.py",
+            ],
+        ),
+        (
+            ["diff"],
+            True,
+            [
+                "diff --git a/del_worktree.py b/del_worktree.py",
+                "deleted file mode 100644",
+                "index 94f3610..0000000",
+                "--- a/del_worktree.py",
+                "+++ /dev/null",
+                "@@ -1 +0,0 @@",
+                "-original",
+                "\\ No newline at end of file",
+            ],
+        ),
+        (["merge-base", "master"], True, CalledProcessError(129, "")),
+        (
+            ["merge-base", "master", "HEAD"],
+            True,
+            ["<hash of branch point>"],
+        ),
+        (["show", "missing.file"], True, SystemExit(123)),
+        (["show", "missing.file"], False, CalledProcessError(128, "")),
+    ],
+)
+def test_git_check_output_lines(branched_repo, cmd, exit_on_error, expect_template):
+    """Unit test for :func:`_git_check_output_lines`"""
+    if isinstance(expect_template, BaseException):
+        expect: Union[List[str], BaseException] = expect_template
+    else:
+        replacements = {"<hash of branch point>": branched_repo.get_hash("master^")}
+        expect = [replacements.get(line, line) for line in expect_template]
+    with raises_or_matches(expect, ["returncode", "code"]) as check:
+
+        check(_git_check_output_lines(cmd, branched_repo.root, exit_on_error))
 
 
 @pytest.mark.parametrize(
