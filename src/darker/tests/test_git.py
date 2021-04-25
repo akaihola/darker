@@ -15,12 +15,13 @@ from darker.git import (
     WORKTREE,
     EditedLinenumsDiffer,
     RevisionRange,
+    _git_check_output_lines,
     git_get_content_at_revision,
     git_get_modified_files,
     should_reformat_file,
 )
 from darker.tests.conftest import GitRepoFixture
-from darker.tests.helpers import raises_if_exception
+from darker.tests.helpers import raises_if_exception, raises_or_matches
 from darker.utils import TextDocument
 
 
@@ -106,13 +107,11 @@ def test_revisionrange_parse(revision_range, expect):
 )
 def test_git_get_content_at_revision_git_calls(revision, expect):
     with patch("darker.git.check_output") as check_output:
-        check_output.return_value = "dummy output"
+        check_output.return_value = b"dummy output"
 
         git_get_content_at_revision(Path("my.txt"), revision, Path("cwd"))
 
-        check_output.assert_called_once_with(
-            expect.split(), cwd="cwd", encoding="utf-8"
-        )
+        check_output.assert_called_once_with(expect.split(), cwd="cwd")
 
 
 @pytest.mark.parametrize(

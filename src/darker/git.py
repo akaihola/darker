@@ -45,17 +45,18 @@ def git_get_content_at_revision(path: Path, revision: str, cwd: Path) -> TextDoc
         abspath = cwd / path
         mtime = datetime.utcfromtimestamp(abspath.stat().st_mtime)
         return TextDocument.from_str(abspath.read_text("utf-8"), f"{mtime} +0000")
-    cmd = ["git", "show", f"{revision}:./{path}"]
+    cmd = ["show", f"{revision}:./{path}"]
     logger.debug("[%s]$ %s", cwd, " ".join(cmd))
     try:
-        return TextDocument.from_str(check_output(cmd, cwd=str(cwd), encoding="utf-8"))
+        return TextDocument.from_lines(
+            _git_check_output_lines(cmd, cwd, exit_on_error=False)
+        )
     except CalledProcessError as exc_info:
-        if exc_info.returncode == 128:
-            # The file didn't exist at the given revision. Act as if it was an empty
-            # file, so all current lines appear as edited.
-            return TextDocument()
-        else:
+        if exc_info.returncode != 128:
             raise
+        # The file didn't exist at the given revision. Act as if it was an empty
+        # file, so all current lines appear as edited.
+        return TextDocument()
 
 
 @dataclass(frozen=True)
@@ -127,14 +128,17 @@ def should_reformat_file(path: Path) -> bool:
     return path.exists() and path.suffix == ".py"
 
 
-def _git_check_output_lines(cmd: List[str], cwd: Path) -> List[str]:
+def _git_check_output_lines(
+    cmd: List[str], cwd: Path, exit_on_error: bool = True
+) -> List[str]:
     """Log command line, run Git, split stdout to lines, exit with 123 on error"""
     logger.debug("[%s]$ %s", cwd, " ".join(cmd))
     try:
         return check_output(["git"] + cmd, cwd=str(cwd)).decode("utf-8").splitlines()
     except CalledProcessError as exc_info:
-        if exc_info.returncode == 128:
-            # Bad revision or another Git failure
+        if exc_info.returncode == 128 and exit_on_error:
+            # Bad revision or another Git failure. Follow Black's example and return the
+            # error status 123.
             sys.exit(123)
         else:
             raise
