@@ -30,7 +30,7 @@ def run_isort(git_repo, monkeypatch, caplog, request):
 
     monkeypatch.chdir(git_repo.root)
     paths = git_repo.add({'test1.py': 'original'}, commit='Initial commit')
-    paths['test1.py'].write('changed')
+    paths["test1.py"].write_bytes(b"changed")
     args = getattr(request, "param", ())
     with patch.multiple(
         darker.__main__,
@@ -125,8 +125,8 @@ A_PY_DIFF_BLACK_ISORT = [
 def test_format_edited_parts(git_repo, enable_isort, black_args, newline, expect):
     """Correct reformatting and import sorting changes are produced"""
     paths = git_repo.add({"a.py": newline, "b.py": newline}, commit="Initial commit")
-    paths["a.py"].write(newline.join(A_PY))
-    paths["b.py"].write(f"print(42 ){newline}")
+    paths["a.py"].write_bytes(newline.join(A_PY).encode("ascii"))
+    paths["b.py"].write_bytes("print(42 ){newline}".encode("ascii"))
 
     result = darker.__main__.format_edited_parts(
         [Path("a.py")], RevisionRange("HEAD"), enable_isort, [], black_args
@@ -145,9 +145,9 @@ def test_format_edited_parts(git_repo, enable_isort, black_args, newline, expect
 def test_format_edited_parts_all_unchanged(git_repo, monkeypatch):
     """``format_edited_parts()`` yields nothing if no reformatting was needed"""
     monkeypatch.chdir(git_repo.root)
-    paths = git_repo.add({'a.py': 'pass\n', 'b.py': 'pass\n'}, commit='Initial commit')
-    paths['a.py'].write('"properly"\n"formatted"\n')
-    paths['b.py'].write('"not"\n"checked"\n')
+    paths = git_repo.add({"a.py": "pass\n", "b.py": "pass\n"}, commit="Initial commit")
+    paths["a.py"].write_bytes(b'"properly"\n"formatted"\n')
+    paths["b.py"].write_bytes(b'"not"\n"checked"\n')
 
     result = list(
         darker.__main__.format_edited_parts(
@@ -161,7 +161,7 @@ def test_format_edited_parts_all_unchanged(git_repo, monkeypatch):
 def test_format_edited_parts_lint(git_repo):
     """Unit test for ``format_edited_parts`` with linters"""
     paths = git_repo.add({"a.py": "pass\n"}, commit="Initial commit")
-    paths["a.py"].write('"properly"\n"formatted"\n')
+    paths["a.py"].write_bytes(b'"properly"\n"formatted"\n')
     with patch.object(darker.__main__, "run_linter") as run_linter:
 
         _ = list(
@@ -218,15 +218,15 @@ def test_main(
     """Main function outputs diffs and modifies files correctly"""
     monkeypatch.chdir(git_repo.root)
     paths = git_repo.add({"a.py": newline, "b.py": newline}, commit="Initial commit")
-    paths["a.py"].write(newline.join(A_PY))
-    paths["b.py"].write("print(42 ){newline}")
+    paths["a.py"].write_bytes(newline.join(A_PY).encode("ascii"))
+    paths["b.py"].write_bytes("print(42 ){newline}".encode("ascii"))
 
     retval = darker.__main__.main(arguments + ['a.py'])
 
     stdout = capsys.readouterr().out.replace(str(git_repo.root), '')
     assert stdout.split("\n") == expect_stdout
-    assert paths["a.py"].read("br").decode("ascii") == newline.join(expect_a_py)
-    assert paths["b.py"].read("br").decode("ascii") == "print(42 ){newline}"
+    assert paths["a.py"].read_bytes().decode("ascii") == newline.join(expect_a_py)
+    assert paths["b.py"].read_bytes().decode("ascii") == "print(42 ){newline}"
     assert retval == expect_retval
 
 
@@ -236,20 +236,22 @@ def test_main(
 @pytest.mark.parametrize("newline", [b"\n", b"\r\n"])
 def test_main_encoding(git_repo, encoding, text, newline):
     """Encoding and newline of the file is kept unchanged after reformatting"""
-    paths = git_repo.add({"a.py": newline}, commit="Initial commit")
+    paths = git_repo.add({"a.py": newline.decode("ascii")}, commit="Initial commit")
     edited = [b"# coding: ", encoding, newline, b's="', text, b'"', newline]
     expect = [b"# coding: ", encoding, newline, b's = "', text, b'"', newline]
-    paths["a.py"].write(b"".join(edited), "wb")
+    paths["a.py"].write_bytes(b"".join(edited))
 
     retval = darker.__main__.main(["a.py"])
 
-    result = paths["a.py"].read("br")
+    result = paths["a.py"].read_bytes()
     assert retval == 0
     assert result == b"".join(expect)
 
 
-def test_output_diff(capsys):
+def test_output_diff(tmp_path, monkeypatch, capsys):
     """output_diff() prints Black-style diff output"""
+    monkeypatch.chdir(tmp_path)
+    Path("a.py").write_text("dummy\n")
     darker.__main__.print_diff(
         Path('a.py'),
         TextDocument.from_lines(

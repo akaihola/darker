@@ -35,13 +35,13 @@ def test_parse_linter_line(git_repo, monkeypatch, line, expect):
             "Check one file, report on a modified line in test.py",
             ["one.py"],
             "test.py:1:",
-            ["test.py:1: {git_repo.root}/one.py"],
+            ["test.py:1: {git_repo.root / 'one.py'}"],
         ),
         (
             "Check one file, report on a column of a modified line in test.py",
             ["one.py"],
             "test.py:1:42:",
-            ["test.py:1:42: {git_repo.root}/one.py"],
+            ["test.py:1:42: {git_repo.root / 'one.py'}"],
         ),
         (
             "No output if report is on an unmodified line in test.py",
@@ -56,16 +56,16 @@ def test_parse_linter_line(git_repo, monkeypatch, line, expect):
             [],
         ),
         (
-            "Check two files, rpeort on a modified line in test.py",
+            "Check two files, report on a modified line in test.py",
             ["one.py", "two.py"],
             "test.py:1:",
-            ["test.py:1: {git_repo.root}/one.py {git_repo.root}/two.py"],
+            ["test.py:1: {git_repo.root / 'one.py'} {git_repo.root / 'two.py'}"],
         ),
         (
             "Check two files, rpeort on a column of a modified line in test.py",
             ["one.py", "two.py"],
             "test.py:1:42:",
-            ["test.py:1:42: {git_repo.root}/one.py {git_repo.root}/two.py"],
+            ["test.py:1:42: {git_repo.root / 'one.py'} {git_repo.root / 'two.py'}"],
         ),
         (
             "No output if 2-file report is on an unmodified line in test.py",
@@ -96,7 +96,7 @@ def test_run_linter(git_repo, monkeypatch, capsys, _descr, paths, location, expe
 
     """
     src_paths = git_repo.add({"test.py": "1\n2\n"}, commit="Initial commit")
-    src_paths["test.py"].write("one\n2\n")
+    src_paths["test.py"].write_bytes(b"one\n2\n")
     monkeypatch.chdir(git_repo.root)
     cmdline = f"echo {location}"
 
@@ -108,7 +108,8 @@ def test_run_linter(git_repo, monkeypatch, capsys, _descr, paths, location, expe
     # by checking standard output from the our `echo` "linter".
     # The test cases also verify that only linter reports on modified lines are output.
     result = capsys.readouterr().out.splitlines()
-    assert result == [line.format(git_repo=git_repo) for line in expect]
+    # Use evil `eval()` so we get Windows compatible expected paths:
+    assert result == [eval(f'f"{line}"', {"git_repo": git_repo}) for line in expect]
 
 
 def test_run_linter_non_worktree():

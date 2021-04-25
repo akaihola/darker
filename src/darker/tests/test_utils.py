@@ -173,12 +173,12 @@ def test_textdocument_from_file_detect_encoding(tmp_path, content, expect):
 
 
 @pytest.mark.parametrize(
-    "content, expect", [('print("unix")\n', "\n"), ('print("windows")\r\n', "\r\n")]
+    "content, expect", [(b'print("unix")\n', "\n"), (b'print("windows")\r\n', "\r\n")]
 )
 def test_textdocument_from_file_detect_newline(tmp_path, content, expect):
     """TextDocument.from_file() detects the newline character sequence correctly"""
     path = tmp_path / "test.py"
-    path.write_text(content)
+    path.write_bytes(content)
 
     textdocument = TextDocument.from_file(path)
 
@@ -294,7 +294,7 @@ def test_textdocument_mtime(document, expect):
 def test_textdocument_from_file(tmp_path):
     """TextDocument.from_file()"""
     dummy_txt = tmp_path / "dummy.txt"
-    dummy_txt.write_text("# coding: iso-8859-1\r\ndummy\r\ncontent\r\n")
+    dummy_txt.write_bytes(b"# coding: iso-8859-1\r\ndummy\r\ncontent\r\n")
     os.utime(dummy_txt, (1_000_000_000, 1_000_000_000))
 
     document = TextDocument.from_file(dummy_txt)

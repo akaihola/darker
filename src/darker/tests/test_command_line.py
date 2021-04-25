@@ -287,7 +287,7 @@ def test_black_options(monkeypatch, tmpdir, git_repo, options, expect):
     added_files = git_repo.add(
         {"main.py": 'print("Hello World!")\n'}, commit="Initial commit"
     )
-    added_files["main.py"].write('print ("Hello World!")\n')
+    added_files["main.py"].write_bytes(b'print ("Hello World!")\n')
     with patch.object(black_diff, 'Mode', wraps=black_diff.Mode) as Mode:
 
         main(options + [str(path) for path in added_files.values()])
@@ -332,7 +332,7 @@ def test_black_options_skip_string_normalization(git_repo, config, options, expe
         {"main.py": "foo", "pyproject.toml": joinlines(["[tool.black]"] + config)},
         commit="Initial commit",
     )
-    added_files["main.py"].write("bar")
+    added_files["main.py"].write_bytes(b"bar")
     mode_class_mock = Mock(wraps=black_diff.Mode)
     # Speed up tests by mocking `format_str` to skip running Black
     format_str = Mock(return_value="bar")
