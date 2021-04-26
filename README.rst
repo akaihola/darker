@@ -2,10 +2,10 @@
  Darker – reformat and lint modified Python code
 =================================================
 
-|travis-badge|_ |license-badge|_ |pypi-badge|_ |downloads-badge|_ |black-badge|_ |changelog-badge|_
+|build-badge|_ |license-badge|_ |pypi-badge|_ |downloads-badge|_ |black-badge|_ |changelog-badge|_
 
-.. |travis-badge| image:: https://travis-ci.com/akaihola/darker.svg?branch=master
-.. _travis-badge: https://travis-ci.com/akaihola/darker
+.. |build-badge| image:: https://github.com/akaihola/darker/actions/workflows/python-package.yml/badge.svg
+.. _build-badge: https://github.com/akaihola/darker/actions/workflows/python-package.yml?query=branch%3Amaster
 .. |license-badge| image:: https://img.shields.io/badge/License-BSD%203--Clause-blue.svg
 .. _license-badge: https://github.com/akaihola/darker/blob/master/LICENSE.rst
 .. |pypi-badge| image:: https://img.shields.io/pypi/v/darker
