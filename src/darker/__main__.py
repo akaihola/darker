@@ -4,7 +4,7 @@ import logging
 import sys
 from difflib import unified_diff
 from pathlib import Path
-from typing import Generator, Iterable, List, Set, Tuple
+from typing import Generator, Iterable, List, Tuple
 
 from darker.black_diff import BlackArgs, run_black
 from darker.chooser import choose_lines
@@ -14,7 +14,7 @@ from darker.diff import diff_and_get_opcodes, opcodes_to_chunks
 from darker.git import EditedLinenumsDiffer, RevisionRange, git_get_modified_files
 from darker.help import ISORT_INSTRUCTION
 from darker.import_sorting import apply_isort, isort
-from darker.linting import run_linter
+from darker.linting import run_linters
 from darker.utils import TextDocument, get_common_root
 from darker.verification import NotEquivalentError, verify_ast_unchanged
 
@@ -114,35 +114,6 @@ def format_edited_parts(
                 if chosen != worktree_content:
                     yield src, worktree_content, chosen
                 break
-
-
-def run_linters(
-    linter_cmdlines: List[str],
-    git_root: Path,
-    paths: Set[Path],
-    revrange: RevisionRange,
-) -> bool:
-    """Run the given linters on a set of files in the repository
-
-    :param linter_cmdlines: The command lines for linter tools to run on the files
-    :param git_root: The root of the Git repository the files are in
-    :param paths: The files to check in the repository. This should only include files
-                  which have been modified in the repository between the given Git
-                  revisions.
-    :param revrange: The Git revisions to compare
-    :return: ``True`` if at least one linting error was found on a modified line
-
-    """
-    some_linters_failed = False
-    for linter_cmdline in linter_cmdlines:
-        # 10. run linter subprocesses for all edited files (10.-13. optional)
-        # 11. diff the given revision and worktree (after isort and Black reformatting)
-        #     for each file reported by a linter
-        # 12. extract line numbers in each file reported by a linter for changed lines
-        # 13. print only linter error lines which fall on changed lines
-        if run_linter(linter_cmdline, git_root, paths, revrange):
-            some_linters_failed = True
-    return some_linters_failed
 
 
 def modify_file(path: Path, new_content: TextDocument) -> None:

@@ -1,13 +1,14 @@
-# pylint: disable=too-many-arguments
+# pylint: disable=protected-access,too-many-arguments
 
 """Unit tests for :mod:`darker.linting`"""
 
 from pathlib import Path
+from unittest.mock import call, patch
 
 import pytest
 
+from darker import linting
 from darker.git import RevisionRange
-from darker.linting import _parse_linter_line, run_linter
 
 
 @pytest.mark.parametrize(
@@ -23,7 +24,9 @@ from darker.linting import _parse_linter_line, run_linter
 def test_parse_linter_line(git_repo, monkeypatch, line, expect):
     """Linter output is parsed correctly"""
     monkeypatch.chdir(git_repo.root)
-    result = _parse_linter_line(line, git_repo.root)
+
+    result = linting._parse_linter_line(line, git_repo.root)
+
     assert result == expect
 
 
@@ -100,7 +103,7 @@ def test_run_linter(git_repo, monkeypatch, capsys, _descr, paths, location, expe
     monkeypatch.chdir(git_repo.root)
     cmdline = f"echo {location}"
 
-    run_linter(
+    linting.run_linter(
         cmdline, Path(git_repo.root), {Path(p) for p in paths}, RevisionRange("HEAD")
     )
 
@@ -116,7 +119,7 @@ def test_run_linter_non_worktree():
     """``run_linter()`` doesn't support linting commits, only the worktree"""
     with pytest.raises(NotImplementedError):
 
-        run_linter(
+        linting.run_linter(
             "dummy-linter",
             Path("/dummy"),
             {Path("dummy.py")},
@@ -138,8 +141,90 @@ def test_run_linter_return_value(git_repo, location, expect):
     src_paths["test.py"].write_bytes(b"one\n2\n")
     cmdline = f"echo {location}"
 
-    result = run_linter(
+    result = linting.run_linter(
         cmdline, Path(git_repo.root), {Path("test.py")}, RevisionRange("HEAD")
     )
 
     assert result == expect
+
+
+@pytest.mark.kwparametrize(
+    dict(
+        linter_cmdlines=[],
+        linters_return=[],
+        expect_result=False,
+    ),
+    dict(
+        linter_cmdlines=["linter"],
+        linters_return=[None],
+        expect_result=False,
+    ),
+    dict(
+        linter_cmdlines=["linter"],
+        linters_return=[0],
+        expect_result=False,
+    ),
+    dict(
+        linter_cmdlines=["linter"],
+        linters_return=[1],
+        expect_result=True,
+    ),
+    dict(
+        linter_cmdlines=["linter"],
+        linters_return=[42],
+        expect_result=True,
+    ),
+    dict(
+        linter_cmdlines=["linter1", "linter2"],
+        linters_return=[None, None],
+        expect_result=False,
+    ),
+    dict(
+        linter_cmdlines=["linter1", "linter2"],
+        linters_return=[None, 0],
+        expect_result=False,
+    ),
+    dict(
+        linter_cmdlines=["linter1", "linter2"],
+        linters_return=[None, 42],
+        expect_result=True,
+    ),
+    dict(
+        linter_cmdlines=["linter1", "linter2"],
+        linters_return=[0, 0],
+        expect_result=False,
+    ),
+    dict(
+        linter_cmdlines=["linter1", "linter2"],
+        linters_return=[0, 42],
+        expect_result=True,
+    ),
+    dict(
+        linter_cmdlines=["linter1", "linter2 command line"],
+        linters_return=[42, 42],
+        expect_result=True,
+    ),
+)
+def test_run_linters(linter_cmdlines, linters_return, expect_result):
+    """Unit test for ``run_linters()``"""
+    with patch.object(linting, "run_linter") as run_linter:
+        run_linter.side_effect = linters_return
+
+        result = linting.run_linters(
+            linter_cmdlines,
+            Path("dummy git_root"),
+            {Path("dummy paths")},
+            RevisionRange("dummy revrange"),
+        )
+
+        expect_calls = [
+            call(
+                linter_cmdline,
+                Path("dummy git_root"),
+                {Path("dummy paths")},
+                RevisionRange("dummy revrange"),
+            )
+            for linter_cmdline in linter_cmdlines
+        ]
+        assert run_linter.call_args_list == expect_calls
+        assert result == expect_result

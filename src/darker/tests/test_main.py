@@ -1,7 +1,7 @@
 from pathlib import Path
 from subprocess import check_call
 from types import SimpleNamespace
-from unittest.mock import Mock, call, patch
+from unittest.mock import Mock, patch
 
 import pytest
 from black import find_project_root
@@ -154,29 +154,6 @@ def test_format_edited_parts_all_unchanged(git_repo, monkeypatch):
     )
 
     assert result == []
-
-
-def test_run_linters():
-    """Unit test for ``run_linters()``"""
-    with patch.object(darker.__main__, "run_linter") as run_linter:
-
-        result = darker.__main__.run_linters(
-            ["linter1", "linter2 command line"],
-            "dummy git_root",
-            "dummy paths",
-            "dummy revrange",
-        )
-
-        assert run_linter.call_args_list == [
-            call("linter1", "dummy git_root", "dummy paths", "dummy revrange"),
-            call(
-                "linter2 command line",
-                "dummy git_root",
-                "dummy paths",
-                "dummy revrange",
-            ),
-        ]
-        assert result
 
 
 @pytest.mark.kwparametrize(
