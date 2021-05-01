@@ -48,3 +48,12 @@ def test_binary_search():
         search.respond(tries[-1] > 2)
     assert search.result == 3
     assert tries == [0, 3, 2]
+
+
+@pytest.mark.parametrize("i", range(50))
+def test_binary_search_in_50(i):
+    """Simple 'fuzzy test' for BinarySearch"""
+    search = BinarySearch(0, 50)
+    while not search.found:
+        search.respond(search.get_next() >= i)
+    assert search.result == i
