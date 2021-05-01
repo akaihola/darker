@@ -1,10 +1,10 @@
 """Unit tests for :mod:`darker.__main__`"""
 
+import logging
 import os
 import re
 from pathlib import Path
 from subprocess import check_call
-from textwrap import dedent
 from types import SimpleNamespace
 from unittest.mock import Mock, patch
 
@@ -164,6 +164,7 @@ def test_format_edited_parts_all_unchanged(git_repo, monkeypatch):
 
 def test_format_edited_parts_ast_changed(git_repo, caplog):
     """``darker.__main__.format_edited_parts()`` when reformatting changes the AST"""
+    caplog.set_level(logging.DEBUG, logger="darker.__main__")
     paths = git_repo.add({"a.py": "1\n2\n3\n4\n5\n6\n7\n8\n"}, commit="Initial commit")
     paths["a.py"].write_bytes(b"8\n7\n6\n5\n4\n3\n2\n1\n")
     with patch.object(
@@ -180,21 +181,22 @@ def test_format_edited_parts_ast_changed(git_repo, caplog):
                 black_args={},
             )
         )
-
     a_py = str(paths["a.py"])
     main = "darker.__main__:__main__.py"
-    log = re.sub(r":\d+", "", caplog.text)
-    assert log == dedent(
-        f"""\
-        WARNING  {main} AST verification of {a_py} with 0 lines of context failed
-        WARNING  {main} Trying with 5 lines of context for `git diff -U {a_py}`
-        WARNING  {main} AST verification of {a_py} with 5 lines of context failed
-        WARNING  {main} Trying with 7 lines of context for `git diff -U {a_py}`
-        WARNING  {main} AST verification of {a_py} with 7 lines of context failed
-        WARNING  {main} Trying with 8 lines of context for `git diff -U {a_py}`
-        WARNING  {main} AST verification of {a_py} with 8 lines of context failed
-    """
-    )
+    log = [
+        line
+        for line in re.sub(r":\d+", "", caplog.text).splitlines()
+        if " lines of context " in line
+    ]
+    assert log == [
+        f"DEBUG    {main} AST verification of {a_py} with 0 lines of context failed",
+        f"DEBUG    {main} Trying with 5 lines of context for `git diff -U {a_py}`",
+        f"DEBUG    {main} AST verification of {a_py} with 5 lines of context failed",
+        f"DEBUG    {main} Trying with 7 lines of context for `git diff -U {a_py}`",
+        f"DEBUG    {main} AST verification of {a_py} with 7 lines of context failed",
+        f"DEBUG    {main} Trying with 8 lines of context for `git diff -U {a_py}`",
+        f"DEBUG    {main} AST verification of {a_py} with 8 lines of context failed",
+    ]
 
 
 @pytest.mark.kwparametrize(

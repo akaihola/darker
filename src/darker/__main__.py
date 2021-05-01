@@ -62,7 +62,7 @@ def format_edited_parts(
         while not minimum_context_lines.found:
             context_lines = minimum_context_lines.get_next()
             if context_lines > 0:
-                logger.warning(
+                logger.debug(
                     "Trying with %s lines of context for `git diff -U %s`",
                     context_lines,
                     src,
@@ -108,7 +108,7 @@ def format_edited_parts(
                 # a partially re-formatted Python file which produces an identical AST.
                 # Try again with a larger `-U<context_lines>` option for `git diff`,
                 # or give up if `context_lines` is already very large.
-                logger.warning(
+                logger.debug(
                     "AST verification of %s with %s lines of context failed",
                     src,
                     context_lines,
