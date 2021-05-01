@@ -15,12 +15,12 @@ class BinarySearch:
     """Effectively search the first index for which a condition is ``True``
 
     Example usage to find first number between 0 and 100 whose square is larger than
-    1000::
+    1000:
 
-        s = BinarySearch(0, 100)
-        while not s.found:
-            s.respond(s.get_next() ** 2 > 1000)
-        answer = s.result
+    >>> s = BinarySearch(0, 100)
+    >>> while not s.found:
+    ...     s.respond(s.get_next() ** 2 > 1000)
+    >>> assert s.result == 32
 
     """
 
