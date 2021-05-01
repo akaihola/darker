@@ -7,6 +7,8 @@ Added
 -----
 - A unified ``TextDocument`` class to represent source code file contents
 - Move help texts into the separate ``darker.help`` module
+- If AST differs with zero context lines, search for the lowest successful number of
+  context lines using a binary search to improve performance
 
 Fixed
 -----
@@ -18,6 +20,7 @@ Fixed
   ``--revision :PRE-COMMIT:`` is set, but ``PRE_COMMIT_FROM_REF`` or
   ``PRE_COMMIT_TO_REF`` are not set.
 
+  
 1.2.2_ - 2020-12-30
 ===================
 

@@ -1,12 +1,11 @@
 """Unit tests for :mod:`darker.verification`"""
 
-
 from typing import List
 
 import pytest
 
 from darker.utils import DiffChunk, TextDocument
-from darker.verification import NotEquivalentError, verify_ast_unchanged
+from darker.verification import BinarySearch, NotEquivalentError, verify_ast_unchanged
 
 
 @pytest.mark.parametrize(
@@ -30,3 +29,31 @@ def test_verify_ast_unchanged(src_content, dst_content, expect):
         assert expect is AssertionError
     else:
         assert expect is None
+
+
+def test_binary_search_premature_result():
+    """``darker.verification.BinarySearch``"""
+    with pytest.raises(RuntimeError):
+
+        _ = BinarySearch(0, 5).result
+
+
+def test_binary_search():
+    """``darker.verification.BinarySearch``"""
+    search = BinarySearch(0, 5)
+    tries = []
+    while not search.found:
+        tries.append(search.get_next())
+
+        search.respond(tries[-1] > 2)
+    assert search.result == 3
+    assert tries == [0, 3, 2]
+
+
+@pytest.mark.parametrize("i", range(50))
+def test_binary_search_in_50(i):
+    """Simple 'fuzzy test' for BinarySearch"""
+    search = BinarySearch(0, 50)
+    while not search.found:
+        search.respond(search.get_next() >= i)
+    assert search.result == i
