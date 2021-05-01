@@ -1,7 +1,7 @@
 from pathlib import Path
 from subprocess import check_call
 from types import SimpleNamespace
-from unittest.mock import Mock, call, patch
+from unittest.mock import Mock, patch
 
 import pytest
 from black import find_project_root
@@ -57,16 +57,6 @@ def test_isort_option_with_isort_calls_sortimports(tmpdir, run_isort, isort_args
     run_isort.isort_code.assert_called_once_with(
         code="changed", settings_path=str(tmpdir), **isort_args
     )
-
-
-def test_format_edited_parts_empty():
-    with pytest.raises(ValueError):
-
-        list(
-            darker.__main__.format_edited_parts(
-                [], RevisionRange("HEAD"), False, [], {}
-            )
-        )
 
 
 A_PY = ["import sys", "import os", "print( '42')", ""]
@@ -129,7 +119,11 @@ def test_format_edited_parts(git_repo, enable_isort, black_args, newline, expect
     paths["b.py"].write_bytes("print(42 ){newline}".encode("ascii"))
 
     result = darker.__main__.format_edited_parts(
-        [Path("a.py")], RevisionRange("HEAD"), enable_isort, [], black_args
+        Path(git_repo.root),
+        [Path("a.py")],
+        RevisionRange("HEAD"),
+        enable_isort,
+        black_args,
     )
 
     changes = [
@@ -151,58 +145,64 @@ def test_format_edited_parts_all_unchanged(git_repo, monkeypatch):
 
     result = list(
         darker.__main__.format_edited_parts(
-            [Path("a.py")], RevisionRange("HEAD"), True, [], {}
+            Path(git_repo.root),
+            {Path("a.py"), Path("b.py")},
+            RevisionRange("HEAD"),
+            True,
+            {},
         )
     )
 
     assert result == []
 
 
-def test_format_edited_parts_lint(git_repo):
-    """Unit test for ``format_edited_parts`` with linters"""
-    paths = git_repo.add({"a.py": "pass\n"}, commit="Initial commit")
-    paths["a.py"].write_bytes(b'"properly"\n"formatted"\n')
-    with patch.object(darker.__main__, "run_linter") as run_linter:
-
-        _ = list(
-            darker.__main__.format_edited_parts(
-                [Path("a.py")],
-                RevisionRange("HEAD"),
-                False,
-                ["linter1", "linter2 command line"],
-                {},
-            )
-        )
-
-        assert run_linter.call_args_list == [
-            call("linter1", git_repo.root, {Path("a.py")}, RevisionRange("HEAD")),
-            call(
-                "linter2 command line",
-                git_repo.root,
-                {Path("a.py")},
-                RevisionRange("HEAD"),
-            ),
-        ]
-
-
-@pytest.mark.parametrize(
-    'arguments, expect_stdout, expect_a_py, expect_retval',
-    [
-        (['--diff'], A_PY_DIFF_BLACK, A_PY, 0),
-        (['--isort'], [''], A_PY_BLACK_ISORT, 0),
-        (
-            ['--skip-string-normalization', '--diff'],
-            A_PY_DIFF_BLACK_NO_STR_NORMALIZE,
-            A_PY,
-            0,
-        ),
-        ([], [''], A_PY_BLACK, 0),
-        (['--isort', '--diff'], A_PY_DIFF_BLACK_ISORT, A_PY, 0),
-        (['--check'], [''], A_PY, 1),
-        (['--check', '--diff'], A_PY_DIFF_BLACK, A_PY, 1),
-        (['--check', '--isort'], [''], A_PY, 1),
-        (['--check', '--diff', '--isort'], A_PY_DIFF_BLACK_ISORT, A_PY, 1),
-    ],
+@pytest.mark.kwparametrize(
+    dict(
+        arguments=["--diff"],
+        expect_stdout=A_PY_DIFF_BLACK,
+    ),
+    dict(
+        arguments=["--isort"],
+        expect_a_py=A_PY_BLACK_ISORT,
+    ),
+    dict(
+        arguments=["--skip-string-normalization", "--diff"],
+        expect_stdout=A_PY_DIFF_BLACK_NO_STR_NORMALIZE,
+    ),
+    dict(arguments=[], expect_stdout=[""], expect_a_py=A_PY_BLACK, expect_retval=0),
+    dict(
+        arguments=["--isort", "--diff"],
+        expect_stdout=A_PY_DIFF_BLACK_ISORT,
+    ),
+    dict(arguments=["--check"], expect_stdout=[""], expect_a_py=A_PY, expect_retval=1),
+    dict(
+        arguments=["--check", "--diff"],
+        expect_stdout=A_PY_DIFF_BLACK,
+        expect_retval=1,
+    ),
+    dict(
+        arguments=["--check", "--isort"],
+        expect_retval=1,
+    ),
+    dict(
+        arguments=["--check", "--diff", "--isort"],
+        expect_stdout=A_PY_DIFF_BLACK_ISORT,
+        expect_retval=1,
+    ),
+    dict(
+        arguments=["--check", "--lint", "echo a.py:1: message"],
+        expect_stdout=["a.py:1: message /a.py", ""],
+        expect_retval=1,
+    ),
+    dict(
+        arguments=["--diff", "--lint", "echo a.py:1: message"],
+        expect_stdout=A_PY_DIFF_BLACK[:-1] + ["a.py:1: message /a.py", ""],
+    ),
+    # for all test cases, by default there's no output, `a.py` stays unmodified, and the
+    # return value is a zero:
+    expect_stdout=[""],
+    expect_a_py=A_PY,
+    expect_retval=0,
 )
 @pytest.mark.parametrize("newline", ["\n", "\r\n"], ids=["unix", "windows"])
 def test_main(

@@ -14,7 +14,7 @@ from darker.diff import diff_and_get_opcodes, opcodes_to_chunks
 from darker.git import EditedLinenumsDiffer, RevisionRange, git_get_modified_files
 from darker.help import ISORT_INSTRUCTION
 from darker.import_sorting import apply_isort, isort
-from darker.linting import run_linter
+from darker.linting import run_linters
 from darker.utils import TextDocument, get_common_root
 from darker.verification import NotEquivalentError, verify_ast_unchanged
 
@@ -22,46 +22,24 @@ logger = logging.getLogger(__name__)
 
 
 def format_edited_parts(
-    srcs: Iterable[Path],
+    git_root: Path,
+    changed_files: Iterable[Path],
     revrange: RevisionRange,
     enable_isort: bool,
-    linter_cmdlines: List[str],
     black_args: BlackArgs,
 ) -> Generator[Tuple[Path, TextDocument, TextDocument], None, None]:
     """Black (and optional isort) formatting for chunks with edits since the last commit
 
-    1. run isort on each edited file (optional)
-    2. diff the given revision and worktree (optionally with isort modifications) for
-       all file & dir paths on the command line
-    3. extract line numbers in each edited to-file for changed lines
-    4. run black on the contents of each edited to-file
-    5. get a diff between the edited to-file and the reformatted content
-    6. convert the diff into chunks, keeping original and reformatted content for each
-       chunk
-    7. choose reformatted content for each chunk if there were any changed lines inside
-       the chunk in the edited to-file, or choose the chunk's original contents if no
-       edits were done in that chunk
-    8. verify that the resulting reformatted source code parses to an identical AST as
-       the original edited to-file
-    9. write the reformatted source back to the original file
-    10. run linter subprocesses for all edited files (11.-14. optional)
-    11. diff the given revision and worktree (after isort and Black reformatting) for
-        each file reported by a linter
-    12. extract line numbers in each file reported by a linter for changed lines
-    13. print only linter error lines which fall on changed lines
-
-    :param srcs: Directories and files to re-format
-    :param revrange: The Git revision against which to compare the working tree
+    :param git_root: The root of the Git repository the files are in
+    :param changed_files: Files which have been modified in the repository between the
+                          given Git revisions
+    :param revrange: The Git revisions to compare
     :param enable_isort: ``True`` to also run ``isort`` first on each changed file
-    :param linter_cmdlines: The command line(s) for running linters on the changed
-                            files.
     :param black_args: Command-line arguments to send to ``black.FileMode``
     :return: A generator which yields details about changes for each file which should
              be reformatted, and skips unchanged files.
 
     """
-    git_root = get_common_root(srcs)
-    changed_files = git_get_modified_files(srcs, revrange, git_root)
     edited_linenums_differ = EditedLinenumsDiffer(git_root, revrange)
 
     for path_in_repo in sorted(changed_files):
@@ -136,13 +114,6 @@ def format_edited_parts(
                 if chosen != worktree_content:
                     yield src, worktree_content, chosen
                 break
-    # 10. run linter subprocesses for all edited files (11.-14. optional)
-    # 11. diff the given revision and worktree (after isort and Black reformatting) for
-    #     each file reported by a linter
-    # 12. extract line numbers in each file reported by a linter for changed lines
-    # 13. print only linter error lines which fall on changed lines
-    for linter_cmdline in linter_cmdlines:
-        run_linter(linter_cmdline, git_root, changed_files, revrange)
 
 
 def modify_file(path: Path, new_content: TextDocument) -> None:
@@ -173,7 +144,27 @@ def print_diff(path: Path, old: TextDocument, new: TextDocument) -> None:
 
 
 def main(argv: List[str] = None) -> int:
-    """Parse the command line and apply black formatting for each source file
+    """Parse the command line and reformat and optionally lint each source file
+
+    1. run isort on each edited file (optional)
+    2. diff the given revision and worktree (optionally with isort modifications) for
+       all file & dir paths on the command line
+    3. extract line numbers in each edited to-file for changed lines
+    4. run black on the contents of each edited to-file
+    5. get a diff between the edited to-file and the reformatted content
+    6. convert the diff into chunks, keeping original and reformatted content for each
+       chunk
+    7. choose reformatted content for each chunk if there were any changed lines inside
+       the chunk in the edited to-file, or choose the chunk's original contents if no
+       edits were done in that chunk
+    8. verify that the resulting reformatted source code parses to an identical AST as
+       the original edited to-file
+    9. write the reformatted source back to the original file
+    10. run linter subprocesses for all edited files (10.-13. optional)
+    11. diff the given revision and worktree (after isort and Black reformatting) for
+        each file reported by a linter
+    12. extract line numbers in each file reported by a linter for changed lines
+    13. print only linter error lines which fall on changed lines
 
     :param argv: The command line arguments to the ``darker`` command
     :return: 1 if the ``--check`` argument was provided and at least one file was (or
@@ -211,17 +202,21 @@ def main(argv: List[str] = None) -> int:
         black_args["skip_string_normalization"] = args.skip_string_normalization
 
     paths = {Path(p) for p in args.src}
-    some_files_changed = False
+    git_root = get_common_root(paths)
+    failures_on_modified_lines = False
     revrange = RevisionRange.parse(args.revision)
+    changed_files = git_get_modified_files(paths, revrange, git_root)
     for path, old, new in format_edited_parts(
-        paths, revrange, args.isort, args.lint, black_args
+        git_root, changed_files, revrange, args.isort, black_args
     ):
-        some_files_changed = True
+        failures_on_modified_lines = True
         if args.diff:
             print_diff(path, old, new)
         if not args.check and not args.diff:
             modify_file(path, new)
-    return 1 if args.check and some_files_changed else 0
+    if run_linters(args.lint, git_root, changed_files, revrange):
+        failures_on_modified_lines = True
+    return 1 if args.check and failures_on_modified_lines else 0
 
 
 if __name__ == "__main__":

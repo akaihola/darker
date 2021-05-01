@@ -22,7 +22,7 @@ provided that the ``<linenum>`` falls on a changed line.
 import logging
 from pathlib import Path
 from subprocess import PIPE, Popen
-from typing import Set, Tuple, Union
+from typing import List, Optional, Set, Tuple, Union
 
 from darker.git import WORKTREE, EditedLinenumsDiffer, RevisionRange
 
@@ -60,22 +60,25 @@ def _parse_linter_line(
 
 def run_linter(
     cmdline: str, git_root: Path, paths: Set[Path], revrange: RevisionRange
-) -> None:
+) -> Optional[int]:
     """Run the given linter and print linting errors falling on changed lines
 
     :param cmdline: The command line for running the linter
     :param git_root: The repository root for the changed files
     :param paths: Paths of files to check, relative to ``git_root``
     :param revrange: The Git revision rango to compare
+    :return: The number of modified lines with linting errors from this linter, or
+             ``None`` if there are no paths to check
 
     """
     if not paths:
-        return
+        return None
     if revrange.rev2 is not WORKTREE:
         raise NotImplementedError(
             "Linting arbitrary commits is not supported. "
             "Please use -r {<rev>|<rev>..|<rev>...} instead."
         )
+    error_count = 0
     linter_process = Popen(
         cmdline.split() + [str(git_root / path) for path in sorted(paths)],
         stdout=PIPE,
@@ -93,3 +96,34 @@ def run_linter(
         )
         if linter_error_linenum in edited_linenums:
             print(line, end="")
+            error_count += 1
+    return error_count
+
+
+def run_linters(
+    linter_cmdlines: List[str],
+    git_root: Path,
+    paths: Set[Path],
+    revrange: RevisionRange,
+) -> bool:
+    """Run the given linters on a set of files in the repository
+
+    :param linter_cmdlines: The command lines for linter tools to run on the files
+    :param git_root: The root of the Git repository the files are in
+    :param paths: The files to check in the repository. This should only include files
+                  which have been modified in the repository between the given Git
+                  revisions.
+    :param revrange: The Git revisions to compare
+    :return: ``True`` if at least one linting error was found on a modified line
+
+    """
+    some_linters_failed = False
+    for linter_cmdline in linter_cmdlines:
+        # 10. run linter subprocesses for all edited files (10.-13. optional)
+        # 11. diff the given revision and worktree (after isort and Black reformatting)
+        #     for each file reported by a linter
+        # 12. extract line numbers in each file reported by a linter for changed lines
+        # 13. print only linter error lines which fall on changed lines
+        if run_linter(linter_cmdline, git_root, paths, revrange):
+            some_linters_failed = True
+    return some_linters_failed
