@@ -3,19 +3,25 @@ Unreleased_
 
 These features will be included in the next release:
 
+
+1.2.3_ - 2021-05-02
+===================
+
 Added
 -----
 - A unified ``TextDocument`` class to represent source code file contents
 - Move help texts into the separate ``darker.help`` module
 - If AST differs with zero context lines, search for the lowest successful number of
   context lines using a binary search to improve performance
+- Return an exit value of 1 also if there are failures from any of the linters on
+  modified lines
+- Run GitHub Actions for the test build also on Windows and macOS
 
 Fixed
 -----
 - Compatibility with MyPy 0.812
 - Keep newline character sequence and text encoding intact when modifying files
 - Installation now works on Windows
-
 - Improve compatibility with pre-commit. Fallback to compare against HEAD if
   ``--revision :PRE-COMMIT:`` is set, but ``PRE_COMMIT_FROM_REF`` or
   ``PRE_COMMIT_TO_REF`` are not set.
@@ -132,7 +138,8 @@ Added
 -----
 - Initial implementation
 
-.. _Unreleased: https://github.com/akaihola/darker/compare/1.2.2...HEAD
+.. _Unreleased: https://github.com/akaihola/darker/compare/1.2.3...HEAD
+.. _1.2.3: https://github.com/akaihola/darker/compare/1.2.2...1.2.3
 .. _1.2.2: https://github.com/akaihola/darker/compare/1.2.1...1.2.2
 .. _1.2.1: https://github.com/akaihola/darker/compare/1.2.0...1.2.1
 .. _1.2.0: https://github.com/akaihola/darker/compare/1.1.0...1.2.0
