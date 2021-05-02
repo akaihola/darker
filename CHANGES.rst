@@ -3,6 +3,12 @@ Unreleased_
 
 These features will be included in the next release:
 
+Added
+-----
+
+Fixed
+-----
+
 
 1.2.3_ - 2021-05-02
 ===================
