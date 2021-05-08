@@ -1,5 +1,6 @@
 """Configuration and fixtures for the Pytest based test suite"""
 
+import os
 import sys
 import types
 from pathlib import Path
@@ -32,7 +33,10 @@ class GitRepoFixture:
     @classmethod
     def create_repository(cls, root: Path) -> "GitRepoFixture":
         """Fixture method for creating a Git repository in the given directory"""
-        check_call(["git", "init"], cwd=root)
+        env = os.environ.copy()
+        # for testsing, ignore ~/.gitconfig settings like templateDir and defaultBranch
+        env['HOME'] = root
+        check_call(["git", "init"], cwd=root, env=env)
         check_call(["git", "config", "user.email", "ci@example.com"], cwd=root)
         check_call(["git", "config", "user.name", "CI system"], cwd=root)
         return cls(root)
