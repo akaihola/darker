@@ -27,23 +27,24 @@ def with_isort():
 
 
 class GitRepoFixture:
-    def __init__(self, root: Path):
+    def __init__(self, root: Path, env: Dict[str, str]):
         self.root = root
+        self.env = env
 
     @classmethod
     def create_repository(cls, root: Path) -> "GitRepoFixture":
         """Fixture method for creating a Git repository in the given directory"""
         env = os.environ.copy()
-        # for testsing, ignore ~/.gitconfig settings like templateDir and defaultBranch
-        env['HOME'] = root
+        # for testing, ignore ~/.gitconfig settings like templateDir and defaultBranch
+        env["HOME"] = str(root)
         check_call(["git", "init"], cwd=root, env=env)
-        check_call(["git", "config", "user.email", "ci@example.com"], cwd=root)
-        check_call(["git", "config", "user.name", "CI system"], cwd=root)
-        return cls(root)
+        check_call(["git", "config", "user.email", "ci@example.com"], cwd=root, env=env)
+        check_call(["git", "config", "user.name", "CI system"], cwd=root, env=env)
+        return cls(root, env)
 
     def _run(self, *args: str) -> None:
         """Helper method to run a Git command line in the repository root"""
-        check_call(["git"] + list(args), cwd=self.root)
+        check_call(["git"] + list(args), cwd=self.root, env=self.env)
 
     def _run_and_get_first_line(self, *args: str) -> str:
         """Helper method to run Git in repo root and return first line of output"""

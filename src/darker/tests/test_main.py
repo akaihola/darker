@@ -4,7 +4,6 @@ import logging
 import os
 import re
 from pathlib import Path
-from subprocess import check_call
 from types import SimpleNamespace
 from unittest.mock import Mock, patch
 
@@ -14,12 +13,13 @@ from black import find_project_root
 import darker.__main__
 import darker.import_sorting
 from darker.git import RevisionRange
+from darker.tests.conftest import GitRepoFixture
 from darker.utils import TextDocument
 from darker.verification import NotEquivalentError
 
 
 def test_isort_option_without_isort(tmpdir, without_isort, caplog):
-    check_call(["git", "init"], cwd=tmpdir)
+    GitRepoFixture.create_repository(tmpdir)
     with patch.object(darker.__main__, "isort", None), pytest.raises(SystemExit):
 
         darker.__main__.main(["--isort", str(tmpdir)])
