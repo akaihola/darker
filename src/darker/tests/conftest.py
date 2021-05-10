@@ -83,6 +83,10 @@ class GitRepoFixture:
         """Return the commit hash at the given revision in the Git repository"""
         return self._run_and_get_first_line("rev-parse", revision)
 
+    def get_branch(self) -> str:
+        """Return the active branch name in the Git repository"""
+        return self._run_and_get_first_line("symbolic-ref", "--short", "HEAD")
+
     def create_branch(self, new_branch: str, start_point: str) -> None:
         """Fixture method to create and check out new branch at given starting point"""
         self._run("checkout", "-b", new_branch, start_point)
