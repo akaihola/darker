@@ -37,10 +37,11 @@ class GitRepoFixture:
         env = os.environ.copy()
         # for testing, ignore ~/.gitconfig settings like templateDir and defaultBranch
         env["HOME"] = str(root)
-        check_call(["git", "init"], cwd=root, env=env)
-        check_call(["git", "config", "user.email", "ci@example.com"], cwd=root, env=env)
-        check_call(["git", "config", "user.name", "CI system"], cwd=root, env=env)
-        return cls(root, env)
+        instance = cls(root, env)
+        instance._run("init")
+        instance._run("config", "user.email", "ci@example.com")
+        instance._run("config", "user.name", "CI system")
+        return instance
 
     def _run(self, *args: str) -> None:
         """Helper method to run a Git command line in the repository root"""
