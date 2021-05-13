@@ -39,16 +39,16 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Optional, Set, cast
 
+# `FileMode as Mode` required to satisfy mypy==0.782. Strange.
+from black import FileMode as Mode
+from black import TargetVersion, find_pyproject_toml, format_str, parse_pyproject_toml
+
 from darker.utils import TextDocument
 
 if sys.version_info >= (3, 8):
     from typing import TypedDict
 else:
     from typing_extensions import TypedDict
-
-# `FileMode as Mode` required to satisfy mypy==0.782. Strange.
-from black import FileMode as Mode
-from black import TargetVersion, find_pyproject_toml, format_str, parse_pyproject_toml
 
 __all__ = ["BlackArgs", "Mode", "run_black"]
 
