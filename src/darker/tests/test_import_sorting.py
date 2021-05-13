@@ -22,7 +22,6 @@ def test_import_sorting_importable_with_and_without_isort(isort_present, present
 
             # Import when `isort` has been removed temporarily
             reload(darker.import_sorting)
-
     finally:
         # Re-import after restoring `isort` so other tests won't be affected
         reload(darker.import_sorting)
