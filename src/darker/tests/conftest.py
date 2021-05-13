@@ -3,6 +3,7 @@
 import os
 import sys
 import types
+from contextlib import contextmanager
 from pathlib import Path
 from subprocess import check_call
 from typing import Dict, Optional
@@ -15,15 +16,23 @@ from darker.git import _git_check_output_lines
 
 
 @pytest.fixture
-def without_isort():
-    with patch.dict(sys.modules, {"isort": None}):
-        yield
+def isort_present():
+    """Fixture for removing or adding the `isort` package temporarily for a test"""
 
+    @contextmanager
+    def _isort_present(present):
+        if present:
+            # Inject a dummy `isort` package temporarily
+            fake_isort_module: Optional[types.ModuleType] = types.ModuleType("isort")
+            # dummy function required by `import_sorting`:
+            fake_isort_module.code = None  # type: ignore
+        else:
+            # Remove the `isort` package temporarily
+            fake_isort_module = None
+        with patch.dict(sys.modules, {"isort": fake_isort_module}):
+            yield
 
-@pytest.fixture
-def with_isort():
-    with patch.dict(sys.modules, {"isort": types.ModuleType("isort")}):
-        yield
+    return _isort_present
 
 
 class GitRepoFixture:

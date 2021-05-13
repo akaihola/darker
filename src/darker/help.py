@@ -13,7 +13,7 @@ try:
 except ImportError:
     isort = None  # type: ignore
     DESCRIPTION_PARTS.extend(
-        ["", f"{ISORT_INSTRUCTION} to enable sorting of import definitions"]
+        ["\n", "\n", f"{ISORT_INSTRUCTION} to enable sorting of import definitions"]
     )
 DESCRIPTION = "".join(DESCRIPTION_PARTS)
 

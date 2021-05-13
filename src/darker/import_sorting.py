@@ -1,7 +1,7 @@
 import logging
 import sys
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
 from black import find_project_root
 
@@ -15,11 +15,21 @@ else:
 
 try:
     import isort
+
+    # Work around Mypy problem
+    # https://github.com/python/mypy/issues/7030#issuecomment-504128883
+    isort_code = getattr(isort, "code")
 except ImportError:
+    # `isort` is an optional dependency. Prevent the `ImportError` if it's missing.
     isort = None  # type: ignore
-# Work around Mypy problem
-# https://github.com/python/mypy/issues/7030#issuecomment-504128883
-isort_code = getattr(isort, "code")
+
+    def isort_code(*args: Any, **kwargs: Any) -> str:  # type: ignore[misc] # noqa: F821
+        """Fake `isort.code()` function to use when `isort` isn't installed"""
+        raise ModuleNotFoundError(
+            "No module named 'isort'. Please install the 'isort' package before using"
+            " the --isort / -i option."
+        )
+
 
 __all__ = ["apply_isort", "isort"]
 
