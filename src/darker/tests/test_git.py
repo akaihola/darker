@@ -459,7 +459,7 @@ def test_local_gitconfig_ignored_by_gitrepofixture(tmp_path):
         # Note: once we decide to drop support for git < 2.28, the HEAD file
         # creation above can be removed, and setup can simplify to
         # check_call("git config --global init.defaultBranch main".split())
-        check_call("git config --global init.templateDir".split() + [tmp_path])
+        check_call("git config --global init.templateDir".split() + [str(tmp_path)])
         root = tmp_path / "repo"
         root.mkdir()
         git_repo = GitRepoFixture.create_repository(root)
