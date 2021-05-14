@@ -38,6 +38,7 @@ class GitRepoFixture:
         # for testing, ignore ~/.gitconfig settings like templateDir and defaultBranch
         env["HOME"] = str(root)
         instance = cls(root, env)
+        # pylint: disable=protected-access
         instance._run("init")
         instance._run("config", "user.email", "ci@example.com")
         instance._run("config", "user.name", "CI system")

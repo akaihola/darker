@@ -276,10 +276,6 @@ For example:
 
 *New in version 1.2.2:* Support for ``-r :PRE-COMMIT:`` / ``--revision=:PRE_COMMIT:``
 
-*New in version 1.3.0:*
-
-- git-related commands in the test suite now ignore the user's ~/.gitconfig
-
 .. _Black documentation about pyproject.toml: https://black.readthedocs.io/en/stable/pyproject_toml.html
 .. _isort documentation about config files: https://timothycrosley.github.io/isort/docs/configuration/config_files/
 .. _command line arguments: https://black.readthedocs.io/en/stable/installation_and_usage.html#command-line-options

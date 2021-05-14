@@ -453,8 +453,7 @@ def test_edited_linenums_differ_revision_vs_lines(git_repo, context_lines, expec
 
 def test_local_gitconfig_ignored_by_gitrepofixture(tmp_path):
     """Tests that ~/.gitconfig is ignored when running darker's git tests"""
-    with open(tmp_path / "HEAD", "w") as head_file:
-        head_file.write("ref: refs/heads/main")
+    (tmp_path / "HEAD").write_text("ref: refs/heads/main")
 
     with patch.dict(os.environ, {"HOME": str(tmp_path)}):
         # Note: once we decide to drop support for git < 2.28, the HEAD file
