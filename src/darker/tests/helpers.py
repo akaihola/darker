@@ -2,7 +2,9 @@
 
 import sys
 from contextlib import contextmanager
-from typing import Any, ContextManager, Dict, List, Union
+from types import ModuleType
+from typing import Any, ContextManager, Dict, List, Optional, Union
+from unittest.mock import patch
 
 import pytest
 from _pytest.python_api import RaisesContext
@@ -53,3 +55,18 @@ def raises_or_matches(expect, match_exc_attrs):
             assert result == expect
 
         yield check
+
+
+@contextmanager
+def isort_present(present):
+    """Context manager to remove or add the `isort` package temporarily for a test"""
+    if present:
+        # Inject a dummy `isort` package temporarily
+        fake_isort_module: Optional[ModuleType] = ModuleType("isort")
+        # dummy function required by `import_sorting`:
+        fake_isort_module.code = None  # type: ignore
+    else:
+        # Remove the `isort` package temporarily
+        fake_isort_module = None
+    with patch.dict(sys.modules, {"isort": fake_isort_module}):
+        yield

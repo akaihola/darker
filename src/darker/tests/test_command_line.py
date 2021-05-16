@@ -12,7 +12,7 @@ from darker import black_diff
 from darker.__main__ import main
 from darker.command_line import make_argument_parser, parse_command_line
 from darker.git import RevisionRange
-from darker.tests.helpers import filter_dict, raises_if_exception
+from darker.tests.helpers import filter_dict, isort_present, raises_if_exception
 from darker.utils import TextDocument, joinlines
 
 pytestmark = pytest.mark.usefixtures("find_project_root_cache_clear")
@@ -29,8 +29,7 @@ def test_make_argument_parser(require_src, expect):
         assert args.src == expect
 
 
-@pytest.fixture
-def darker_help_output(capsys):
+def get_darker_help_output(capsys):
     """Test for ``--help`` option output"""
     # Make sure the description is re-rendered since its content depends on whether
     # isort is installed or not:
@@ -232,22 +231,31 @@ def test_parse_command_line(
         assert modified_cfg[modified_option] == expect_modified_value
 
 
-def test_help_description_without_isort_package(without_isort, darker_help_output):
-    assert (
-        "Please run `pip install 'darker[isort]'` to enable sorting of import "
-        "definitions" in darker_help_output
-    )
+def test_help_description_without_isort_package(capsys):
+    """``darker --help`` description shows how to add ``isort`` if it's not present"""
+    with isort_present(False):
+
+        assert (
+            "Please run `pip install 'darker[isort]'` to enable sorting of import "
+            "definitions" in get_darker_help_output(capsys)
+        )
 
 
-def test_help_isort_option_without_isort_package(without_isort, darker_help_output):
-    assert (
-        "Please run `pip install 'darker[isort]'` to enable usage of this option."
-        in darker_help_output
-    )
+def test_help_isort_option_without_isort_package(capsys):
+    """``--isort`` option help text shows how to install `isort`` if it's not present"""
+    with isort_present(False):
+
+        assert (
+            "Please run `pip install 'darker[isort]'` to enable usage of this option."
+            in get_darker_help_output(capsys)
+        )
 
 
-def test_help_with_isort_package(with_isort, darker_help_output):
-    assert "Please run" not in darker_help_output
+def test_help_with_isort_package(capsys):
+    """``darker --help`` omits ``isort`` installation instructions if it is installed"""
+    with isort_present(True):
+
+        assert "Please run" not in get_darker_help_output(capsys)
 
 
 @pytest.mark.parametrize(

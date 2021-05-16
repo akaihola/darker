@@ -1,5 +1,7 @@
 """Unit tests for :mod:`darker.__main__`"""
 
+# pylint: disable=unused-argument
+
 import logging
 import os
 import re
@@ -13,14 +15,16 @@ from black import find_project_root
 import darker.__main__
 import darker.import_sorting
 from darker.git import RevisionRange
+from darker.tests.helpers import isort_present
 from darker.utils import TextDocument
 from darker.verification import NotEquivalentError
 
 
-def test_isort_option_without_isort(git_repo, without_isort, caplog):
+def test_isort_option_without_isort(git_repo, caplog):
     """Without isort, provide isort install instructions and error"""
-    # pylint: disable=unused-argument
-    with patch.object(darker.__main__, "isort", None), pytest.raises(SystemExit):
+    with isort_present(False), patch.object(
+        darker.__main__, "isort", None
+    ), pytest.raises(SystemExit):
 
         darker.__main__.main(["--isort", "."])
 

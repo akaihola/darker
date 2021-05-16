@@ -1,21 +1,38 @@
+"""Tests for :mod:`darker.import_sorting`"""
+
+from importlib import reload
 from pathlib import Path
 from textwrap import dedent
 
 import pytest
 from black import find_project_root
 
-from darker.import_sorting import apply_isort
+import darker.import_sorting
+from darker.tests.helpers import isort_present
 from darker.utils import TextDocument
 
 ORIGINAL_SOURCE = ("import sys", "import os")
 ISORTED_SOURCE = ("import os", "import sys")
 
 
+@pytest.mark.parametrize("present", [True, False])
+def test_import_sorting_importable_with_and_without_isort(present):
+    """Make sure ``import darker.import_sorting`` works with and without ``isort``"""
+    try:
+        with isort_present(present):
+
+            # Import when `isort` has been removed temporarily
+            reload(darker.import_sorting)
+    finally:
+        # Re-import after restoring `isort` so other tests won't be affected
+        reload(darker.import_sorting)
+
+
 @pytest.mark.parametrize("encoding", ["utf-8", "iso-8859-1"])
 @pytest.mark.parametrize("newline", ["\n", "\r\n"])
 def test_apply_isort(encoding, newline):
     """Import sorting is applied correctly, with encoding and newline intact"""
-    result = apply_isort(
+    result = darker.import_sorting.apply_isort(
         TextDocument.from_lines(ORIGINAL_SOURCE, encoding=encoding, newline=newline),
         Path("test1.py"),
     )
@@ -69,5 +86,7 @@ def test_isort_config(monkeypatch, tmpdir, line_length, settings_file, expect):
     content = "from module import ab, cd, ef, gh, ij, kl, mn, op, qr, st, uv, wx, yz"
     config = str(tmpdir / settings_file) if settings_file else None
 
-    actual = apply_isort(TextDocument.from_str(content), Path("test1.py"), config)
+    actual = darker.import_sorting.apply_isort(
+        TextDocument.from_str(content), Path("test1.py"), config
+    )
     assert actual.string == expect

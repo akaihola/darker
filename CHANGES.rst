@@ -9,6 +9,7 @@ Added
 Fixed
 -----
 - Git-related commands in the test suite now ignore the user's ``~/.gitconfig``.
+- Now works again even if ``isort`` isn't installed
 
 
 1.2.3_ - 2021-05-02

@@ -1,29 +1,14 @@
 """Configuration and fixtures for the Pytest based test suite"""
 
 import os
-import sys
-import types
 from pathlib import Path
 from subprocess import check_call
 from typing import Dict, Optional
-from unittest.mock import patch
 
 import pytest
 from black import find_project_root
 
 from darker.git import _git_check_output_lines
-
-
-@pytest.fixture
-def without_isort():
-    with patch.dict(sys.modules, {"isort": None}):
-        yield
-
-
-@pytest.fixture
-def with_isort():
-    with patch.dict(sys.modules, {"isort": types.ModuleType("isort")}):
-        yield
 
 
 class GitRepoFixture:
