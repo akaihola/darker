@@ -12,7 +12,7 @@ from darker import black_diff
 from darker.__main__ import main
 from darker.command_line import make_argument_parser, parse_command_line
 from darker.git import RevisionRange
-from darker.tests.helpers import filter_dict, raises_if_exception
+from darker.tests.helpers import filter_dict, isort_present, raises_if_exception
 from darker.utils import TextDocument, joinlines
 
 pytestmark = pytest.mark.usefixtures("find_project_root_cache_clear")
@@ -231,7 +231,7 @@ def test_parse_command_line(
         assert modified_cfg[modified_option] == expect_modified_value
 
 
-def test_help_description_without_isort_package(isort_present, capsys):
+def test_help_description_without_isort_package(capsys):
     """``darker --help`` description shows how to add ``isort`` if it's not present"""
     with isort_present(False):
 
@@ -241,7 +241,7 @@ def test_help_description_without_isort_package(isort_present, capsys):
         )
 
 
-def test_help_isort_option_without_isort_package(isort_present, capsys):
+def test_help_isort_option_without_isort_package(capsys):
     """``--isort`` option help text shows how to install `isort`` if it's not present"""
     with isort_present(False):
 
@@ -251,7 +251,7 @@ def test_help_isort_option_without_isort_package(isort_present, capsys):
         )
 
 
-def test_help_with_isort_package(isort_present, capsys):
+def test_help_with_isort_package(capsys):
     """``darker --help`` omits ``isort`` installation instructions if it is installed"""
     with isort_present(True):
 

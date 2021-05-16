@@ -8,6 +8,7 @@ import pytest
 from black import find_project_root
 
 import darker.import_sorting
+from darker.tests.helpers import isort_present
 from darker.utils import TextDocument
 
 ORIGINAL_SOURCE = ("import sys", "import os")
@@ -15,7 +16,7 @@ ISORTED_SOURCE = ("import os", "import sys")
 
 
 @pytest.mark.parametrize("present", [True, False])
-def test_import_sorting_importable_with_and_without_isort(isort_present, present):
+def test_import_sorting_importable_with_and_without_isort(present):
     """Make sure ``import darker.import_sorting`` works with and without ``isort``"""
     try:
         with isort_present(present):

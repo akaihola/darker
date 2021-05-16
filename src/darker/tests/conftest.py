@@ -1,38 +1,14 @@
 """Configuration and fixtures for the Pytest based test suite"""
 
 import os
-import sys
-import types
-from contextlib import contextmanager
 from pathlib import Path
 from subprocess import check_call
 from typing import Dict, Optional
-from unittest.mock import patch
 
 import pytest
 from black import find_project_root
 
 from darker.git import _git_check_output_lines
-
-
-@pytest.fixture
-def isort_present():
-    """Fixture for removing or adding the `isort` package temporarily for a test"""
-
-    @contextmanager
-    def _isort_present(present):
-        if present:
-            # Inject a dummy `isort` package temporarily
-            fake_isort_module: Optional[types.ModuleType] = types.ModuleType("isort")
-            # dummy function required by `import_sorting`:
-            fake_isort_module.code = None  # type: ignore
-        else:
-            # Remove the `isort` package temporarily
-            fake_isort_module = None
-        with patch.dict(sys.modules, {"isort": fake_isort_module}):
-            yield
-
-    return _isort_present
 
 
 class GitRepoFixture:
