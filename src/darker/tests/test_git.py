@@ -4,7 +4,7 @@
 
 import os
 from pathlib import Path
-from subprocess import CalledProcessError
+from subprocess import CalledProcessError, check_call
 from typing import List, Union
 from unittest.mock import patch
 
@@ -449,3 +449,18 @@ def test_edited_linenums_differ_revision_vs_lines(git_repo, context_lines, expec
     result = differ.revision_vs_lines(Path("a.py"), content, context_lines)
 
     assert result == expect
+
+
+def test_local_gitconfig_ignored_by_gitrepofixture(tmp_path):
+    """Tests that ~/.gitconfig is ignored when running darker's git tests"""
+    (tmp_path / "HEAD").write_text("ref: refs/heads/main")
+
+    with patch.dict(os.environ, {"HOME": str(tmp_path)}):
+        # Note: once we decide to drop support for git < 2.28, the HEAD file
+        # creation above can be removed, and setup can simplify to
+        # check_call("git config --global init.defaultBranch main".split())
+        check_call("git config --global init.templateDir".split() + [str(tmp_path)])
+        root = tmp_path / "repo"
+        root.mkdir()
+        git_repo = GitRepoFixture.create_repository(root)
+        assert git_repo.get_branch() == "master"

@@ -4,7 +4,6 @@ import logging
 import os
 import re
 from pathlib import Path
-from subprocess import check_call
 from types import SimpleNamespace
 from unittest.mock import Mock, patch
 
@@ -18,11 +17,12 @@ from darker.utils import TextDocument
 from darker.verification import NotEquivalentError
 
 
-def test_isort_option_without_isort(tmpdir, without_isort, caplog):
-    check_call(["git", "init"], cwd=tmpdir)
+def test_isort_option_without_isort(git_repo, without_isort, caplog):
+    """Without isort, provide isort install instructions and error"""
+    # pylint: disable=unused-argument
     with patch.object(darker.__main__, "isort", None), pytest.raises(SystemExit):
 
-        darker.__main__.main(["--isort", str(tmpdir)])
+        darker.__main__.main(["--isort", "."])
 
     assert (
         "Please run `pip install 'darker[isort]'` to use the `--isort` option."

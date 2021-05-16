@@ -8,6 +8,7 @@ Added
 
 Fixed
 -----
+- Git-related commands in the test suite now ignore the user's ``~/.gitconfig``.
 
 
 1.2.3_ - 2021-05-02

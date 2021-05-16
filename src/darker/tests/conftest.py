@@ -1,5 +1,6 @@
 """Configuration and fixtures for the Pytest based test suite"""
 
+import os
 import sys
 import types
 from pathlib import Path
@@ -26,20 +27,26 @@ def with_isort():
 
 
 class GitRepoFixture:
-    def __init__(self, root: Path):
+    def __init__(self, root: Path, env: Dict[str, str]):
         self.root = root
+        self.env = env
 
     @classmethod
     def create_repository(cls, root: Path) -> "GitRepoFixture":
         """Fixture method for creating a Git repository in the given directory"""
-        check_call(["git", "init"], cwd=root)
-        check_call(["git", "config", "user.email", "ci@example.com"], cwd=root)
-        check_call(["git", "config", "user.name", "CI system"], cwd=root)
-        return cls(root)
+        env = os.environ.copy()
+        # for testing, ignore ~/.gitconfig settings like templateDir and defaultBranch
+        env["HOME"] = str(root)
+        instance = cls(root, env)
+        # pylint: disable=protected-access
+        instance._run("init")
+        instance._run("config", "user.email", "ci@example.com")
+        instance._run("config", "user.name", "CI system")
+        return instance
 
     def _run(self, *args: str) -> None:
         """Helper method to run a Git command line in the repository root"""
-        check_call(["git"] + list(args), cwd=self.root)
+        check_call(["git"] + list(args), cwd=self.root, env=self.env)
 
     def _run_and_get_first_line(self, *args: str) -> str:
         """Helper method to run Git in repo root and return first line of output"""
@@ -76,6 +83,10 @@ class GitRepoFixture:
     def get_hash(self, revision: str = "HEAD") -> str:
         """Return the commit hash at the given revision in the Git repository"""
         return self._run_and_get_first_line("rev-parse", revision)
+
+    def get_branch(self) -> str:
+        """Return the active branch name in the Git repository"""
+        return self._run_and_get_first_line("symbolic-ref", "--short", "HEAD")
 
     def create_branch(self, new_branch: str, start_point: str) -> None:
         """Fixture method to create and check out new branch at given starting point"""
