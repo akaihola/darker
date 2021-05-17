@@ -6,7 +6,7 @@ from argparse import Action, ArgumentError
 from datetime import datetime
 from difflib import unified_diff
 from pathlib import Path
-from typing import Collection, Generator, List, Tuple
+from typing import Collection, Generator, List, Optional, Tuple
 
 from darker.black_diff import (
     BlackConfig,
@@ -196,17 +196,22 @@ def modify_file(path: Path, new_content: TextDocument) -> None:
     path.write_bytes(new_content.encoded_string)
 
 
-def print_diff(path: Path, old: TextDocument, new: TextDocument) -> None:
+def print_diff(
+    path: Path, old: TextDocument, new: TextDocument, root: Optional[Path] = None
+) -> None:
     """Print ``black --diff`` style output for the changes
 
     :param path: The relative path of the file to print the diff output for
     :param old: Old contents of the file
     :param new: New contents of the file
+    :param root: The root of the repository (current working directory if omitted)
 
     Modification times should be in the format "YYYY-MM-DD HH:MM:SS:mmmmmm +0000"
 
     """
-    relative_path = path.resolve().relative_to(Path.cwd()).as_posix()
+    if root is None:
+        root = Path.cwd()
+    relative_path = path.resolve().relative_to(root).as_posix()
     diff = "\n".join(
         line.rstrip("\n")
         for line in unified_diff(
@@ -349,7 +354,7 @@ def main(argv: List[str] = None) -> int:
     ):
         failures_on_modified_lines = True
         if output_mode == OutputMode.DIFF:
-            print_diff(path, old, new)
+            print_diff(path, old, new, git_root)
         elif output_mode == OutputMode.CONTENT:
             print_source(new)
         if write_modified_files:
