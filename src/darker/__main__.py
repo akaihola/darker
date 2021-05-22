@@ -11,7 +11,7 @@ from darker.chooser import choose_lines
 from darker.command_line import parse_command_line
 from darker.config import dump_config
 from darker.diff import diff_and_get_opcodes, opcodes_to_chunks
-from darker.git import EditedLinenumsDiffer, RevisionRange, git_get_modified_files
+from darker.git import EditedLinenumsDiffer, RevisionRange, git_get_content_at_revision, git_get_modified_files
 from darker.help import ISORT_INSTRUCTION
 from darker.import_sorting import apply_isort, isort
 from darker.linting import run_linters
@@ -44,7 +44,7 @@ def format_edited_parts(
 
     for path_in_repo in sorted(changed_files):
         src = git_root / path_in_repo
-        worktree_content = TextDocument.from_file(src)
+        worktree_content = git_get_content_at_revision(src, revrange.rev2, git_root)
 
         # 1. run isort
         if enable_isort:
