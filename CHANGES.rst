@@ -10,6 +10,8 @@ Fixed
 -----
 - Git-related commands in the test suite now ignore the user's ``~/.gitconfig``.
 - Now works again even if ``isort`` isn't installed
+- AST verification no longer erroneously fails when using ``--isort`` and a modified
+  Python source code file is already properly formatted
 
 
 1.2.3_ - 2021-05-02
