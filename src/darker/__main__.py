@@ -74,6 +74,7 @@ def format_edited_parts(
             )
             if enable_isort and not edited_linenums and edited == worktree_content:
                 logger.debug("No changes in %s after isort", src)
+                last_successful_reformat = (src, worktree_content, edited)
                 break
 
             # 4. run black
@@ -124,9 +125,6 @@ def format_edited_parts(
         #    there were any changes to the original
         src, worktree_content, chosen = last_successful_reformat
         if chosen != worktree_content:
-            # `result_str` is just `chosen_lines` concatenated with newlines.
-            # We need both forms when showing diffs or modifying files.
-            # Pass them both on to avoid back-and-forth conversion.
             yield src, worktree_content, chosen
 
 
