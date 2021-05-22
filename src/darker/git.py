@@ -5,7 +5,6 @@ import os
 import re
 import sys
 from dataclasses import dataclass
-from datetime import datetime
 from functools import lru_cache
 from pathlib import Path
 from subprocess import CalledProcessError, check_output
@@ -43,8 +42,7 @@ def git_get_content_at_revision(path: Path, revision: str, cwd: Path) -> TextDoc
     """
     if revision == WORKTREE:
         abspath = cwd / path
-        mtime = datetime.utcfromtimestamp(abspath.stat().st_mtime)
-        return TextDocument.from_str(abspath.read_text("utf-8"), f"{mtime} +0000")
+        return TextDocument.from_file(abspath)
     cmd = ["show", f"{revision}:./{path}"]
     logger.debug("[%s]$ %s", cwd, " ".join(cmd))
     try:
