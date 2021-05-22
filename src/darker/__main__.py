@@ -125,7 +125,7 @@ def format_edited_parts(
         #    there were any changes to the original
         src, worktree_content, chosen = last_successful_reformat
         if chosen != worktree_content:
-            yield src, worktree_content, chosen
+            yield (src, worktree_content, chosen)
 
 
 def modify_file(path: Path, new_content: TextDocument) -> None:
