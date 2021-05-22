@@ -14,7 +14,7 @@ from black import find_project_root
 
 import darker.__main__
 import darker.import_sorting
-from darker.git import RevisionRange
+from darker.git import RevisionRange, WORKTREE
 from darker.tests.helpers import isort_present
 from darker.utils import TextDocument, joinlines
 from darker.verification import NotEquivalentError
@@ -229,6 +229,60 @@ def test_format_edited_parts_isort_on_already_formatted(git_repo):
     )
 
     assert list(result) == []
+
+
+@pytest.mark.kwparametrize(
+    dict(rev1="HEAD^", rev2="HEAD", expect=[]),
+    dict(rev1="HEAD^", rev2=WORKTREE, expect=[(":WORKTREE:", "reformatted")]),
+    dict(rev1="HEAD", rev2=WORKTREE, expect=[(":WORKTREE:", "reformatted")]),
+)
+def test_format_edited_parts_historical(git_repo, rev1, rev2, expect):
+    """``format_edited_parts()`` is correct for different commit pairs"""
+    a_py = {
+        "HEAD^": TextDocument.from_lines(
+            [
+                "import a",
+                "from b import bar, foo",
+                "",
+                "a.foo()",
+                "bar()",
+            ]
+        ),
+        "HEAD": TextDocument.from_lines(
+            [
+                "from b import bar, foo",
+                "",
+                "bar()",
+            ]
+        ),
+        ":WORKTREE:": TextDocument.from_lines(
+            [
+                "from b import foo, bar",
+                "",
+                "bar( )",
+            ]
+        ),
+        "reformatted": TextDocument.from_lines(
+            [
+                "from b import bar, foo",
+                "",
+                "bar()",
+            ]
+        ),
+    }
+    paths = git_repo.add({"a.py": a_py["HEAD^"].string}, commit="Initial commit")
+    git_repo.add({"a.py": a_py["HEAD"].string}, commit="Modified a.py")
+    paths["a.py"].write_text(a_py[":WORKTREE:"].string)
+
+    result = darker.__main__.format_edited_parts(
+        git_repo.root,
+        {Path("a.py")},
+        RevisionRange(rev1, rev2),
+        enable_isort=True,
+        black_args={},
+    )
+
+    assert list(result) == [(paths["a.py"], a_py[x[0]], a_py[x[1]]) for x in expect]
 
 
 @pytest.mark.kwparametrize(
