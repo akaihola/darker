@@ -16,7 +16,7 @@ import darker.__main__
 import darker.import_sorting
 from darker.git import RevisionRange
 from darker.tests.helpers import isort_present
-from darker.utils import TextDocument
+from darker.utils import TextDocument, joinlines
 from darker.verification import NotEquivalentError
 
 
@@ -201,6 +201,34 @@ def test_format_edited_parts_ast_changed(git_repo, caplog):
         f"DEBUG    {main} Trying with 8 lines of context for `git diff -U {a_py}`",
         f"DEBUG    {main} AST verification of {a_py} with 8 lines of context failed",
     ]
+
+
+def test_format_edited_parts_isort_on_already_formatted(git_repo):
+    """An already correctly formatted file after ``isort`` is simply skipped"""
+    before = [
+        "import a",
+        "import b",
+        "",
+        "a.foo()",
+        "b.bar()",
+    ]
+    after = [
+        "import b",
+        "",
+        "b.bar()",
+    ]
+    paths = git_repo.add({"a.py": joinlines(before)}, commit="Initial commit")
+    paths["a.py"].write_text(joinlines(after))
+
+    result = darker.__main__.format_edited_parts(
+        git_repo.root,
+        {Path("a.py")},
+        RevisionRange("HEAD"),
+        enable_isort=True,
+        black_args={},
+    )
+
+    assert list(result) == []
 
 
 @pytest.mark.kwparametrize(
