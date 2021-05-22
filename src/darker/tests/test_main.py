@@ -5,6 +5,7 @@
 import logging
 import os
 import re
+from argparse import ArgumentError
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import Mock, patch
@@ -14,7 +15,7 @@ from black import find_project_root
 
 import darker.__main__
 import darker.import_sorting
-from darker.git import RevisionRange, WORKTREE
+from darker.git import WORKTREE, RevisionRange
 from darker.tests.helpers import isort_present
 from darker.utils import TextDocument, joinlines
 from darker.verification import NotEquivalentError
@@ -375,6 +376,13 @@ def test_main_encoding(git_repo, encoding, text, newline):
     result = paths["a.py"].read_bytes()
     assert retval == 0
     assert result == b"".join(expect)
+
+
+def test_main_historical():
+    """Stop if rev2 isn't the working tree and no ``--diff`` or ``--check`` provided"""
+    with pytest.raises(ArgumentError):
+
+        darker.__main__.main(["--revision=foo..bar"])
 
 
 def test_output_diff(tmp_path, monkeypatch, capsys):

@@ -2,6 +2,7 @@
 
 import logging
 import sys
+from argparse import Action, ArgumentError
 from difflib import unified_diff
 from pathlib import Path
 from typing import Generator, Iterable, List, Tuple
@@ -12,6 +13,7 @@ from darker.command_line import parse_command_line
 from darker.config import dump_config
 from darker.diff import diff_and_get_opcodes, opcodes_to_chunks
 from darker.git import (
+    WORKTREE,
     EditedLinenumsDiffer,
     RevisionRange,
     git_get_content_at_revision,
@@ -225,7 +227,15 @@ def main(argv: List[str] = None) -> int:
     paths = {Path(p) for p in args.src}
     git_root = get_common_root(paths)
     failures_on_modified_lines = False
+
     revrange = RevisionRange.parse(args.revision)
+    write_modified_files = not args.check and not args.diff
+    if revrange.rev2 != WORKTREE and write_modified_files:
+        raise ArgumentError(
+            Action(["-r", "--revision"], "revision"),
+            f"Can't write reformatted files for revision '{revrange.rev2}'."
+            " Either --diff or --check must be used.",
+        )
     changed_files = git_get_modified_files(paths, revrange, git_root)
     for path, old, new in format_edited_parts(
         git_root, changed_files, revrange, args.isort, black_args
@@ -233,7 +243,7 @@ def main(argv: List[str] = None) -> int:
         failures_on_modified_lines = True
         if args.diff:
             print_diff(path, old, new)
-        if not args.check and not args.diff:
+        if write_modified_files:
             modify_file(path, new)
     if run_linters(args.lint, git_root, changed_files, revrange):
         failures_on_modified_lines = True
