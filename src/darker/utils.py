@@ -175,7 +175,7 @@ def debug_dump(black_chunks: List[DiffChunk], edited_linenums: List[int]) -> Non
     print(80 * "-")
 
 
-def joinlines(lines: TextLines, newline: str = "\n") -> str:
+def joinlines(lines: Iterable[str], newline: str = "\n") -> str:
     """Join a list of lines back, adding a linefeed after each line
 
     This is the reverse of ``str.splitlines()``.
