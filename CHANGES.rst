@@ -15,6 +15,8 @@ Fixed
 - AST verification no longer erroneously fails when using ``--isort``
 - Historical comparisons like ``darker --diff --revision=v1.0..v1.1`` now actually
   compare the second revision and not the working tree files on disk.
+- Ensure identical Black formatting on Unix and Windows by always passing Unix newlines
+  to Black
 
 
 1.2.3_ - 2021-05-02
