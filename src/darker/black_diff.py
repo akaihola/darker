@@ -120,10 +120,6 @@ def run_black(
     # from the command line arguments
     mode = Mode(**effective_args)
     contents_for_black = src_contents.string_with_newline("\n")
-    logger.debug("black.format_str(")
-    logger.debug(f"    <{len(contents_for_black)} characters>,")
-    logger.debug(f"    mode={mode}")
-    logger.debug(")")
     return TextDocument.from_str(
         format_str(contents_for_black, mode=mode),
         encoding=src_contents.encoding,
