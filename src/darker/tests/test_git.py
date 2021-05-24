@@ -3,6 +3,7 @@
 # pylint: disable=redefined-outer-name
 
 import os
+from datetime import datetime, timedelta
 from pathlib import Path
 from subprocess import CalledProcessError, check_call
 from typing import List, Union
@@ -10,6 +11,7 @@ from unittest.mock import patch
 
 import pytest
 
+from darker import git
 from darker.git import (
     COMMIT_RANGE_RE,
     WORKTREE,
@@ -22,7 +24,7 @@ from darker.git import (
 )
 from darker.tests.conftest import GitRepoFixture
 from darker.tests.helpers import raises_or_matches
-from darker.utils import TextDocument
+from darker.utils import GIT_DATEFORMAT, TextDocument
 
 
 @pytest.mark.parametrize(
@@ -54,19 +56,34 @@ def test_worktree_symbol():
     assert WORKTREE == ":WORKTREE:"
 
 
+def test_git_get_mtime_at_commit():
+    """darker.git.git_get_mtime_at_commit()"""
+    with patch.object(git, "_git_check_output_lines") as _git_check_output_lines:
+        _git_check_output_lines.return_value = ["1609104839"]
+
+        result = git.git_get_mtime_at_commit(
+            Path("dummy path"), "dummy revision", Path("dummy cwd")
+        )
+        assert result == "2020-12-27 21:33:59.000000 +0000"
+
+
 @pytest.mark.kwparametrize(
     dict(
         revision=":WORKTREE:",
         expect_lines=("new content",),
-        expect_mtime="2001-09-09 01:46:40.000000 +0000",
+        expect_mtime=lambda: datetime(2001, 9, 9, 1, 46, 40),
     ),
     dict(
         revision="HEAD",
         expect_lines=("modified content",),
-        expect_mtime="",
+        expect_mtime=datetime.utcnow,
     ),
-    dict(revision="HEAD^", expect_lines=("original content",), expect_mtime=""),
-    dict(revision="HEAD~2", expect_lines=(), expect_mtime=""),
+    dict(
+        revision="HEAD^",
+        expect_lines=("original content",),
+        expect_mtime=datetime.utcnow,
+    ),
+    dict(revision="HEAD~2", expect_lines=(), expect_mtime=False),
 )
 def test_git_get_content_at_revision(git_repo, revision, expect_lines, expect_mtime):
     """darker.git.git_get_content_at_revision()"""
@@ -80,7 +97,12 @@ def test_git_get_content_at_revision(git_repo, revision, expect_lines, expect_mt
     )
 
     assert result.lines == expect_lines
-    assert result.mtime == expect_mtime
+    if expect_mtime:
+        mtime_then = datetime.strptime(result.mtime, GIT_DATEFORMAT)
+        difference = expect_mtime() - mtime_then
+        assert timedelta(0) <= difference < timedelta(seconds=2)
+    else:
+        assert result.mtime == ""
     assert result.encoding == "utf-8"
 
 
