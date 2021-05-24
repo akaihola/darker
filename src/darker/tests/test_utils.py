@@ -127,6 +127,25 @@ def test_textdocument_string(textdocument, expect):
     assert textdocument.string == expect
 
 
+@pytest.mark.parametrize("newline", ["\n", "\r\n"])
+@pytest.mark.kwparametrize(
+    dict(textdocument=TextDocument(), expect=""),
+    dict(textdocument=TextDocument(lines=["zéro", "un"])),
+    dict(textdocument=TextDocument(string="zéro\nun\n")),
+    dict(textdocument=TextDocument(lines=["zéro", "un"], newline="\n")),
+    dict(textdocument=TextDocument(string="zéro\nun\n", newline="\n")),
+    dict(textdocument=TextDocument(lines=["zéro", "un"], newline="\r\n")),
+    dict(textdocument=TextDocument(string="zéro\r\nun\r\n", newline="\r\n")),
+    expect="zéro{newline}un{newline}",
+)
+def test_textdocument_string_with_newline(textdocument, newline, expect):
+    """TextDocument.string respects the newline setting"""
+    result = textdocument.string_with_newline(newline)
+
+    expected = expect.format(newline=newline)
+    assert result == expected
+
+
 @pytest.mark.parametrize(
     "encoding, newline, expect",
     [
