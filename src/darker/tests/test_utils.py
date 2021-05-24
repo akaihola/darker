@@ -10,10 +10,29 @@ import pytest
 from darker.utils import (
     TextDocument,
     debug_dump,
+    detect_newline,
     get_common_root,
     get_path_ancestry,
     joinlines,
 )
+
+
+@pytest.mark.kwparametrize(
+    dict(string="", expect="\n"),
+    dict(string="\n", expect="\n"),
+    dict(string="\r\n", expect="\r\n"),
+    dict(string="one line\n", expect="\n"),
+    dict(string="one line\r\n", expect="\r\n"),
+    dict(string="first line\nsecond line\n", expect="\n"),
+    dict(string="first line\r\nsecond line\r\n", expect="\r\n"),
+    dict(string="first unix\nthen windows\r\n", expect="\n"),
+    dict(string="first windows\r\nthen unix\n", expect="\r\n"),
+)
+def test_detect_newline(string, expect):
+    """``detect_newline()`` gives correct results"""
+    result = detect_newline(string)
+
+    assert result == expect
 
 
 def test_debug_dump(caplog, capsys):
