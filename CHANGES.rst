@@ -6,6 +6,7 @@ These features will be included in the next release:
 Added
 -----
 - Support for Black's ``--skip-magic-trailing-comma`` option
+- ``darker --diff`` output is now identical to that of ``black --diff``
 
 Fixed
 -----
