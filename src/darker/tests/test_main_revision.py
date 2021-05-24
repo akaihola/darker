@@ -142,7 +142,7 @@ def test_revision(git_repo, monkeypatch, capsys, revision, worktree_content, exp
         main(arguments)
 
         modified_files = [
-            line[4:-3]
+            line.split("\t")[0][4:-3]
             for line in capsys.readouterr().out.splitlines()
             if line.startswith("+++ ")
         ]
