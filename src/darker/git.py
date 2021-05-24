@@ -5,6 +5,7 @@ import os
 import re
 import sys
 from dataclasses import dataclass
+from datetime import datetime
 from functools import lru_cache
 from pathlib import Path
 from subprocess import CalledProcessError, check_output
@@ -39,7 +40,7 @@ def git_get_mtime_at_commit(path: Path, revision: str, cwd: Path) -> str:
     :param cwd: The root of the Git repository
 
     """
-    cmd = ["git", "log", "-1", "--format=%ct", revision, "--", str(path)]
+    cmd = ["log", "-1", "--format=%ct", revision, "--", str(path)]
     lines = _git_check_output_lines(cmd, cwd)
     return datetime.utcfromtimestamp(int(lines[0])).strftime(GIT_DATEFORMAT)
 
@@ -64,7 +65,8 @@ def git_get_content_at_revision(path: Path, revision: str, cwd: Path) -> TextDoc
     logger.debug("[%s]$ %s", cwd, " ".join(cmd))
     try:
         return TextDocument.from_lines(
-            _git_check_output_lines(cmd, cwd, exit_on_error=False)
+            _git_check_output_lines(cmd, cwd, exit_on_error=False),
+            mtime=git_get_mtime_at_commit(path, revision, cwd),
         )
     except CalledProcessError as exc_info:
         if exc_info.returncode != 128:
@@ -145,7 +147,7 @@ def _git_check_output_lines(
     """Log command line, run Git, split stdout to lines, exit with 123 on error"""
     logger.debug("[%s]$ %s", cwd, " ".join(cmd))
     try:
-        return check_output(["git"] + cmd, cwd=str(cwd)).decode("utf-8").splitlines()
+        return check_output(["git"] + cmd, cwd=str(cwd), encoding="utf-8").splitlines()
     except CalledProcessError as exc_info:
         if exc_info.returncode == 128 and exit_on_error:
             # Bad revision or another Git failure. Follow Black's example and return the
@@ -213,9 +215,7 @@ class EditedLinenumsDiffer:
     @lru_cache(maxsize=1)
     def compare_revisions(self, path_in_repo: Path, context_lines: int) -> List[int]:
         """Return numbers of lines changed between a given revision and the worktree"""
-        content = git_get_content_at_revision(
-            path_in_repo, self.revrange.rev2, self.git_root
-        )
+        content = TextDocument.from_file(self.git_root / path_in_repo)
         return self.revision_vs_lines(path_in_repo, content, context_lines)
 
     def revision_vs_lines(

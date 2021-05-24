@@ -3,6 +3,7 @@
 import logging
 import sys
 from argparse import Action, ArgumentError
+from datetime import datetime
 from difflib import unified_diff
 from pathlib import Path
 from typing import Generator, Iterable, List, Tuple
@@ -22,7 +23,7 @@ from darker.git import (
 from darker.help import ISORT_INSTRUCTION
 from darker.import_sorting import apply_isort, isort
 from darker.linting import run_linters
-from darker.utils import TextDocument, get_common_root
+from darker.utils import GIT_DATEFORMAT, TextDocument, get_common_root
 from darker.verification import BinarySearch, NotEquivalentError, verify_ast_unchanged
 
 logger = logging.getLogger(__name__)
@@ -104,6 +105,7 @@ def format_edited_parts(
                 choose_lines(black_chunks, edited_linenums),
                 encoding=rev2_content.encoding,
                 newline=rev2_content.newline,
+                mtime=datetime.utcnow().strftime(GIT_DATEFORMAT),
             )
 
             # 8. verify

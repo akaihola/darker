@@ -62,5 +62,7 @@ def apply_isort(
         )
     )
     return TextDocument.from_str(
-        isort_code(code=content.string, **isort_args), encoding=content.encoding
+        isort_code(code=content.string, **isort_args),
+        encoding=content.encoding,
+        mtime=content.mtime,
     )

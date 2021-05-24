@@ -107,16 +107,41 @@ def test_revisionrange_parse(revision_range, expect):
 
 
 @pytest.mark.kwparametrize(
-    dict(revision="HEAD^", expect="git show HEAD^:./my.txt"),
-    dict(revision="master", expect="git show master:./my.txt"),
+    dict(
+        revision="HEAD",
+        expect=[
+            "git show HEAD:./my.txt",
+            "git log -1 --format=%ct HEAD -- my.txt",
+        ],
+    ),
+    dict(
+        revision="HEAD^",
+        expect=[
+            "git show HEAD^:./my.txt",
+            "git log -1 --format=%ct HEAD^ -- my.txt",
+        ],
+    ),
+    dict(
+        revision="master",
+        expect=[
+            "git show master:./my.txt",
+            "git log -1 --format=%ct master -- my.txt",
+        ],
+    ),
 )
 def test_git_get_content_at_revision_git_calls(revision, expect):
+    """get_git_content_at_revision() calls Git correctly"""
     with patch("darker.git.check_output") as check_output:
-        check_output.return_value = b"dummy output"
+        # a dummy Unix timestamp:
+        check_output.return_value = b"1000000"
 
         git_get_content_at_revision(Path("my.txt"), revision, Path("cwd"))
 
-        check_output.assert_called_once_with(expect.split(), cwd="cwd")
+        assert check_output.call_count == len(expect)
+        for expect_call in expect:
+            check_output.assert_any_call(
+                expect_call.split(), cwd="cwd", encoding="utf-8"
+            )
 
 
 @pytest.mark.kwparametrize(
@@ -450,15 +475,15 @@ edited_linenums_differ_cases = pytest.mark.kwparametrize(
 
 
 @edited_linenums_differ_cases
-def test_edited_linenums_differ_revision_vs_worktree(git_repo, context_lines, expect):
+def test_edited_linenums_differ_compare_revisions(git_repo, context_lines, expect):
     """Tests for EditedLinenumsDiffer.revision_vs_worktree()"""
     paths = git_repo.add({"a.py": "1\n2\n3\n4\n5\n6\n7\n8\n"}, commit="Initial commit")
     paths["a.py"].write_bytes(b"1\n2\nthree\n4\n5\n6\nseven\n8\n")
     differ = EditedLinenumsDiffer(Path(git_repo.root), RevisionRange("HEAD"))
 
-    result = differ.compare_revisions(Path("a.py"), context_lines)
+    linenums = differ.compare_revisions(Path("a.py"), context_lines)
 
-    assert result == expect
+    assert linenums == expect
 
 
 @edited_linenums_differ_cases
@@ -468,9 +493,9 @@ def test_edited_linenums_differ_revision_vs_lines(git_repo, context_lines, expec
     content = TextDocument.from_lines(["1", "2", "three", "4", "5", "6", "seven", "8"])
     differ = EditedLinenumsDiffer(git_repo.root, RevisionRange("HEAD"))
 
-    result = differ.revision_vs_lines(Path("a.py"), content, context_lines)
+    linenums = differ.revision_vs_lines(Path("a.py"), content, context_lines)
 
-    assert result == expect
+    assert linenums == expect
 
 
 def test_local_gitconfig_ignored_by_gitrepofixture(tmp_path):
