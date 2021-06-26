@@ -33,4 +33,4 @@ jobs:
         pip install -e '.[isort,test]'
     - name: Test with pytest
       run: |
-        pytest
+        pytest -vv
