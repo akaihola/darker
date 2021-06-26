@@ -16,6 +16,14 @@ TextLines = Tuple[str, ...]
 GIT_DATEFORMAT = "%Y-%m-%d %H:%M:%S.%f +0000"
 
 
+def detect_newline(string: str) -> str:
+    """Detect LF or CRLF newlines in a string by looking at the end of the first line"""
+    first_lf_pos = string.find("\n")
+    if first_lf_pos > 0 and string[first_lf_pos - 1] == "\r":
+        return "\r\n"
+    return "\n"
+
+
 class TextDocument:
     """Store & handle a multi-line text document, either as a string or list of lines"""
 
@@ -36,11 +44,17 @@ class TextDocument:
         self._newline = newline
         self._mtime = mtime
 
+    def string_with_newline(self, newline: str) -> str:
+        """Return the document as a string, using the given newline sequence"""
+        if self._string is None or detect_newline(self._string) != newline:
+            return joinlines(self.lines or (), newline)
+        return self._string
+
     @property
     def string(self) -> str:
         """Return the document as a string, converting and caching if necessary"""
         if self._string is None:
-            self._string = joinlines(self._lines or (), self.newline)
+            self._string = self.string_with_newline(self.newline)
         return self._string
 
     @property
@@ -86,11 +100,7 @@ class TextDocument:
         :param mtime: The modification time of the original file
 
         """
-        first_lf_pos = string.find("\n")
-        if first_lf_pos > 0 and string[first_lf_pos - 1] == "\r":
-            newline = "\r\n"
-        else:
-            newline = "\n"
+        newline = detect_newline(string)
         if override_newline and override_newline != newline:
             string = string.replace(newline, override_newline)
             newline = override_newline
