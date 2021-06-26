@@ -794,6 +794,18 @@ Thanks goes to these wonderful people (`emoji key`_):
                <a href="https://github.com/akaihola/darker/issues?q=author%3Avirtuald"
                   title="Bug reports">🐛</a>
            </td>
+           <td align="center">
+               <a href="https://github.com/yoursvivek">
+                   <img src="https://avatars.githubusercontent.com/u/163296?v=3" width="100px;" alt="@yoursvivek"/>
+                   <br />
+                   <sub><b>Vivek Kushwaha</b></sub>
+               </a>
+               <br />
+               <a href="https://github.com/akaihola/darker/issues?q=author%3Ayoursvivek"
+                  title="Bug reports">🐛</a>
+                  <a href="https://github.com/akaihola/darker/commits?author=yoursvivek"
+                  title="Documentation">📖</a>
+           </td>
        </tr>
    </table>
    <!-- ALL-CONTRIBUTORS-LIST:END -->
