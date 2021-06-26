@@ -119,6 +119,10 @@ def run_black(
     # Override defaults and pyproject.toml settings if they've been specified
     # from the command line arguments
     mode = Mode(**effective_args)
+    logger.debug(f"black.format_str(")
+    logger.debug(f"    <{len(src_contents.string)} characters>,")
+    logger.debug(f"    mode={mode}")
+    logger.debug(f")")
     return TextDocument.from_str(
         format_str(src_contents.string, mode=mode),
         encoding=src_contents.encoding,
