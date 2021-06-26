@@ -78,6 +78,10 @@ To install, use::
 
   pip install darker
 
+Or, if you're using Conda_ for package management::
+
+  conda install -c conda-forge darker isort
+
 The ``darker <myfile.py>`` or ``darker <directory>`` command
 reads the original file(s),
 formats them using Black_,
@@ -99,6 +103,11 @@ You can enable additional features with command line options:
   - ``-L flake8``: enforce the Python style guide using Flake8_
 
 *New in version 1.1.0:* The ``-L`` / ``--lint`` option.
+*New in version 1.2.2:* Package available in conda-forge_.
+  
+.. _Conda: https://conda.io/
+.. _conda-forge: https://conda-forge.org/
+
 
 Example
 =======
