@@ -11,6 +11,16 @@ Added
 
 Fixed
 -----
+
+
+1.2.4_ - 2021-mm-dd
+===================
+
+Added
+-----
+
+Fixed
+-----
 - Git-related commands in the test suite now ignore the user's ``~/.gitconfig``.
 - Now works again even if ``isort`` isn't installed
 - AST verification no longer erroneously fails when using ``--isort``
@@ -155,7 +165,8 @@ Added
 -----
 - Initial implementation
 
-.. _Unreleased: https://github.com/akaihola/darker/compare/1.2.3...HEAD
+.. _Unreleased: https://github.com/akaihola/darker/compare/1.2.4...HEAD
+.. _1.2.4: https://github.com/akaihola/darker/compare/1.2.3...1.2.4
 .. _1.2.3: https://github.com/akaihola/darker/compare/1.2.2...1.2.3
 .. _1.2.2: https://github.com/akaihola/darker/compare/1.2.1...1.2.2
 .. _1.2.1: https://github.com/akaihola/darker/compare/1.2.0...1.2.1
