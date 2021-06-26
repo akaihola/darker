@@ -59,7 +59,7 @@ class TextDocument:
 
     @property
     def encoded_string(self) -> bytes:
-        """Return the document as a string, converting and caching if necessary"""
+        """Return the document as a bytestring, converting and caching if necessary"""
         return self.string.encode(self.encoding)
 
     @property
