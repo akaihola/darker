@@ -10,10 +10,29 @@ import pytest
 from darker.utils import (
     TextDocument,
     debug_dump,
+    detect_newline,
     get_common_root,
     get_path_ancestry,
     joinlines,
 )
+
+
+@pytest.mark.kwparametrize(
+    dict(string="", expect="\n"),
+    dict(string="\n", expect="\n"),
+    dict(string="\r\n", expect="\r\n"),
+    dict(string="one line\n", expect="\n"),
+    dict(string="one line\r\n", expect="\r\n"),
+    dict(string="first line\nsecond line\n", expect="\n"),
+    dict(string="first line\r\nsecond line\r\n", expect="\r\n"),
+    dict(string="first unix\nthen windows\r\n", expect="\n"),
+    dict(string="first windows\r\nthen unix\n", expect="\r\n"),
+)
+def test_detect_newline(string, expect):
+    """``detect_newline()`` gives correct results"""
+    result = detect_newline(string)
+
+    assert result == expect
 
 
 def test_debug_dump(caplog, capsys):
@@ -106,6 +125,25 @@ def test_textdocument_set_encoding(textdocument, expect):
 def test_textdocument_string(textdocument, expect):
     """TextDocument.string respects the newline setting"""
     assert textdocument.string == expect
+
+
+@pytest.mark.parametrize("newline", ["\n", "\r\n"])
+@pytest.mark.kwparametrize(
+    dict(textdocument=TextDocument(), expect=""),
+    dict(textdocument=TextDocument(lines=["zéro", "un"])),
+    dict(textdocument=TextDocument(string="zéro\nun\n")),
+    dict(textdocument=TextDocument(lines=["zéro", "un"], newline="\n")),
+    dict(textdocument=TextDocument(string="zéro\nun\n", newline="\n")),
+    dict(textdocument=TextDocument(lines=["zéro", "un"], newline="\r\n")),
+    dict(textdocument=TextDocument(string="zéro\r\nun\r\n", newline="\r\n")),
+    expect="zéro{newline}un{newline}",
+)
+def test_textdocument_string_with_newline(textdocument, newline, expect):
+    """TextDocument.string respects the newline setting"""
+    result = textdocument.string_with_newline(newline)
+
+    expected = expect.format(newline=newline)
+    assert result == expected
 
 
 @pytest.mark.parametrize(

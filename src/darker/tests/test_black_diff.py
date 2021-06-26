@@ -1,7 +1,9 @@
 from pathlib import Path
+from unittest.mock import ANY, patch
 
 import pytest
 
+from darker import black_diff
 from darker.black_diff import BlackArgs, read_black_config, run_black
 from darker.utils import TextDocument
 
@@ -55,3 +57,15 @@ def test_run_black(tmpdir, encoding, newline):
     )
     assert result.encoding == encoding
     assert result.newline == newline
+
+
+@pytest.mark.parametrize("newline", ["\n", "\r\n"])
+def test_run_black_always_uses_unix_newlines(tmpdir, newline):
+    """Content is always passed to Black with Unix newlines"""
+    src = TextDocument.from_str(f"print ( 'touché' ){newline}")
+    with patch.object(black_diff, "format_str") as format_str:
+        format_str.return_value = 'print("touché")\n'
+
+        _ = run_black(Path(tmpdir / "src.py"), src, BlackArgs())
+
+    format_str.assert_called_once_with("print ( 'touché' )\n", mode=ANY)
