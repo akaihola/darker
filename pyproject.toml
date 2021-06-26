@@ -15,7 +15,4 @@ src = [
     "src",
 ]
 revision = "origin/master..."
-lint = [
-    "pylint",
-]
 log_level = "DEBUG"
