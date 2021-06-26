@@ -7,6 +7,7 @@ Added
 -----
 - Upgrade to and satisfy MyPy 0.910 by adding ``types-toml`` as a test dependency, and
   ``types-dataclasses`` as well if running on Python 3.6.
+- Installation instructions in a Conda environment.
 
 Fixed
 -----
@@ -51,6 +52,7 @@ Added
   ``PRE_COMMIT_TO_REF`` environment variables when using the ``--revision :PRE-COMMIT:``
   option
 - Configure a pre-commit hook for Darker itself
+- Add a Darker package to conda-forge_.
 
 Fixed
 -----
@@ -164,6 +166,7 @@ Added
 .. _0.1.1: https://github.com/akaihola/darker/compare/0.1.0...0.1.1
 .. _0.1.0: https://github.com/akaihola/darker/releases/tag/0.1.0
 .. _pre-commit: https://pre-commit.com/
+.. _conda-forge: https://conda-forge.org/
 .. _#80: https://github.com/akaihola/darker/issues/80
 .. _pytest-darker: https://pypi.org/project/pytest-darker/
 .. _Black 19.10: https://github.com/psf/black/blob/master/CHANGES.md#1910b0
