@@ -635,6 +635,8 @@ Thanks goes to these wonderful people (`emoji key`_):
                <br />
                <a href="https://github.com/conda-forge/staged-recipes/search?q=darker&type=issues&author=martinRenou"
                   title="Code">💻</a>
+               <a href="https://github.com/akaihola/darker/pulls?q=is%3Apr+reviewed-by%3AmartinRenou"
+                  title="Reviewed Pull Requests">👀</a>
            </td>
            <td>
                <a href="https://github.com/matclayton">
