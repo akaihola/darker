@@ -5,19 +5,19 @@ These features will be included in the next release:
 
 Added
 -----
-- Upgrade to and satisfy MyPy 0.910 by adding ``types-toml`` as a test dependency, and
-  ``types-dataclasses`` as well if running on Python 3.6.
-- Installation instructions in a Conda environment.
 
 Fixed
 -----
 
 
-1.2.4_ - 2021-mm-dd
+1.2.4_ - 2021-06-27
 ===================
 
 Added
 -----
+- Upgrade to and satisfy MyPy 0.910 by adding ``types-toml`` as a test dependency, and
+  ``types-dataclasses`` as well if running on Python 3.6.
+- Installation instructions in a Conda environment.
 
 Fixed
 -----
