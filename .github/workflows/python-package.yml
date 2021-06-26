@@ -34,3 +34,6 @@ jobs:
     - name: Test with pytest
       run: |
         pytest -vv
+    - name: Reformat and lint with Darker
+      run: |
+        darker
