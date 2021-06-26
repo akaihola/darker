@@ -54,26 +54,34 @@ def test_worktree_symbol():
     assert WORKTREE == ":WORKTREE:"
 
 
-@pytest.mark.parametrize(
-    "revision, expect",
-    [
-        (":WORKTREE:", ("new content",)),
-        ("HEAD", ("modified content",)),
-        ("HEAD^", ("original content",)),
-        ("HEAD~2", ()),
-    ],
+@pytest.mark.kwparametrize(
+    dict(
+        revision=":WORKTREE:",
+        expect_lines=("new content",),
+        expect_mtime="2001-09-09 01:46:40.000000 +0000",
+    ),
+    dict(
+        revision="HEAD",
+        expect_lines=("modified content",),
+        expect_mtime="",
+    ),
+    dict(revision="HEAD^", expect_lines=("original content",), expect_mtime=""),
+    dict(revision="HEAD~2", expect_lines=(), expect_mtime=""),
 )
-def test_git_get_content_at_revision(git_repo, revision, expect):
+def test_git_get_content_at_revision(git_repo, revision, expect_lines, expect_mtime):
     """darker.git.git_get_content_at_revision()"""
     git_repo.add({"my.txt": "original content"}, commit="Initial commit")
     paths = git_repo.add({"my.txt": "modified content"}, commit="Initial commit")
     paths["my.txt"].write_bytes(b"new content")
+    os.utime(paths["my.txt"], (1000000000, 1000000000))
 
-    original = git_get_content_at_revision(
+    result = git_get_content_at_revision(
         Path("my.txt"), revision, cwd=Path(git_repo.root)
     )
 
-    assert original.lines == expect
+    assert result.lines == expect_lines
+    assert result.mtime == expect_mtime
+    assert result.encoding == "utf-8"
 
 
 @pytest.mark.parametrize(

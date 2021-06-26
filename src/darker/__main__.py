@@ -2,6 +2,7 @@
 
 import logging
 import sys
+from argparse import Action, ArgumentError
 from difflib import unified_diff
 from pathlib import Path
 from typing import Generator, Iterable, List, Tuple
@@ -11,7 +12,13 @@ from darker.chooser import choose_lines
 from darker.command_line import parse_command_line
 from darker.config import dump_config
 from darker.diff import diff_and_get_opcodes, opcodes_to_chunks
-from darker.git import EditedLinenumsDiffer, RevisionRange, git_get_modified_files
+from darker.git import (
+    WORKTREE,
+    EditedLinenumsDiffer,
+    RevisionRange,
+    git_get_content_at_revision,
+    git_get_modified_files,
+)
 from darker.help import ISORT_INSTRUCTION
 from darker.import_sorting import apply_isort, isort
 from darker.linting import run_linters
@@ -44,19 +51,19 @@ def format_edited_parts(
 
     for path_in_repo in sorted(changed_files):
         src = git_root / path_in_repo
-        worktree_content = TextDocument.from_file(src)
+        rev2_content = git_get_content_at_revision(src, revrange.rev2, git_root)
 
         # 1. run isort
         if enable_isort:
-            edited = apply_isort(
-                worktree_content,
+            rev2_isorted = apply_isort(
+                rev2_content,
                 src,
                 black_args.get("config"),
                 black_args.get("line_length"),
             )
         else:
-            edited = worktree_content
-        max_context_lines = len(edited.lines)
+            rev2_isorted = rev2_content
+        max_context_lines = len(rev2_isorted.lines)
         minimum_context_lines = BinarySearch(0, max_context_lines + 1)
         last_successful_reformat = None
         while not minimum_context_lines.found:
@@ -70,39 +77,44 @@ def format_edited_parts(
             # 2. diff the given revision and worktree for the file
             # 3. extract line numbers in the edited to-file for changed lines
             edited_linenums = edited_linenums_differ.revision_vs_lines(
-                path_in_repo, edited, context_lines
+                path_in_repo, rev2_isorted, context_lines
             )
-            if enable_isort and not edited_linenums and edited == worktree_content:
+            if enable_isort and not edited_linenums and rev2_isorted == rev2_content:
                 logger.debug("No changes in %s after isort", src)
+                last_successful_reformat = (src, rev2_content, rev2_isorted)
                 break
 
             # 4. run black
-            formatted = run_black(src, edited, black_args)
-            logger.debug("Read %s lines from edited file %s", len(edited.lines), src)
+            formatted = run_black(src, rev2_isorted, black_args)
+            logger.debug(
+                "Read %s lines from edited file %s", len(rev2_isorted.lines), src
+            )
             logger.debug("Black reformat resulted in %s lines", len(formatted.lines))
 
             # 5. get the diff between the edited and reformatted file
-            opcodes = diff_and_get_opcodes(edited, formatted)
+            opcodes = diff_and_get_opcodes(rev2_isorted, formatted)
 
             # 6. convert the diff into chunks
-            black_chunks = list(opcodes_to_chunks(opcodes, edited, formatted))
+            black_chunks = list(opcodes_to_chunks(opcodes, rev2_isorted, formatted))
 
             # 7. choose reformatted content
             chosen = TextDocument.from_lines(
                 choose_lines(black_chunks, edited_linenums),
-                encoding=worktree_content.encoding,
-                newline=worktree_content.newline,
+                encoding=rev2_content.encoding,
+                newline=rev2_content.newline,
             )
 
             # 8. verify
             logger.debug(
                 "Verifying that the %s original edited lines and %s reformatted lines "
                 "parse into an identical abstract syntax tree",
-                len(edited.lines),
+                len(rev2_isorted.lines),
                 len(chosen.lines),
             )
             try:
-                verify_ast_unchanged(edited, chosen, black_chunks, edited_linenums)
+                verify_ast_unchanged(
+                    rev2_isorted, chosen, black_chunks, edited_linenums
+                )
             except NotEquivalentError:
                 # Diff produced misaligned chunks which couldn't be reconstructed into
                 # a partially re-formatted Python file which produces an identical AST.
@@ -116,18 +128,15 @@ def format_edited_parts(
                 minimum_context_lines.respond(False)
             else:
                 minimum_context_lines.respond(True)
-                last_successful_reformat = (src, worktree_content, chosen)
+                last_successful_reformat = (src, rev2_content, chosen)
         if not last_successful_reformat:
             raise NotEquivalentError(path_in_repo)
         # 9. A re-formatted Python file which produces an identical AST was
         #    created successfully - write an updated file or print the diff if
         #    there were any changes to the original
-        src, worktree_content, chosen = last_successful_reformat
-        if chosen != worktree_content:
-            # `result_str` is just `chosen_lines` concatenated with newlines.
-            # We need both forms when showing diffs or modifying files.
-            # Pass them both on to avoid back-and-forth conversion.
-            yield src, worktree_content, chosen
+        src, rev2_content, chosen = last_successful_reformat
+        if chosen != rev2_content:
+            yield (src, rev2_content, chosen)
 
 
 def modify_file(path: Path, new_content: TextDocument) -> None:
@@ -218,7 +227,15 @@ def main(argv: List[str] = None) -> int:
     paths = {Path(p) for p in args.src}
     git_root = get_common_root(paths)
     failures_on_modified_lines = False
+
     revrange = RevisionRange.parse(args.revision)
+    write_modified_files = not args.check and not args.diff
+    if revrange.rev2 != WORKTREE and write_modified_files:
+        raise ArgumentError(
+            Action(["-r", "--revision"], "revision"),
+            f"Can't write reformatted files for revision '{revrange.rev2}'."
+            " Either --diff or --check must be used.",
+        )
     changed_files = git_get_modified_files(paths, revrange, git_root)
     for path, old, new in format_edited_parts(
         git_root, changed_files, revrange, args.isort, black_args
@@ -226,7 +243,7 @@ def main(argv: List[str] = None) -> int:
         failures_on_modified_lines = True
         if args.diff:
             print_diff(path, old, new)
-        if not args.check and not args.diff:
+        if write_modified_files:
             modify_file(path, new)
     if run_linters(args.lint, git_root, changed_files, revrange):
         failures_on_modified_lines = True

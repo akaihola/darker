@@ -12,6 +12,9 @@ Fixed
 -----
 - Git-related commands in the test suite now ignore the user's ``~/.gitconfig``.
 - Now works again even if ``isort`` isn't installed
+- AST verification no longer erroneously fails when using ``--isort``
+- Historical comparisons like ``darker --diff --revision=v1.0..v1.1`` now actually
+  compare the second revision and not the working tree files on disk.
 
 
 1.2.3_ - 2021-05-02
