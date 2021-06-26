@@ -423,7 +423,7 @@ do the following:
 1. Append to the created ``.pre-commit-config.yaml`` the following lines::
 
        -   repo: https://github.com/akaihola/darker
-           rev: 1.2.2
+           rev: 1.2.3
            hooks:
            -   id: darker
 
