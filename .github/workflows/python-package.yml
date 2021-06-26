@@ -33,4 +33,4 @@ jobs:
         pip install -e '.[isort,test]'
     - name: Reformat and lint with Darker
       run: |
-        darker
+        darker src/darker/tests/test_linting.py
