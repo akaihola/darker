@@ -321,12 +321,12 @@ def test_format_edited_parts_historical(git_repo, rev1, rev2, expect):
     ),
     dict(
         arguments=["--check", "--lint", "echo a.py:1: message"],
-        expect_stdout=["a.py:1: message /a.py", ""],
+        expect_stdout=["", "a.py:1: message /a.py", ""],
         expect_retval=1,
     ),
     dict(
         arguments=["--diff", "--lint", "echo a.py:1: message"],
-        expect_stdout=A_PY_DIFF_BLACK[:-1] + ["a.py:1: message /a.py", ""],
+        expect_stdout=A_PY_DIFF_BLACK[:-1] + ["", "a.py:1: message /a.py", ""],
     ),
     # for all test cases, by default there's no output, `a.py` stays unmodified, and the
     # return value is a zero:

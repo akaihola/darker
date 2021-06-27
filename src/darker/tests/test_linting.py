@@ -38,13 +38,13 @@ def test_parse_linter_line(git_repo, monkeypatch, line, expect):
             "Check one file, report on a modified line in test.py",
             ["one.py"],
             "test.py:1:",
-            ["test.py:1: {git_repo.root / 'one.py'}"],
+            ["", "test.py:1: {git_repo.root / 'one.py'}"],
         ),
         (
             "Check one file, report on a column of a modified line in test.py",
             ["one.py"],
             "test.py:1:42:",
-            ["test.py:1:42: {git_repo.root / 'one.py'}"],
+            ["", "test.py:1:42: {git_repo.root / 'one.py'}"],
         ),
         (
             "No output if report is on an unmodified line in test.py",
@@ -62,13 +62,13 @@ def test_parse_linter_line(git_repo, monkeypatch, line, expect):
             "Check two files, report on a modified line in test.py",
             ["one.py", "two.py"],
             "test.py:1:",
-            ["test.py:1: {git_repo.root / 'one.py'} {git_repo.root / 'two.py'}"],
+            ["", "test.py:1: {git_repo.root / 'one.py'} {git_repo.root / 'two.py'}"],
         ),
         (
             "Check two files, rpeort on a column of a modified line in test.py",
             ["one.py", "two.py"],
             "test.py:1:42:",
-            ["test.py:1:42: {git_repo.root / 'one.py'} {git_repo.root / 'two.py'}"],
+            ["", "test.py:1:42: {git_repo.root / 'one.py'} {git_repo.root / 'two.py'}"],
         ),
         (
             "No output if 2-file report is on an unmodified line in test.py",
