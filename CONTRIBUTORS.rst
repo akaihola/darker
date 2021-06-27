@@ -20,4 +20,5 @@
 - Matthias Bussonnier (@Carreau)
 - Nutchanon Ninyawee (@CircleOnCircles)
 - Sean Hammond (@sherbie)
+- Talha Junaid (@talhajunaidd)
 - Will (@Hainguyen1210)

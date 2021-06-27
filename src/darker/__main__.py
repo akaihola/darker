@@ -223,6 +223,8 @@ def main(argv: List[str] = None) -> int:
         black_args["line_length"] = args.line_length
     if args.skip_string_normalization is not None:
         black_args["skip_string_normalization"] = args.skip_string_normalization
+    if args.skip_magic_trailing_comma is not None:
+        black_args["skip_magic_trailing_comma"] = args.skip_magic_trailing_comma
 
     paths = {Path(p) for p in args.src}
     git_root = get_common_root(paths)
