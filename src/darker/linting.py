@@ -25,7 +25,7 @@ from subprocess import PIPE, Popen
 from typing import List, Optional, Set, Tuple
 
 from darker.git import WORKTREE, EditedLinenumsDiffer, RevisionRange
-from darker.highlighting import DescriptionLexer, LocationLexer, colorize
+from darker.highlighting import colorize
 
 logger = logging.getLogger(__name__)
 
@@ -86,8 +86,6 @@ def run_linter(
     # assert needed for MyPy (see https://stackoverflow.com/q/57350490/15770)
     assert linter_process.stdout is not None
     edited_linenums_differ = EditedLinenumsDiffer(git_root, revrange)
-    location_lexer = LocationLexer()
-    description_lexer = DescriptionLexer()
     prev_path, prev_linenum = None, 0
     for line in linter_process.stdout:
         path_in_repo, linter_error_linenum, location, description = _parse_linter_line(
@@ -102,8 +100,8 @@ def run_linter(
             if path_in_repo != prev_path or linter_error_linenum > prev_linenum + 1:
                 print()
             prev_path, prev_linenum = path_in_repo, linter_error_linenum
-            print(colorize(location, location_lexer), end=" ")
-            print(colorize(description, description_lexer))
+            print(colorize(location, "lint_location"), end=" ")
+            print(colorize(description, "lint_description"))
             error_count += 1
     return error_count
 

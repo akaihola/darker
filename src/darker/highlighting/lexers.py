@@ -1,52 +1,16 @@
-"""Highlighting of terminal output"""
+"""Custom Pygments lexers for highlighting linter output"""
 
-import sys
-from typing import Generator, Tuple, Union, cast
+from typing import Generator, Tuple
 
-try:
-    from pygments import highlight
-    from pygments.formatters.terminal import TerminalFormatter
-    from pygments.lexer import Lexer, RegexLexer, bygroups, combined
-    from pygments.lexers import get_lexer_by_name
-    from pygments.lexers.python import Python3Lexer
-    from pygments.token import Error, Number, String, Text, _TokenType
-
-    HAS_PYGMENTS = True
-except ImportError:
-    HAS_PYGMENTS = False
-
-    from darker.fake_pygments import (
-        Error,
-        Lexer,
-        Number,
-        Python3Lexer,
-        RegexLexer,
-        String,
-        TerminalFormatter,
-        Text,
-        _TokenType,
-        bygroups,
-        combined,
-        get_lexer_by_name,
-        highlight,
-    )
-
-
-def colorize(output: str, lexer: Union[str, Lexer]) -> str:
-    """Return the output highlighted for terminal if Pygments is available"""
-    if not HAS_PYGMENTS or not sys.stdout.isatty():
-        return output
-    if isinstance(lexer, str):
-        lexer = get_lexer_by_name(lexer)
-    highlighted = highlight(output, lexer, TerminalFormatter())
-    if "\n" not in output:
-        # see https://github.com/pygments/pygments/issues/1107
-        highlighted = highlighted.rstrip("\n")
-    return cast(str, highlighted)
+from pygments.lexer import Lexer, RegexLexer, bygroups, combined
+from pygments.lexers.python import PythonLexer
+from pygments.token import Error, Number, String, Text, _TokenType
 
 
 class LocationLexer(Lexer):
-    """Lexer for linter output ``path:line:col:` prefix"""
+    """Lexer for linter output ``path:line:col:`` prefix"""
+
+    aliases = ["lint_location"]
 
     def get_tokens_unprocessed(
         self, text: str
@@ -72,12 +36,14 @@ class DescriptionLexer(RegexLexer):
 
     """
 
+    aliases = "lint_description"
+
     # Make normal text in linter messages look like strings in source code.
     # This is a decent choice since it lets source code stand out fairly well.
     message = String
 
     # Customize the Python lexer
-    tokens = Python3Lexer.tokens.copy()
+    tokens = PythonLexer.tokens.copy()
 
     # Move the main Python lexer into a separate state
     tokens["python"] = tokens["root"]
