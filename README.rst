@@ -104,7 +104,7 @@ You can enable additional features with command line options:
 
 *New in version 1.1.0:* The ``-L`` / ``--lint`` option.
 *New in version 1.2.2:* Package available in conda-forge_.
-  
+
 .. _Conda: https://conda.io/
 .. _conda-forge: https://conda-forge.org/
 
@@ -243,6 +243,11 @@ The following `command line arguments`_ can also be used to modify the defaults:
                            Normalize string quotes or prefixes. This can be used
                            to override `skip_string_normalization = true` from a
                            configuration file.
+    --skip-magic-trailing-comma
+                           Skip adding trailing commas to expressions that are
+                           split by comma where each element is on its own line.
+                           This includes function signatures. This can be used to override
+                           `skip_magic_trailing_comma` from a configuration file.
      -l LINE_LENGTH, --line-length LINE_LENGTH
                            How many characters per line to allow [default: 88]
 
@@ -284,6 +289,8 @@ For example:
 - a ``[tool.darker]`` section in ``pyproject.toml``.
 
 *New in version 1.2.2:* Support for ``-r :PRE-COMMIT:`` / ``--revision=:PRE_COMMIT:``
+
+*New in version 1.3.0:* Support for command line option ``--skip-magic-trailing-comma``
 
 .. _Black documentation about pyproject.toml: https://black.readthedocs.io/en/stable/pyproject_toml.html
 .. _isort documentation about config files: https://timothycrosley.github.io/isort/docs/configuration/config_files/

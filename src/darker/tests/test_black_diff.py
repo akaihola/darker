@@ -20,6 +20,16 @@ from darker.utils import TextDocument
         ),
         (
             "custom.toml",
+            ["skip-magic-trailing-comma = true"],
+            {"skip_magic_trailing_comma": True},
+        ),
+        (
+            "custom.toml",
+            ["skip-magic-trailing-comma = false"],
+            {"skip_magic_trailing_comma": False},
+        ),
+        (
+            "custom.toml",
             ['skip-string-normalization = false'],
             {'skip_string_normalization': False},
         ),

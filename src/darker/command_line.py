@@ -59,6 +59,13 @@ def make_argument_parser(require_src: bool) -> ArgumentParser:
         dest="skip_string_normalization",
         const=False,
     )
+    add_arg(
+        hlp.SKIP_MAGIC_TRAILING_COMMA,
+        "--skip-magic-trailing-comma",
+        action="store_const",
+        dest="skip_magic_trailing_comma",
+        const=True,
+    )
     add_arg(hlp.LINE_LENGTH, "-l", "--line-length", type=int, dest="line_length")
     return parser
 

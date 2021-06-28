@@ -59,6 +59,7 @@ class BlackArgs(TypedDict, total=False):
     config: str
     line_length: int
     skip_string_normalization: bool
+    skip_magic_trailing_comma: bool
 
 
 class BlackModeAttributes(TypedDict, total=False):
@@ -66,6 +67,7 @@ class BlackModeAttributes(TypedDict, total=False):
     line_length: int
     string_normalization: bool
     is_pyi: bool
+    magic_trailing_comma: bool
 
 
 @lru_cache(maxsize=1)
@@ -83,7 +85,8 @@ def read_black_config(src: Path, value: Optional[str]) -> BlackArgs:
         {
             key: value
             for key, value in config.items()
-            if key in ["line_length", "skip_string_normalization"]
+            if key
+            in ["line_length", "skip_string_normalization", "skip_magic_trailing_comma"]
         },
     )
 
@@ -107,6 +110,10 @@ def run_black(
     effective_args = BlackModeAttributes()
     if "line_length" in combined_args:
         effective_args["line_length"] = combined_args["line_length"]
+    if "skip_magic_trailing_comma" in combined_args:
+        effective_args["magic_trailing_comma"] = not combined_args[
+            "skip_magic_trailing_comma"
+        ]
     if "skip_string_normalization" in combined_args:
         # The ``black`` command line argument is
         # ``--skip-string-normalization``, but the parameter for

@@ -62,5 +62,11 @@ NO_SKIP_STRING_NORMALIZATION = (
     "Normalize string quotes or prefixes. This can be used to override"
     " `skip_string_normalization = true` from a configuration file."
 )
+SKIP_MAGIC_TRAILING_COMMA = (
+    "Skip adding trailing commas to expressions that are split by comma "
+    "where each element is on its own line. This includes function signatures."
+    "This can be used to override"
+    " `skip_magic_trailing_comma = true` from a configuration file."
+)
 
 LINE_LENGTH = "How many characters per line to allow [default: 88]"

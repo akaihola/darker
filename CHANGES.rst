@@ -5,6 +5,7 @@ These features will be included in the next release:
 
 Added
 -----
+- Support for Black's ``--skip-magic-trailing-comma`` option
 
 Fixed
 -----
@@ -52,7 +53,7 @@ Fixed
   ``--revision :PRE-COMMIT:`` is set, but ``PRE_COMMIT_FROM_REF`` or
   ``PRE_COMMIT_TO_REF`` are not set.
 
-  
+
 1.2.2_ - 2020-12-30
 ===================
 
