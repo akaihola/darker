@@ -15,11 +15,17 @@ from darker.git import RevisionRange
 @pytest.mark.parametrize(
     "line, expect",
     [
-        ("module.py:42: Description", (Path("module.py"), 42)),
-        ("module.py:42:5: Description", (Path("module.py"), 42)),
-        ("no-linenum.py: Description", (None, None)),
-        ("mod.py:invalid-linenum:5: Description", (None, None)),
-        ("invalid linter output", (None, None)),
+        (
+            "module.py:42: Description\n",
+            (Path("module.py"), 42, "module.py:42:", "Description"),
+        ),
+        (
+            "module.py:42:5: Description\n",
+            (Path("module.py"), 42, "module.py:42:5:", "Description"),
+        ),
+        ("no-linenum.py: Description\n", (Path(), 0, "", "")),
+        ("mod.py:invalid-linenum:5: Description\n", (Path(), 0, "", "")),
+        ("invalid linter output\n", (Path(), 0, "", "")),
     ],
 )
 def test_parse_linter_line(git_repo, monkeypatch, line, expect):
