@@ -51,7 +51,9 @@ def format_edited_parts(
 
     for path_in_repo in sorted(changed_files):
         src = git_root / path_in_repo
-        rev2_content = git_get_content_at_revision(src, revrange.rev2, git_root)
+        rev2_content = git_get_content_at_revision(
+            path_in_repo, revrange.rev2, git_root
+        )
 
         # 1. run isort
         if enable_isort:

@@ -9,6 +9,8 @@ Added
 
 Fixed
 -----
+- Ensure a full revision range ``--revision <COMMIT_A>..<COMMIT_B>`` where
+  COMMIT_B is *not* ``:WORKTREE:`` works too.
 
 
 1.2.4_ - 2021-06-27
