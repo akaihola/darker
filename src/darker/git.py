@@ -136,14 +136,14 @@ def _git_check_output_lines(
             .splitlines()
         )
     except CalledProcessError as exc_info:
-        if exc_info.returncode == 128 and exit_on_error:
-            # Bad revision or another Git failure. Follow Black's example and return the
-            # error status 123.
-            for error_line in exc_info.stderr.decode("utf-8").splitlines():
-                logger.error(error_line)
-            sys.exit(123)
-        else:
+        if exc_info.returncode != 128 or not exit_on_error:
             raise
+
+        # Bad revision or another Git failure. Follow Black's example and return the
+        # error status 123.
+        for error_line in exc_info.stderr.decode("utf-8").splitlines():
+            logger.error(error_line)
+        sys.exit(123)
 
 
 def git_get_modified_files(
