@@ -9,6 +9,8 @@ Added
 
 Fixed
 -----
+- Hide fatal error from Git on stderr when ``git show`` doesn't find the file in rev1.
+  This isn't fatal from Darker's point of view since it's a newly created file.
 
 
 1.2.4_ - 2021-06-27

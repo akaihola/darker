@@ -4,7 +4,7 @@
 
 import os
 from pathlib import Path
-from subprocess import CalledProcessError, check_call
+from subprocess import PIPE, CalledProcessError, check_call
 from typing import List, Union
 from unittest.mock import patch
 
@@ -119,7 +119,7 @@ def test_git_get_content_at_revision_git_calls(revision, expect):
 
         git_get_content_at_revision(Path("my.txt"), revision, Path("cwd"))
 
-        check_output.assert_called_once_with(expect.split(), cwd="cwd")
+        check_output.assert_called_once_with(expect.split(), cwd="cwd", stderr=PIPE)
 
 
 @pytest.mark.parametrize(
