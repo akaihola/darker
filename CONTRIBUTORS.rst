@@ -28,6 +28,7 @@
 - Ronie Martinez (@roniemartinez)
 - Ross Barnowski (@rossbar)
 - Sean Hammond (@sherbie)
+- Shantanu (@hauntsaninja)
 - Talha Junaid (@talhajunaidd)
 - TJ Kolleh (@tkolleh)
 - Vivek Kushwaha (@yoursvivek)
