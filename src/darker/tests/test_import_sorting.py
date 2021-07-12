@@ -77,7 +77,7 @@ def test_apply_isort(encoding, newline):
     ),
 )
 def test_isort_config(monkeypatch, tmpdir, line_length, settings_file, expect):
-    """``isort`` settings are parsed correctly from ``pyproject.toml``"""
+    """``apply_isort()`` parses ``pyproject.toml``correctly"""
     find_project_root.cache_clear()
     monkeypatch.chdir(tmpdir)
     (tmpdir / "pyproject.toml").write(

@@ -251,7 +251,7 @@ def test_get_modified_config(args, expect):
     ),
 )
 def test_dump_config(config, expect):
-    """``dump_config()`` outputs the correct configuration in the correct format"""
+    """``dump_config()`` outputs configuration correctly in the TOML format"""
     result = dump_config(config)
 
     assert result == expect
