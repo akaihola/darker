@@ -42,39 +42,45 @@ def test_apply_isort(encoding, newline):
     assert result.newline == newline
 
 
-@pytest.mark.parametrize(
-    "line_length, settings_file, expect",
-    [
-        (
-            50,
-            None,
+@pytest.mark.kwparametrize(
+    dict(
+        line_length=50,
+        settings_file=None,
+        expect=(
             "from module import (ab, cd, ef, gh, ij, kl, mn,\n"
-            "                    op, qr, st, uv, wx, yz)\n",
+            "                    op, qr, st, uv, wx, yz)\n"
         ),
-        (
-            50,
-            "pyproject.toml",
+    ),
+    dict(
+        line_length=50,
+        settings_file="pyproject.toml",
+        expect=(
             "from module import (ab, cd, ef, gh, ij, kl, mn,\n"
-            "                    op, qr, st, uv, wx, yz)\n",
+            "                    op, qr, st, uv, wx, yz)\n"
         ),
-        (
-            60,
-            None,
+    ),
+    dict(
+        line_length=60,
+        settings_file=None,
+        expect=(
             "from module import (ab, cd, ef, gh, ij, kl, mn, op, qr, st,\n"
-            "                    uv, wx, yz)\n",
+            "                    uv, wx, yz)\n"
         ),
-        (
-            60,
-            "pyproject.toml",
+    ),
+    dict(
+        line_length=60,
+        settings_file="pyproject.toml",
+        expect=(
             "from module import (ab, cd, ef, gh, ij, kl, mn, op, qr, st,\n"
-            "                    uv, wx, yz)\n",
+            "                    uv, wx, yz)\n"
         ),
-    ],
+    ),
 )
 def test_isort_config(monkeypatch, tmpdir, line_length, settings_file, expect):
+    """``isort`` settings are parsed correctly from ``pyproject.toml``"""
     find_project_root.cache_clear()
     monkeypatch.chdir(tmpdir)
-    (tmpdir / 'pyproject.toml').write(
+    (tmpdir / "pyproject.toml").write(
         dedent(
             f"""\
             [tool.isort]

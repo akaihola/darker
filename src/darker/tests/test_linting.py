@@ -11,15 +11,12 @@ from darker import linting
 from darker.git import RevisionRange
 
 
-@pytest.mark.parametrize(
-    "line, expect",
-    [
-        ("module.py:42: Description", (Path("module.py"), 42)),
-        ("module.py:42:5: Description", (Path("module.py"), 42)),
-        ("no-linenum.py: Description", (None, None)),
-        ("mod.py:invalid-linenum:5: Description", (None, None)),
-        ("invalid linter output", (None, None)),
-    ],
+@pytest.mark.kwparametrize(
+    dict(line="module.py:42: Description", expect=(Path("module.py"), 42)),
+    dict(line="module.py:42:5: Description", expect=(Path("module.py"), 42)),
+    dict(line="no-linenum.py: Description", expect=(None, None)),
+    dict(line="mod.py:invalid-linenum:5: Description", expect=(None, None)),
+    dict(line="invalid linter output", expect=(None, None)),
 )
 def test_parse_linter_line(git_repo, monkeypatch, line, expect):
     """Linter output is parsed correctly"""
@@ -30,59 +27,61 @@ def test_parse_linter_line(git_repo, monkeypatch, line, expect):
     assert result == expect
 
 
-@pytest.mark.parametrize(
-    "_descr, paths, location, expect",
-    [
-        ("No files to check, no output", [], "test.py:1:", []),
-        (
-            "Check one file, report on a modified line in test.py",
-            ["one.py"],
-            "test.py:1:",
-            ["test.py:1: {git_repo.root / 'one.py'}"],
-        ),
-        (
-            "Check one file, report on a column of a modified line in test.py",
-            ["one.py"],
-            "test.py:1:42:",
-            ["test.py:1:42: {git_repo.root / 'one.py'}"],
-        ),
-        (
-            "No output if report is on an unmodified line in test.py",
-            ["one.py"],
-            "test.py:2:42:",
-            [],
-        ),
-        (
-            "No output if report is on a column of an unmodified line in test.py",
-            ["one.py"],
-            "test.py:2:42:",
-            [],
-        ),
-        (
-            "Check two files, report on a modified line in test.py",
-            ["one.py", "two.py"],
-            "test.py:1:",
-            ["test.py:1: {git_repo.root / 'one.py'} {git_repo.root / 'two.py'}"],
-        ),
-        (
-            "Check two files, rpeort on a column of a modified line in test.py",
-            ["one.py", "two.py"],
-            "test.py:1:42:",
-            ["test.py:1:42: {git_repo.root / 'one.py'} {git_repo.root / 'two.py'}"],
-        ),
-        (
-            "No output if 2-file report is on an unmodified line in test.py",
-            ["one.py", "two.py"],
-            "test.py:2:",
-            [],
-        ),
-        (
-            "No output if 2-file report is on a column of an unmodified line",
-            ["one.py", "two.py"],
-            "test.py:2:42:",
-            [],
-        ),
-    ],
+@pytest.mark.kwparametrize(
+    dict(
+        _descr="No files to check, no output",
+        paths=[],
+        location="test.py:1:",
+        expect=[],
+    ),
+    dict(
+        _descr="Check one file, report on a modified line in test.py",
+        paths=["one.py"],
+        location="test.py:1:",
+        expect=["test.py:1: {git_repo.root / 'one.py'}"],
+    ),
+    dict(
+        _descr="Check one file, report on a column of a modified line in test.py",
+        paths=["one.py"],
+        location="test.py:1:42:",
+        expect=["test.py:1:42: {git_repo.root / 'one.py'}"],
+    ),
+    dict(
+        _descr="No output if report is on an unmodified line in test.py",
+        paths=["one.py"],
+        location="test.py:2:42:",
+        expect=[],
+    ),
+    dict(
+        _descr="No output if report is on a column of an unmodified line in test.py",
+        paths=["one.py"],
+        location="test.py:2:42:",
+        expect=[],
+    ),
+    dict(
+        _descr="Check two files, rpeort on a modified line in test.py",
+        paths=["one.py", "two.py"],
+        location="test.py:1:",
+        expect=["test.py:1: {git_repo.root / 'one.py'} {git_repo.root / 'two.py'}"],
+    ),
+    dict(
+        _descr="Check two files, rpeort on a column of a modified line in test.py",
+        paths=["one.py", "two.py"],
+        location="test.py:1:42:",
+        expect=["test.py:1:42: {git_repo.root / 'one.py'} {git_repo.root / 'two.py'}"],
+    ),
+    dict(
+        _descr="No output if 2-file report is on an unmodified line in test.py",
+        paths=["one.py", "two.py"],
+        location="test.py:2:",
+        expect=[],
+    ),
+    dict(
+        _descr="No output if 2-file report is on a column of an unmodified line",
+        paths=["one.py", "two.py"],
+        location="test.py:2:42:",
+        expect=[],
+    ),
 )
 def test_run_linter(git_repo, monkeypatch, capsys, _descr, paths, location, expect):
     """Linter gets correct paths on command line and outputs just changed lines

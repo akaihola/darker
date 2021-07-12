@@ -39,28 +39,69 @@ from darker.tests.helpers import raises_if_exception
 # (`ORIGINAL=1`) at HEAD~2.
 
 
-@pytest.mark.parametrize(
-    "revision, worktree_content, expect",
-    [
-        ("", b"USERMOD=1\n", ["+1", "+1M0", "+2-1", "+2", "+2M1-0", "+2M1"]),
-        ("", b"ORIGINAL=1\n", ["+1M0", "+2-1", "+2M1-0", "+2M1"]),
-        ("", b"MODIFIED=1\n", ["+1", "+2-1", "+2", "+2M1-0"]),
-        ("HEAD", b"USERMOD=1\n", ["+1", "+1M0", "+2-1", "+2", "+2M1-0", "+2M1"]),
-        (
-            "HEAD",
-            b"ORIGINAL=1\n",
-            ["+1M0", "+2-1", "+2M1-0", "+2M1"],
-        ),
-        ("HEAD", b"MODIFIED=1\n", ["+1", "+2-1", "+2", "+2M1-0"]),
-        ("HEAD^", b"USERMOD=1\n", ["+1", "+1M0", "+2-1", "+2", "+2M1-0", "+2M1"]),
-        ("HEAD^", b"USERMOD=1\n", ["+1", "+1M0", "+2-1", "+2", "+2M1-0", "+2M1"]),
-        ("HEAD^", b"ORIGINAL=1\n", ["+2-1", "+2M1-0", "+2M1"]),
-        ("HEAD^", b"MODIFIED=1\n", ["+1", "+1M0", "+2-1", "+2"]),
-        ("HEAD~2", b"USERMOD=1\n", ["+1", "+1M0", "+2-1", "+2", "+2M1-0", "+2M1"]),
-        ("HEAD~2", b"ORIGINAL=1\n", ["+1", "+1M0"]),
-        ("HEAD~2", b"MODIFIED=1\n", ["+1", "+1M0", "+2-1", "+2", "+2M1-0", "+2M1"]),
-        ("HEAD~3", b"USERMOD=1\n", SystemExit),
-    ],
+@pytest.mark.kwparametrize(
+    dict(
+        revision="",
+        worktree_content=b"USERMOD=1\n",
+        expect=["+1", "+1M0", "+2-1", "+2", "+2M1-0", "+2M1"],
+    ),
+    dict(
+        revision="",
+        worktree_content=b"ORIGINAL=1\n",
+        expect=["+1M0", "+2-1", "+2M1-0", "+2M1"],
+    ),
+    dict(
+        revision="",
+        worktree_content=b"MODIFIED=1\n",
+        expect=["+1", "+2-1", "+2", "+2M1-0"],
+    ),
+    dict(
+        revision="HEAD",
+        worktree_content=b"USERMOD=1\n",
+        expect=["+1", "+1M0", "+2-1", "+2", "+2M1-0", "+2M1"],
+    ),
+    dict(
+        revision="HEAD",
+        worktree_content=b"ORIGINAL=1\n",
+        expect=["+1M0", "+2-1", "+2M1-0", "+2M1"],
+    ),
+    dict(
+        revision="HEAD",
+        worktree_content=b"MODIFIED=1\n",
+        expect=["+1", "+2-1", "+2", "+2M1-0"],
+    ),
+    dict(
+        revision="HEAD^",
+        worktree_content=b"USERMOD=1\n",
+        expect=["+1", "+1M0", "+2-1", "+2", "+2M1-0", "+2M1"],
+    ),
+    dict(
+        revision="HEAD^",
+        worktree_content=b"USERMOD=1\n",
+        expect=["+1", "+1M0", "+2-1", "+2", "+2M1-0", "+2M1"],
+    ),
+    dict(
+        revision="HEAD^",
+        worktree_content=b"ORIGINAL=1\n",
+        expect=["+2-1", "+2M1-0", "+2M1"],
+    ),
+    dict(
+        revision="HEAD^",
+        worktree_content=b"MODIFIED=1\n",
+        expect=["+1", "+1M0", "+2-1", "+2"],
+    ),
+    dict(
+        revision="HEAD~2",
+        worktree_content=b"USERMOD=1\n",
+        expect=["+1", "+1M0", "+2-1", "+2", "+2M1-0", "+2M1"],
+    ),
+    dict(revision="HEAD~2", worktree_content=b"ORIGINAL=1\n", expect=["+1", "+1M0"]),
+    dict(
+        revision="HEAD~2",
+        worktree_content=b"MODIFIED=1\n",
+        expect=["+1", "+1M0", "+2-1", "+2", "+2M1-0", "+2M1"],
+    ),
+    dict(revision="HEAD~3", worktree_content=b"USERMOD=1\n", expect=SystemExit),
 )
 def test_revision(git_repo, monkeypatch, capsys, revision, worktree_content, expect):
     monkeypatch.chdir(git_repo.root)
@@ -89,7 +130,8 @@ def test_revision(git_repo, monkeypatch, capsys, revision, worktree_content, exp
     )
     # 0: HEAD~0 i.e. HEAD:
     git_repo.add(
-        {"+1M0.py": "MODIFIED=1\n", "+2M1-0.py": None}, commit="Third commit",
+        {"+1M0.py": "MODIFIED=1\n", "+2M1-0.py": None},
+        commit="Third commit",
     )
     # Working tree:
     for path in paths.values():

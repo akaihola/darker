@@ -40,7 +40,7 @@ def run_isort(git_repo, monkeypatch, caplog, request):
     find_project_root.cache_clear()
 
     monkeypatch.chdir(git_repo.root)
-    paths = git_repo.add({'test1.py': 'original'}, commit='Initial commit')
+    paths = git_repo.add({"test1.py": "original"}, commit="Initial commit")
     paths["test1.py"].write_bytes(b"changed")
     args = getattr(request, "param", ())
     with patch.multiple(
@@ -59,9 +59,9 @@ def test_isort_option_with_isort(run_isort):
     assert "Please run" not in run_isort.caplog.text
 
 
-@pytest.mark.parametrize(
-    "run_isort, isort_args",
-    [((), {}), (("--line-length", "120"), {"line_length": 120})],
+@pytest.mark.kwparametrize(
+    dict(run_isort=(), isort_args={}),
+    dict(run_isort=("--line-length", "120"), isort_args={"line_length": 120}),
     indirect=["run_isort"],
 )
 def test_isort_option_with_isort_calls_sortimports(tmpdir, run_isort, isort_args):
@@ -76,50 +76,51 @@ A_PY_BLACK_UNNORMALIZE = ("import sys", "import os", "", "print('42')", "")
 A_PY_BLACK_ISORT = ["import os", "import sys", "", 'print("42")', ""]
 
 A_PY_DIFF_BLACK = [
-    '--- a.py',
-    '+++ a.py',
-    '@@ -1,3 +1,4 @@',
-    ' import sys',
-    ' import os',
+    "--- a.py",
+    "+++ a.py",
+    "@@ -1,3 +1,4 @@",
+    " import sys",
+    " import os",
     "-print( '42')",
-    '+',
+    "+",
     '+print("42")',
-    '',
+    "",
 ]
 
 A_PY_DIFF_BLACK_NO_STR_NORMALIZE = [
-    '--- a.py',
-    '+++ a.py',
-    '@@ -1,3 +1,4 @@',
-    ' import sys',
-    ' import os',
+    "--- a.py",
+    "+++ a.py",
+    "@@ -1,3 +1,4 @@",
+    " import sys",
+    " import os",
     "-print( '42')",
-    '+',
+    "+",
     "+print('42')",
-    '',
+    "",
 ]
 
 A_PY_DIFF_BLACK_ISORT = [
-    '--- a.py',
-    '+++ a.py',
-    '@@ -1,3 +1,4 @@',
-    '+import os',
-    ' import sys',
-    '-import os',
+    "--- a.py",
+    "+++ a.py",
+    "@@ -1,3 +1,4 @@",
+    "+import os",
+    " import sys",
+    "-import os",
     "-print( '42')",
-    '+',
+    "+",
     '+print("42")',
-    '',
+    "",
 ]
 
 
-@pytest.mark.parametrize(
-    'enable_isort, black_args, expect',
-    [
-        (False, {}, A_PY_BLACK),
-        (True, {}, A_PY_BLACK_ISORT),
-        (False, {'skip_string_normalization': True}, A_PY_BLACK_UNNORMALIZE),
-    ],
+@pytest.mark.kwparametrize(
+    dict(enable_isort=False, black_args={}, expect=A_PY_BLACK),
+    dict(enable_isort=True, black_args={}, expect=A_PY_BLACK_ISORT),
+    dict(
+        enable_isort=False,
+        black_args={"skip_string_normalization": True},
+        expect=A_PY_BLACK_UNNORMALIZE,
+    ),
     ids=["black", "black_isort", "black_unnormalize"],
 )
 @pytest.mark.parametrize("newline", ["\n", "\r\n"], ids=["unix", "windows"])
@@ -127,7 +128,7 @@ def test_format_edited_parts(git_repo, enable_isort, black_args, newline, expect
     """Correct reformatting and import sorting changes are produced"""
     paths = git_repo.add({"a.py": newline, "b.py": newline}, commit="Initial commit")
     paths["a.py"].write_bytes(newline.join(A_PY).encode("ascii"))
-    paths["b.py"].write_bytes("print(42 ){newline}".encode("ascii"))
+    paths["b.py"].write_bytes(f"print(42 ){newline}".encode("ascii"))
 
     result = darker.__main__.format_edited_parts(
         Path(git_repo.root),
@@ -349,14 +350,14 @@ def test_main(
     monkeypatch.chdir(git_repo.root)
     paths = git_repo.add({"a.py": newline, "b.py": newline}, commit="Initial commit")
     paths["a.py"].write_bytes(newline.join(A_PY).encode("ascii"))
-    paths["b.py"].write_bytes("print(42 ){newline}".encode("ascii"))
+    paths["b.py"].write_bytes(f"print(42 ){newline}".encode("ascii"))
 
-    retval = darker.__main__.main(arguments + ['a.py'])
+    retval = darker.__main__.main(arguments + ["a.py"])
 
     stdout = capsys.readouterr().out.replace(str(git_repo.root), '')
     assert stdout.replace(os.sep, "/").split("\n") == expect_stdout
     assert paths["a.py"].read_bytes().decode("ascii") == newline.join(expect_a_py)
-    assert paths["b.py"].read_bytes().decode("ascii") == "print(42 ){newline}"
+    assert paths["b.py"].read_bytes().decode("ascii") == f"print(42 ){newline}"
     assert retval == expect_retval
 
 
@@ -390,7 +391,7 @@ def test_output_diff(tmp_path, monkeypatch, capsys):
     monkeypatch.chdir(tmp_path)
     Path("a.py").write_text("dummy\n")
     darker.__main__.print_diff(
-        Path('a.py'),
+        Path("a.py"),
         TextDocument.from_lines(
             ["unchanged", "removed", "kept 1", "2", "3", "4", "5", "6", "7", "changed"]
         ),
@@ -400,32 +401,35 @@ def test_output_diff(tmp_path, monkeypatch, capsys):
     )
 
     assert capsys.readouterr().out.splitlines() == [
-        '--- a.py',
-        '+++ a.py',
-        '@@ -1,5 +1,5 @@',
-        '+inserted',
-        ' unchanged',
-        '-removed',
-        ' kept 1',
-        ' 2',
-        ' 3',
-        '@@ -7,4 +7,4 @@',
-        ' 5',
-        ' 6',
-        ' 7',
-        '-changed',
-        '+Changed',
+        "--- a.py",
+        "+++ a.py",
+        "@@ -1,5 +1,5 @@",
+        "+inserted",
+        " unchanged",
+        "-removed",
+        " kept 1",
+        " 2",
+        " 3",
+        "@@ -7,4 +7,4 @@",
+        " 5",
+        " 6",
+        " 7",
+        "-changed",
+        "+Changed",
     ]
 
 
-@pytest.mark.parametrize(
-    "new_content, expect",
-    [
-        (TextDocument(), b""),
-        (TextDocument(lines=["touché"]), b"touch\xc3\xa9\n"),
-        (TextDocument(lines=["touché"], newline="\r\n"), b"touch\xc3\xa9\r\n"),
-        (TextDocument(lines=["touché"], encoding="iso-8859-1"), b"touch\xe9\n"),
-    ],
+@pytest.mark.kwparametrize(
+    dict(new_content=TextDocument(), expect=b""),
+    dict(new_content=TextDocument(lines=["touché"]), expect=b"touch\xc3\xa9\n"),
+    dict(
+        new_content=TextDocument(lines=["touché"], newline="\r\n"),
+        expect=b"touch\xc3\xa9\r\n",
+    ),
+    dict(
+        new_content=TextDocument(lines=["touché"], encoding="iso-8859-1"),
+        expect=b"touch\xe9\n",
+    ),
 )
 def test_modify_file(tmp_path, new_content, expect):
     """Encoding and newline are respected when writing a text file on disk"""
