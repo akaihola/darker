@@ -40,6 +40,10 @@ def git_get_content_at_revision(path: Path, revision: str, cwd: Path) -> TextDoc
     :param cwd: The root of the Git repository
 
     """
+    assert (
+        not path.is_absolute()
+    ), f"the 'path' parameter must receive a relative path, got {path!r} instead"
+
     if revision == WORKTREE:
         abspath = cwd / path
         return TextDocument.from_file(abspath)
