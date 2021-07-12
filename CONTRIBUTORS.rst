@@ -16,6 +16,7 @@
 - Filip Kucharczyk (@Pacu2)
 - Filipp Samoylov (@samoylovfp)
 - Filippos Giannakos (@philipgian)
+- Giel van Schijndel (@muggenhor)
 - Iryna (@irynahryshanovich)
 - Krischtopp (@Krischtopp)
 - Leo Torres (@leotrs)
