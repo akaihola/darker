@@ -791,6 +791,16 @@ Thanks goes to these wonderful people (`emoji key`_):
                   title="Reviewed Pull Requests">👀</a>
            </td>
            <td align="center">
+               <a href="https://github.com/talhajunaidd">
+                   <img src="https://avatars.githubusercontent.com/u/6547611?v=3" width="100px;" alt="@talhajunaidd"/>
+                   <br />
+                   <sub><b>Talha Juanid</b></sub>
+               </a>
+               <br />
+               <a href="https://github.com/akaihola/darker/commits?author=talhajunaidd"
+                  title="Code">💻</a>
+           </td>
+           <td align="center">
                <a href="https://github.com/tkolleh">
                    <img src="https://avatars.githubusercontent.com/u/3095197?v=3" width="100px;" alt="@tkolleh"/>
                    <br />
