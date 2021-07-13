@@ -1,3 +1,7 @@
+# pylint: disable=too-many-arguments
+
+"""Unit tests for :mod:`darker.command_line` and :mod:`darker.__main__`"""
+
 import re
 from importlib import reload
 from pathlib import Path
@@ -18,7 +22,9 @@ from darker.utils import TextDocument, joinlines
 pytestmark = pytest.mark.usefixtures("find_project_root_cache_clear")
 
 
-@pytest.mark.parametrize("require_src, expect", [(False, []), (True, SystemExit)])
+@pytest.mark.kwparametrize(
+    dict(require_src=False, expect=[]), dict(require_src=True, expect=SystemExit)
+)
 def test_make_argument_parser(require_src, expect):
     """Parser from ``make_argument_parser()`` fails if src required but not provided"""
     parser = make_argument_parser(require_src)
@@ -36,34 +42,31 @@ def get_darker_help_output(capsys):
     reload(darker.help)
     with pytest.raises(SystemExit):
         parse_command_line(["--help"])
-    return re.sub(r'\s+', ' ', capsys.readouterr().out)
+    return re.sub(r"\s+", " ", capsys.readouterr().out)
 
 
-@pytest.mark.parametrize(
-    "config, argv, expect",
-    [
-        (None, [], SystemExit),
-        (
-            None,
-            ["file.py"],
-            {"src": ["file.py"]},
-        ),
-        (
-            {"src": ["file.py"]},
-            [],
-            {"src": ["file.py"]},
-        ),
-        (
-            {"src": ["file.py"]},
-            ["file.py"],
-            {"src": ["file.py"]},
-        ),
-        (
-            {"src": ["file1.py"]},
-            ["file2.py"],
-            {"src": ["file2.py"]},
-        ),
-    ],
+@pytest.mark.kwparametrize(
+    dict(config=None, argv=[], expect=SystemExit),
+    dict(
+        config=None,
+        argv=["file.py"],
+        expect={"src": ["file.py"]},
+    ),
+    dict(
+        config={"src": ["file.py"]},
+        argv=[],
+        expect={"src": ["file.py"]},
+    ),
+    dict(
+        config={"src": ["file.py"]},
+        argv=["file.py"],
+        expect={"src": ["file.py"]},
+    ),
+    dict(
+        config={"src": ["file1.py"]},
+        argv=["file2.py"],
+        expect={"src": ["file2.py"]},
+    ),
 )
 def test_parse_command_line_config_src(
     tmpdir,
@@ -85,139 +88,192 @@ def test_parse_command_line_config_src(
         assert filter_dict(modified_cfg, "src") == expect
 
 
-@pytest.mark.parametrize(
-    "argv, expect_value, expect_config, expect_modified",
-    [
-        (["."], ("src", ["."]), ("src", ["."]), ("src", ["."])),
-        (
-            ["."],
-            ("revision", "HEAD"),
-            ("revision", "HEAD"),
-            ("revision", ...),
-        ),
-        (
-            ["-rmaster", "."],
-            ("revision", "master"),
-            ("revision", "master"),
-            ("revision", "master"),
-        ),
-        (
-            ["--revision", "HEAD", "."],
-            ("revision", "HEAD"),
-            ("revision", "HEAD"),
-            ("revision", ...),
-        ),
-        (["."], ("diff", False), ("diff", False), ("diff", ...)),
-        (["--diff", "."], ("diff", True), ("diff", True), ("diff", True)),
-        (["."], ("check", False), ("check", False), ("check", ...)),
-        (["--check", "."], ("check", True), ("check", True), ("check", True)),
-        (["."], ("isort", False), ("isort", False), ("isort", ...)),
-        (["-i", "."], ("isort", True), ("isort", True), ("isort", True)),
-        (["--isort", "."], ("isort", True), ("isort", True), ("isort", True)),
-        (["."], ("lint", []), ("lint", []), ("lint", ...)),
-        (
-            ["-L", "pylint", "."],
-            ("lint", ["pylint"]),
-            ("lint", ["pylint"]),
-            ("lint", ["pylint"]),
-        ),
-        (
-            ["--lint", "flake8", "-L", "mypy", "."],
-            ("lint", ["flake8", "mypy"]),
-            ("lint", ["flake8", "mypy"]),
-            ("lint", ["flake8", "mypy"]),
-        ),
-        (["."], ("config", None), ("config", None), ("config", ...)),
-        (
-            ["-c", "my.cfg", "."],
-            ("config", "my.cfg"),
-            ("config", "my.cfg"),
-            ("config", "my.cfg"),
-        ),
-        (
-            ["--config=my.cfg", "."],
-            ("config", "my.cfg"),
-            ("config", "my.cfg"),
-            ("config", "my.cfg"),
-        ),
-        (["."], ("log_level", 30), ("log_level", "WARNING"), ("log_level", ...)),
-        (
-            ["-v", "."],
-            ("log_level", 20),
-            ("log_level", "INFO"),
-            ("log_level", "INFO"),
-        ),
-        (
-            ["--verbose", "-v", "."],
-            ("log_level", 10),
-            ("log_level", "DEBUG"),
-            ("log_level", "DEBUG"),
-        ),
-        (
-            ["-q", "."],
-            ("log_level", 40),
-            ("log_level", "ERROR"),
-            ("log_level", "ERROR"),
-        ),
-        (
-            ["--quiet", "-q", "."],
-            ("log_level", 50),
-            ("log_level", "CRITICAL"),
-            ("log_level", "CRITICAL"),
-        ),
-        (
-            ["."],
-            ("skip_string_normalization", None),
-            ("skip_string_normalization", None),
-            ("skip_string_normalization", ...),
-        ),
-        (
-            ["-S", "."],
-            ("skip_string_normalization", True),
-            ("skip_string_normalization", True),
-            ("skip_string_normalization", True),
-        ),
-        (
-            ["--skip-string-normalization", "."],
-            ("skip_string_normalization", True),
-            ("skip_string_normalization", True),
-            ("skip_string_normalization", True),
-        ),
-        (
-            ["--no-skip-string-normalization", "."],
-            ("skip_string_normalization", False),
-            ("skip_string_normalization", False),
-            ("skip_string_normalization", False),
-        ),
-        (
-            ["--skip-magic-trailing-comma", "."],
-            ("skip_magic_trailing_comma", True),
-            ("skip_magic_trailing_comma", True),
-            ("skip_magic_trailing_comma", True),
-        ),
-        (
-            ["."],
-            ("line_length", None),
-            ("line_length", None),
-            ("line_length", ...),
-        ),
-        (
-            ["-l=88", "."],
-            ("line_length", 88),
-            ("line_length", 88),
-            ("line_length", 88),
-        ),
-        (
-            ["--line-length", "99", "."],
-            ("line_length", 99),
-            ("line_length", 99),
-            ("line_length", 99),
-        ),
-    ],
+@pytest.mark.kwparametrize(
+    dict(
+        argv=["."],
+        expect_value=("src", ["."]),
+        expect_config=("src", ["."]),
+        expect_modified=("src", ["."]),
+    ),
+    dict(
+        argv=["."],
+        expect_value=("revision", "HEAD"),
+        expect_config=("revision", "HEAD"),
+        expect_modified=("revision", ...),
+    ),
+    dict(
+        argv=["-rmaster", "."],
+        expect_value=("revision", "master"),
+        expect_config=("revision", "master"),
+        expect_modified=("revision", "master"),
+    ),
+    dict(
+        argv=["--revision", "HEAD", "."],
+        expect_value=("revision", "HEAD"),
+        expect_config=("revision", "HEAD"),
+        expect_modified=("revision", ...),
+    ),
+    dict(
+        argv=["."],
+        expect_value=("diff", False),
+        expect_config=("diff", False),
+        expect_modified=("diff", ...),
+    ),
+    dict(
+        argv=["--diff", "."],
+        expect_value=("diff", True),
+        expect_config=("diff", True),
+        expect_modified=("diff", True),
+    ),
+    dict(
+        argv=["."],
+        expect_value=("check", False),
+        expect_config=("check", False),
+        expect_modified=("check", ...),
+    ),
+    dict(
+        argv=["--check", "."],
+        expect_value=("check", True),
+        expect_config=("check", True),
+        expect_modified=("check", True),
+    ),
+    dict(
+        argv=["."],
+        expect_value=("isort", False),
+        expect_config=("isort", False),
+        expect_modified=("isort", ...),
+    ),
+    dict(
+        argv=["-i", "."],
+        expect_value=("isort", True),
+        expect_config=("isort", True),
+        expect_modified=("isort", True),
+    ),
+    dict(
+        argv=["--isort", "."],
+        expect_value=("isort", True),
+        expect_config=("isort", True),
+        expect_modified=("isort", True),
+    ),
+    dict(
+        argv=["."],
+        expect_value=("lint", []),
+        expect_config=("lint", []),
+        expect_modified=("lint", ...),
+    ),
+    dict(
+        argv=["-L", "pylint", "."],
+        expect_value=("lint", ["pylint"]),
+        expect_config=("lint", ["pylint"]),
+        expect_modified=("lint", ["pylint"]),
+    ),
+    dict(
+        argv=["--lint", "flake8", "-L", "mypy", "."],
+        expect_value=("lint", ["flake8", "mypy"]),
+        expect_config=("lint", ["flake8", "mypy"]),
+        expect_modified=("lint", ["flake8", "mypy"]),
+    ),
+    dict(
+        argv=["."],
+        expect_value=("config", None),
+        expect_config=("config", None),
+        expect_modified=("config", ...),
+    ),
+    dict(
+        argv=["-c", "my.cfg", "."],
+        expect_value=("config", "my.cfg"),
+        expect_config=("config", "my.cfg"),
+        expect_modified=("config", "my.cfg"),
+    ),
+    dict(
+        argv=["--config=my.cfg", "."],
+        expect_value=("config", "my.cfg"),
+        expect_config=("config", "my.cfg"),
+        expect_modified=("config", "my.cfg"),
+    ),
+    dict(
+        argv=["."],
+        expect_value=("log_level", 30),
+        expect_config=("log_level", "WARNING"),
+        expect_modified=("log_level", ...),
+    ),
+    dict(
+        argv=["-v", "."],
+        expect_value=("log_level", 20),
+        expect_config=("log_level", "INFO"),
+        expect_modified=("log_level", "INFO"),
+    ),
+    dict(
+        argv=["--verbose", "-v", "."],
+        expect_value=("log_level", 10),
+        expect_config=("log_level", "DEBUG"),
+        expect_modified=("log_level", "DEBUG"),
+    ),
+    dict(
+        argv=["-q", "."],
+        expect_value=("log_level", 40),
+        expect_config=("log_level", "ERROR"),
+        expect_modified=("log_level", "ERROR"),
+    ),
+    dict(
+        argv=["--quiet", "-q", "."],
+        expect_value=("log_level", 50),
+        expect_config=("log_level", "CRITICAL"),
+        expect_modified=("log_level", "CRITICAL"),
+    ),
+    dict(
+        argv=["."],
+        expect_value=("skip_string_normalization", None),
+        expect_config=("skip_string_normalization", None),
+        expect_modified=("skip_string_normalization", ...),
+    ),
+    dict(
+        argv=["-S", "."],
+        expect_value=("skip_string_normalization", True),
+        expect_config=("skip_string_normalization", True),
+        expect_modified=("skip_string_normalization", True),
+    ),
+    dict(
+        argv=["--skip-string-normalization", "."],
+        expect_value=("skip_string_normalization", True),
+        expect_config=("skip_string_normalization", True),
+        expect_modified=("skip_string_normalization", True),
+    ),
+    dict(
+        argv=["--no-skip-string-normalization", "."],
+        expect_value=("skip_string_normalization", False),
+        expect_config=("skip_string_normalization", False),
+        expect_modified=("skip_string_normalization", False),
+    ),
+    dict(
+        argv=["--skip-magic-trailing-comma", "."],
+        expect_value=("skip_magic_trailing_comma", True),
+        expect_config=("skip_magic_trailing_comma", True),
+        expect_modified=("skip_magic_trailing_comma", True),
+    ),
+    dict(
+        argv=["."],
+        expect_value=("line_length", None),
+        expect_config=("line_length", None),
+        expect_modified=("line_length", ...),
+    ),
+    dict(
+        argv=["-l=88", "."],
+        expect_value=("line_length", 88),
+        expect_config=("line_length", 88),
+        expect_modified=("line_length", 88),
+    ),
+    dict(
+        argv=["--line-length", "99", "."],
+        expect_value=("line_length", 99),
+        expect_config=("line_length", 99),
+        expect_modified=("line_length", 99),
+    ),
 )
 def test_parse_command_line(
     tmpdir, monkeypatch, argv, expect_value, expect_config, expect_modified
 ):
+    """``parse_command_line()`` parses options correctly"""
     monkeypatch.chdir(tmpdir)
     args, effective_cfg, modified_cfg = parse_command_line(argv)
 
@@ -264,32 +320,44 @@ def test_help_with_isort_package(capsys):
         assert "Please run" not in get_darker_help_output(capsys)
 
 
-@pytest.mark.parametrize(
-    "options, expect",
-    [
-        ([], call()),
-        (['-c', 'black.cfg'], call(line_length=81, string_normalization=True)),
-        (['--config', 'black.cfg'], call(line_length=81, string_normalization=True)),
-        (['-S'], call(string_normalization=False)),
-        (['--skip-string-normalization'], call(string_normalization=False)),
-        (['-l', '90'], call(line_length=90)),
-        (['--line-length', '90'], call(line_length=90)),
-        (['-c', 'black.cfg', '-S'], call(line_length=81, string_normalization=False)),
-        (
-            ['-c', 'black.cfg', '-l', '90'],
-            call(line_length=90, string_normalization=True),
-        ),
-        (['-l', '90', '-S'], call(line_length=90, string_normalization=False)),
-        (
-            ['-c', 'black.cfg', '-l', '90', '-S'],
-            call(line_length=90, string_normalization=False),
-        ),
-    ],
+@pytest.mark.kwparametrize(
+    dict(options=[], expect=call()),
+    dict(
+        options=["-c", "black.cfg"],
+        expect=call(line_length=81, string_normalization=True),
+    ),
+    dict(
+        options=["--config", "black.cfg"],
+        expect=call(line_length=81, string_normalization=True),
+    ),
+    dict(options=["-S"], expect=call(string_normalization=False)),
+    dict(
+        options=["--skip-string-normalization"], expect=call(string_normalization=False)
+    ),
+    dict(options=["-l", "90"], expect=call(line_length=90)),
+    dict(options=["--line-length", "90"], expect=call(line_length=90)),
+    dict(
+        options=["-c", "black.cfg", "-S"],
+        expect=call(line_length=81, string_normalization=False),
+    ),
+    dict(
+        options=["-c", "black.cfg", "-l", "90"],
+        expect=call(line_length=90, string_normalization=True),
+    ),
+    dict(
+        options=["-l", "90", "-S"],
+        expect=call(line_length=90, string_normalization=False),
+    ),
+    dict(
+        options=["-c", "black.cfg", "-l", "90", "-S"],
+        expect=call(line_length=90, string_normalization=False),
+    ),
 )
 def test_black_options(monkeypatch, tmpdir, git_repo, options, expect):
+    """Black options from the command line are passed correctly to Black"""
     monkeypatch.chdir(tmpdir)
-    (tmpdir / 'pyproject.toml').write("[tool.black]\n")
-    (tmpdir / 'black.cfg').write(
+    (tmpdir / "pyproject.toml").write("[tool.black]\n")
+    (tmpdir / "black.cfg").write(
         dedent(
             """
             [tool.black]
@@ -302,43 +370,56 @@ def test_black_options(monkeypatch, tmpdir, git_repo, options, expect):
         {"main.py": 'print("Hello World!")\n'}, commit="Initial commit"
     )
     added_files["main.py"].write_bytes(b'print ("Hello World!")\n')
-    with patch.object(black_diff, 'Mode', wraps=black_diff.Mode) as Mode:
+    with patch.object(black_diff, "Mode", wraps=black_diff.Mode) as file_mode_class:
 
         main(options + [str(path) for path in added_files.values()])
 
     _, expect_args, expect_kwargs = expect
-    Mode.assert_called_once_with(*expect_args, **expect_kwargs)
+    file_mode_class.assert_called_once_with(*expect_args, **expect_kwargs)
 
 
-@pytest.mark.parametrize(
-    "config, options, expect",
-    [
-        ([], [], call()),
-        ([], ['--skip-string-normalization'], call(string_normalization=False)),
-        ([], ['--no-skip-string-normalization'], call(string_normalization=True)),
-        (['skip_string_normalization = false'], [], call(string_normalization=True)),
-        (
-            ['skip_string_normalization = false'],
-            ['--skip-string-normalization'],
-            call(string_normalization=False),
-        ),
-        (
-            ['skip_string_normalization = false'],
-            ['--no-skip-string-normalization'],
-            call(string_normalization=True),
-        ),
-        (['skip_string_normalization = true'], [], call(string_normalization=False)),
-        (
-            ['skip_string_normalization = true'],
-            ['--skip-string-normalization'],
-            call(string_normalization=False),
-        ),
-        (
-            ['skip_string_normalization = true'],
-            ['--no-skip-string-normalization'],
-            call(string_normalization=True),
-        ),
-    ],
+@pytest.mark.kwparametrize(
+    dict(config=[], options=[], expect=call()),
+    dict(
+        config=[],
+        options=["--skip-string-normalization"],
+        expect=call(string_normalization=False),
+    ),
+    dict(
+        config=[],
+        options=["--no-skip-string-normalization"],
+        expect=call(string_normalization=True),
+    ),
+    dict(
+        config=["skip_string_normalization = false"],
+        options=[],
+        expect=call(string_normalization=True),
+    ),
+    dict(
+        config=["skip_string_normalization = false"],
+        options=["--skip-string-normalization"],
+        expect=call(string_normalization=False),
+    ),
+    dict(
+        config=["skip_string_normalization = false"],
+        options=["--no-skip-string-normalization"],
+        expect=call(string_normalization=True),
+    ),
+    dict(
+        config=["skip_string_normalization = true"],
+        options=[],
+        expect=call(string_normalization=False),
+    ),
+    dict(
+        config=["skip_string_normalization = true"],
+        options=["--skip-string-normalization"],
+        expect=call(string_normalization=False),
+    ),
+    dict(
+        config=["skip_string_normalization = true"],
+        options=["--no-skip-string-normalization"],
+        expect=call(string_normalization=True),
+    ),
 )
 def test_black_options_skip_string_normalization(git_repo, config, options, expect):
     """Black string normalization config and cmdline option are combined correctly"""
@@ -448,9 +529,12 @@ def test_options(git_repo, options, expect):
     assert retval == 0
 
 
-@pytest.mark.parametrize(
-    'check, changes, expect_retval',
-    [(False, False, 0), (False, True, 0), (True, False, 0), (True, True, 1)],
+@pytest.mark.kwparametrize(
+    dict(check=False, changes=False),
+    dict(check=False, changes=True),
+    dict(check=True, changes=False),
+    dict(check=True, changes=True, expect_retval=1),
+    expect_retval=0,
 )
 def test_main_retval(check, changes, expect_retval):
     """main() return value is correct based on --check and the need to reformat files"""
@@ -466,11 +550,11 @@ def test_main_retval(check, changes, expect_retval):
         if changes
         else []
     )
-    check_arg_maybe = ['--check'] if check else []
+    check_arg_maybe = ["--check"] if check else []
     with patch.multiple(
-        'darker.__main__', format_edited_parts=format_edited_parts, modify_file=DEFAULT
+        "darker.__main__", format_edited_parts=format_edited_parts, modify_file=DEFAULT
     ):
 
-        retval = main(check_arg_maybe + ['a.py'])
+        retval = main(check_arg_maybe + ["a.py"])
 
     assert retval == expect_retval

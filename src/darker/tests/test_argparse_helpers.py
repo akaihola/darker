@@ -9,79 +9,64 @@ from darker import argparse_helpers
 from darker.tests.helpers import raises_if_exception
 
 
-@pytest.mark.parametrize(
-    "line, width, indent, expect",
-    [
-        ("", 0, "    ", ValueError),
-        ("", 1, "    ", []),
-        (
-            "lorem ipsum dolor sit amet",
-            9,
-            "    ",
-            ["    lorem", "    ipsum", "    dolor", "    sit", "    amet"],
-        ),
-        (
-            "lorem ipsum dolor sit amet",
-            15,
-            "    ",
-            ["    lorem ipsum", "    dolor sit", "    amet"],
-        ),
-    ],
+@pytest.mark.kwparametrize(
+    dict(line="", width=0, expect=ValueError),
+    dict(line="", width=1, expect=[]),
+    dict(
+        line="lorem ipsum dolor sit amet",
+        width=9,
+        expect=["    lorem", "    ipsum", "    dolor", "    sit", "    amet"],
+    ),
+    dict(
+        line="lorem ipsum dolor sit amet",
+        width=15,
+        expect=["    lorem ipsum", "    dolor sit", "    amet"],
+    ),
 )
-def test_fill_line(line, width, indent, expect):
+def test_fill_line(line, width, expect):
     """``_fill_line()`` wraps lines correctly"""
     with raises_if_exception(expect):
 
         result = argparse_helpers._fill_line(  # pylint: disable=protected-access
-            line, width, indent
+            line, width, indent="    "
         )
 
         assert result.splitlines() == expect
 
 
-@pytest.mark.parametrize(
-    "text, width, indent, expect",
-    [
-        (
-            "lorem ipsum dolor sit amet",
-            15,
-            "    ",
-            ["    lorem ipsum", "    dolor sit", "    amet"],
-        ),
-        (
-            "lorem\nipsum dolor sit amet",
-            15,
-            "    ",
-            ["    lorem", "    ipsum dolor", "    sit amet"],
-        ),
-    ],
+@pytest.mark.kwparametrize(
+    dict(
+        text="lorem ipsum dolor sit amet",
+        expect=["    lorem ipsum", "    dolor sit", "    amet"],
+    ),
+    dict(
+        text="lorem\nipsum dolor sit amet",
+        expect=["    lorem", "    ipsum dolor", "    sit amet"],
+    ),
 )
-def test_newline_preserving_formatter(text, width, indent, expect):
+def test_newline_preserving_formatter(text, expect):
     """``NewlinePreservingFormatter`` wraps lines and keeps newlines correctly"""
     formatter = argparse_helpers.NewlinePreservingFormatter("dummy")
 
     result = formatter._fill_text(  # pylint: disable=protected-access
-        text, width, indent
+        text, width=15, indent="    "
     )
 
     assert result.splitlines() == expect
 
 
-@pytest.mark.parametrize(
-    "const, initial, expect",
-    [
-        (10, NOTSET, DEBUG),
-        (10, DEBUG, INFO),
-        (10, INFO, WARNING),
-        (10, WARNING, ERROR),
-        (10, ERROR, CRITICAL),
-        (10, CRITICAL, CRITICAL),
-        (-10, DEBUG, DEBUG),
-        (-10, INFO, DEBUG),
-        (-10, WARNING, INFO),
-        (-10, ERROR, WARNING),
-        (-10, CRITICAL, ERROR),
-    ],
+@pytest.mark.kwparametrize(
+    dict(const=10, initial=NOTSET, expect=DEBUG),
+    dict(const=10, initial=DEBUG, expect=INFO),
+    dict(const=10, initial=INFO, expect=WARNING),
+    dict(const=10, initial=WARNING, expect=ERROR),
+    dict(const=10, initial=ERROR, expect=CRITICAL),
+    dict(const=10, initial=CRITICAL, expect=CRITICAL),
+    dict(const=-10, initial=DEBUG, expect=DEBUG),
+    dict(const=-10, initial=INFO, expect=DEBUG),
+    dict(const=-10, initial=WARNING, expect=INFO),
+    dict(const=-10, initial=ERROR, expect=WARNING),
+    dict(const=-10, initial=CRITICAL, expect=ERROR),
 )
 def test_log_level_action(const, initial, expect):
     """``LogLevelAction`` increments/decrements the log level value correctly"""
@@ -95,18 +80,15 @@ def test_log_level_action(const, initial, expect):
     assert namespace.log_level == expect
 
 
-@pytest.mark.parametrize(
-    "const, count, expect",
-    [
-        (10, NOTSET, WARNING),
-        (10, 1, ERROR),
-        (10, 2, CRITICAL),
-        (10, 3, CRITICAL),
-        (-10, NOTSET, WARNING),
-        (-10, 1, INFO),
-        (-10, 2, DEBUG),
-        (-10, 3, DEBUG),
-    ],
+@pytest.mark.kwparametrize(
+    dict(const=10, count=NOTSET, expect=WARNING),
+    dict(const=10, count=1, expect=ERROR),
+    dict(const=10, count=2, expect=CRITICAL),
+    dict(const=10, count=3, expect=CRITICAL),
+    dict(const=-10, count=NOTSET, expect=WARNING),
+    dict(const=-10, count=1, expect=INFO),
+    dict(const=-10, count=2, expect=DEBUG),
+    dict(const=-10, count=3, expect=DEBUG),
 )
 def test_argumentparser_log_level_action(const, count, expect):
     """The log level action works correctly with an ``ArgumentParser``"""

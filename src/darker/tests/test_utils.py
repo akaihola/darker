@@ -94,37 +94,33 @@ def test_get_path_ancestry_for_file(tmpdir):
     assert result[-2] == tmpdir.parent
 
 
-@pytest.mark.parametrize(
-    "textdocument, expect",
-    [
-        (TextDocument(), "utf-8"),
-        (TextDocument(encoding="utf-8"), "utf-8"),
-        (TextDocument(encoding="utf-16"), "utf-16"),
-        (TextDocument.from_str(""), "utf-8"),
-        (TextDocument.from_str("", encoding="utf-8"), "utf-8"),
-        (TextDocument.from_str("", encoding="utf-16"), "utf-16"),
-        (TextDocument.from_lines([]), "utf-8"),
-        (TextDocument.from_lines([], encoding="utf-8"), "utf-8"),
-        (TextDocument.from_lines([], encoding="utf-16"), "utf-16"),
-    ],
+@pytest.mark.kwparametrize(
+    dict(textdocument=TextDocument(), expect="utf-8"),
+    dict(textdocument=TextDocument(encoding="utf-8"), expect="utf-8"),
+    dict(textdocument=TextDocument(encoding="utf-16"), expect="utf-16"),
+    dict(textdocument=TextDocument.from_str(""), expect="utf-8"),
+    dict(textdocument=TextDocument.from_str("", encoding="utf-8"), expect="utf-8"),
+    dict(textdocument=TextDocument.from_str("", encoding="utf-16"), expect="utf-16"),
+    dict(textdocument=TextDocument.from_lines([]), expect="utf-8"),
+    dict(textdocument=TextDocument.from_lines([], encoding="utf-8"), expect="utf-8"),
+    dict(textdocument=TextDocument.from_lines([], encoding="utf-16"), expect="utf-16"),
 )
 def test_textdocument_set_encoding(textdocument, expect):
     """TextDocument.encoding is correct from each constructor"""
     assert textdocument.encoding == expect
 
 
-@pytest.mark.parametrize(
-    "textdocument, expect",
-    [
-        (TextDocument(), ""),
-        (TextDocument(lines=["zéro", "un"]), "zéro\nun\n"),
-        (TextDocument(lines=["zéro", "un"], newline="\n"), "zéro\nun\n"),
-        (TextDocument(lines=["zéro", "un"], newline="\r\n"), "zéro\r\nun\r\n"),
-    ],
+@pytest.mark.kwparametrize(
+    dict(doc=TextDocument(), expect=""),
+    dict(doc=TextDocument(lines=["zéro", "un"]), expect="zéro\nun\n"),
+    dict(doc=TextDocument(lines=["zéro", "un"], newline="\n"), expect="zéro\nun\n"),
+    dict(
+        doc=TextDocument(lines=["zéro", "un"], newline="\r\n"), expect="zéro\r\nun\r\n"
+    ),
 )
-def test_textdocument_string(textdocument, expect):
+def test_textdocument_string(doc, expect):
     """TextDocument.string respects the newline setting"""
-    assert textdocument.string == expect
+    assert doc.string == expect
 
 
 @pytest.mark.parametrize("newline", ["\n", "\r\n"])
@@ -146,14 +142,11 @@ def test_textdocument_string_with_newline(textdocument, newline, expect):
     assert result == expected
 
 
-@pytest.mark.parametrize(
-    "encoding, newline, expect",
-    [
-        ("utf-8", "\n", b"z\xc3\xa9ro\nun\n"),
-        ("iso-8859-1", "\n", b"z\xe9ro\nun\n"),
-        ("utf-8", "\r\n", b"z\xc3\xa9ro\r\nun\r\n"),
-        ("iso-8859-1", "\r\n", b"z\xe9ro\r\nun\r\n"),
-    ],
+@pytest.mark.kwparametrize(
+    dict(encoding="utf-8", newline="\n", expect=b"z\xc3\xa9ro\nun\n"),
+    dict(encoding="iso-8859-1", newline="\n", expect=b"z\xe9ro\nun\n"),
+    dict(encoding="utf-8", newline="\r\n", expect=b"z\xc3\xa9ro\r\nun\r\n"),
+    dict(encoding="iso-8859-1", newline="\r\n", expect=b"z\xe9ro\r\nun\r\n"),
 )
 def test_textdocument_encoded_string(encoding, newline, expect):
     """TextDocument.encoded_string uses correct encoding and newline"""
@@ -164,30 +157,62 @@ def test_textdocument_encoded_string(encoding, newline, expect):
     assert textdocument.encoded_string == expect
 
 
-@pytest.mark.parametrize(
-    "textdocument, expect",
-    [
-        (TextDocument(), ()),
-        (TextDocument(string="zéro\nun\n"), ("zéro", "un")),
-        (TextDocument(string="zéro\nun\n", newline="\n"), ("zéro", "un")),
-        (TextDocument(string="zéro\r\nun\r\n", newline="\r\n"), ("zéro", "un")),
-    ],
+@pytest.mark.kwparametrize(
+    dict(doc=TextDocument(), expect=()),
+    dict(doc=TextDocument(string="zéro\nun\n"), expect=("zéro", "un")),
+    dict(doc=TextDocument(string="zéro\nun\n", newline="\n"), expect=("zéro", "un")),
+    dict(
+        doc=TextDocument(string="zéro\r\nun\r\n", newline="\r\n"), expect=("zéro", "un")
+    ),
 )
-def test_textdocument_lines(textdocument, expect):
+def test_textdocument_lines(doc, expect):
     """TextDocument.lines is correct after parsing a string with different newlines"""
-    assert textdocument.lines == expect
+    assert doc.lines == expect
 
 
-@pytest.mark.parametrize(
-    "textdocument, expect_lines, expect_encoding, expect_newline, expect_mtime",
-    [
-        (TextDocument.from_str(""), (), "utf-8", "\n", ""),
-        (TextDocument.from_str("", encoding="utf-8"), (), "utf-8", "\n", ""),
-        (TextDocument.from_str("", encoding="iso-8859-1"), (), "iso-8859-1", "\n", ""),
-        (TextDocument.from_str("a\nb\n"), ("a", "b"), "utf-8", "\n", ""),
-        (TextDocument.from_str("a\r\nb\r\n"), ("a", "b"), "utf-8", "\r\n", ""),
-        (TextDocument.from_str("", mtime="my mtime"), (), "utf-8", "\n", "my mtime"),
-    ],
+@pytest.mark.kwparametrize(
+    dict(
+        textdocument=TextDocument.from_str(""),
+        expect_lines=(),
+        expect_encoding="utf-8",
+        expect_newline="\n",
+        expect_mtime="",
+    ),
+    dict(
+        textdocument=TextDocument.from_str("", encoding="utf-8"),
+        expect_lines=(),
+        expect_encoding="utf-8",
+        expect_newline="\n",
+        expect_mtime="",
+    ),
+    dict(
+        textdocument=TextDocument.from_str("", encoding="iso-8859-1"),
+        expect_lines=(),
+        expect_encoding="iso-8859-1",
+        expect_newline="\n",
+        expect_mtime="",
+    ),
+    dict(
+        textdocument=TextDocument.from_str("a\nb\n"),
+        expect_lines=("a", "b"),
+        expect_encoding="utf-8",
+        expect_newline="\n",
+        expect_mtime="",
+    ),
+    dict(
+        textdocument=TextDocument.from_str("a\r\nb\r\n"),
+        expect_lines=("a", "b"),
+        expect_encoding="utf-8",
+        expect_newline="\r\n",
+        expect_mtime="",
+    ),
+    dict(
+        textdocument=TextDocument.from_str("", mtime="my mtime"),
+        expect_lines=(),
+        expect_encoding="utf-8",
+        expect_newline="\n",
+        expect_mtime="my mtime",
+    ),
 )
 def test_textdocument_from_str(
     textdocument, expect_lines, expect_encoding, expect_newline, expect_mtime
@@ -199,13 +224,10 @@ def test_textdocument_from_str(
     assert textdocument.mtime == expect_mtime
 
 
-@pytest.mark.parametrize(
-    "content, expect",
-    [
-        (b'print("touch\xc3\xa9")\n', "utf-8"),
-        (b'\xef\xbb\xbfprint("touch\xc3\xa9")\n', "utf-8-sig"),
-        (b'# coding: iso-8859-1\n"touch\xe9"\n', "iso-8859-1"),
-    ],
+@pytest.mark.kwparametrize(
+    dict(content=b'print("touch\xc3\xa9")\n', expect="utf-8"),
+    dict(content=b'\xef\xbb\xbfprint("touch\xc3\xa9")\n', expect="utf-8-sig"),
+    dict(content=b'# coding: iso-8859-1\n"touch\xe9"\n', expect="iso-8859-1"),
 )
 def test_textdocument_from_file_detect_encoding(tmp_path, content, expect):
     """TextDocument.from_file() detects the file encoding correctly"""
@@ -217,8 +239,9 @@ def test_textdocument_from_file_detect_encoding(tmp_path, content, expect):
     assert textdocument.encoding == expect
 
 
-@pytest.mark.parametrize(
-    "content, expect", [(b'print("unix")\n', "\n"), (b'print("windows")\r\n', "\r\n")]
+@pytest.mark.kwparametrize(
+    dict(content=b'print("unix")\n', expect="\n"),
+    dict(content=b'print("windows")\r\n', expect="\r\n"),
 )
 def test_textdocument_from_file_detect_newline(tmp_path, content, expect):
     """TextDocument.from_file() detects the newline character sequence correctly"""
@@ -230,91 +253,89 @@ def test_textdocument_from_file_detect_newline(tmp_path, content, expect):
     assert textdocument.newline == expect
 
 
-@pytest.mark.parametrize(
-    "document1, document2, expect",
-    [
-        (TextDocument(lines=["foo"]), TextDocument(lines=[]), False),
-        (TextDocument(lines=[]), TextDocument(lines=["foo"]), False),
-        (TextDocument(lines=["foo"]), TextDocument(lines=["bar"]), False),
-        (
-            TextDocument(lines=["line1", "line2"]),
-            TextDocument(lines=["line1", "line2"]),
-            True,
-        ),
-        (
-            TextDocument(lines=["line1", "line2"], encoding="utf-16", newline="\r\n"),
-            TextDocument(lines=["line1", "line2"]),
-            True,
-        ),
-        (TextDocument(lines=["foo"]), TextDocument(""), False),
-        (TextDocument(lines=[]), TextDocument("foo\n"), False),
-        (TextDocument(lines=["foo"]), TextDocument("bar\n"), False),
-        (
-            TextDocument(lines=["line1", "line2"]),
-            TextDocument("line1\nline2\n"),
-            True,
-        ),
-        (TextDocument("foo\n"), TextDocument(lines=[]), False),
-        (TextDocument(""), TextDocument(lines=["foo"]), False),
-        (TextDocument("foo\n"), TextDocument(lines=["bar"]), False),
-        (
-            TextDocument("line1\nline2\n"),
-            TextDocument(lines=["line1", "line2"]),
-            True,
-        ),
-        (TextDocument("foo\n"), TextDocument(""), False),
-        (TextDocument(""), TextDocument("foo\n"), False),
-        (TextDocument("foo\n"), TextDocument("bar\n"), False),
-        (
-            TextDocument("line1\nline2\n"),
-            TextDocument("line1\nline2\n"),
-            True,
-        ),
-        (
-            TextDocument("line1\r\nline2\r\n"),
-            TextDocument("line1\nline2\n"),
-            True,
-        ),
-        (TextDocument("foo"), "line1\nline2\n", NotImplemented),
-    ],
+@pytest.mark.kwparametrize(
+    dict(doc1=TextDocument(lines=["foo"]), doc2=TextDocument(lines=[]), expect=False),
+    dict(doc1=TextDocument(lines=[]), doc2=TextDocument(lines=["foo"]), expect=False),
+    dict(
+        doc1=TextDocument(lines=["foo"]), doc2=TextDocument(lines=["bar"]), expect=False
+    ),
+    dict(
+        doc1=TextDocument(lines=["line1", "line2"]),
+        doc2=TextDocument(lines=["line1", "line2"]),
+        expect=True,
+    ),
+    dict(
+        doc1=TextDocument(lines=["line1", "line2"], encoding="utf-16", newline="\r\n"),
+        doc2=TextDocument(lines=["line1", "line2"]),
+        expect=True,
+    ),
+    dict(doc1=TextDocument(lines=["foo"]), doc2=TextDocument(""), expect=False),
+    dict(doc1=TextDocument(lines=[]), doc2=TextDocument("foo\n"), expect=False),
+    dict(doc1=TextDocument(lines=["foo"]), doc2=TextDocument("bar\n"), expect=False),
+    dict(
+        doc1=TextDocument(lines=["line1", "line2"]),
+        doc2=TextDocument("line1\nline2\n"),
+        expect=True,
+    ),
+    dict(doc1=TextDocument("foo\n"), doc2=TextDocument(lines=[]), expect=False),
+    dict(doc1=TextDocument(""), doc2=TextDocument(lines=["foo"]), expect=False),
+    dict(doc1=TextDocument("foo\n"), doc2=TextDocument(lines=["bar"]), expect=False),
+    dict(
+        doc1=TextDocument("line1\nline2\n"),
+        doc2=TextDocument(lines=["line1", "line2"]),
+        expect=True,
+    ),
+    dict(doc1=TextDocument("foo\n"), doc2=TextDocument(""), expect=False),
+    dict(doc1=TextDocument(""), doc2=TextDocument("foo\n"), expect=False),
+    dict(doc1=TextDocument("foo\n"), doc2=TextDocument("bar\n"), expect=False),
+    dict(
+        doc1=TextDocument("line1\nline2\n"),
+        doc2=TextDocument("line1\nline2\n"),
+        expect=True,
+    ),
+    dict(
+        doc1=TextDocument("line1\r\nline2\r\n"),
+        doc2=TextDocument("line1\nline2\n"),
+        expect=True,
+    ),
+    dict(doc1=TextDocument("foo"), doc2="line1\nline2\n", expect=NotImplemented),
 )
-def test_textdocument_eq(document1, document2, expect):
+def test_textdocument_eq(doc1, doc2, expect):
     """TextDocument.__eq__()"""
-    result = document1.__eq__(document2)
+    result = doc1.__eq__(doc2)
 
     assert result == expect
 
 
-@pytest.mark.parametrize(
-    "document, expect",
-    [
-        (TextDocument(""), "TextDocument([0 lines])"),
-        (TextDocument(lines=[]), "TextDocument([0 lines])"),
-        (TextDocument("One line\n"), "TextDocument([1 lines])"),
-        (TextDocument(lines=["One line"]), "TextDocument([1 lines])"),
-        (TextDocument("Two\nlines\n"), "TextDocument([2 lines])"),
-        (TextDocument(lines=["Two", "lines"]), "TextDocument([2 lines])"),
-        (
-            TextDocument(mtime="some mtime"),
-            "TextDocument([0 lines], mtime='some mtime')",
-        ),
-        (
-            TextDocument(encoding="utf-8"),
-            "TextDocument([0 lines])",
-        ),
-        (
-            TextDocument(encoding="a non-default encoding"),
-            "TextDocument([0 lines], encoding='a non-default encoding')",
-        ),
-        (
-            TextDocument(newline="\n"),
-            "TextDocument([0 lines])",
-        ),
-        (
-            TextDocument(newline="a non-default newline"),
-            "TextDocument([0 lines], newline='a non-default newline')",
-        ),
-    ],
+@pytest.mark.kwparametrize(
+    dict(document=TextDocument(""), expect="TextDocument([0 lines])"),
+    dict(document=TextDocument(lines=[]), expect="TextDocument([0 lines])"),
+    dict(document=TextDocument("One line\n"), expect="TextDocument([1 lines])"),
+    dict(document=TextDocument(lines=["One line"]), expect="TextDocument([1 lines])"),
+    dict(document=TextDocument("Two\nlines\n"), expect="TextDocument([2 lines])"),
+    dict(
+        document=TextDocument(lines=["Two", "lines"]), expect="TextDocument([2 lines])"
+    ),
+    dict(
+        document=TextDocument(mtime="some mtime"),
+        expect="TextDocument([0 lines], mtime='some mtime')",
+    ),
+    dict(
+        document=TextDocument(encoding="utf-8"),
+        expect="TextDocument([0 lines])",
+    ),
+    dict(
+        document=TextDocument(encoding="a non-default encoding"),
+        expect="TextDocument([0 lines], encoding='a non-default encoding')",
+    ),
+    dict(
+        document=TextDocument(newline="\n"),
+        expect="TextDocument([0 lines])",
+    ),
+    dict(
+        document=TextDocument(newline="a non-default newline"),
+        expect="TextDocument([0 lines], newline='a non-default newline')",
+    ),
 )
 def test_textdocument_repr(document, expect):
     """TextDocument.__repr__()"""
@@ -323,13 +344,10 @@ def test_textdocument_repr(document, expect):
     assert result == expect
 
 
-@pytest.mark.parametrize(
-    "document, expect",
-    [
-        (TextDocument(), ""),
-        (TextDocument(mtime=""), ""),
-        (TextDocument(mtime="dummy mtime"), "dummy mtime"),
-    ],
+@pytest.mark.kwparametrize(
+    dict(document=TextDocument(), expect=""),
+    dict(document=TextDocument(mtime=""), expect=""),
+    dict(document=TextDocument(mtime="dummy mtime"), expect="dummy mtime"),
 )
 def test_textdocument_mtime(document, expect):
     """TextDocument.mtime"""

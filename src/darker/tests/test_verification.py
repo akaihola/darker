@@ -8,19 +8,16 @@ from darker.utils import DiffChunk, TextDocument
 from darker.verification import BinarySearch, NotEquivalentError, verify_ast_unchanged
 
 
-@pytest.mark.parametrize(
-    "src_content, dst_content, expect",
-    [
-        ("if True: pass", ["if False: pass"], AssertionError),
-        ("if True: pass", ["if True:", "    pass"], None),
-    ],
+@pytest.mark.kwparametrize(
+    dict(dst_content=["if False: pass"], expect=AssertionError),
+    dict(dst_content=["if True:", "    pass"], expect=None),
 )
-def test_verify_ast_unchanged(src_content, dst_content, expect):
+def test_verify_ast_unchanged(dst_content, expect):
     black_chunks: List[DiffChunk] = [(1, ("black",), ("chunks",))]
     edited_linenums = [1, 2]
     try:
         verify_ast_unchanged(
-            TextDocument.from_lines([src_content]),
+            TextDocument.from_lines(["if True: pass"]),
             TextDocument.from_lines(dst_content),
             black_chunks,
             edited_linenums,
