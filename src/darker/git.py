@@ -203,7 +203,13 @@ class EditedLinenumsDiffer:
         content = git_get_content_at_revision(
             path_in_repo, self.revrange.rev2, self.git_root
         )
-        return self.revision_vs_lines(path_in_repo, content, context_lines)
+        linenums = self.revision_vs_lines(path_in_repo, content, context_lines)
+        logger.debug(
+            "Edited line numbers in %s: %s",
+            path_in_repo,
+            " ".join(str(n) for n in linenums),
+        )
+        return linenums
 
     def revision_vs_lines(
         self, path_in_repo: Path, content: TextDocument, context_lines: int
