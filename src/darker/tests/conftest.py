@@ -73,6 +73,10 @@ class GitRepoFixture:
         """Return the active branch name in the Git repository"""
         return self._run_and_get_first_line("symbolic-ref", "--short", "HEAD")
 
+    def create_tag(self, tag_name: str) -> None:
+        """Create a tag at current HEAD"""
+        self._run("tag", tag_name)
+
     def create_branch(self, new_branch: str, start_point: str) -> None:
         """Fixture method to create and check out new branch at given starting point"""
         self._run("checkout", "-b", new_branch, start_point)
