@@ -123,13 +123,7 @@ def run_linters(
     :return: ``True`` if at least one linting error was found on a modified line
 
     """
-    some_linters_failed = False
-    for linter_cmdline in linter_cmdlines:
-        # 10. run linter subprocesses for all edited files (10.-13. optional)
-        # 11. diff the given revision and worktree (after isort and Black reformatting)
-        #     for each file reported by a linter
-        # 12. extract line numbers in each file reported by a linter for changed lines
-        # 13. print only linter error lines which fall on changed lines
-        if run_linter(linter_cmdline, git_root, paths, revrange):
-            some_linters_failed = True
-    return some_linters_failed
+    return any(
+        run_linter(linter_cmdline, git_root, paths, revrange)
+        for linter_cmdline in linter_cmdlines
+    )
