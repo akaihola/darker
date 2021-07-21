@@ -5,7 +5,7 @@
 import os
 from datetime import datetime, timedelta
 from pathlib import Path
-from subprocess import CalledProcessError, check_call
+from subprocess import PIPE, CalledProcessError, check_call
 from typing import List, Union
 from unittest.mock import patch
 
@@ -152,7 +152,7 @@ def test_git_get_content_at_revision_git_calls(revision, expect):
         assert check_output.call_count == len(expect)
         for expect_call in expect:
             check_output.assert_any_call(
-                expect_call.split(), cwd="cwd", encoding="utf-8"
+                expect_call.split(), cwd="cwd", encoding="utf-8", stderr=PIPE
             )
 
 

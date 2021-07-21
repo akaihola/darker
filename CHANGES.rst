@@ -12,6 +12,8 @@ Fixed
 -----
 - Ensure a full revision range ``--revision <COMMIT_A>..<COMMIT_B>`` where
   COMMIT_B is *not* ``:WORKTREE:`` works too.
+- Hide fatal error from Git on stderr when ``git show`` doesn't find the file in rev1.
+  This isn't fatal from Darker's point of view since it's a newly created file.
 
 
 1.2.4_ - 2021-06-27

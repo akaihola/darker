@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from functools import lru_cache
 from pathlib import Path
-from subprocess import CalledProcessError, check_output
+from subprocess import PIPE, CalledProcessError, check_output
 from typing import Iterable, List, Set
 
 from darker.diff import diff_and_get_opcodes, opcodes_to_edit_linenums
@@ -70,6 +70,8 @@ def git_get_content_at_revision(path: Path, revision: str, cwd: Path) -> TextDoc
         )
     except CalledProcessError as exc_info:
         if exc_info.returncode != 128:
+            for error_line in exc_info.stderr.splitlines():
+                logger.error(error_line)
             raise
         # The file didn't exist at the given revision. Act as if it was an empty
         # file, so all current lines appear as edited.
@@ -147,11 +149,15 @@ def _git_check_output_lines(
     """Log command line, run Git, split stdout to lines, exit with 123 on error"""
     logger.debug("[%s]$ %s", cwd, " ".join(cmd))
     try:
-        return check_output(["git"] + cmd, cwd=str(cwd), encoding="utf-8").splitlines()
+        return check_output(
+            ["git"] + cmd, cwd=str(cwd), encoding="utf-8", stderr=PIPE
+        ).splitlines()
     except CalledProcessError as exc_info:
         if exc_info.returncode == 128 and exit_on_error:
             # Bad revision or another Git failure. Follow Black's example and return the
             # error status 123.
+            for error_line in exc_info.stderr.splitlines():
+                logger.error(error_line)
             sys.exit(123)
         else:
             raise
