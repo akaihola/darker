@@ -11,7 +11,7 @@ from subprocess import CalledProcessError, check_output
 from typing import Iterable, List, Set
 
 from darker.diff import diff_and_get_opcodes, opcodes_to_edit_linenums
-from darker.utils import TextDocument
+from darker.utils import GIT_DATEFORMAT, TextDocument
 
 logger = logging.getLogger(__name__)
 
@@ -29,6 +29,19 @@ COMMIT_RANGE_RE = re.compile(r"(.*?)(\.{2,3})(.*)$")
 #   for determining the revision range
 WORKTREE = ":WORKTREE:"
 PRE_COMMIT_FROM_TO_REFS = ":PRE-COMMIT:"
+
+
+def git_get_mtime_at_commit(path: Path, revision: str, cwd: Path) -> str:
+    """Return the committer date of the given file at the given revision
+
+    :param path: The relative path of the file in the Git repository
+    :param revision: The Git revision for which to get the file modification time
+    :param cwd: The root of the Git repository
+
+    """
+    cmd = ["git", "log", "-1", "--format=%ct", revision, "--", str(path)]
+    lines = _git_check_output_lines(cmd, cwd)
+    return datetime.utcfromtimestamp(int(lines[0])).strftime(GIT_DATEFORMAT)
 
 
 def git_get_content_at_revision(path: Path, revision: str, cwd: Path) -> TextDocument:
