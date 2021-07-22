@@ -3,6 +3,7 @@
 import logging
 import sys
 from argparse import Action, ArgumentError
+from datetime import datetime
 from difflib import unified_diff
 from pathlib import Path
 from typing import Generator, Iterable, List, Tuple
@@ -22,7 +23,7 @@ from darker.git import (
 from darker.help import ISORT_INSTRUCTION
 from darker.import_sorting import apply_isort, isort
 from darker.linting import run_linters
-from darker.utils import TextDocument, get_common_root
+from darker.utils import GIT_DATEFORMAT, TextDocument, get_common_root
 from darker.verification import BinarySearch, NotEquivalentError, verify_ast_unchanged
 
 logger = logging.getLogger(__name__)
@@ -104,6 +105,7 @@ def format_edited_parts(
                 choose_lines(black_chunks, edited_linenums),
                 encoding=rev2_content.encoding,
                 newline=rev2_content.newline,
+                mtime=datetime.utcnow().strftime(GIT_DATEFORMAT),
             )
 
             # 8. verify
@@ -148,11 +150,27 @@ def modify_file(path: Path, new_content: TextDocument) -> None:
 
 
 def print_diff(path: Path, old: TextDocument, new: TextDocument) -> None:
-    """Print ``black --diff`` style output for the changes"""
+    """Print ``black --diff`` style output for the changes
+
+    :param path: The relative path of the file to print the diff output for
+    :param old: Old contents of the file
+    :param new: New contents of the file
+
+    Modification times should be in the format "YYYY-MM-DD HH:MM:SS:mmmmmm +0000"
+
+    """
     relative_path = path.resolve().relative_to(Path.cwd()).as_posix()
     diff = "\n".join(
         line.rstrip("\n")
-        for line in unified_diff(old.lines, new.lines, relative_path, relative_path)
+        for line in unified_diff(
+            old.lines,
+            new.lines,
+            fromfile=relative_path,
+            tofile=relative_path,
+            fromfiledate=old.mtime,
+            tofiledate=new.mtime,
+            n=5,  # Black shows 5 lines of context, do the same
+        )
     )
 
     if sys.stdout.isatty():

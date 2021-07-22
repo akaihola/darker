@@ -1,8 +1,9 @@
 """Unit tests for :mod:`darker.git`"""
 
-# pylint: disable=redefined-outer-name
+# pylint: disable=redefined-outer-name,protected-access
 
 import os
+from datetime import datetime, timedelta
 from pathlib import Path
 from subprocess import CalledProcessError, check_call
 from typing import List, Union
@@ -10,19 +11,10 @@ from unittest.mock import patch
 
 import pytest
 
-from darker.git import (
-    COMMIT_RANGE_RE,
-    WORKTREE,
-    EditedLinenumsDiffer,
-    RevisionRange,
-    _git_check_output_lines,
-    git_get_content_at_revision,
-    git_get_modified_files,
-    should_reformat_file,
-)
+from darker import git
 from darker.tests.conftest import GitRepoFixture
 from darker.tests.helpers import raises_or_matches
-from darker.utils import TextDocument
+from darker.utils import GIT_DATEFORMAT, TextDocument
 
 
 @pytest.mark.parametrize(
@@ -41,7 +33,7 @@ from darker.utils import TextDocument
 )
 def test_commit_range_re(revision_range, expect):
     """Test for ``COMMIT_RANGE_RE``"""
-    match = COMMIT_RANGE_RE.match(revision_range)
+    match = git.COMMIT_RANGE_RE.match(revision_range)
     if expect is None:
         assert match is None
     else:
@@ -51,22 +43,37 @@ def test_commit_range_re(revision_range, expect):
 
 def test_worktree_symbol():
     """Test for the ``WORKTREE`` symbol"""
-    assert WORKTREE == ":WORKTREE:"
+    assert git.WORKTREE == ":WORKTREE:"
+
+
+def test_git_get_mtime_at_commit():
+    """darker.git.git_get_mtime_at_commit()"""
+    with patch.object(git, "_git_check_output_lines"):
+        git._git_check_output_lines.return_value = ["1609104839"]  # type: ignore
+
+        result = git.git_get_mtime_at_commit(
+            Path("dummy path"), "dummy revision", Path("dummy cwd")
+        )
+        assert result == "2020-12-27 21:33:59.000000 +0000"
 
 
 @pytest.mark.kwparametrize(
     dict(
         revision=":WORKTREE:",
         expect_lines=("new content",),
-        expect_mtime="2001-09-09 01:46:40.000000 +0000",
+        expect_mtime=lambda: datetime(2001, 9, 9, 1, 46, 40),
     ),
     dict(
         revision="HEAD",
         expect_lines=("modified content",),
-        expect_mtime="",
+        expect_mtime=datetime.utcnow,
     ),
-    dict(revision="HEAD^", expect_lines=("original content",), expect_mtime=""),
-    dict(revision="HEAD~2", expect_lines=(), expect_mtime=""),
+    dict(
+        revision="HEAD^",
+        expect_lines=("original content",),
+        expect_mtime=datetime.utcnow,
+    ),
+    dict(revision="HEAD~2", expect_lines=(), expect_mtime=False),
 )
 def test_git_get_content_at_revision(git_repo, revision, expect_lines, expect_mtime):
     """darker.git.git_get_content_at_revision()"""
@@ -75,12 +82,17 @@ def test_git_get_content_at_revision(git_repo, revision, expect_lines, expect_mt
     paths["my.txt"].write_bytes(b"new content")
     os.utime(paths["my.txt"], (1000000000, 1000000000))
 
-    result = git_get_content_at_revision(
+    result = git.git_get_content_at_revision(
         Path("my.txt"), revision, cwd=Path(git_repo.root)
     )
 
     assert result.lines == expect_lines
-    assert result.mtime == expect_mtime
+    if expect_mtime:
+        mtime_then = datetime.strptime(result.mtime, GIT_DATEFORMAT)
+        difference = expect_mtime() - mtime_then
+        assert timedelta(0) <= difference < timedelta(seconds=2)
+    else:
+        assert result.mtime == ""
     assert result.encoding == "utf-8"
 
 
@@ -102,21 +114,46 @@ def test_git_get_content_at_revision(git_repo, revision, expect_lines, expect_mt
 )
 def test_revisionrange_parse(revision_range, expect):
     """Test for :meth:`RevisionRange.parse`"""
-    revrange = RevisionRange.parse(revision_range)
+    revrange = git.RevisionRange.parse(revision_range)
     assert (revrange.rev1, revrange.rev2, revrange.use_common_ancestor) == expect
 
 
 @pytest.mark.kwparametrize(
-    dict(revision="HEAD^", expect="git show HEAD^:./my.txt"),
-    dict(revision="master", expect="git show master:./my.txt"),
+    dict(
+        revision="HEAD",
+        expect=[
+            "git show HEAD:./my.txt",
+            "git log -1 --format=%ct HEAD -- my.txt",
+        ],
+    ),
+    dict(
+        revision="HEAD^",
+        expect=[
+            "git show HEAD^:./my.txt",
+            "git log -1 --format=%ct HEAD^ -- my.txt",
+        ],
+    ),
+    dict(
+        revision="master",
+        expect=[
+            "git show master:./my.txt",
+            "git log -1 --format=%ct master -- my.txt",
+        ],
+    ),
 )
 def test_git_get_content_at_revision_git_calls(revision, expect):
+    """get_git_content_at_revision() calls Git correctly"""
     with patch("darker.git.check_output") as check_output:
-        check_output.return_value = b"dummy output"
+        # a dummy Unix timestamp:
+        check_output.return_value = b"1000000"
 
-        git_get_content_at_revision(Path("my.txt"), revision, Path("cwd"))
+        git.git_get_content_at_revision(Path("my.txt"), revision, Path("cwd"))
 
-        check_output.assert_called_once_with(expect.split(), cwd="cwd")
+        assert check_output.call_count == len(expect)
+        for expect_call in expect:
+            check_output.assert_any_call(
+                expect_call.split(), cwd="cwd", encoding="utf-8"
+            )
 
 
 @pytest.mark.kwparametrize(
@@ -135,7 +172,7 @@ def test_should_reformat_file(tmpdir, path, create, expect):
     if create:
         (tmpdir / path).ensure()
 
-    result = should_reformat_file(Path(tmpdir / path))
+    result = git.should_reformat_file(Path(tmpdir / path))
 
     assert result == expect
 
@@ -199,7 +236,7 @@ def test_git_check_output_lines(branched_repo, cmd, exit_on_error, expect_templa
         expect = [replacements.get(line, line) for line in expect_template]
     with raises_or_matches(expect, ["returncode", "code"]) as check:
 
-        check(_git_check_output_lines(cmd, branched_repo.root, exit_on_error))
+        check(git._git_check_output_lines(cmd, branched_repo.root, exit_on_error))
 
 
 @pytest.mark.kwparametrize(
@@ -240,8 +277,8 @@ def test_git_get_modified_files(git_repo, modify_paths, paths, expect):
             absolute_path.parent.mkdir(parents=True, exist_ok=True)
             absolute_path.write_bytes(content.encode("ascii"))
 
-    result = git_get_modified_files(
-        {root / p for p in paths}, RevisionRange("HEAD"), cwd=root
+    result = git.git_get_modified_files(
+        {root / p for p in paths}, git.RevisionRange("HEAD"), cwd=root
     )
 
     assert result == {Path(p) for p in expect}
@@ -393,9 +430,9 @@ def test_git_get_modified_files_revision_range(
     _description, branched_repo, revrange, expect
 ):
     """Test for :func:`darker.git.git_get_modified_files` with a revision range"""
-    result = git_get_modified_files(
+    result = git.git_get_modified_files(
         [Path(branched_repo.root)],
-        RevisionRange.parse(revrange),
+        git.RevisionRange.parse(revrange),
         Path(branched_repo.root),
     )
 
@@ -434,7 +471,7 @@ def test_revisionrange_parse_pre_commit(
     """RevisionRange.parse(':PRE-COMMIT:') gets the range from environment variables"""
     with patch.dict(os.environ, environ):
 
-        result = RevisionRange.parse(":PRE-COMMIT:")
+        result = git.RevisionRange.parse(":PRE-COMMIT:")
 
         assert result.rev1 == expect_rev1
         assert result.rev2 == expect_rev2
@@ -450,15 +487,15 @@ edited_linenums_differ_cases = pytest.mark.kwparametrize(
 
 
 @edited_linenums_differ_cases
-def test_edited_linenums_differ_revision_vs_worktree(git_repo, context_lines, expect):
+def test_edited_linenums_differ_compare_revisions(git_repo, context_lines, expect):
     """Tests for EditedLinenumsDiffer.revision_vs_worktree()"""
     paths = git_repo.add({"a.py": "1\n2\n3\n4\n5\n6\n7\n8\n"}, commit="Initial commit")
     paths["a.py"].write_bytes(b"1\n2\nthree\n4\n5\n6\nseven\n8\n")
-    differ = EditedLinenumsDiffer(Path(git_repo.root), RevisionRange("HEAD"))
+    differ = git.EditedLinenumsDiffer(Path(git_repo.root), git.RevisionRange("HEAD"))
 
-    result = differ.compare_revisions(Path("a.py"), context_lines)
+    linenums = differ.compare_revisions(Path("a.py"), context_lines)
 
-    assert result == expect
+    assert linenums == expect
 
 
 @edited_linenums_differ_cases
@@ -466,11 +503,11 @@ def test_edited_linenums_differ_revision_vs_lines(git_repo, context_lines, expec
     """Tests for EditedLinenumsDiffer.revision_vs_lines()"""
     git_repo.add({"a.py": "1\n2\n3\n4\n5\n6\n7\n8\n"}, commit="Initial commit")
     content = TextDocument.from_lines(["1", "2", "three", "4", "5", "6", "seven", "8"])
-    differ = EditedLinenumsDiffer(git_repo.root, RevisionRange("HEAD"))
+    differ = git.EditedLinenumsDiffer(git_repo.root, git.RevisionRange("HEAD"))
 
-    result = differ.revision_vs_lines(Path("a.py"), content, context_lines)
+    linenums = differ.revision_vs_lines(Path("a.py"), content, context_lines)
 
-    assert result == expect
+    assert linenums == expect
 
 
 def test_local_gitconfig_ignored_by_gitrepofixture(tmp_path):

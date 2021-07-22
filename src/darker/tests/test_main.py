@@ -3,7 +3,6 @@
 # pylint: disable=unused-argument
 
 import logging
-import os
 import re
 from argparse import ArgumentError
 from pathlib import Path
@@ -84,7 +83,6 @@ A_PY_DIFF_BLACK = [
     "-print( '42')",
     "+",
     '+print("42")',
-    "",
 ]
 
 A_PY_DIFF_BLACK_NO_STR_NORMALIZE = [
@@ -96,7 +94,6 @@ A_PY_DIFF_BLACK_NO_STR_NORMALIZE = [
     "-print( '42')",
     "+",
     "+print('42')",
-    "",
 ]
 
 A_PY_DIFF_BLACK_ISORT = [
@@ -109,7 +106,6 @@ A_PY_DIFF_BLACK_ISORT = [
     "-print( '42')",
     "+",
     '+print("42")',
-    "",
 ]
 
 
@@ -288,33 +284,21 @@ def test_format_edited_parts_historical(git_repo, rev1, rev2, expect):
 
 
 @pytest.mark.kwparametrize(
-    dict(
-        arguments=["--diff"],
-        expect_stdout=A_PY_DIFF_BLACK,
-    ),
-    dict(
-        arguments=["--isort"],
-        expect_a_py=A_PY_BLACK_ISORT,
-    ),
+    dict(arguments=["--diff"], expect_stdout=A_PY_DIFF_BLACK),
+    dict(arguments=["--isort"], expect_a_py=A_PY_BLACK_ISORT),
     dict(
         arguments=["--skip-string-normalization", "--diff"],
         expect_stdout=A_PY_DIFF_BLACK_NO_STR_NORMALIZE,
     ),
-    dict(arguments=[], expect_stdout=[""], expect_a_py=A_PY_BLACK, expect_retval=0),
-    dict(
-        arguments=["--isort", "--diff"],
-        expect_stdout=A_PY_DIFF_BLACK_ISORT,
-    ),
-    dict(arguments=["--check"], expect_stdout=[""], expect_a_py=A_PY, expect_retval=1),
+    dict(arguments=[], expect_a_py=A_PY_BLACK, expect_retval=0),
+    dict(arguments=["--isort", "--diff"], expect_stdout=A_PY_DIFF_BLACK_ISORT),
+    dict(arguments=["--check"], expect_a_py=A_PY, expect_retval=1),
     dict(
         arguments=["--check", "--diff"],
         expect_stdout=A_PY_DIFF_BLACK,
         expect_retval=1,
     ),
-    dict(
-        arguments=["--check", "--isort"],
-        expect_retval=1,
-    ),
+    dict(arguments=["--check", "--isort"], expect_retval=1),
     dict(
         arguments=["--check", "--diff", "--isort"],
         expect_stdout=A_PY_DIFF_BLACK_ISORT,
@@ -322,16 +306,18 @@ def test_format_edited_parts_historical(git_repo, rev1, rev2, expect):
     ),
     dict(
         arguments=["--check", "--lint", "echo a.py:1: message"],
-        expect_stdout=["a.py:1: message /a.py", ""],
+        # Windows compatible path assertion using `pathlib.Path()`
+        expect_stdout=[f"a.py:1: message {Path('/a.py')}"],
         expect_retval=1,
     ),
     dict(
         arguments=["--diff", "--lint", "echo a.py:1: message"],
-        expect_stdout=A_PY_DIFF_BLACK[:-1] + ["a.py:1: message /a.py", ""],
+        # Windows compatible path assertion using `pathlib.Path()`
+        expect_stdout=A_PY_DIFF_BLACK + [f"a.py:1: message {Path('/a.py')}"],
     ),
     # for all test cases, by default there's no output, `a.py` stays unmodified, and the
     # return value is a zero:
-    expect_stdout=[""],
+    expect_stdout=[],
     expect_a_py=A_PY,
     expect_retval=0,
 )
@@ -354,8 +340,19 @@ def test_main(
 
     retval = darker.__main__.main(arguments + ["a.py"])
 
-    stdout = capsys.readouterr().out.replace(str(git_repo.root), '')
-    assert stdout.replace(os.sep, "/").split("\n") == expect_stdout
+    stdout = capsys.readouterr().out.replace(str(git_repo.root), "")
+    diff_output = stdout.splitlines(False)
+    if "--diff" in arguments:
+        assert "\t" in diff_output[0], diff_output[0]
+        diff_output[0], old_mtime = diff_output[0].split("\t", 1)
+        assert old_mtime.endswith(" +0000")
+        assert "\t" in diff_output[1], diff_output[1]
+        diff_output[1], new_mtime = diff_output[1].split("\t", 1)
+        assert new_mtime.endswith(" +0000")
+        assert all("\t" not in line for line in diff_output[2:])
+    else:
+        assert all("\t" not in line for line in diff_output)
+    assert diff_output == expect_stdout
     assert paths["a.py"].read_bytes().decode("ascii") == newline.join(expect_a_py)
     assert paths["b.py"].read_bytes().decode("ascii") == f"print(42 ){newline}"
     assert retval == expect_retval
@@ -386,34 +383,70 @@ def test_main_historical():
         darker.__main__.main(["--revision=foo..bar"])
 
 
-def test_output_diff(tmp_path, monkeypatch, capsys):
-    """output_diff() prints Black-style diff output"""
+def test_print_diff(tmp_path, monkeypatch, capsys):
+    """print_diff() prints Black-style diff output with 5 lines of context"""
     monkeypatch.chdir(tmp_path)
     Path("a.py").write_text("dummy\n")
     darker.__main__.print_diff(
         Path("a.py"),
         TextDocument.from_lines(
-            ["unchanged", "removed", "kept 1", "2", "3", "4", "5", "6", "7", "changed"]
+            [
+                "unchanged",
+                "removed",
+                "kept 1",
+                "2",
+                "3",
+                "4",
+                "5",
+                "6",
+                "7",
+                "8",
+                "9",
+                "10",
+                "11",
+                "changed",
+            ],
+            mtime="2020-10-08 19:16:22.146405 +0000",
         ),
         TextDocument.from_lines(
-            ["inserted", "unchanged", "kept 1", "2", "3", "4", "5", "6", "7", "Changed"]
+            [
+                "inserted",
+                "unchanged",
+                "kept 1",
+                "2",
+                "3",
+                "4",
+                "5",
+                "6",
+                "7",
+                "8",
+                "9",
+                "10",
+                "11",
+                "Changed",
+            ],
+            mtime="2020-10-08 19:21:09.005501 +0000",
         ),
     )
 
     assert capsys.readouterr().out.splitlines() == [
-        "--- a.py",
-        "+++ a.py",
-        "@@ -1,5 +1,5 @@",
+        "--- a.py\t2020-10-08 19:16:22.146405 +0000",
+        "+++ a.py\t2020-10-08 19:21:09.005501 +0000",
+        "@@ -1,7 +1,7 @@",
         "+inserted",
         " unchanged",
         "-removed",
         " kept 1",
         " 2",
         " 3",
-        "@@ -7,4 +7,4 @@",
+        " 4",
         " 5",
-        " 6",
+        "@@ -9,6 +9,6 @@",
         " 7",
+        " 8",
+        " 9",
+        " 10",
+        " 11",
         "-changed",
         "+Changed",
     ]
