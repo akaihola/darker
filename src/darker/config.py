@@ -21,10 +21,45 @@ class TomlArrayLinesEncoder(toml.TomlEncoder):  # type: ignore[name-defined]
 DarkerConfig = Dict[str, Union[str, bool, List[str]]]
 
 
+class OutputMode:
+    """The output mode to use: all file content, just the diff, or no output"""
+
+    NOTHING = "NOTHING"
+    DIFF = "DIFF"
+    CONTENT = "CONTENT"
+
+    @classmethod
+    def from_args(cls, args: Namespace) -> str:
+        """Resolve output mode based on  ``diff`` and ``stdout`` options"""
+        OutputMode.validate(args.diff, args.stdout)
+        if args.diff:
+            return cls.DIFF
+        if args.stdout:
+            return cls.CONTENT
+        return cls.NOTHING
+
+    @staticmethod
+    def validate(diff: bool, stdout: bool) -> None:
+        """Raise an exception if both ``diff`` and ``stdout`` are enabled"""
+        if diff and stdout:
+            raise ConfigurationError(
+                "The `diff` and `stdout` options can't both be enabled"
+            )
+
+
+class ConfigurationError(Exception):
+    """Exception class for invalid configuration values"""
+
+
 def replace_log_level_name(config: DarkerConfig) -> None:
     """Replace numeric log level in configuration with the name of the log level"""
     if "log_level" in config:
         config["log_level"] = logging.getLevelName(cast(int, config["log_level"]))
+
+
+def validate_config_output_mode(config: DarkerConfig) -> None:
+    """Make sure both ``diff`` and ``stdout`` aren't enabled in configuration"""
+    OutputMode.validate(config.get("diff", False), config.get("stdout", False))
 
 
 def load_config(srcs: Iterable[str]) -> DarkerConfig:
@@ -39,6 +74,7 @@ def load_config(srcs: Iterable[str]) -> DarkerConfig:
         pyproject_toml = toml.load(path)
         config: DarkerConfig = pyproject_toml.get("tool", {}).get("darker", {}) or {}
         replace_log_level_name(config)
+        validate_config_output_mode(config)
         return config
     return {}
 
@@ -47,6 +83,7 @@ def get_effective_config(args: Namespace) -> DarkerConfig:
     """Return all configuration options"""
     config = vars(args).copy()
     replace_log_level_name(config)
+    validate_config_output_mode(config)
     return config
 
 

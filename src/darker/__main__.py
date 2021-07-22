@@ -11,7 +11,7 @@ from typing import Generator, Iterable, List, Tuple
 from darker.black_diff import BlackArgs, run_black
 from darker.chooser import choose_lines
 from darker.command_line import parse_command_line
-from darker.config import dump_config
+from darker.config import OutputMode, dump_config
 from darker.diff import diff_and_get_opcodes, opcodes_to_chunks
 from darker.git import (
     WORKTREE,
@@ -267,7 +267,8 @@ def main(argv: List[str] = None) -> int:
     failures_on_modified_lines = False
 
     revrange = RevisionRange.parse(args.revision)
-    write_modified_files = not args.check and not args.diff and not args.stdout
+    output_mode = OutputMode.from_args(args)
+    write_modified_files = not args.check and output_mode == OutputMode.NOTHING
     if revrange.rev2 != WORKTREE and write_modified_files:
         raise ArgumentError(
             Action(["-r", "--revision"], "revision"),
@@ -279,9 +280,9 @@ def main(argv: List[str] = None) -> int:
         git_root, changed_files, revrange, args.isort, black_args
     ):
         failures_on_modified_lines = True
-        if args.diff:
+        if output_mode == OutputMode.DIFF:
             print_diff(path, old, new)
-        elif args.stdout:
+        elif output_mode == OutputMode.CONTENT:
             print_source(new)
         if write_modified_files:
             modify_file(path, new)

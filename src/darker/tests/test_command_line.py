@@ -127,6 +127,24 @@ def test_parse_command_line_config_src(
     ),
     dict(
         argv=["."],
+        expect_value=("stdout", False),
+        expect_config=("stdout", False),
+        expect_modified=("stdout", ...),
+    ),
+    dict(
+        argv=["--stdout", "."],
+        expect_value=("stdout", True),
+        expect_config=("stdout", True),
+        expect_modified=("stdout", True),
+    ),
+    dict(
+        argv=["--diff", "--stdout", "."],
+        expect_value=("stdout", True),
+        expect_config=("stdout", True),
+        expect_modified=("stdout", True),
+    ),
+    dict(
+        argv=["."],
         expect_value=("check", False),
         expect_config=("check", False),
         expect_modified=("check", ...),
