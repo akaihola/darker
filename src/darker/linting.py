@@ -87,13 +87,19 @@ def run_linter(
     # assert needed for MyPy (see https://stackoverflow.com/q/57350490/15770)
     assert linter_process.stdout is not None
     edited_linenums_differ = EditedLinenumsDiffer(git_root, revrange)
+    missing_files = set()
     for line in linter_process.stdout:
         path_in_repo, linter_error_linenum = _parse_linter_line(line, git_root)
-        if path_in_repo is None:
+        if path_in_repo is None or path_in_repo in missing_files:
             continue
-        edited_linenums = edited_linenums_differ.compare_revisions(
-            path_in_repo, context_lines=0
-        )
+        try:
+            edited_linenums = edited_linenums_differ.compare_revisions(
+                path_in_repo, context_lines=0
+            )
+        except FileNotFoundError:
+            logger.warning("Missing file %s from %s", path_in_repo, cmdline)
+            missing_files.add(path_in_repo)
+            continue
         if linter_error_linenum in edited_linenums:
             print(line, end="")
             error_count += 1
