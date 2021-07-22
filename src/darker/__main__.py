@@ -35,6 +35,7 @@ def format_edited_parts(
     revrange: RevisionRange,
     enable_isort: bool,
     black_args: BlackArgs,
+    report_unmodified: bool,
 ) -> Generator[Tuple[Path, TextDocument, TextDocument], None, None]:
     """Black (and optional isort) formatting for chunks with edits since the last commit
 
@@ -44,6 +45,7 @@ def format_edited_parts(
     :param revrange: The Git revisions to compare
     :param enable_isort: ``True`` to also run ``isort`` first on each changed file
     :param black_args: Command-line arguments to send to ``black.FileMode``
+    :param report_unmodified: ``True`` to yield also files which weren't modified
     :return: A generator which yields details about changes for each file which should
              be reformatted, and skips unchanged files.
 
@@ -139,7 +141,7 @@ def format_edited_parts(
         #    created successfully - write an updated file or print the diff if
         #    there were any changes to the original
         src, rev2_content, chosen = last_successful_reformat
-        if chosen != rev2_content:
+        if report_unmodified or chosen != rev2_content:
             yield (src, rev2_content, chosen)
 
 
@@ -275,9 +277,20 @@ def main(argv: List[str] = None) -> int:
             f"Can't write reformatted files for revision '{revrange.rev2}'."
             " Either --diff or --check must be used.",
         )
-    changed_files = git_get_modified_files(paths, revrange, git_root)
+    if output_mode == OutputMode.CONTENT:
+        # With `-d` / `--stdout`, process the file whether modified or not. Paths have
+        # previously been validated to contain exactly one existing file.
+        changed_files = paths
+    else:
+        # In other modes, only process files which have been modified.
+        changed_files = git_get_modified_files(paths, revrange, git_root)
     for path, old, new in format_edited_parts(
-        git_root, changed_files, revrange, args.isort, black_args
+        git_root,
+        changed_files,
+        revrange,
+        args.isort,
+        black_args,
+        report_unmodified=output_mode == OutputMode.CONTENT,
     ):
         failures_on_modified_lines = True
         if output_mode == OutputMode.DIFF:

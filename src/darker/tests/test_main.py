@@ -132,6 +132,7 @@ def test_format_edited_parts(git_repo, enable_isort, black_args, newline, expect
         RevisionRange("HEAD"),
         enable_isort,
         black_args,
+        report_unmodified=False,
     )
 
     changes = [
@@ -158,6 +159,7 @@ def test_format_edited_parts_all_unchanged(git_repo, monkeypatch):
             RevisionRange("HEAD"),
             True,
             {},
+            report_unmodified=False,
         )
     )
 
@@ -181,6 +183,7 @@ def test_format_edited_parts_ast_changed(git_repo, caplog):
                 RevisionRange("HEAD"),
                 enable_isort=False,
                 black_args={},
+                report_unmodified=False,
             )
         )
     a_py = str(paths["a.py"])
@@ -224,6 +227,7 @@ def test_format_edited_parts_isort_on_already_formatted(git_repo):
         RevisionRange("HEAD"),
         enable_isort=True,
         black_args={},
+        report_unmodified=False,
     )
 
     assert list(result) == []
@@ -278,6 +282,7 @@ def test_format_edited_parts_historical(git_repo, rev1, rev2, expect):
         RevisionRange(rev1, rev2),
         enable_isort=True,
         black_args={},
+        report_unmodified=False,
     )
 
     assert list(result) == [(paths["a.py"], a_py[x[0]], a_py[x[1]]) for x in expect]

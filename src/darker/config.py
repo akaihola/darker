@@ -2,6 +2,7 @@
 
 import logging
 from argparse import ArgumentParser, Namespace
+from pathlib import Path
 from typing import Dict, Iterable, List, Union, cast
 
 import toml
@@ -31,7 +32,7 @@ class OutputMode:
     @classmethod
     def from_args(cls, args: Namespace) -> str:
         """Resolve output mode based on  ``diff`` and ``stdout`` options"""
-        OutputMode.validate(args.diff, args.stdout)
+        OutputMode.validate_diff_stdout(args.diff, args.stdout)
         if args.diff:
             return cls.DIFF
         if args.stdout:
@@ -39,12 +40,24 @@ class OutputMode:
         return cls.NOTHING
 
     @staticmethod
-    def validate(diff: bool, stdout: bool) -> None:
-        """Raise an exception if both ``diff`` and ``stdout`` are enabled"""
+    def validate_diff_stdout(diff: bool, stdout: bool) -> None:
+        """Raise an exception if ``diff`` and ``stdout`` options are both enabled"""
         if diff and stdout:
             raise ConfigurationError(
                 "The `diff` and `stdout` options can't both be enabled"
             )
+
+    @staticmethod
+    def validate_stdout_src(stdout: bool, src: List[str]) -> None:
+        """Raise an exception in ``stdout`` mode if not exactly one path is provided"""
+        if not stdout:
+            return
+        if len(src) == 1 and Path(src[0]).is_file():
+            return
+        raise ConfigurationError(
+            "Exactly one Python source file which exists on disk must be provided when"
+            " using the `stdout` option"
+        )
 
 
 class ConfigurationError(Exception):
@@ -59,7 +72,9 @@ def replace_log_level_name(config: DarkerConfig) -> None:
 
 def validate_config_output_mode(config: DarkerConfig) -> None:
     """Make sure both ``diff`` and ``stdout`` aren't enabled in configuration"""
-    OutputMode.validate(config.get("diff", False), config.get("stdout", False))
+    OutputMode.validate_diff_stdout(
+        config.get("diff", False), config.get("stdout", False)
+    )
 
 
 def load_config(srcs: Iterable[str]) -> DarkerConfig:

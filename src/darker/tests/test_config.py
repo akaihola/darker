@@ -1,4 +1,5 @@
 from argparse import ArgumentParser, Namespace
+from pathlib import Path
 from textwrap import dedent
 
 import pytest
@@ -76,9 +77,34 @@ def test_replace_log_level_name(log_level, expect):
     dict(diff=True, stdout=False, expect=None),
     dict(diff=True, stdout=True, expect=ConfigurationError),
 )
-def test_output_mode_validate(diff, stdout, expect):
+def test_output_mode_validate_diff_stdout(diff, stdout, expect):
     with raises_if_exception(expect):
-        OutputMode.validate(diff, stdout)
+        OutputMode.validate_diff_stdout(diff, stdout)
+
+
+@pytest.mark.kwparametrize(
+    dict(stdout=False, src=[], expect=None),
+    dict(stdout=False, src=["first.py"], expect=None),
+    dict(stdout=False, src=["first.py", "second.py"], expect=None),
+    dict(stdout=False, src=["first.py", "missing.py"], expect=None),
+    dict(stdout=False, src=["missing.py"], expect=None),
+    dict(stdout=False, src=["missing.py", "another_missing.py"], expect=None),
+    dict(stdout=False, src=["directory"], expect=None),
+    dict(stdout=True, src=[], expect=ConfigurationError),
+    dict(stdout=True, src=["first.py"], expect=None),
+    dict(stdout=True, src=["first.py", "second.py"], expect=ConfigurationError),
+    dict(stdout=True, src=["first.py", "missing.py"], expect=ConfigurationError),
+    dict(stdout=True, src=["missing.py"], expect=ConfigurationError),
+    dict(stdout=True, src=["missing.py", "another.py"], expect=ConfigurationError),
+    dict(stdout=True, src=["directory"], expect=ConfigurationError),
+)
+def test_output_mode_validate_stdout_src(tmp_path, monkeypatch, stdout, expect, src):
+    monkeypatch.chdir(tmp_path)
+    Path("first.py").touch()
+    Path("second.py").touch()
+    with raises_if_exception(expect):
+
+        OutputMode.validate_stdout_src(stdout, src)
 
 
 @pytest.mark.kwparametrize(
