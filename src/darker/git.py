@@ -153,7 +153,10 @@ def _git_check_output_lines(
             ["git"] + cmd, cwd=str(cwd), encoding="utf-8", stderr=PIPE
         ).splitlines()
     except CalledProcessError as exc_info:
-        if exc_info.returncode != 128 or not exit_on_error:
+        if not exit_on_error:
+            raise
+        if exc_info.returncode != 128:
+            sys.stderr.buffer.write(exc_info.stderr)
             raise
 
         # Bad revision or another Git failure. Follow Black's example and return the
