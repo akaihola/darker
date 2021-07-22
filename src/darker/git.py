@@ -156,7 +156,7 @@ def _git_check_output_lines(
         if not exit_on_error:
             raise
         if exc_info.returncode != 128:
-            sys.stderr.buffer.write(exc_info.stderr)
+            sys.stderr.write(exc_info.stderr)
             raise
 
         # Bad revision or another Git failure. Follow Black's example and return the
