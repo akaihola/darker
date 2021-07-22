@@ -289,6 +289,22 @@ def test_git_check_output_lines_stderr_and_log(
     assert re.match(expect_log_re, caplog.text), repr(caplog.text)
 
 
+def test_git_get_content_at_revision_stderr(git_repo, capfd, caplog):
+    """No stderr or log output from ``git_get_content_at_revision`` for missing file"""
+    git_repo.add({"file1": "file1"}, commit="Initial commit")
+    initial = git_repo.get_hash()[:7]
+    git_repo.add({"file2": "file2"}, commit="Second commit")
+    capfd.readouterr()  # flush captured stdout and stderr
+
+    result = git_get_content_at_revision(Path("file2"), initial, git_repo.root)
+
+    assert result == TextDocument()
+    outerr = capfd.readouterr()
+    assert outerr.out == ""
+    assert outerr.err == ""
+    assert caplog.text == ""
+
+
 @pytest.mark.kwparametrize(
     dict(paths=["a.py"], expect=[]),
     dict(expect=[]),
