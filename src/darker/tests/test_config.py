@@ -79,6 +79,7 @@ def test_replace_log_level_name(log_level, expect):
     dict(diff=True, stdout=True, expect=ConfigurationError),
 )
 def test_output_mode_validate_diff_stdout(diff, stdout, expect):
+    """Validation fails only if ``--diff`` and ``--stdout`` are both enabled"""
     with raises_if_exception(expect):
         OutputMode.validate_diff_stdout(diff, stdout)
 
@@ -100,6 +101,7 @@ def test_output_mode_validate_diff_stdout(diff, stdout, expect):
     dict(stdout=True, src=["directory"], expect=ConfigurationError),
 )
 def test_output_mode_validate_stdout_src(tmp_path, monkeypatch, stdout, expect, src):
+    """Validation fails only if exactly one file isn't provided for ``--stdout``"""
     monkeypatch.chdir(tmp_path)
     Path("first.py").touch()
     Path("second.py").touch()
@@ -115,6 +117,7 @@ def test_output_mode_validate_stdout_src(tmp_path, monkeypatch, stdout, expect, 
     dict(diff=True, stdout=True, expect=ConfigurationError),
 )
 def test_output_mode_from_args(diff, stdout, expect):
+    """Correct output mode results from the ``--diff`` and ``stdout`` options"""
     args = Namespace()
     args.diff = diff
     args.stdout = stdout
