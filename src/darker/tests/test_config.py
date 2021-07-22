@@ -6,6 +6,7 @@ import pytest
 
 from darker.config import (
     ConfigurationError,
+    DarkerConfig,
     OutputMode,
     TomlArrayLinesEncoder,
     dump_config,
@@ -65,7 +66,7 @@ def test_toml_array_lines_encoder(list_value, expect):
     dict(log_level="FOOBAR", expect="Level FOOBAR"),
 )
 def test_replace_log_level_name(log_level, expect):
-    config = {} if log_level is None else {"log_level": log_level}
+    config = DarkerConfig() if log_level is None else DarkerConfig(log_level=log_level)
     replace_log_level_name(config)
 
     assert config["log_level"] == expect

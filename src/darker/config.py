@@ -3,7 +3,7 @@
 import logging
 from argparse import ArgumentParser, Namespace
 from pathlib import Path
-from typing import Dict, Iterable, List, Union, cast
+from typing import Iterable, List, TypedDict, cast
 
 import toml
 from black import find_project_root
@@ -19,7 +19,21 @@ class TomlArrayLinesEncoder(toml.TomlEncoder):  # type: ignore[name-defined]
         )
 
 
-DarkerConfig = Dict[str, Union[str, bool, List[str]]]
+class DarkerConfig(TypedDict, total=False):
+    """Dictionary representing ``[tool.darker]`` from ``pyproject.toml``"""
+
+    src: List[str]
+    revision: str
+    diff: bool
+    stdout: bool
+    check: bool
+    isort: bool
+    lint: List[str]
+    config: str
+    log_level: int
+    skip_string_normalization: bool
+    skip_magic_trailing_comma: bool
+    line_length: int
 
 
 class OutputMode:
@@ -67,7 +81,7 @@ class ConfigurationError(Exception):
 def replace_log_level_name(config: DarkerConfig) -> None:
     """Replace numeric log level in configuration with the name of the log level"""
     if "log_level" in config:
-        config["log_level"] = logging.getLevelName(cast(int, config["log_level"]))
+        config["log_level"] = logging.getLevelName(config["log_level"])
 
 
 def validate_config_output_mode(config: DarkerConfig) -> None:
@@ -87,7 +101,9 @@ def load_config(srcs: Iterable[str]) -> DarkerConfig:
     path = find_project_root(tuple(srcs or ["."])) / "pyproject.toml"
     if path.is_file():
         pyproject_toml = toml.load(path)
-        config: DarkerConfig = pyproject_toml.get("tool", {}).get("darker", {}) or {}
+        config = cast(
+            DarkerConfig, pyproject_toml.get("tool", {}).get("darker", {}) or {}
+        )
         replace_log_level_name(config)
         validate_config_output_mode(config)
         return config
@@ -96,7 +112,7 @@ def load_config(srcs: Iterable[str]) -> DarkerConfig:
 
 def get_effective_config(args: Namespace) -> DarkerConfig:
     """Return all configuration options"""
-    config = vars(args).copy()
+    config = cast(DarkerConfig, vars(args).copy())
     replace_log_level_name(config)
     validate_config_output_mode(config)
     return config
@@ -104,11 +120,14 @@ def get_effective_config(args: Namespace) -> DarkerConfig:
 
 def get_modified_config(parser: ArgumentParser, args: Namespace) -> DarkerConfig:
     """Return configuration options which are set to non-default values"""
-    not_default = {
-        argument: value
-        for argument, value in vars(args).items()
-        if value != parser.get_default(argument)
-    }
+    not_default = cast(
+        DarkerConfig,
+        {
+            argument: value
+            for argument, value in vars(args).items()
+            if value != parser.get_default(argument)
+        },
+    )
     replace_log_level_name(not_default)
     return not_default
 

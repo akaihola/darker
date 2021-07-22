@@ -84,8 +84,8 @@ def test_parse_command_line_config_src(
         args, effective_cfg, modified_cfg = parse_command_line(argv)
 
         assert filter_dict(args.__dict__, "src") == expect
-        assert filter_dict(effective_cfg, "src") == expect
-        assert filter_dict(modified_cfg, "src") == expect
+        assert filter_dict(dict(effective_cfg), "src") == expect
+        assert filter_dict(dict(modified_cfg), "src") == expect
 
 
 @pytest.mark.kwparametrize(
@@ -302,13 +302,13 @@ def test_parse_command_line(
     if expect_config_value is ...:
         assert option not in effective_cfg
     else:
-        assert effective_cfg[option] == expect_config_value
+        assert effective_cfg[option] == expect_config_value  # type: ignore
 
     modified_option, expect_modified_value = expect_modified
     if expect_modified_value is ...:
         assert modified_option not in modified_cfg
     else:
-        assert modified_cfg[modified_option] == expect_modified_value
+        assert modified_cfg[modified_option] == expect_modified_value  # type: ignore
 
 
 def test_help_description_without_isort_package(capsys):
