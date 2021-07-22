@@ -190,6 +190,7 @@ def print_source(new: TextDocument) -> None:
     """Print the reformatted Python source code"""
     if sys.stdout.isatty():
         try:
+            # pylint: disable=import-outside-toplevel
             from pygments import highlight
             from pygments.formatters import TerminalFormatter
             from pygments.lexers.python import PythonLexer
