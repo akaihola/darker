@@ -40,6 +40,11 @@ CHECK = (
     " reformatted."
 )
 
+STDOUT = (
+    "Force complete reformatted output to stdout, instead of in-place. Only valid if"
+    " there's just one file to reformat."
+)
+
 ISORT_PARTS = ["Also sort imports using the `isort` package"]
 if not isort:
     ISORT_PARTS.append(f". {ISORT_INSTRUCTION} to enable usage of this option.")

@@ -31,6 +31,7 @@ def make_argument_parser(require_src: bool) -> ArgumentParser:
     add_arg(hlp.SRC, "src", nargs="+" if require_src else "*", metavar="PATH")
     add_arg(hlp.REVISION, "-r", "--revision", default="HEAD")
     add_arg(hlp.DIFF, "--diff", action="store_true")
+    add_arg(hlp.STDOUT, "-d", "--stdout", action="store_true")
     add_arg(hlp.CHECK, "--check", action="store_true")
     add_arg(hlp.ISORT, "-i", "--isort", action="store_true")
     add_arg(hlp.LINT, "-L", "--lint", action="append", metavar="CMD", default=[])

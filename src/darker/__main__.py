@@ -186,6 +186,21 @@ def print_diff(path: Path, old: TextDocument, new: TextDocument) -> None:
         print(diff)
 
 
+def print_source(new: TextDocument) -> None:
+    """Print the reformatted Python source code"""
+    if sys.stdout.isatty():
+        try:
+            from pygments import highlight
+            from pygments.formatters import TerminalFormatter
+            from pygments.lexers.python import PythonLexer
+        except ImportError:
+            print(new.string)
+        else:
+            print(highlight(new.string, PythonLexer(), TerminalFormatter()))
+    else:
+        print(new.string)
+
+
 def main(argv: List[str] = None) -> int:
     """Parse the command line and reformat and optionally lint each source file
 
@@ -251,7 +266,7 @@ def main(argv: List[str] = None) -> int:
     failures_on_modified_lines = False
 
     revrange = RevisionRange.parse(args.revision)
-    write_modified_files = not args.check and not args.diff
+    write_modified_files = not args.check and not args.diff and not args.stdout
     if revrange.rev2 != WORKTREE and write_modified_files:
         raise ArgumentError(
             Action(["-r", "--revision"], "revision"),
@@ -265,6 +280,8 @@ def main(argv: List[str] = None) -> int:
         failures_on_modified_lines = True
         if args.diff:
             print_diff(path, old, new)
+        elif args.stdout:
+            print_source(new)
         if write_modified_files:
             modify_file(path, new)
     if run_linters(args.lint, git_root, changed_files, revrange):
