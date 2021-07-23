@@ -7,6 +7,8 @@ Added
 -----
 - Support for Black's ``--skip-magic-trailing-comma`` option
 - ``darker --diff`` output is now identical to that of ``black --diff``
+- The ``-d`` / ``--stdout`` option outputs the reformatted contents of the single Python
+  file provided on the command line.
 
 Fixed
 -----
