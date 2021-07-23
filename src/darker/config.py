@@ -1,12 +1,18 @@
 """Load and save configuration in TOML format"""
 
 import logging
+import sys
 from argparse import ArgumentParser, Namespace
 from pathlib import Path
-from typing import Iterable, List, TypedDict, cast
+from typing import Iterable, List, cast
 
 import toml
 from black import find_project_root
+
+if sys.version_info >= (3, 8):
+    from typing import TypedDict
+else:
+    from typing_extensions import TypedDict
 
 
 class TomlArrayLinesEncoder(toml.TomlEncoder):  # type: ignore[name-defined]
