@@ -5,7 +5,7 @@ import pytest
 import regex as re
 
 from darker import black_diff
-from darker.black_diff import BlackArgs, read_black_config, run_black
+from darker.black_diff import BlackConfig, read_black_config, run_black
 from darker.utils import TextDocument
 
 
@@ -56,14 +56,14 @@ def test_black_config(tmpdir, config_path, config_lines, expect):
     toml = tmpdir / (config_path or "pyproject.toml")
     toml.write_text("[tool.black]\n{}\n".format("\n".join(config_lines)))
 
-    config = read_black_config(src, config_path and str(toml))
+    config = read_black_config((str(src),), config_path and str(toml))
 
     assert config == expect
 
 
 @pytest.mark.parametrize("encoding", ["utf-8", "iso-8859-1"])
 @pytest.mark.parametrize("newline", ["\n", "\r\n"])
-def test_run_black(tmpdir, encoding, newline):
+def test_run_black(encoding, newline):
     """Running Black through its Python internal API gives correct results"""
     src = TextDocument.from_lines(
         [f"# coding: {encoding}", "print ( 'touché' )"],
@@ -71,7 +71,7 @@ def test_run_black(tmpdir, encoding, newline):
         newline=newline,
     )
 
-    result = run_black(Path(tmpdir / "src.py"), src, BlackArgs())
+    result = run_black(src, BlackConfig())
 
     assert result.lines == (
         f"# coding: {encoding}",
@@ -82,12 +82,12 @@ def test_run_black(tmpdir, encoding, newline):
 
 
 @pytest.mark.parametrize("newline", ["\n", "\r\n"])
-def test_run_black_always_uses_unix_newlines(tmpdir, newline):
+def test_run_black_always_uses_unix_newlines(newline):
     """Content is always passed to Black with Unix newlines"""
     src = TextDocument.from_str(f"print ( 'touché' ){newline}")
     with patch.object(black_diff, "format_str") as format_str:
         format_str.return_value = 'print("touché")\n'
 
-        _ = run_black(Path(tmpdir / "src.py"), src, BlackArgs())
+        _ = run_black(src, BlackConfig())
 
     format_str.assert_called_once_with("print ( 'touché' )\n", mode=ANY)

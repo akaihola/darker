@@ -16,7 +16,7 @@ The first line will be reformatted by Black, and the second left intact::
 First, :func:`run_black` uses Black to reformat the contents of a given file.
 Reformatted lines are returned e.g.::
 
-    >>> dst = run_black(src, src_content, black_args={})
+    >>> dst = run_black(src_content, black_config={})
     >>> dst.lines
     ('for i in range(5):', '    print(i)', 'print("done")')
 
@@ -35,9 +35,7 @@ for how this result is further processed with:
 
 import logging
 import sys
-from functools import lru_cache
-from pathlib import Path
-from typing import Optional, Pattern, Set
+from typing import Optional, Pattern, Set, Tuple
 
 # `FileMode as Mode` required to satisfy mypy==0.782. Strange.
 from black import FileMode as Mode
@@ -56,16 +54,16 @@ if sys.version_info >= (3, 8):
 else:
     from typing_extensions import TypedDict
 
-__all__ = ["BlackArgs", "Mode", "run_black"]
+__all__ = ["BlackConfig", "Mode", "run_black"]
 
 logger = logging.getLogger(__name__)
 
 
-class BlackArgs(TypedDict, total=False):
+class BlackConfig(TypedDict, total=False):
     config: str
-    exclude: Pattern
-    extend_exclude: Pattern
-    force_exclude: Pattern
+    exclude: Pattern[str]
+    extend_exclude: Pattern[str]
+    force_exclude: Pattern[str]
     line_length: int
     skip_string_normalization: bool
     skip_magic_trailing_comma: bool
@@ -79,68 +77,67 @@ class BlackModeAttributes(TypedDict, total=False):
     magic_trailing_comma: bool
 
 
-@lru_cache(maxsize=1)
-def read_black_config(src: Path, value: Optional[str]) -> BlackArgs:
-    """Read the black configuration from pyproject.toml"""
-    value = value or find_pyproject_toml((str(src),))
+def read_black_config(src: Tuple[str, ...], value: Optional[str]) -> BlackConfig:
+    """Read the black configuration from ``pyproject.toml``
+
+    :param src: The source code files and directories to be processed by Darker
+    :param value: The path of the Black configuration file
+    :return: A dictionary of those Black parameters from the configuration file which
+             are supported by Darker
+
+    """
+    value = value or find_pyproject_toml(src)
 
     if not value:
-        return BlackArgs()
+        return BlackConfig()
 
     raw_config = parse_pyproject_toml(value)
 
-    config: BlackArgs = {}
+    config: BlackConfig = {}
     for key in {
         "line_length",
         "skip_magic_trailing_comma",
         "skip_string_normalization",
     }:
         if key in raw_config:
-            config[key] = raw_config[key]
+            config[key] = raw_config[key]  # type: ignore
     for key in {"exclude", "extend_exclude", "force_exclude"}:
         if key in raw_config:
-            config[key] = re_compile_maybe_verbose(raw_config[key])
+            config[key] = re_compile_maybe_verbose(raw_config[key])  # type: ignore
     return config
 
 
-def run_black(
-    src: Path, src_contents: TextDocument, black_args: BlackArgs
-) -> TextDocument:
+def run_black(src_contents: TextDocument, black_config: BlackConfig) -> TextDocument:
     """Run the black formatter for the Python source code given as a string
 
     Return lines of the original file as well as the formatted content.
 
-    :param src: The originating file path for the source code
     :param src_contents: The source code
-    :param black_args: Command-line arguments to send to ``black.FileMode``
+    :param black_config: Configuration to use for running Black
 
     """
-    config = black_args.pop("config", None)
-    combined_args = read_black_config(src, config)
-    combined_args.update(black_args)
-
-    effective_args = BlackModeAttributes()
-    if "line_length" in combined_args:
-        effective_args["line_length"] = combined_args["line_length"]
-    if "skip_magic_trailing_comma" in combined_args:
-        effective_args["magic_trailing_comma"] = not combined_args[
+    # Collect relevant Black configuration options from ``black_config`` in order to
+    # pass them to Black's ``format_str()``. File exclusion options aren't needed since
+    # at this point we already have a single file's content to work on.
+    mode = BlackModeAttributes()
+    if "line_length" in black_config:
+        mode["line_length"] = black_config["line_length"]
+    if "skip_magic_trailing_comma" in black_config:
+        mode["magic_trailing_comma"] = not black_config[
             "skip_magic_trailing_comma"
         ]
-    if "skip_string_normalization" in combined_args:
+    if "skip_string_normalization" in black_config:
         # The ``black`` command line argument is
         # ``--skip-string-normalization``, but the parameter for
         # ``black.Mode`` needs to be the opposite boolean of
         # ``skip-string-normalization``, hence the inverse boolean
-        effective_args["string_normalization"] = not combined_args[
+        mode["string_normalization"] = not black_config[
             "skip_string_normalization"
         ]
 
-    # Override defaults and pyproject.toml settings if they've been specified
-    # from the command line arguments
-    mode = Mode(**effective_args)
     contents_for_black = src_contents.string_with_newline("\n")
     return TextDocument.from_str(
-        format_str(contents_for_black, mode=mode),
+        format_str(contents_for_black, mode=Mode(**mode)),
         encoding=src_contents.encoding,
         override_newline=src_contents.newline,
     )

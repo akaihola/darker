@@ -110,17 +110,17 @@ A_PY_DIFF_BLACK_ISORT = [
 
 
 @pytest.mark.kwparametrize(
-    dict(enable_isort=False, black_args={}, expect=A_PY_BLACK),
-    dict(enable_isort=True, black_args={}, expect=A_PY_BLACK_ISORT),
+    dict(enable_isort=False, black_config={}, expect=A_PY_BLACK),
+    dict(enable_isort=True, black_config={}, expect=A_PY_BLACK_ISORT),
     dict(
         enable_isort=False,
-        black_args={"skip_string_normalization": True},
+        black_config={"skip_string_normalization": True},
         expect=A_PY_BLACK_UNNORMALIZE,
     ),
     ids=["black", "black_isort", "black_unnormalize"],
 )
 @pytest.mark.parametrize("newline", ["\n", "\r\n"], ids=["unix", "windows"])
-def test_format_edited_parts(git_repo, enable_isort, black_args, newline, expect):
+def test_format_edited_parts(git_repo, enable_isort, black_config, newline, expect):
     """Correct reformatting and import sorting changes are produced"""
     paths = git_repo.add({"a.py": newline, "b.py": newline}, commit="Initial commit")
     paths["a.py"].write_bytes(newline.join(A_PY).encode("ascii"))
@@ -131,7 +131,7 @@ def test_format_edited_parts(git_repo, enable_isort, black_args, newline, expect
         [Path("a.py")],
         RevisionRange("HEAD"),
         enable_isort,
-        black_args,
+        black_config,
         report_unmodified=False,
     )
 
@@ -182,7 +182,7 @@ def test_format_edited_parts_ast_changed(git_repo, caplog):
                 [Path("a.py")],
                 RevisionRange("HEAD"),
                 enable_isort=False,
-                black_args={},
+                black_config={},
                 report_unmodified=False,
             )
         )
@@ -226,7 +226,7 @@ def test_format_edited_parts_isort_on_already_formatted(git_repo):
         {Path("a.py")},
         RevisionRange("HEAD"),
         enable_isort=True,
-        black_args={},
+        black_config={},
         report_unmodified=False,
     )
 
@@ -281,7 +281,7 @@ def test_format_edited_parts_historical(git_repo, rev1, rev2, expect):
         {Path("a.py")},
         RevisionRange(rev1, rev2),
         enable_isort=True,
-        black_args={},
+        black_config={},
         report_unmodified=False,
     )
 
