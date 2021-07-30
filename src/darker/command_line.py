@@ -5,6 +5,7 @@ from darker import help as hlp
 from darker.argparse_helpers import LogLevelAction, NewlinePreservingFormatter
 from darker.config import (
     DarkerConfig,
+    OutputMode,
     get_effective_config,
     get_modified_config,
     load_config,
@@ -31,6 +32,7 @@ def make_argument_parser(require_src: bool) -> ArgumentParser:
     add_arg(hlp.SRC, "src", nargs="+" if require_src else "*", metavar="PATH")
     add_arg(hlp.REVISION, "-r", "--revision", default="HEAD")
     add_arg(hlp.DIFF, "--diff", action="store_true")
+    add_arg(hlp.STDOUT, "-d", "--stdout", action="store_true")
     add_arg(hlp.CHECK, "--check", action="store_true")
     add_arg(hlp.ISORT, "-i", "--isort", action="store_true")
     add_arg(hlp.LINT, "-L", "--lint", action="append", metavar="CMD", default=[])
@@ -94,7 +96,12 @@ def parse_command_line(argv: List[str]) -> Tuple[Namespace, DarkerConfig, Darker
     parser.set_defaults(**config)
     args = parser.parse_args(argv)
 
-    # 4. Also create a parser which uses the original default configuration values.
+    # 4. Make sure there aren't invalid option combinations after merging configuration
+    #    and command line options.
+    OutputMode.validate_diff_stdout(args.diff, args.stdout)
+    OutputMode.validate_stdout_src(args.stdout, args.src)
+
+    # 5. Also create a parser which uses the original default configuration values.
     #    This is used to find out differences between the effective configuration and
     #    default configuration values, and print them out in verbose mode.
     parser_with_original_defaults = make_argument_parser(require_src=True)

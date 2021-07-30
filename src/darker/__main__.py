@@ -11,7 +11,7 @@ from typing import Generator, Iterable, List, Tuple
 from darker.black_diff import BlackArgs, run_black
 from darker.chooser import choose_lines
 from darker.command_line import parse_command_line
-from darker.config import dump_config
+from darker.config import OutputMode, dump_config
 from darker.diff import diff_and_get_opcodes, opcodes_to_chunks
 from darker.git import (
     WORKTREE,
@@ -35,6 +35,7 @@ def format_edited_parts(
     revrange: RevisionRange,
     enable_isort: bool,
     black_args: BlackArgs,
+    report_unmodified: bool,
 ) -> Generator[Tuple[Path, TextDocument, TextDocument], None, None]:
     """Black (and optional isort) formatting for chunks with edits since the last commit
 
@@ -44,6 +45,7 @@ def format_edited_parts(
     :param revrange: The Git revisions to compare
     :param enable_isort: ``True`` to also run ``isort`` first on each changed file
     :param black_args: Command-line arguments to send to ``black.FileMode``
+    :param report_unmodified: ``True`` to yield also files which weren't modified
     :return: A generator which yields details about changes for each file which should
              be reformatted, and skips unchanged files.
 
@@ -139,7 +141,7 @@ def format_edited_parts(
         #    created successfully - write an updated file or print the diff if
         #    there were any changes to the original
         src, rev2_content, chosen = last_successful_reformat
-        if chosen != rev2_content:
+        if report_unmodified or chosen != rev2_content:
             yield (src, rev2_content, chosen)
 
 
@@ -184,6 +186,22 @@ def print_diff(path: Path, old: TextDocument, new: TextDocument) -> None:
             print(highlight(diff, DiffLexer(), TerminalFormatter()))
     else:
         print(diff)
+
+
+def print_source(new: TextDocument) -> None:
+    """Print the reformatted Python source code"""
+    if sys.stdout.isatty():
+        try:
+            # pylint: disable=import-outside-toplevel
+            from pygments import highlight
+            from pygments.formatters import TerminalFormatter
+            from pygments.lexers.python import PythonLexer
+        except ImportError:
+            print(new.string)
+        else:
+            print(highlight(new.string, PythonLexer(), TerminalFormatter()))
+    else:
+        print(new.string)
 
 
 def main(argv: List[str] = None) -> int:
@@ -251,20 +269,34 @@ def main(argv: List[str] = None) -> int:
     failures_on_modified_lines = False
 
     revrange = RevisionRange.parse(args.revision)
-    write_modified_files = not args.check and not args.diff
+    output_mode = OutputMode.from_args(args)
+    write_modified_files = not args.check and output_mode == OutputMode.NOTHING
     if revrange.rev2 != WORKTREE and write_modified_files:
         raise ArgumentError(
             Action(["-r", "--revision"], "revision"),
             f"Can't write reformatted files for revision '{revrange.rev2}'."
             " Either --diff or --check must be used.",
         )
-    changed_files = git_get_modified_files(paths, revrange, git_root)
+    if output_mode == OutputMode.CONTENT:
+        # With `-d` / `--stdout`, process the file whether modified or not. Paths have
+        # previously been validated to contain exactly one existing file.
+        changed_files = paths
+    else:
+        # In other modes, only process files which have been modified.
+        changed_files = git_get_modified_files(paths, revrange, git_root)
     for path, old, new in format_edited_parts(
-        git_root, changed_files, revrange, args.isort, black_args
+        git_root,
+        changed_files,
+        revrange,
+        args.isort,
+        black_args,
+        report_unmodified=output_mode == OutputMode.CONTENT,
     ):
         failures_on_modified_lines = True
-        if args.diff:
+        if output_mode == OutputMode.DIFF:
             print_diff(path, old, new)
+        elif output_mode == OutputMode.CONTENT:
+            print_source(new)
         if write_modified_files:
             modify_file(path, new)
     if run_linters(args.lint, git_root, changed_files, revrange):

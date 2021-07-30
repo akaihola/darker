@@ -1,9 +1,13 @@
 from argparse import ArgumentParser, Namespace
+from pathlib import Path
 from textwrap import dedent
 
 import pytest
 
 from darker.config import (
+    ConfigurationError,
+    DarkerConfig,
+    OutputMode,
     TomlArrayLinesEncoder,
     dump_config,
     get_effective_config,
@@ -11,6 +15,7 @@ from darker.config import (
     load_config,
     replace_log_level_name,
 )
+from darker.tests.helpers import raises_if_exception
 
 
 @pytest.mark.kwparametrize(
@@ -61,10 +66,66 @@ def test_toml_array_lines_encoder(list_value, expect):
     dict(log_level="FOOBAR", expect="Level FOOBAR"),
 )
 def test_replace_log_level_name(log_level, expect):
-    config = {} if log_level is None else {"log_level": log_level}
+    config = DarkerConfig() if log_level is None else DarkerConfig(log_level=log_level)
     replace_log_level_name(config)
 
     assert config["log_level"] == expect
+
+
+@pytest.mark.kwparametrize(
+    dict(diff=False, stdout=False, expect=None),
+    dict(diff=False, stdout=True, expect=None),
+    dict(diff=True, stdout=False, expect=None),
+    dict(diff=True, stdout=True, expect=ConfigurationError),
+)
+def test_output_mode_validate_diff_stdout(diff, stdout, expect):
+    """Validation fails only if ``--diff`` and ``--stdout`` are both enabled"""
+    with raises_if_exception(expect):
+        OutputMode.validate_diff_stdout(diff, stdout)
+
+
+@pytest.mark.kwparametrize(
+    dict(stdout=False, src=[], expect=None),
+    dict(stdout=False, src=["first.py"], expect=None),
+    dict(stdout=False, src=["first.py", "second.py"], expect=None),
+    dict(stdout=False, src=["first.py", "missing.py"], expect=None),
+    dict(stdout=False, src=["missing.py"], expect=None),
+    dict(stdout=False, src=["missing.py", "another_missing.py"], expect=None),
+    dict(stdout=False, src=["directory"], expect=None),
+    dict(stdout=True, src=[], expect=ConfigurationError),
+    dict(stdout=True, src=["first.py"], expect=None),
+    dict(stdout=True, src=["first.py", "second.py"], expect=ConfigurationError),
+    dict(stdout=True, src=["first.py", "missing.py"], expect=ConfigurationError),
+    dict(stdout=True, src=["missing.py"], expect=ConfigurationError),
+    dict(stdout=True, src=["missing.py", "another.py"], expect=ConfigurationError),
+    dict(stdout=True, src=["directory"], expect=ConfigurationError),
+)
+def test_output_mode_validate_stdout_src(tmp_path, monkeypatch, stdout, expect, src):
+    """Validation fails only if exactly one file isn't provided for ``--stdout``"""
+    monkeypatch.chdir(tmp_path)
+    Path("first.py").touch()
+    Path("second.py").touch()
+    with raises_if_exception(expect):
+
+        OutputMode.validate_stdout_src(stdout, src)
+
+
+@pytest.mark.kwparametrize(
+    dict(diff=False, stdout=False, expect="NOTHING"),
+    dict(diff=False, stdout=True, expect="CONTENT"),
+    dict(diff=True, stdout=False, expect="DIFF"),
+    dict(diff=True, stdout=True, expect=ConfigurationError),
+)
+def test_output_mode_from_args(diff, stdout, expect):
+    """Correct output mode results from the ``--diff`` and ``stdout`` options"""
+    args = Namespace()
+    args.diff = diff
+    args.stdout = stdout
+    with raises_if_exception(expect):
+
+        result = OutputMode.from_args(args)
+
+        assert result == expect
 
 
 @pytest.mark.kwparametrize(
@@ -118,6 +179,10 @@ def test_replace_log_level_name(log_level, expect):
             "src": ["src", "tests"],
         },
     ),
+    dict(
+        srcs=["stdout_example/dummy.py"],
+        expect={"stdout": True},
+    ),
     srcs=[],
     cwd=".",
     expect={"CONFIG_PATH": "."},
@@ -156,6 +221,10 @@ def test_load_config(
             """
         )
     )
+    (tmp_path / "stdout_example").mkdir()
+    (tmp_path / "stdout_example/pyproject.toml").write_text(
+        "[tool.darker]\nstdout = true\n"
+    )
     monkeypatch.chdir(tmp_path / cwd)
 
     result = load_config(srcs)
@@ -171,12 +240,15 @@ def test_load_config(
         args=Namespace(two="options", log_level=20),
         expect={"two": "options", "log_level": "INFO"},
     ),
+    dict(args=Namespace(diff=True, stdout=True), expect=ConfigurationError),
 )
 def test_get_effective_config(args, expect):
     """``get_effective_config()`` converts command line options correctly"""
-    result = get_effective_config(args)
+    with raises_if_exception(expect):
 
-    assert result == expect
+        result = get_effective_config(args)
+
+        assert result == expect
 
 
 @pytest.mark.kwparametrize(
@@ -225,6 +297,7 @@ def test_get_modified_config(args, expect):
             "src": ["main.py"],
             "revision": "master",
             "diff": False,
+            "stdout": False,
             "check": False,
             "isort": False,
             "lint": [],
@@ -241,6 +314,7 @@ def test_get_modified_config(args, expect):
             ]
             revision = "master"
             diff = false
+            stdout = false
             check = false
             isort = false
             lint = [

@@ -15,6 +15,7 @@ import darker.help
 from darker import black_diff
 from darker.__main__ import main
 from darker.command_line import make_argument_parser, parse_command_line
+from darker.config import ConfigurationError
 from darker.git import RevisionRange
 from darker.tests.helpers import filter_dict, isort_present, raises_if_exception
 from darker.utils import TextDocument, joinlines
@@ -84,8 +85,8 @@ def test_parse_command_line_config_src(
         args, effective_cfg, modified_cfg = parse_command_line(argv)
 
         assert filter_dict(args.__dict__, "src") == expect
-        assert filter_dict(effective_cfg, "src") == expect
-        assert filter_dict(modified_cfg, "src") == expect
+        assert filter_dict(dict(effective_cfg), "src") == expect
+        assert filter_dict(dict(modified_cfg), "src") == expect
 
 
 @pytest.mark.kwparametrize(
@@ -124,6 +125,24 @@ def test_parse_command_line_config_src(
         expect_value=("diff", True),
         expect_config=("diff", True),
         expect_modified=("diff", True),
+    ),
+    dict(
+        argv=["."],
+        expect_value=("stdout", False),
+        expect_config=("stdout", False),
+        expect_modified=("stdout", ...),
+    ),
+    dict(
+        argv=["--stdout", "dummy.py"],
+        expect_value=("stdout", True),
+        expect_config=("stdout", True),
+        expect_modified=("stdout", True),
+    ),
+    dict(
+        argv=["--diff", "--stdout", "dummy.py"],
+        expect_value=ConfigurationError,
+        expect_config=ConfigurationError,
+        expect_modified=ConfigurationError,
     ),
     dict(
         argv=["."],
@@ -271,26 +290,32 @@ def test_parse_command_line_config_src(
     ),
 )
 def test_parse_command_line(
-    tmpdir, monkeypatch, argv, expect_value, expect_config, expect_modified
+    tmp_path, monkeypatch, argv, expect_value, expect_config, expect_modified
 ):
     """``parse_command_line()`` parses options correctly"""
-    monkeypatch.chdir(tmpdir)
-    args, effective_cfg, modified_cfg = parse_command_line(argv)
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / "dummy.py").touch()
 
-    arg_name, expect_arg_value = expect_value
-    assert getattr(args, arg_name) == expect_arg_value
+    with raises_if_exception(expect_value):
 
-    option, expect_config_value = expect_config
-    if expect_config_value is ...:
-        assert option not in effective_cfg
-    else:
-        assert effective_cfg[option] == expect_config_value
+        args, effective_cfg, modified_cfg = parse_command_line(argv)
 
-    modified_option, expect_modified_value = expect_modified
-    if expect_modified_value is ...:
-        assert modified_option not in modified_cfg
-    else:
-        assert modified_cfg[modified_option] == expect_modified_value
+        arg_name, expect_arg_value = expect_value
+        assert getattr(args, arg_name) == expect_arg_value
+
+        option, expect_config_value = expect_config
+        if expect_config_value is ...:
+            assert option not in effective_cfg
+        else:
+            assert effective_cfg[option] == expect_config_value  # type: ignore
+
+        modified_option, expect_modified_value = expect_modified
+        if expect_modified_value is ...:
+            assert modified_option not in modified_cfg
+        else:
+            assert (
+                modified_cfg[modified_option] == expect_modified_value  # type: ignore
+            )
 
 
 def test_help_description_without_isort_package(capsys):
@@ -525,7 +550,7 @@ def test_options(git_repo, options, expect):
         retval = main(options)
 
     expect = (Path(git_repo.root), expect[1]) + expect[2:]
-    format_edited_parts.assert_called_once_with(*expect)
+    format_edited_parts.assert_called_once_with(*expect, report_unmodified=False)
     assert retval == 0
 
 

@@ -164,7 +164,18 @@ which makes edited lines conform to Black rules:
    print()
    if False: print('there')
 
-If you omit the ``--diff`` option,
+Alternatively, Darker can output the full reformatted file
+(works only when a single Python file is provided on the command line):
+
+.. code-block:: python
+
+   $ darker --stdout our_file.py
+   if True:
+       print("CHANGED TEXT")
+   print()
+   if False: print('there')
+
+If you omit the ``--diff`` and ``--stdout`` options,
 Darker replaces the files listed on the command line
 with partially reformatted ones as shown above:
 
@@ -226,6 +237,9 @@ The following `command line arguments`_ can also be used to modify the defaults:
                            each file on stdout. Highlight syntax on screen if
                            the `pygments` package is available.
 
+     -d, --stdout          Force complete reformatted output to stdout, instead of
+                           in-place. Only valid if there's just one file to reformat.
+ 
      --check               Don't write the files back, just return the status.
                            Return code 0 means nothing would change. Return code
                            1 means some files would be reformatted.
@@ -291,6 +305,8 @@ For example:
 *New in version 1.2.2:* Support for ``-r :PRE-COMMIT:`` / ``--revision=:PRE_COMMIT:``
 
 *New in version 1.3.0:* Support for command line option ``--skip-magic-trailing-comma``
+
+*New in version 1.3.0:* The ``-d`` / ``--stdout`` command line option
 
 .. _Black documentation about pyproject.toml: https://black.readthedocs.io/en/stable/pyproject_toml.html
 .. _isort documentation about config files: https://timothycrosley.github.io/isort/docs/configuration/config_files/
