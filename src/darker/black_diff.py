@@ -37,11 +37,17 @@ import logging
 import sys
 from functools import lru_cache
 from pathlib import Path
-from typing import Optional, Set, cast
+from typing import Optional, Pattern, Set
 
 # `FileMode as Mode` required to satisfy mypy==0.782. Strange.
 from black import FileMode as Mode
-from black import TargetVersion, find_pyproject_toml, format_str, parse_pyproject_toml
+from black import (
+    TargetVersion,
+    find_pyproject_toml,
+    format_str,
+    parse_pyproject_toml,
+    re_compile_maybe_verbose,
+)
 
 from darker.utils import TextDocument
 
@@ -57,6 +63,9 @@ logger = logging.getLogger(__name__)
 
 class BlackArgs(TypedDict, total=False):
     config: str
+    exclude: Pattern
+    extend_exclude: Pattern
+    force_exclude: Pattern
     line_length: int
     skip_string_normalization: bool
     skip_magic_trailing_comma: bool
@@ -78,17 +87,20 @@ def read_black_config(src: Path, value: Optional[str]) -> BlackArgs:
     if not value:
         return BlackArgs()
 
-    config = parse_pyproject_toml(value)
+    raw_config = parse_pyproject_toml(value)
 
-    return cast(
-        BlackArgs,
-        {
-            key: value
-            for key, value in config.items()
-            if key
-            in ["line_length", "skip_string_normalization", "skip_magic_trailing_comma"]
-        },
-    )
+    config: BlackArgs = {}
+    for key in {
+        "line_length",
+        "skip_magic_trailing_comma",
+        "skip_string_normalization",
+    }:
+        if key in raw_config:
+            config[key] = raw_config[key]
+    for key in {"exclude", "extend_exclude", "force_exclude"}:
+        if key in raw_config:
+            config[key] = re_compile_maybe_verbose(raw_config[key])
+    return config
 
 
 def run_black(

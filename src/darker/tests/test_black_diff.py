@@ -2,6 +2,7 @@ from pathlib import Path
 from unittest.mock import ANY, patch
 
 import pytest
+import regex as re
 
 from darker import black_diff
 from darker.black_diff import BlackArgs, read_black_config, run_black
@@ -18,39 +19,45 @@ from darker.utils import TextDocument
         expect={"line_length": 99},
     ),
     dict(
-        config_path="custom.toml",
         config_lines=["skip-string-normalization = true"],
         expect={"skip_string_normalization": True},
     ),
     dict(
-        config_path="custom.toml",
         config_lines=["skip-string-normalization = false"],
         expect={"skip_string_normalization": False},
     ),
     dict(
-        config_path="custom.toml",
         config_lines=["skip-magic-trailing-comma = true"],
         expect={"skip_magic_trailing_comma": True},
     ),
     dict(
-        config_path="custom.toml",
         config_lines=["skip-magic-trailing-comma = false"],
         expect={"skip_magic_trailing_comma": False},
     ),
+    dict(config_lines=["target-version = ['py37']"], expect={}),
+    dict(config_lines=[r"include = '\.pyi$'"], expect={}),
     dict(
-        config_path="custom.toml", config_lines=["target-version = ['py37']"], expect={}
+        config_lines=[r"exclude = '\.pyx$'"],
+        expect={"exclude": re.compile("\\.pyx$")},
     ),
-    dict(config_path="custom.toml", config_lines=["include = '\\.pyi$'"], expect={}),
-    dict(config_path="custom.toml", config_lines=["exclude = '\\.pyx$'"], expect={}),
+    dict(
+        config_lines=["extend-exclude = '''", r"^/setup\.py", r"|^/dummy\.py", "'''"],
+        expect={"extend_exclude": re.compile("(?x)^/setup\\.py\n|^/dummy\\.py\n")},
+    ),
+    dict(
+        config_lines=["force-exclude = '''", r"^/setup\.py", r"|\.pyc$", "'''"],
+        expect={"force_exclude": re.compile("(?x)^/setup\\.py\n|\\.pyc$\n")},
+    ),
+    config_path=None,
 )
 def test_black_config(tmpdir, config_path, config_lines, expect):
     tmpdir = Path(tmpdir)
     src = tmpdir / "src.py"
     toml = tmpdir / (config_path or "pyproject.toml")
-
     toml.write_text("[tool.black]\n{}\n".format("\n".join(config_lines)))
 
     config = read_black_config(src, config_path and str(toml))
+
     assert config == expect
 
 
