@@ -6,6 +6,7 @@ import logging
 import re
 from argparse import ArgumentError
 from pathlib import Path
+from textwrap import dedent
 from types import SimpleNamespace
 from unittest.mock import Mock, patch
 
@@ -70,6 +71,7 @@ def test_isort_option_with_isort_calls_sortimports(tmpdir, run_isort, isort_args
 
 
 A_PY = ["import sys", "import os", "print( '42')", ""]
+A_PY_ISORT = ["import os", "import sys", "", "print( '42')", ""]
 A_PY_BLACK = ["import sys", "import os", "", 'print("42")', ""]
 A_PY_BLACK_UNNORMALIZE = ("import sys", "import os", "", "print('42')", "")
 A_PY_BLACK_ISORT = ["import os", "import sys", "", 'print("42")', ""]
@@ -110,18 +112,51 @@ A_PY_DIFF_BLACK_ISORT = [
 
 
 @pytest.mark.kwparametrize(
-    dict(enable_isort=False, black_config={}, expect=A_PY_BLACK),
-    dict(enable_isort=True, black_config={}, expect=A_PY_BLACK_ISORT),
+    dict(enable_isort=False, black_config={}, expect=[A_PY_BLACK]),
+    dict(enable_isort=True, black_config={}, expect=[A_PY_BLACK_ISORT]),
     dict(
         enable_isort=False,
         black_config={"skip_string_normalization": True},
-        expect=A_PY_BLACK_UNNORMALIZE,
+        expect=[A_PY_BLACK_UNNORMALIZE],
     ),
-    ids=["black", "black_isort", "black_unnormalize"],
+    dict(
+        enable_isort=False,
+        black_config={"exclude": re.compile(r"/a\.py$")},
+        expect=[],
+    ),
+    dict(
+        enable_isort=True,
+        black_config={"exclude": re.compile(r"/a\.py$")},
+        expect=[A_PY_ISORT],
+    ),
+    dict(
+        enable_isort=False,
+        black_config={"extend_exclude": re.compile(r"/a\.py$")},
+        expect=[],
+    ),
+    dict(
+        enable_isort=True,
+        black_config={"extend_exclude": re.compile(r"/a\.py$")},
+        expect=[A_PY_ISORT],
+    ),
+    dict(
+        enable_isort=False,
+        black_config={"force_exclude": re.compile(r"/a\.py$")},
+        expect=[],
+    ),
+    dict(
+        enable_isort=True,
+        black_config={"force_exclude": re.compile(r"/a\.py$")},
+        expect=[A_PY_ISORT],
+    ),
 )
 @pytest.mark.parametrize("newline", ["\n", "\r\n"], ids=["unix", "windows"])
 def test_format_edited_parts(git_repo, enable_isort, black_config, newline, expect):
-    """Correct reformatting and import sorting changes are produced"""
+    """Correct reformatting and import sorting changes are produced
+
+    Also, Black reformatting is skipped for files excluded in Black configuration
+
+    """
     paths = git_repo.add({"a.py": newline, "b.py": newline}, commit="Initial commit")
     paths["a.py"].write_bytes(newline.join(A_PY).encode("ascii"))
     paths["b.py"].write_bytes(f"print(42 ){newline}".encode("ascii"))
@@ -140,7 +175,13 @@ def test_format_edited_parts(git_repo, enable_isort, black_config, newline, expe
         for path, worktree_content, chosen in result
     ]
     expect_changes = [
-        (paths["a.py"], newline.join(A_PY), newline.join(expect), tuple(expect[:-1]))
+        (
+            paths["a.py"],
+            newline.join(A_PY),
+            newline.join(expect_lines),
+            tuple(expect_lines[:-1]),
+        )
+        for expect_lines in expect
     ]
     assert changes == expect_changes
 
@@ -320,8 +361,57 @@ def test_format_edited_parts_historical(git_repo, rev1, rev2, expect):
         # Windows compatible path assertion using `pathlib.Path()`
         expect_stdout=A_PY_DIFF_BLACK + [f"a.py:1: message {Path('/a.py')}"],
     ),
+    dict(
+        arguments=[],
+        pyproject_toml="""
+           [tool.black]
+           exclude = 'a.py'
+           """,
+        expect_a_py=A_PY,
+    ),
+    dict(
+        arguments=["--diff"],
+        pyproject_toml="""
+           [tool.black]
+           exclude = 'a.py'
+           """,
+        expect_stdout=[],
+    ),
+    dict(
+        arguments=[],
+        pyproject_toml="""
+           [tool.black]
+           extend_exclude = 'a.py'
+           """,
+        expect_a_py=A_PY,
+    ),
+    dict(
+        arguments=["--diff"],
+        pyproject_toml="""
+           [tool.black]
+           extend_exclude = 'a.py'
+           """,
+        expect_stdout=[],
+    ),
+    dict(
+        arguments=[],
+        pyproject_toml="""
+           [tool.black]
+           force_exclude = 'a.py'
+           """,
+        expect_a_py=A_PY,
+    ),
+    dict(
+        arguments=["--diff"],
+        pyproject_toml="""
+           [tool.black]
+           force_exclude = 'a.py'
+           """,
+        expect_stdout=[],
+    ),
     # for all test cases, by default there's no output, `a.py` stays unmodified, and the
     # return value is a zero:
+    pyproject_toml="",
     expect_stdout=[],
     expect_a_py=A_PY,
     expect_retval=0,
@@ -329,17 +419,20 @@ def test_format_edited_parts_historical(git_repo, rev1, rev2, expect):
 @pytest.mark.parametrize("newline", ["\n", "\r\n"], ids=["unix", "windows"])
 def test_main(
     git_repo,
-    monkeypatch,
     capsys,
+    find_project_root_cache_clear,
     arguments,
     newline,
+    pyproject_toml,
     expect_stdout,
     expect_a_py,
     expect_retval,
 ):  # pylint: disable=too-many-arguments
     """Main function outputs diffs and modifies files correctly"""
-    monkeypatch.chdir(git_repo.root)
-    paths = git_repo.add({"a.py": newline, "b.py": newline}, commit="Initial commit")
+    paths = git_repo.add(
+        {"pyproject.toml": dedent(pyproject_toml), "a.py": newline, "b.py": newline},
+        commit="Initial commit",
+    )
     paths["a.py"].write_bytes(newline.join(A_PY).encode("ascii"))
     paths["b.py"].write_bytes(f"print(42 ){newline}".encode("ascii"))
 
@@ -347,16 +440,17 @@ def test_main(
 
     stdout = capsys.readouterr().out.replace(str(git_repo.root), "")
     diff_output = stdout.splitlines(False)
-    if "--diff" in arguments:
-        assert "\t" in diff_output[0], diff_output[0]
-        diff_output[0], old_mtime = diff_output[0].split("\t", 1)
-        assert old_mtime.endswith(" +0000")
-        assert "\t" in diff_output[1], diff_output[1]
-        diff_output[1], new_mtime = diff_output[1].split("\t", 1)
-        assert new_mtime.endswith(" +0000")
-        assert all("\t" not in line for line in diff_output[2:])
-    else:
-        assert all("\t" not in line for line in diff_output)
+    if expect_stdout:
+        if "--diff" in arguments:
+            assert "\t" in diff_output[0], diff_output[0]
+            diff_output[0], old_mtime = diff_output[0].split("\t", 1)
+            assert old_mtime.endswith(" +0000")
+            assert "\t" in diff_output[1], diff_output[1]
+            diff_output[1], new_mtime = diff_output[1].split("\t", 1)
+            assert new_mtime.endswith(" +0000")
+            assert all("\t" not in line for line in diff_output[2:])
+        else:
+            assert all("\t" not in line for line in diff_output)
     assert diff_output == expect_stdout
     assert paths["a.py"].read_bytes().decode("ascii") == newline.join(expect_a_py)
     assert paths["b.py"].read_bytes().decode("ascii") == f"print(42 ){newline}"
@@ -367,7 +461,9 @@ def test_main(
     "encoding, text", [(b"utf-8", b"touch\xc3\xa9"), (b"iso-8859-1", b"touch\xe9")]
 )
 @pytest.mark.parametrize("newline", [b"\n", b"\r\n"])
-def test_main_encoding(git_repo, encoding, text, newline):
+def test_main_encoding(
+    git_repo, find_project_root_cache_clear, encoding, text, newline
+):
     """Encoding and newline of the file is kept unchanged after reformatting"""
     paths = git_repo.add({"a.py": newline.decode("ascii")}, commit="Initial commit")
     edited = [b"# coding: ", encoding, newline, b's="', text, b'"', newline]

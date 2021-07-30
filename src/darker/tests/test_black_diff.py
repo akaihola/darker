@@ -5,7 +5,12 @@ import pytest
 import regex as re
 
 from darker import black_diff
-from darker.black_diff import BlackConfig, read_black_config, run_black
+from darker.black_diff import (
+    BlackConfig,
+    apply_black_excludes,
+    read_black_config,
+    run_black,
+)
 from darker.utils import TextDocument
 
 
@@ -61,6 +66,66 @@ def test_black_config(tmpdir, config_path, config_lines, expect):
     assert config == expect
 
 
+@pytest.mark.kwparametrize(
+    dict(
+        expect={
+            "none",
+            "exclude",
+            "extend",
+            "force",
+            "exclude+extend",
+            "exclude+force",
+            "extend+force",
+            "exclude+extend+force",
+        }
+    ),
+    dict(exclude="exclude", expect={"none", "extend", "force", "extend+force"}),
+    dict(extend_exclude="extend", expect={"none", "exclude", "force", "exclude+force"}),
+    dict(force_exclude="force", expect={"none", "exclude", "extend", "exclude+extend"}),
+    dict(exclude="exclude", extend_exclude="extend", expect={"none", "force"}),
+    dict(exclude="exclude", force_exclude="force", expect={"none", "extend"}),
+    dict(extend_exclude="extend", force_exclude="force", expect={"none", "exclude"}),
+    dict(
+        exclude="exclude",
+        extend_exclude="extend",
+        force_exclude="force",
+        expect={"none"},
+    ),
+    exclude=None,
+    extend_exclude=None,
+    force_exclude=None,
+)
+def test_apply_black_excludes(tmp_path, exclude, extend_exclude, force_exclude, expect):
+    """``apply_black_excludes()`` skips excluded files correctly"""
+    names = {
+        Path(name)
+        for name in {
+            "none.py",
+            "exclude.py",
+            "extend.py",
+            "force.py",
+            "exclude+extend.py",
+            "exclude+force.py",
+            "extend+force.py",
+            "exclude+extend+force.py",
+        }
+    }
+    paths = {tmp_path / name for name in names}
+    for path in paths:
+        path.touch()
+    black_config = BlackConfig(
+        {
+            "exclude": re.compile(exclude) if exclude else None,
+            "extend_exclude": re.compile(extend_exclude) if extend_exclude else None,
+            "force_exclude": re.compile(force_exclude) if force_exclude else None,
+        }
+    )
+
+    result = apply_black_excludes(names, tmp_path, black_config)
+
+    assert result == {tmp_path / f"{path}.py" for path in expect}
+
+
 @pytest.mark.parametrize("encoding", ["utf-8", "iso-8859-1"])
 @pytest.mark.parametrize("newline", ["\n", "\r\n"])
 def test_run_black(encoding, newline):
@@ -91,3 +156,21 @@ def test_run_black_always_uses_unix_newlines(newline):
         _ = run_black(src, BlackConfig())
 
     format_str.assert_called_once_with("print ( 'touché' )\n", mode=ANY)
+
+
+def test_run_black_ignores_excludes():
+    """Black's exclude configuration is ignored by ``run_black()``"""
+    src = TextDocument.from_str("a=1\n")
+
+    result = run_black(
+        src,
+        BlackConfig(
+            {
+                "exclude": re.compile(r".*"),
+                "extend_exclude": re.compile(r".*"),
+                "force_exclude": re.compile(r".*"),
+            }
+        ),
+    )
+
+    assert result.string == "a = 1\n"

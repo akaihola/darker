@@ -35,7 +35,8 @@ for how this result is further processed with:
 
 import logging
 import sys
-from typing import Optional, Pattern, Set, Tuple
+from pathlib import Path
+from typing import Collection, Optional, Pattern, Set, Tuple
 
 # `FileMode as Mode` required to satisfy mypy==0.782. Strange.
 from black import FileMode as Mode
@@ -46,6 +47,9 @@ from black import (
     parse_pyproject_toml,
     re_compile_maybe_verbose,
 )
+from black.const import DEFAULT_EXCLUDES, DEFAULT_INCLUDES
+from black.files import gen_python_files
+from black.report import Report
 
 from darker.utils import TextDocument
 
@@ -59,7 +63,12 @@ __all__ = ["BlackConfig", "Mode", "run_black"]
 logger = logging.getLogger(__name__)
 
 
+DEFAULT_EXCLUDE_RE = re_compile_maybe_verbose(DEFAULT_EXCLUDES)
+DEFAULT_INCLUDE_RE = re_compile_maybe_verbose(DEFAULT_INCLUDES)
+
+
 class BlackConfig(TypedDict, total=False):
+    """Type definition for Black configuration dictionaries"""
     config: str
     exclude: Pattern[str]
     extend_exclude: Pattern[str]
@@ -70,6 +79,7 @@ class BlackConfig(TypedDict, total=False):
 
 
 class BlackModeAttributes(TypedDict, total=False):
+    """Type definition for items accepted by ``black.Mode``"""
     target_versions: Set[TargetVersion]
     line_length: int
     string_normalization: bool
@@ -107,6 +117,32 @@ def read_black_config(src: Tuple[str, ...], value: Optional[str]) -> BlackConfig
     return config
 
 
+def apply_black_excludes(
+    paths: Collection[Path], root: Path, black_config: BlackConfig
+) -> Set[Path]:
+    """Get the subset of files which are not excluded by Black's configuration
+
+    :param paths: Relative paths from ``root`` to Python source file paths to consider
+    :param root: A common root directory for all ``paths``
+    :param black_config: Black configuration which contains the exclude options read
+                         from Black's configuration files
+    :return: Absolute paths of files which should be reformatted using Black
+
+    """
+    return set(
+        gen_python_files(
+            (root / path for path in paths),
+            root,
+            include=DEFAULT_INCLUDE_RE,
+            exclude=black_config.get("exclude", DEFAULT_EXCLUDE_RE),
+            extend_exclude=black_config.get("extend_exclude"),
+            force_exclude=black_config.get("force_exclude"),
+            report=Report(),
+            gitignore=None,
+        )
+    )
+
+
 def run_black(src_contents: TextDocument, black_config: BlackConfig) -> TextDocument:
     """Run the black formatter for the Python source code given as a string
 
@@ -123,17 +159,13 @@ def run_black(src_contents: TextDocument, black_config: BlackConfig) -> TextDocu
     if "line_length" in black_config:
         mode["line_length"] = black_config["line_length"]
     if "skip_magic_trailing_comma" in black_config:
-        mode["magic_trailing_comma"] = not black_config[
-            "skip_magic_trailing_comma"
-        ]
+        mode["magic_trailing_comma"] = not black_config["skip_magic_trailing_comma"]
     if "skip_string_normalization" in black_config:
         # The ``black`` command line argument is
         # ``--skip-string-normalization``, but the parameter for
         # ``black.Mode`` needs to be the opposite boolean of
         # ``skip-string-normalization``, hence the inverse boolean
-        mode["string_normalization"] = not black_config[
-            "skip_string_normalization"
-        ]
+        mode["string_normalization"] = not black_config["skip_string_normalization"]
 
     contents_for_black = src_contents.string_with_newline("\n")
     return TextDocument.from_str(

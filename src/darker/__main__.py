@@ -6,9 +6,14 @@ from argparse import Action, ArgumentError
 from datetime import datetime
 from difflib import unified_diff
 from pathlib import Path
-from typing import Generator, Iterable, List, Tuple
+from typing import Collection, Generator, List, Tuple
 
-from darker.black_diff import BlackConfig, read_black_config, run_black
+from darker.black_diff import (
+    BlackConfig,
+    apply_black_excludes,
+    read_black_config,
+    run_black,
+)
 from darker.chooser import choose_lines
 from darker.command_line import parse_command_line
 from darker.config import OutputMode, dump_config
@@ -31,13 +36,17 @@ logger = logging.getLogger(__name__)
 
 def format_edited_parts(
     git_root: Path,
-    changed_files: Iterable[Path],
+    changed_files: Collection[Path],
     revrange: RevisionRange,
     enable_isort: bool,
     black_config: BlackConfig,
     report_unmodified: bool,
 ) -> Generator[Tuple[Path, TextDocument, TextDocument], None, None]:
     """Black (and optional isort) formatting for chunks with edits since the last commit
+
+    Files excluded by Black's configuration are not reformatted using Black, but their
+    imports are still sorted. Also, linters will be run for all files in a separate step
+    after this function has completed.
 
     :param git_root: The root of the Git repository the files are in
     :param changed_files: Files which have been modified in the repository between the
@@ -50,6 +59,7 @@ def format_edited_parts(
              be reformatted, and skips unchanged files.
 
     """
+    files_to_blacken = apply_black_excludes(changed_files, git_root, black_config)
     for path_in_repo in sorted(changed_files):
         src = git_root / path_in_repo
         rev2_content = git_get_content_at_revision(
@@ -66,20 +76,24 @@ def format_edited_parts(
             )
         else:
             rev2_isorted = rev2_content
-        # 9. A re-formatted Python file which produces an identical AST was
-        #    created successfully - write an updated file or print the diff if
-        #    there were any changes to the original
-        src, rev2_content, chosen = _reformat_single_file(
-            git_root,
-            path_in_repo,
-            revrange,
-            rev2_content,
-            rev2_isorted,
-            enable_isort,
-            black_config,
-        )
-        if report_unmodified or chosen != rev2_content:
-            yield (src, rev2_content, chosen)
+        if src in files_to_blacken:
+            # 9. A re-formatted Python file which produces an identical AST was
+            #    created successfully - write an updated file or print the diff if
+            #    there were any changes to the original
+            content_after_reformatting = _reformat_single_file(
+                git_root,
+                path_in_repo,
+                revrange,
+                rev2_content,
+                rev2_isorted,
+                enable_isort,
+                black_config,
+            )
+        else:
+            # File was excluded by Black configuration, don't reformat
+            content_after_reformatting = rev2_isorted
+        if report_unmodified or content_after_reformatting != rev2_content:
+            yield (src, rev2_content, content_after_reformatting)
 
 
 def _reformat_single_file(  # pylint: disable=too-many-arguments,too-many-locals
@@ -90,7 +104,7 @@ def _reformat_single_file(  # pylint: disable=too-many-arguments,too-many-locals
     rev2_isorted: TextDocument,
     enable_isort: bool,
     black_config: BlackConfig,
-) -> Tuple[Path, TextDocument, TextDocument]:
+) -> TextDocument:
     """In a Python file, reformat chunks with edits since the last commit using Black
 
     :param git_root: The root of the Git repository the files are in
@@ -100,7 +114,7 @@ def _reformat_single_file(  # pylint: disable=too-many-arguments,too-many-locals
     :param rev2_isorted: Contents of the file after optional import sorting
     :param enable_isort: ``True`` if ``isort`` was already run for the file
     :param black_config: Configuration to use for running Black
-    :return: Details about changes for the reformatted file
+    :return: Contents of the file after reformatting
     :raise: NotEquivalentError
 
     """
@@ -125,7 +139,7 @@ def _reformat_single_file(  # pylint: disable=too-many-arguments,too-many-locals
         )
         if enable_isort and not edited_linenums and rev2_isorted == rev2_content:
             logger.debug("No changes in %s after isort", src)
-            last_successful_reformat = (src, rev2_content, rev2_isorted)
+            last_successful_reformat = rev2_isorted
             break
 
         # 4. run black
@@ -169,7 +183,7 @@ def _reformat_single_file(  # pylint: disable=too-many-arguments,too-many-locals
             minimum_context_lines.respond(False)
         else:
             minimum_context_lines.respond(True)
-            last_successful_reformat = (src, rev2_content, chosen)
+            last_successful_reformat = chosen
     if not last_successful_reformat:
         raise NotEquivalentError(path_in_repo)
     return last_successful_reformat
