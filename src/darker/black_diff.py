@@ -118,7 +118,9 @@ def read_black_config(src: Tuple[str, ...], value: Optional[str]) -> BlackConfig
 
 
 def apply_black_excludes(
-    paths: Collection[Path], root: Path, black_config: BlackConfig
+    paths: Collection[Path],  # pylint: disable=unsubscriptable-object
+    root: Path,
+    black_config: BlackConfig,
 ) -> Set[Path]:
     """Get the subset of files which are not excluded by Black's configuration
 

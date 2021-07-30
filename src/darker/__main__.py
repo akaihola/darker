@@ -36,7 +36,7 @@ logger = logging.getLogger(__name__)
 
 def format_edited_parts(
     git_root: Path,
-    changed_files: Collection[Path],
+    changed_files: Collection[Path],  # pylint: disable=unsubscriptable-object
     revrange: RevisionRange,
     enable_isort: bool,
     black_config: BlackConfig,
