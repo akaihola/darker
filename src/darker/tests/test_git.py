@@ -1,11 +1,12 @@
 """Unit tests for :mod:`darker.git`"""
 
-# pylint: disable=redefined-outer-name,protected-access
+# pylint: disable=redefined-outer-name,protected-access,too-many-arguments
 
 import os
+import re
 from datetime import datetime, timedelta
 from pathlib import Path
-from subprocess import CalledProcessError, check_call
+from subprocess import PIPE, CalledProcessError, check_call
 from typing import List, Union
 from unittest.mock import patch
 
@@ -152,7 +153,7 @@ def test_git_get_content_at_revision_git_calls(revision, expect):
         assert check_output.call_count == len(expect)
         for expect_call in expect:
             check_output.assert_any_call(
-                expect_call.split(), cwd="cwd", encoding="utf-8"
+                expect_call.split(), cwd="cwd", encoding="utf-8", stderr=PIPE
             )
 
 
@@ -237,6 +238,71 @@ def test_git_check_output_lines(branched_repo, cmd, exit_on_error, expect_templa
     with raises_or_matches(expect, ["returncode", "code"]) as check:
 
         check(git._git_check_output_lines(cmd, branched_repo.root, exit_on_error))
+
+
+@pytest.mark.kwparametrize(
+    dict(
+        cmd=["show", "{initial}:/.file2"],
+        exit_on_error=True,
+        expect_exc=SystemExit,
+        expect_log=(
+            r"ERROR    darker\.git:git\.py:\d+ fatal: "
+            r"[pP]ath '/\.file2' does not exist in '{initial}'\n$"
+        ),
+    ),
+    dict(
+        cmd=["show", "{initial}:/.file2"],
+        exit_on_error=False,
+        expect_exc=CalledProcessError,
+    ),
+    dict(
+        cmd=["non-existing", "command"],
+        exit_on_error=True,
+        expect_exc=CalledProcessError,
+        expect_stderr="git: 'non-existing' is not a git command. See 'git --help'.\n",
+    ),
+    dict(
+        cmd=["non-existing", "command"],
+        exit_on_error=False,
+        expect_exc=CalledProcessError,
+    ),
+    expect_stderr="",
+    expect_log=r"$",
+)
+def test_git_check_output_lines_stderr_and_log(
+    git_repo, capfd, caplog, cmd, exit_on_error, expect_exc, expect_stderr, expect_log
+):
+    """Git non-existing file error is logged and suppressed from stderr"""
+    git_repo.add({"file1": "file1"}, commit="Initial commit")
+    initial = git_repo.get_hash()[:7]
+    git_repo.add({"file2": "file2"}, commit="Second commit")
+    capfd.readouterr()  # flush captured stdout and stderr
+    cmdline = [s.format(initial=initial) for s in cmd]
+    with pytest.raises(expect_exc):
+
+        git._git_check_output_lines(cmdline, git_repo.root, exit_on_error)
+
+    outerr = capfd.readouterr()
+    assert outerr.out == ""
+    assert outerr.err == expect_stderr
+    expect_log_re = expect_log.format(initial=initial)
+    assert re.match(expect_log_re, caplog.text), repr(caplog.text)
+
+
+def test_git_get_content_at_revision_stderr(git_repo, capfd, caplog):
+    """No stderr or log output from ``git_get_content_at_revision`` for missing file"""
+    git_repo.add({"file1": "file1"}, commit="Initial commit")
+    initial = git_repo.get_hash()[:7]
+    git_repo.add({"file2": "file2"}, commit="Second commit")
+    capfd.readouterr()  # flush captured stdout and stderr
+
+    result = git.git_get_content_at_revision(Path("file2"), initial, git_repo.root)
+
+    assert result == TextDocument()
+    outerr = capfd.readouterr()
+    assert outerr.out == ""
+    assert outerr.err == ""
+    assert caplog.text == ""
 
 
 @pytest.mark.kwparametrize(
