@@ -296,7 +296,7 @@ def test_git_get_content_at_revision_stderr(git_repo, capfd, caplog):
     git_repo.add({"file2": "file2"}, commit="Second commit")
     capfd.readouterr()  # flush captured stdout and stderr
 
-    result = git_get_content_at_revision(Path("file2"), initial, git_repo.root)
+    result = git.git_get_content_at_revision(Path("file2"), initial, git_repo.root)
 
     assert result == TextDocument()
     outerr = capfd.readouterr()
