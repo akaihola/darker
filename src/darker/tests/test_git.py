@@ -247,7 +247,7 @@ def test_git_check_output_lines(branched_repo, cmd, exit_on_error, expect_templa
         expect_exc=SystemExit,
         expect_log=(
             r"ERROR    darker\.git:git\.py:\d+ fatal: "
-            r"Path '/\.file2' does not exist in '{initial}'\n$"
+            r"[pP]ath '/\.file2' does not exist in '{initial}'\n$"
         ),
     ),
     dict(
