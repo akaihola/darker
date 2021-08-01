@@ -324,6 +324,33 @@ def test_git_exists_in_revision_git_call(retval, expect):
 
 
 @pytest.mark.kwparametrize(
+    dict(rev2="{add}", path="dir/a.py", expect=True),
+    dict(rev2="{add}", path="dir/b.py", expect=True),
+    dict(rev2="{add}", path="dir/", expect=True),
+    dict(rev2="{add}", path="dir", expect=True),
+    dict(rev2="{del_a}", path="dir/a.py", expect=False),
+    dict(rev2="{del_a}", path="dir/b.py", expect=True),
+    dict(rev2="{del_a}", path="dir/", expect=True),
+    dict(rev2="{del_a}", path="dir", expect=True),
+    dict(rev2="HEAD", path="dir/a.py", expect=False),
+    dict(rev2="HEAD", path="dir/b.py", expect=False),
+    dict(rev2="HEAD", path="dir/", expect=False),
+    dict(rev2="HEAD", path="dir", expect=False),
+)
+def test_git_exists_in_revision(git_repo, rev2, path, expect):
+    """``_get_exists_in_revision()`` detects file/dir existence correctly"""
+    git_repo.add({"dir/a.py": "foo", "dir/b.py": "bar"}, commit="Add dir/*.py")
+    add = git_repo.get_hash()
+    git_repo.add({"dir/a.py": None}, commit="Delete dir/a.py")
+    del_a = git_repo.get_hash()
+    git_repo.add({"dir/b.py": None}, commit="Delete dir/b.py")
+
+    result = git._git_exists_in_revision(Path(path), rev2.format(add=add, del_a=del_a))
+
+    assert result == expect
+
+
+@pytest.mark.kwparametrize(
     dict(paths=["a.py"], expect=[]),
     dict(expect=[]),
     dict(modify_paths={"a.py": "new"}, expect=["a.py"]),
