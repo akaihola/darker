@@ -351,6 +351,14 @@ def main(argv: List[str] = None) -> int:
     return 1 if args.check and failures_on_modified_lines else 0
 
 
+def main_with_error_handling() -> int:
+    """Entry point for console script"""
+    try:
+        return main()
+    except ArgumentError as exc_info:
+        sys.exit(str(exc_info))
+
+
 if __name__ == "__main__":
-    RETVAL = main()
+    RETVAL = main_with_error_handling()
     sys.exit(RETVAL)
