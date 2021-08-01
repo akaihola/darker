@@ -3,6 +3,7 @@
 """Unit tests for :mod:`darker.command_line` and :mod:`darker.__main__`"""
 
 import re
+from argparse import Action, ArgumentError
 from importlib import reload
 from pathlib import Path
 from textwrap import dedent
@@ -287,6 +288,22 @@ def test_parse_command_line_config_src(
         expect_value=("line_length", 99),
         expect_config=("line_length", 99),
         expect_modified=("line_length", 99),
+    ),
+    dict(
+        argv=["--invalid PATH"],
+        expect_value=ArgumentError(
+            Action(["src"], dest="src"),
+            "PATH can't begin with a hyphen: '--invalid PATH'\n"
+            "Maybe check your shell quoting?",
+        ),
+        expect_config=(),
+        expect_modified=(),
+    ),
+    dict(
+        argv=["valid/path", "another/valid/path"],
+        expect_value=("src", ["valid/path", "another/valid/path"]),
+        expect_config=("src", ["valid/path", "another/valid/path"]),
+        expect_modified=("src", ["valid/path", "another/valid/path"]),
     ),
 )
 def test_parse_command_line(
