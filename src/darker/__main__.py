@@ -279,10 +279,7 @@ def main(argv: List[str] = None) -> int:
     """
     if argv is None:
         argv = sys.argv[1:]
-    try:
-        args, config, config_nondefault = parse_command_line(argv)
-    except ArgumentError as exc_info:
-        sys.exit(exc_info)
+    args, config, config_nondefault = parse_command_line(argv)
     logging.basicConfig(level=args.log_level)
     if args.log_level == logging.INFO:
         formatter = logging.Formatter("%(levelname)s: %(message)s")
