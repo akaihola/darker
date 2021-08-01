@@ -6,9 +6,14 @@ from argparse import Action, ArgumentError
 from datetime import datetime
 from difflib import unified_diff
 from pathlib import Path
-from typing import Generator, Iterable, List, Tuple
+from typing import Collection, Generator, List, Tuple
 
-from darker.black_diff import BlackArgs, run_black
+from darker.black_diff import (
+    BlackConfig,
+    apply_black_excludes,
+    read_black_config,
+    run_black,
+)
 from darker.chooser import choose_lines
 from darker.command_line import parse_command_line
 from darker.config import OutputMode, dump_config
@@ -31,27 +36,30 @@ logger = logging.getLogger(__name__)
 
 def format_edited_parts(
     git_root: Path,
-    changed_files: Iterable[Path],
+    changed_files: Collection[Path],  # pylint: disable=unsubscriptable-object
     revrange: RevisionRange,
     enable_isort: bool,
-    black_args: BlackArgs,
+    black_config: BlackConfig,
     report_unmodified: bool,
 ) -> Generator[Tuple[Path, TextDocument, TextDocument], None, None]:
     """Black (and optional isort) formatting for chunks with edits since the last commit
+
+    Files excluded by Black's configuration are not reformatted using Black, but their
+    imports are still sorted. Also, linters will be run for all files in a separate step
+    after this function has completed.
 
     :param git_root: The root of the Git repository the files are in
     :param changed_files: Files which have been modified in the repository between the
                           given Git revisions
     :param revrange: The Git revisions to compare
     :param enable_isort: ``True`` to also run ``isort`` first on each changed file
-    :param black_args: Command-line arguments to send to ``black.FileMode``
+    :param black_config: Configuration to use for running Black
     :param report_unmodified: ``True`` to yield also files which weren't modified
     :return: A generator which yields details about changes for each file which should
              be reformatted, and skips unchanged files.
 
     """
-    edited_linenums_differ = EditedLinenumsDiffer(git_root, revrange)
-
+    files_to_blacken = apply_black_excludes(changed_files, git_root, black_config)
     for path_in_repo in sorted(changed_files):
         src = git_root / path_in_repo
         rev2_content = git_get_content_at_revision(
@@ -63,86 +71,122 @@ def format_edited_parts(
             rev2_isorted = apply_isort(
                 rev2_content,
                 src,
-                black_args.get("config"),
-                black_args.get("line_length"),
+                black_config.get("config"),
+                black_config.get("line_length"),
             )
         else:
             rev2_isorted = rev2_content
-        max_context_lines = len(rev2_isorted.lines)
-        minimum_context_lines = BinarySearch(0, max_context_lines + 1)
-        last_successful_reformat = None
-        while not minimum_context_lines.found:
-            context_lines = minimum_context_lines.get_next()
-            if context_lines > 0:
-                logger.debug(
-                    "Trying with %s lines of context for `git diff -U %s`",
-                    context_lines,
-                    src,
-                )
-            # 2. diff the given revision and worktree for the file
-            # 3. extract line numbers in the edited to-file for changed lines
-            edited_linenums = edited_linenums_differ.revision_vs_lines(
-                path_in_repo, rev2_isorted, context_lines
+        if src in files_to_blacken:
+            # 9. A re-formatted Python file which produces an identical AST was
+            #    created successfully - write an updated file or print the diff if
+            #    there were any changes to the original
+            content_after_reformatting = _reformat_single_file(
+                git_root,
+                path_in_repo,
+                revrange,
+                rev2_content,
+                rev2_isorted,
+                enable_isort,
+                black_config,
             )
-            if enable_isort and not edited_linenums and rev2_isorted == rev2_content:
-                logger.debug("No changes in %s after isort", src)
-                last_successful_reformat = (src, rev2_content, rev2_isorted)
-                break
+        else:
+            # File was excluded by Black configuration, don't reformat
+            content_after_reformatting = rev2_isorted
+        if report_unmodified or content_after_reformatting != rev2_content:
+            yield (src, rev2_content, content_after_reformatting)
 
-            # 4. run black
-            formatted = run_black(src, rev2_isorted, black_args)
+
+def _reformat_single_file(  # pylint: disable=too-many-arguments,too-many-locals
+    git_root: Path,
+    path_in_repo: Path,
+    revrange: RevisionRange,
+    rev2_content: TextDocument,
+    rev2_isorted: TextDocument,
+    enable_isort: bool,
+    black_config: BlackConfig,
+) -> TextDocument:
+    """In a Python file, reformat chunks with edits since the last commit using Black
+
+    :param git_root: The root of the Git repository the files are in
+    :param path_in_repo: Relative path to a Python source code file
+    :param revrange: The Git revisions to compare
+    :param rev2_content: Contents of the file at ``revrange.rev2``
+    :param rev2_isorted: Contents of the file after optional import sorting
+    :param enable_isort: ``True`` if ``isort`` was already run for the file
+    :param black_config: Configuration to use for running Black
+    :return: Contents of the file after reformatting
+    :raise: NotEquivalentError
+
+    """
+    src = git_root / path_in_repo
+    edited_linenums_differ = EditedLinenumsDiffer(git_root, revrange)
+
+    max_context_lines = len(rev2_isorted.lines)
+    minimum_context_lines = BinarySearch(0, max_context_lines + 1)
+    last_successful_reformat = None
+    while not minimum_context_lines.found:
+        context_lines = minimum_context_lines.get_next()
+        if context_lines > 0:
             logger.debug(
-                "Read %s lines from edited file %s", len(rev2_isorted.lines), src
+                "Trying with %s lines of context for `git diff -U %s`",
+                context_lines,
+                src,
             )
-            logger.debug("Black reformat resulted in %s lines", len(formatted.lines))
+        # 2. diff the given revision and worktree for the file
+        # 3. extract line numbers in the edited to-file for changed lines
+        edited_linenums = edited_linenums_differ.revision_vs_lines(
+            path_in_repo, rev2_isorted, context_lines
+        )
+        if enable_isort and not edited_linenums and rev2_isorted == rev2_content:
+            logger.debug("No changes in %s after isort", src)
+            last_successful_reformat = rev2_isorted
+            break
 
-            # 5. get the diff between the edited and reformatted file
-            opcodes = diff_and_get_opcodes(rev2_isorted, formatted)
+        # 4. run black
+        formatted = run_black(rev2_isorted, black_config)
+        logger.debug("Read %s lines from edited file %s", len(rev2_isorted.lines), src)
+        logger.debug("Black reformat resulted in %s lines", len(formatted.lines))
 
-            # 6. convert the diff into chunks
-            black_chunks = list(opcodes_to_chunks(opcodes, rev2_isorted, formatted))
+        # 5. get the diff between the edited and reformatted file
+        opcodes = diff_and_get_opcodes(rev2_isorted, formatted)
 
-            # 7. choose reformatted content
-            chosen = TextDocument.from_lines(
-                choose_lines(black_chunks, edited_linenums),
-                encoding=rev2_content.encoding,
-                newline=rev2_content.newline,
-                mtime=datetime.utcnow().strftime(GIT_DATEFORMAT),
-            )
+        # 6. convert the diff into chunks
+        black_chunks = list(opcodes_to_chunks(opcodes, rev2_isorted, formatted))
 
-            # 8. verify
+        # 7. choose reformatted content
+        chosen = TextDocument.from_lines(
+            choose_lines(black_chunks, edited_linenums),
+            encoding=rev2_content.encoding,
+            newline=rev2_content.newline,
+            mtime=datetime.utcnow().strftime(GIT_DATEFORMAT),
+        )
+
+        # 8. verify
+        logger.debug(
+            "Verifying that the %s original edited lines and %s reformatted lines "
+            "parse into an identical abstract syntax tree",
+            len(rev2_isorted.lines),
+            len(chosen.lines),
+        )
+        try:
+            verify_ast_unchanged(rev2_isorted, chosen, black_chunks, edited_linenums)
+        except NotEquivalentError:
+            # Diff produced misaligned chunks which couldn't be reconstructed into
+            # a partially re-formatted Python file which produces an identical AST.
+            # Try again with a larger `-U<context_lines>` option for `git diff`,
+            # or give up if `context_lines` is already very large.
             logger.debug(
-                "Verifying that the %s original edited lines and %s reformatted lines "
-                "parse into an identical abstract syntax tree",
-                len(rev2_isorted.lines),
-                len(chosen.lines),
+                "AST verification of %s with %s lines of context failed",
+                src,
+                context_lines,
             )
-            try:
-                verify_ast_unchanged(
-                    rev2_isorted, chosen, black_chunks, edited_linenums
-                )
-            except NotEquivalentError:
-                # Diff produced misaligned chunks which couldn't be reconstructed into
-                # a partially re-formatted Python file which produces an identical AST.
-                # Try again with a larger `-U<context_lines>` option for `git diff`,
-                # or give up if `context_lines` is already very large.
-                logger.debug(
-                    "AST verification of %s with %s lines of context failed",
-                    src,
-                    context_lines,
-                )
-                minimum_context_lines.respond(False)
-            else:
-                minimum_context_lines.respond(True)
-                last_successful_reformat = (src, rev2_content, chosen)
-        if not last_successful_reformat:
-            raise NotEquivalentError(path_in_repo)
-        # 9. A re-formatted Python file which produces an identical AST was
-        #    created successfully - write an updated file or print the diff if
-        #    there were any changes to the original
-        src, rev2_content, chosen = last_successful_reformat
-        if report_unmodified or chosen != rev2_content:
-            yield (src, rev2_content, chosen)
+            minimum_context_lines.respond(False)
+        else:
+            minimum_context_lines.respond(True)
+            last_successful_reformat = chosen
+    if not last_successful_reformat:
+        raise NotEquivalentError(path_in_repo)
+    return last_successful_reformat
 
 
 def modify_file(path: Path, new_content: TextDocument) -> None:
@@ -254,15 +298,15 @@ def main(argv: List[str] = None) -> int:
         logger.error(f"{ISORT_INSTRUCTION} to use the `--isort` option.")
         exit(1)
 
-    black_args = BlackArgs()
+    black_config = read_black_config(tuple(args.src), args.config)
     if args.config:
-        black_args["config"] = args.config
+        black_config["config"] = args.config
     if args.line_length:
-        black_args["line_length"] = args.line_length
+        black_config["line_length"] = args.line_length
     if args.skip_string_normalization is not None:
-        black_args["skip_string_normalization"] = args.skip_string_normalization
+        black_config["skip_string_normalization"] = args.skip_string_normalization
     if args.skip_magic_trailing_comma is not None:
-        black_args["skip_magic_trailing_comma"] = args.skip_magic_trailing_comma
+        black_config["skip_magic_trailing_comma"] = args.skip_magic_trailing_comma
 
     paths = {Path(p) for p in args.src}
     git_root = get_common_root(paths)
@@ -289,7 +333,7 @@ def main(argv: List[str] = None) -> int:
         changed_files,
         revrange,
         args.isort,
-        black_args,
+        black_config,
         report_unmodified=output_mode == OutputMode.CONTENT,
     ):
         failures_on_modified_lines = True
