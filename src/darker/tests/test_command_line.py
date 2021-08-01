@@ -1,9 +1,9 @@
-# pylint: disable=too-many-arguments
+# pylint: disable=too-many-arguments,too-many-locals
 
 """Unit tests for :mod:`darker.command_line` and :mod:`darker.__main__`"""
 
 import re
-from argparse import Action, ArgumentError
+from argparse import ArgumentError
 from importlib import reload
 from pathlib import Path
 from textwrap import dedent
@@ -290,14 +290,12 @@ def test_parse_command_line_config_src(
         expect_modified=("line_length", 99),
     ),
     dict(
-        argv=["--invalid PATH"],
-        expect_value=ArgumentError(
-            Action(["src"], dest="src"),
-            "PATH can't begin with a hyphen: '--invalid PATH'\n"
-            "Maybe check your shell quoting?",
-        ),
-        expect_config=(),
-        expect_modified=(),
+        # this is accepted as a path, but would later fail if a file or directory with
+        # that funky name doesn't exist
+        argv=["--suspicious path"],
+        expect_value=("src", ["--suspicious path"]),
+        expect_config=("src", ["--suspicious path"]),
+        expect_modified=("src", ["--suspicious path"]),
     ),
     dict(
         argv=["valid/path", "another/valid/path"],
@@ -578,8 +576,9 @@ def test_options(git_repo, options, expect):
     dict(check=True, changes=True, expect_retval=1),
     expect_retval=0,
 )
-def test_main_retval(check, changes, expect_retval):
+def test_main_retval(git_repo, check, changes, expect_retval):
     """main() return value is correct based on --check and the need to reformat files"""
+    git_repo.add({"a.py": ""}, commit="Initial commit")
     format_edited_parts = Mock()
     format_edited_parts.return_value = (
         [
@@ -600,3 +599,32 @@ def test_main_retval(check, changes, expect_retval):
         retval = main(check_arg_maybe + ["a.py"])
 
     assert retval == expect_retval
+
+
+def test_main_missing_in_worktree(git_repo):
+    """An ``ArgumentError`` is raised if given file is not found on disk"""
+    paths = git_repo.add({"a.py": ""}, commit="Add a.py")
+    paths["a.py"].unlink()
+
+    with pytest.raises(
+        ArgumentError,
+        match=re.escape(
+            "argument PATH: Error: Path(s) 'a.py' do not exist in the working tree"
+        ),
+    ):
+
+        main(["a.py"])
+
+
+def test_main_missing_in_revision(git_repo):
+    """An ``ArgumentError`` is raised if given file didn't exist in rev2"""
+    paths = git_repo.add({"a.py": ""}, commit="Add a.py")
+    git_repo.add({"a.py": None}, commit="Delete a.py")
+    paths["a.py"].touch()
+
+    with pytest.raises(
+        ArgumentError,
+        match=re.escape("argument PATH: Error: Path(s) 'a.py' do not exist in HEAD"),
+    ):
+
+        main(["--diff", "--revision", "..HEAD", "a.py"])
