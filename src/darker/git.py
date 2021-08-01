@@ -175,7 +175,9 @@ def _git_exists_in_revision(path: Path, rev2: str) -> bool:
              it doesn't.
 
     """
-    cmd = ["git", "cat-file", "-e", f"{rev2}:{path}"]
+    # Surprise: On Windows, `git cat-file` doesn't work with backslash directory
+    # separators in paths. We need to use Posix paths and forward slashes instead.
+    cmd = ["git", "cat-file", "-e", f"{rev2}:{path.as_posix()}"]
     result = run(cmd, check=False, stderr=DEVNULL)
     return result.returncode == 0
 
