@@ -1,4 +1,6 @@
-from argparse import ArgumentParser, Namespace
+"""Command line parsing for the ``darker`` binary"""
+
+from argparse import Action, ArgumentError, ArgumentParser, Namespace
 from typing import Any, List, Optional, Text, Tuple
 
 from darker import help as hlp
@@ -105,6 +107,14 @@ def parse_command_line(argv: List[str]) -> Tuple[Namespace, DarkerConfig, Darker
     #    This is used to find out differences between the effective configuration and
     #    default configuration values, and print them out in verbose mode.
     parser_with_original_defaults = make_argument_parser(require_src=True)
+    invalid_src_paths = [src for src in args.src if src.startswith("-")]
+    if invalid_src_paths:
+        invalid_path_reprs = " ".join(repr(path) for path in invalid_src_paths)
+        raise ArgumentError(
+            Action(["src"], dest="src", metavar="PATH"),
+            f"PATH can't begin with a hyphen: {invalid_path_reprs}\n"
+            "Maybe check your shell quoting?",
+        )
     return (
         args,
         get_effective_config(args),
