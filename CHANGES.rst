@@ -9,8 +9,8 @@ Added
 - ``darker --diff`` output is now identical to that of ``black --diff``
 - The ``-d`` / ``--stdout`` option outputs the reformatted contents of the single Python
   file provided on the command line.
-- Disallow file paths starting with a hyphen. This improves the error from misquoted
-  parameters like ``"--lint pylint"``.
+- Terminate with an error if non-existing files or directories are passed on the command
+  line. This also improves the error from misquoted parameters like ``"--lint pylint"``.
 
 Fixed
 -----
