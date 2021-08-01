@@ -339,7 +339,7 @@ def test_git_exists_in_revision_git_call(retval, expect):
 )
 def test_git_exists_in_revision(git_repo, rev2, path, expect):
     """``_get_exists_in_revision()`` detects file/dir existence correctly"""
-    git_repo.add({"dir/a.py": "foo", "dir/b.py": "bar"}, commit="Add dir/*.py")
+    git_repo.add({"dir/a.py": "", "dir/b.py": ""}, commit="Add dir/*.py")
     add = git_repo.get_hash()
     git_repo.add({"dir/a.py": None}, commit="Delete dir/a.py")
     del_a = git_repo.get_hash()
@@ -357,7 +357,7 @@ def test_git_exists_in_revision(git_repo, rev2, path, expect):
 )
 def test_get_missing_at_revision(git_repo, rev2, expect):
     """``get_missing_at_revision()`` returns missing files/directories correctly"""
-    git_repo.add({"dir/a.py": "foo", "dir/b.py": "bar"}, commit="Add dir/*.py")
+    git_repo.add({"dir/a.py": "", "dir/b.py": ""}, commit="Add dir/*.py")
     add = git_repo.get_hash()
     git_repo.add({"dir/a.py": None}, commit="Delete dir/a.py")
     del_a = git_repo.get_hash()
@@ -369,6 +369,19 @@ def test_get_missing_at_revision(git_repo, rev2, expect):
     )
 
     assert result == expect
+
+
+def test_get_missing_at_revision_worktree(git_repo):
+    """``get_missing_at_revision()`` returns missing work tree files/dirs correctly"""
+    paths = git_repo.add({"dir/a.py": "", "dir/b.py": ""}, commit="Add dir/*.py")
+    paths["dir/a.py"].unlink()
+    paths["dir/b.py"].unlink()
+
+    result = git.get_missing_at_revision(
+        {Path("dir"), Path("dir/a.py"), Path("dir/b.py")}, git.WORKTREE
+    )
+
+    assert result == {Path("dir/a.py"), Path("dir/b.py")}
 
 
 @pytest.mark.kwparametrize(
