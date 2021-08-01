@@ -6,7 +6,7 @@ import os
 import re
 from datetime import datetime, timedelta
 from pathlib import Path
-from subprocess import PIPE, CalledProcessError, check_call
+from subprocess import DEVNULL, PIPE, CalledProcessError, check_call
 from typing import List, Union
 from unittest.mock import patch
 
@@ -303,6 +303,24 @@ def test_git_get_content_at_revision_stderr(git_repo, capfd, caplog):
     assert outerr.out == ""
     assert outerr.err == ""
     assert caplog.text == ""
+
+
+@pytest.mark.kwparametrize(
+    dict(retval=0, expect=True),
+    dict(retval=1, expect=False),
+    dict(retval=2, expect=False),
+)
+def test_git_exists_in_revision_git_call(retval, expect):
+    """``_git_exists_in_revision()`` calls Git and converts return value correctly"""
+    with patch.object(git, "run") as run:
+        run.return_value.returncode = retval
+
+        result = git._git_exists_in_revision(Path("path.py"), "rev2")
+
+    run.assert_called_once_with(
+        ["git", "cat-file", "-e", "rev2:path.py"], check=False, stderr=DEVNULL
+    )
+    assert result == expect
 
 
 @pytest.mark.kwparametrize(
