@@ -310,11 +310,11 @@ def test_parse_command_line(
     """``parse_command_line()`` parses options correctly"""
     monkeypatch.chdir(tmp_path)
     (tmp_path / "dummy.py").touch()
-
-    with raises_if_exception(expect_value):
+    with raises_if_exception(expect_value) as expect_exception:
 
         args, effective_cfg, modified_cfg = parse_command_line(argv)
 
+    if not expect_exception:
         arg_name, expect_arg_value = expect_value
         assert getattr(args, arg_name) == expect_arg_value
 
