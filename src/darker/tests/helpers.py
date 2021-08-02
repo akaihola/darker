@@ -1,5 +1,6 @@
 """Helper functions for unit tests"""
 
+import re
 import sys
 from contextlib import contextmanager
 from types import ModuleType
@@ -28,10 +29,17 @@ def raises_if_exception(expect: Any) -> Union[RaisesContext[Any], ContextManager
     while on older Pythons :class:`contextlib.suppress` is used instead.
 
     """
-    if isinstance(expect, type) and issubclass(expect, BaseException):
+    if (isinstance(expect, type) and issubclass(expect, BaseException)) or (
+        isinstance(expect, tuple)
+        and all(
+            isinstance(item, type) and issubclass(item, BaseException)
+            for item in expect
+        )
+    ):
         return pytest.raises(expect)
-    else:
-        return nullcontext()
+    if isinstance(expect, BaseException):
+        return pytest.raises(type(expect), match=re.escape(str(expect)))
+    return nullcontext()
 
 
 def matching_attrs(obj: BaseException, attrs: List[str]) -> Dict[str, int]:

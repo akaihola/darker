@@ -22,6 +22,7 @@ from darker.git import (
     WORKTREE,
     EditedLinenumsDiffer,
     RevisionRange,
+    get_missing_at_revision,
     git_get_content_at_revision,
     git_get_modified_files,
 )
@@ -321,6 +322,16 @@ def main(argv: List[str] = None) -> int:
             f"Can't write reformatted files for revision '{revrange.rev2}'."
             " Either --diff or --check must be used.",
         )
+
+    missing = get_missing_at_revision(paths, revrange.rev2)
+    if missing:
+        missing_reprs = " ".join(repr(str(path)) for path in missing)
+        rev2_repr = "the working tree" if revrange.rev2 == WORKTREE else revrange.rev2
+        raise ArgumentError(
+            Action(["PATH"], "path"),
+            f"Error: Path(s) {missing_reprs} do not exist in {rev2_repr}",
+        )
+
     if output_mode == OutputMode.CONTENT:
         # With `-d` / `--stdout`, process the file whether modified or not. Paths have
         # previously been validated to contain exactly one existing file.
@@ -348,6 +359,14 @@ def main(argv: List[str] = None) -> int:
     return 1 if args.check and failures_on_modified_lines else 0
 
 
+def main_with_error_handling() -> int:
+    """Entry point for console script"""
+    try:
+        return main()
+    except ArgumentError as exc_info:
+        sys.exit(str(exc_info))
+
+
 if __name__ == "__main__":
-    RETVAL = main()
+    RETVAL = main_with_error_handling()
     sys.exit(RETVAL)

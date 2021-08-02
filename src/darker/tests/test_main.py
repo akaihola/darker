@@ -477,11 +477,11 @@ def test_main_encoding(
     assert result == b"".join(expect)
 
 
-def test_main_historical():
+def test_main_historical(git_repo):
     """Stop if rev2 isn't the working tree and no ``--diff`` or ``--check`` provided"""
     with pytest.raises(ArgumentError):
 
-        darker.__main__.main(["--revision=foo..bar"])
+        darker.__main__.main(["--revision=foo..bar", "."])
 
 
 def test_print_diff(tmp_path, monkeypatch, capsys):

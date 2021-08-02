@@ -6,7 +6,7 @@ import os
 import re
 from datetime import datetime, timedelta
 from pathlib import Path
-from subprocess import PIPE, CalledProcessError, check_call
+from subprocess import DEVNULL, PIPE, CalledProcessError, check_call
 from typing import List, Union
 from unittest.mock import patch
 
@@ -303,6 +303,85 @@ def test_git_get_content_at_revision_stderr(git_repo, capfd, caplog):
     assert outerr.out == ""
     assert outerr.err == ""
     assert caplog.text == ""
+
+
+@pytest.mark.kwparametrize(
+    dict(retval=0, expect=True),
+    dict(retval=1, expect=False),
+    dict(retval=2, expect=False),
+)
+def test_git_exists_in_revision_git_call(retval, expect):
+    """``_git_exists_in_revision()`` calls Git and converts return value correctly"""
+    with patch.object(git, "run") as run:
+        run.return_value.returncode = retval
+
+        result = git._git_exists_in_revision(Path("path.py"), "rev2")
+
+    run.assert_called_once_with(
+        ["git", "cat-file", "-e", "rev2:path.py"], check=False, stderr=DEVNULL
+    )
+    assert result == expect
+
+
+@pytest.mark.kwparametrize(
+    dict(rev2="{add}", path="dir/a.py", expect=True),
+    dict(rev2="{add}", path="dir/b.py", expect=True),
+    dict(rev2="{add}", path="dir/", expect=True),
+    dict(rev2="{add}", path="dir", expect=True),
+    dict(rev2="{del_a}", path="dir/a.py", expect=False),
+    dict(rev2="{del_a}", path="dir/b.py", expect=True),
+    dict(rev2="{del_a}", path="dir/", expect=True),
+    dict(rev2="{del_a}", path="dir", expect=True),
+    dict(rev2="HEAD", path="dir/a.py", expect=False),
+    dict(rev2="HEAD", path="dir/b.py", expect=False),
+    dict(rev2="HEAD", path="dir/", expect=False),
+    dict(rev2="HEAD", path="dir", expect=False),
+)
+def test_git_exists_in_revision(git_repo, rev2, path, expect):
+    """``_get_exists_in_revision()`` detects file/dir existence correctly"""
+    git_repo.add({"dir/a.py": "", "dir/b.py": ""}, commit="Add dir/*.py")
+    add = git_repo.get_hash()
+    git_repo.add({"dir/a.py": None}, commit="Delete dir/a.py")
+    del_a = git_repo.get_hash()
+    git_repo.add({"dir/b.py": None}, commit="Delete dir/b.py")
+
+    result = git._git_exists_in_revision(Path(path), rev2.format(add=add, del_a=del_a))
+
+    assert result == expect
+
+
+@pytest.mark.kwparametrize(
+    dict(rev2="{add}", expect=set()),
+    dict(rev2="{del_a}", expect={Path("dir/a.py")}),
+    dict(rev2="HEAD", expect={Path("dir"), Path("dir/a.py"), Path("dir/b.py")}),
+)
+def test_get_missing_at_revision(git_repo, rev2, expect):
+    """``get_missing_at_revision()`` returns missing files/directories correctly"""
+    git_repo.add({"dir/a.py": "", "dir/b.py": ""}, commit="Add dir/*.py")
+    add = git_repo.get_hash()
+    git_repo.add({"dir/a.py": None}, commit="Delete dir/a.py")
+    del_a = git_repo.get_hash()
+    git_repo.add({"dir/b.py": None}, commit="Delete dir/b.py")
+
+    result = git.get_missing_at_revision(
+        {Path("dir"), Path("dir/a.py"), Path("dir/b.py")},
+        rev2.format(add=add, del_a=del_a),
+    )
+
+    assert result == expect
+
+
+def test_get_missing_at_revision_worktree(git_repo):
+    """``get_missing_at_revision()`` returns missing work tree files/dirs correctly"""
+    paths = git_repo.add({"dir/a.py": "", "dir/b.py": ""}, commit="Add dir/*.py")
+    paths["dir/a.py"].unlink()
+    paths["dir/b.py"].unlink()
+
+    result = git.get_missing_at_revision(
+        {Path("dir"), Path("dir/a.py"), Path("dir/b.py")}, git.WORKTREE
+    )
+
+    assert result == {Path("dir/a.py"), Path("dir/b.py")}
 
 
 @pytest.mark.kwparametrize(

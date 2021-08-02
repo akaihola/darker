@@ -1,3 +1,5 @@
+"""Command line parsing for the ``darker`` binary"""
+
 from argparse import ArgumentParser, Namespace
 from typing import Any, List, Optional, Text, Tuple
 

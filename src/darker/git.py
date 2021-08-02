@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from functools import lru_cache
 from pathlib import Path
-from subprocess import PIPE, CalledProcessError, check_output
+from subprocess import DEVNULL, PIPE, CalledProcessError, check_output, run
 from typing import Iterable, List, Set
 
 from darker.diff import diff_and_get_opcodes, opcodes_to_edit_linenums
@@ -164,6 +164,38 @@ def _git_check_output_lines(
         for error_line in exc_info.stderr.splitlines():
             logger.error(error_line)
         sys.exit(123)
+
+
+def _git_exists_in_revision(path: Path, rev2: str) -> bool:
+    """Return ``True`` if the given path exists in the given Git revision
+
+    :param path: The path of the file or directory to check
+    :param rev2: The Git revision to look at
+    :return: ``True`` if the file or directory exists at the revision, or ``False`` if
+             it doesn't.
+
+    """
+    # Surprise: On Windows, `git cat-file` doesn't work with backslash directory
+    # separators in paths. We need to use Posix paths and forward slashes instead.
+    cmd = ["git", "cat-file", "-e", f"{rev2}:{path.as_posix()}"]
+    result = run(cmd, check=False, stderr=DEVNULL)
+    return result.returncode == 0
+
+
+def get_missing_at_revision(paths: Iterable[Path], rev2: str) -> Set[Path]:
+    """Return paths missing in the given revision
+
+    In case of ``WORKTREE``, just check if the files exist on the filesystem instead of
+    asking Git.
+
+    :param paths: Paths to check
+    :param rev2: The Git revision to look at, or ``WORKTREE`` for the working tree
+    :return: The set of file or directory paths which are missing in the revision
+
+    """
+    if rev2 == WORKTREE:
+        return {path for path in paths if not path.exists()}
+    return {path for path in paths if not _git_exists_in_revision(path, rev2)}
 
 
 def git_get_modified_files(
