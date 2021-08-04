@@ -40,7 +40,7 @@ def git_get_mtime_at_commit(path: Path, revision: str, cwd: Path) -> str:
     :param cwd: The root of the Git repository
 
     """
-    cmd = ["log", "-1", "--format=%ct", revision, "--", str(path)]
+    cmd = ["log", "-1", "--format=%ct", revision, "--", path.as_posix()]
     lines = _git_check_output_lines(cmd, cwd)
     return datetime.utcfromtimestamp(int(lines[0])).strftime(GIT_DATEFORMAT)
 
@@ -61,7 +61,7 @@ def git_get_content_at_revision(path: Path, revision: str, cwd: Path) -> TextDoc
     if revision == WORKTREE:
         abspath = cwd / path
         return TextDocument.from_file(abspath)
-    cmd = ["show", f"{revision}:./{path}"]
+    cmd = ["show", f"{revision}:./{path.as_posix()}"]
     logger.debug("[%s]$ %s", cwd, " ".join(cmd))
     try:
         return TextDocument.from_lines(
@@ -214,7 +214,7 @@ def git_get_modified_files(
 
     """
     relative_paths = {p.resolve().relative_to(cwd) for p in paths}
-    str_paths = [str(path) for path in relative_paths]
+    str_paths = [path.as_posix() for path in relative_paths]
     if revrange.use_common_ancestor:
         rev2 = "HEAD" if revrange.rev2 == WORKTREE else revrange.rev2
         merge_base_cmd = ["merge-base", revrange.rev1, rev2]

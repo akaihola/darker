@@ -19,6 +19,8 @@ Fixed
   COMMIT_B is *not* ``:WORKTREE:`` works too.
 - Hide fatal error from Git on stderr when ``git show`` doesn't find the file in rev1.
   This isn't fatal from Darker's point of view since it's a newly created file.
+- Use forward slash as the path separator when calling Git in Windows. At least
+  ``git show`` and ``git cat-file`` fail when using backslashes.
 
 
 1.2.4_ - 2021-06-27
