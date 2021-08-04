@@ -91,7 +91,7 @@ def test_git_get_content_at_revision(git_repo, revision, expect_lines, expect_mt
     if expect_mtime:
         mtime_then = datetime.strptime(result.mtime, GIT_DATEFORMAT)
         difference = expect_mtime() - mtime_then
-        assert timedelta(0) <= difference < timedelta(seconds=2)
+        assert timedelta(0) <= difference < timedelta(seconds=3)
     else:
         assert result.mtime == ""
     assert result.encoding == "utf-8"
