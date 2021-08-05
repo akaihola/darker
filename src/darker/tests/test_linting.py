@@ -14,11 +14,17 @@ from darker.tests.helpers import raises_if_exception
 
 
 @pytest.mark.kwparametrize(
-    dict(line="module.py:42: Description", expect=(Path("module.py"), 42)),
-    dict(line="module.py:42:5: Description", expect=(Path("module.py"), 42)),
-    dict(line="no-linenum.py: Description", expect=(None, None)),
-    dict(line="mod.py:invalid-linenum:5: Description", expect=(None, None)),
-    dict(line="invalid linter output", expect=(None, None)),
+    dict(
+        line="module.py:42: Description\n",
+        expect=(Path("module.py"), 42, "module.py:42:", "Description"),
+    ),
+    dict(
+        line="module.py:42:5: Description\n",
+        expect=(Path("module.py"), 42, "module.py:42:5:", "Description"),
+    ),
+    dict(line="no-linenum.py: Description\n", expect=(Path(), 0, "", "")),
+    dict(line="mod.py:invalid-linenum:5: Description\n", expect=(Path(), 0, "", "")),
+    dict(line="invalid linter output\n", expect=(Path(), 0, "", "")),
 )
 def test_parse_linter_line(git_repo, monkeypatch, line, expect):
     """Linter output is parsed correctly"""
