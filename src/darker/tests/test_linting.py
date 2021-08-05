@@ -8,7 +8,8 @@ from unittest.mock import call, patch
 import pytest
 
 from darker import linting
-from darker.git import RevisionRange
+from darker.git import WORKTREE, RevisionRange
+from darker.tests.helpers import raises_if_exception
 
 
 @pytest.mark.kwparametrize(
@@ -25,6 +26,29 @@ def test_parse_linter_line(git_repo, monkeypatch, line, expect):
     result = linting._parse_linter_line(line, git_repo.root)
 
     assert result == expect
+
+
+@pytest.mark.kwparametrize(
+    dict(rev2="master", expect=NotImplementedError),
+    dict(rev2=WORKTREE, expect=None),
+)
+def test_require_rev2_worktree(rev2, expect):
+    """``_require_rev2_worktree`` raises an exception if rev2 is not ``WORKTREE``"""
+    with raises_if_exception(expect):
+
+        linting._require_rev2_worktree(rev2)
+
+
+def test_check_linter_output():
+    """``_check_linter_output()`` runs linter and returns the stdout stream"""
+    with linting._check_linter_output(
+        "echo", Path("root/of/repo"), {Path("first.py"), Path("second.py")}
+    ) as stdout:
+        lines = list(stdout)
+
+    assert lines == [
+        f"{Path('root/of/repo/first.py')} {Path('root/of/repo/second.py')}\n"
+    ]
 
 
 @pytest.mark.kwparametrize(
