@@ -1,14 +1,46 @@
 """Unit tests for :mod:`darker.highlighting`"""
 
+import sys
 from unittest.mock import Mock, patch
 
 import pytest
 from pygments.token import Token
 
-from darker import highlighting
+from darker.highlighting import lexers, with_pygments, without_pygments
 
-# Work around a strange issue in Mypy – does not see the definition of Python3Lexer
-from darker.highlighting import Python3Lexer  # type: ignore
+
+def test_colorize_import_without_pygments():
+    """Dummy ``colorize()`` is used if Pygments isn't available"""
+    modules = sys.modules.copy()
+    del modules["darker.highlighting"]
+    # cause an ImportError for `import pygments`:
+    modules["pygments"] = None  # type: ignore[assignment]
+    with patch.dict(sys.modules, modules, clear=True):
+        # pylint: disable=import-outside-toplevel
+
+        from darker.highlighting import colorize
+
+        assert colorize == without_pygments.colorize
+
+
+def test_colorize_import_with_pygments():
+    """The real ``colorize()`` is used if Pygments is available"""
+    assert "pygments" in sys.modules
+    modules = sys.modules.copy()
+    del modules["darker.highlighting"]
+    with patch.dict(sys.modules, modules, clear=True):
+        # pylint: disable=import-outside-toplevel
+
+        from darker.highlighting import colorize
+
+        assert colorize == with_pygments.colorize
+
+
+def test_without_pygments_colorize():
+    """``colorize()`` does nothing when Pygments isn't available"""
+    result = without_pygments.colorize("print(42)", "python")
+
+    assert result == "print(42)"
 
 
 @pytest.mark.parametrize(
@@ -16,21 +48,32 @@ from darker.highlighting import Python3Lexer  # type: ignore
     [
         (
             "except RuntimeError:",
-            Python3Lexer(),
+            "python",
             True,
             "\x1b[34mexcept\x1b[39;49;00m \x1b[36mRuntimeError\x1b[39;49;00m:",
         ),
-        ("except RuntimeError:", Python3Lexer(), False, "except RuntimeError:"),
-        ("a = 1", Python3Lexer(), True, "a = \x1b[34m1\x1b[39;49;00m"),
-        ("a = 1\n", Python3Lexer(), True, "a = \x1b[34m1\x1b[39;49;00m\n"),
+        ("except RuntimeError:", "python", False, "except RuntimeError:"),
+        ("a = 1", "python", True, "a = \x1b[34m1\x1b[39;49;00m"),
+        ("a = 1\n", "python", True, "a = \x1b[34m1\x1b[39;49;00m\n"),
+        (
+            "- a\n+ b\n",
+            "diff",
+            True,
+            "\x1b[91m- a\x1b[39;49;00m\n\x1b[32m+ b\x1b[39;49;00m\n",
+        ),
+        (
+            "- a\n+ b\n",
+            "diff",
+            True,
+            "\x1b[91m- a\x1b[39;49;00m\n\x1b[32m+ b\x1b[39;49;00m\n",
+        ),
     ],
 )
 def test_colorize(text, lexer, tty, expect):
     """``colorize()`` produces correct highlighted terminal output"""
     with patch("sys.stdout.isatty", Mock(return_value=tty)):
 
-        result = highlighting.colorize(text, lexer)
-
+        result = with_pygments.colorize(text, lexer)
     assert result == expect
 
 
@@ -63,7 +106,7 @@ def test_colorize(text, lexer, tty, expect):
 )
 def test_location_lexer(text, expect):
     """Linter "path:linenum:colnum:" prefixes are lexed correctly"""
-    location_lexer = highlighting.LocationLexer()
+    location_lexer = lexers.LocationLexer()
 
     result = list(location_lexer.get_tokens_unprocessed(text))
 
@@ -219,7 +262,7 @@ def test_location_lexer(text, expect):
 )
 def test_description_lexer(text, expect):
     """The description parts of linter output are lexed correctly"""
-    description_lexer = highlighting.DescriptionLexer()
+    description_lexer = lexers.DescriptionLexer()
 
     result = list(description_lexer.get_tokens_unprocessed(text))
 
