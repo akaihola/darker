@@ -122,11 +122,10 @@ def run_linter(
                 location,
                 description,
             ) = _parse_linter_line(line, root)
-            if (
-                path_in_repo is None
-                or path_in_repo in missing_files
-                or linter_error_linenum == 0
-            ):
+            if path_in_repo is None:
+                logger.debug("Unknown path %s from %s", path_in_repo, cmdline)
+                continue
+            if path_in_repo in missing_files or linter_error_linenum == 0:
                 continue
             try:
                 edited_linenums = edited_linenums_differ.compare_revisions(
