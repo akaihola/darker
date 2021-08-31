@@ -35,13 +35,15 @@ for how this result is further processed with:
 
 import logging
 import sys
+from distutils.version import LooseVersion
 from pathlib import Path
 from typing import Collection, Optional, Pattern, Set, Tuple
 
 # `FileMode as Mode` required to satisfy mypy==0.782. Strange.
 from black import FileMode as Mode
+from black import TargetVersion
+from black import __version__ as black_version
 from black import (
-    TargetVersion,
     find_pyproject_toml,
     format_str,
     parse_pyproject_toml,
@@ -65,7 +67,7 @@ logger = logging.getLogger(__name__)
 
 DEFAULT_EXCLUDE_RE = re_compile_maybe_verbose(DEFAULT_EXCLUDES)
 DEFAULT_INCLUDE_RE = re_compile_maybe_verbose(DEFAULT_INCLUDES)
-
+BLACK_VERSION = LooseVersion(black_version)
 
 class BlackConfig(TypedDict, total=False):
     """Type definition for Black configuration dictionaries"""
@@ -131,6 +133,11 @@ def apply_black_excludes(
     :return: Absolute paths of files which should be reformatted using Black
 
     """
+    kwargs = (
+        {}
+        if BLACK_VERSION < LooseVersion("21.8b0")
+        else {"quiet": True, "verbose": False}
+    )
     return set(
         gen_python_files(
             (root / path for path in paths),
@@ -141,6 +148,7 @@ def apply_black_excludes(
             force_exclude=black_config.get("force_exclude"),
             report=Report(),
             gitignore=None,
+            **kwargs,
         )
     )
 
