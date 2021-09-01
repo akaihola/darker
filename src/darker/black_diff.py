@@ -136,7 +136,7 @@ def apply_black_excludes(
     """
     kwargs = (
         {}
-        if BLACK_VERSION < LooseVersion("21.8b0")
+        if BLACK_VERSION < LooseVersion("21.7b1.dev9")
         else {"quiet": True, "verbose": False}
     )
     return set(
