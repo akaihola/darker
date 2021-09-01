@@ -69,6 +69,7 @@ DEFAULT_EXCLUDE_RE = re_compile_maybe_verbose(DEFAULT_EXCLUDES)
 DEFAULT_INCLUDE_RE = re_compile_maybe_verbose(DEFAULT_INCLUDES)
 BLACK_VERSION = LooseVersion(black_version)
 
+
 class BlackConfig(TypedDict, total=False):
     """Type definition for Black configuration dictionaries"""
     config: str
