@@ -133,7 +133,7 @@ def apply_black_excludes(
     """
     sig = inspect.signature(gen_python_files)
     # those two exist and are required in black>=21.7b1.dev9
-    kwa = dict(verbose=False, quiet=False) if "verbose" in sig.parameters else {}
+    kwargs = dict(verbose=False, quiet=False) if "verbose" in sig.parameters else {}
     return set(
         gen_python_files(
             (root / path for path in paths),
@@ -144,7 +144,7 @@ def apply_black_excludes(
             force_exclude=black_config.get("force_exclude"),
             report=Report(),
             gitignore=None,
-            **kwa,
+            **kwargs,
         )
     )
 
