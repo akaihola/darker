@@ -12,7 +12,7 @@ Added
 - Terminate with an error if non-existing files or directories are passed on the command
   line. This also improves the error from misquoted parameters like ``"--lint pylint"``.
 - Allow Git test case to run slower when checking file timestamps. CI can be slow.
-- Fix compatibility with Black >= 21.8b0
+- Fix compatibility with Black >= 21.7b1.dev9
 
 Fixed
 -----
