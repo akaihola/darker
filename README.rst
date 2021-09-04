@@ -795,6 +795,18 @@ Thanks goes to these wonderful people (`emoji key`_):
                   title="Code">💻</a>
            </td>
            <td align="center">
+               <a href="https://github.com/rogalski">
+                   <img src="https://avatars.githubusercontent.com/u/9485217?v=3" width="100px;" alt="@rogalski"/>
+                   <br />
+                   <sub><b>Łukasz Rogalski</b></sub>
+               </a>
+               <br />
+               <a href="https://github.com/akaihola/darker/pulls?q=is%3Apr+author%3Arogalski"
+                  title="Code">💻</a>
+               <a href="https://github.com/akaihola/darker/issues?q=author%3Arogalski"
+                  title="Bug reports">🐛</a>
+           </td>
+           <td align="center">
                <a href="https://github.com/roniemartinez">
                    <img src="https://avatars.githubusercontent.com/u/2573537?v=3" width="100px;" alt="@roniemartinez"/>
                    <br />
@@ -836,7 +848,9 @@ Thanks goes to these wonderful people (`emoji key`_):
                <a href="https://github.com/akaihola/darker/issues?q=author%3Ashangxiao"
                   title="Bug reports">🐛</a>
            </td>
-           <td align="center">
+           </tr>
+           <tr>
+               <td align="center">
                <a href="https://github.com/sherbie">
                    <img src="https://avatars.githubusercontent.com/u/15087653?v=3" width="100px;" alt="@sherbie"/>
                    <br />
@@ -846,8 +860,6 @@ Thanks goes to these wonderful people (`emoji key`_):
                <a href="https://github.com/akaihola/darker/pulls?q=is%3Apr+reviewed-by%3Asherbie"
                   title="Reviewed Pull Requests">👀</a>
            </td>
-       </tr>
-       <tr>
            <td align="center">
                <a href="https://github.com/talhajunaidd">
                    <img src="https://avatars.githubusercontent.com/u/6547611?v=3" width="100px;" alt="@talhajunaidd"/>

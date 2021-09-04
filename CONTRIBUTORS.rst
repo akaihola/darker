@@ -20,6 +20,7 @@
 - Iryna (@irynahryshanovich)
 - Krischtopp (@Krischtopp)
 - Leo Torres (@leotrs)
+- Łukasz Rogalski (@rogalski)
 - Mark Davidoff (@markddavidoff)
 - Martin Renou (@martinRenou)
 - Mat Clayton (@matclayton)
