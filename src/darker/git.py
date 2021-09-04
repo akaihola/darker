@@ -150,7 +150,11 @@ def _git_check_output_lines(
     logger.debug("[%s]$ %s", cwd, " ".join(cmd))
     try:
         return check_output(
-            ["git"] + cmd, cwd=str(cwd), encoding="utf-8", stderr=PIPE
+            ["git"] + cmd,
+            cwd=str(cwd),
+            encoding="utf-8",
+            stderr=PIPE,
+            env={"LC_ALL": "C"},
         ).splitlines()
     except CalledProcessError as exc_info:
         if not exit_on_error:
@@ -178,7 +182,7 @@ def _git_exists_in_revision(path: Path, rev2: str) -> bool:
     # Surprise: On Windows, `git cat-file` doesn't work with backslash directory
     # separators in paths. We need to use Posix paths and forward slashes instead.
     cmd = ["git", "cat-file", "-e", f"{rev2}:{path.as_posix()}"]
-    result = run(cmd, check=False, stderr=DEVNULL)
+    result = run(cmd, check=False, stderr=DEVNULL, env={"LC_ALL": "C"})
     return result.returncode == 0
 
 
