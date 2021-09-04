@@ -9,6 +9,7 @@
 - Carsten Kraus (@casio)
 - Christophe Simonis (@KangOl)
 - Correy Lim (@CorreyL)
+- Daniel Martin (@fizbin)
 - David Sanders (@shangxiao)
 - @dsmanl
 - Dustin Spicuzza (@virtuald)
@@ -20,12 +21,15 @@
 - Iryna (@irynahryshanovich)
 - Krischtopp (@Krischtopp)
 - Leo Torres (@leotrs)
+- Łukasz Rogalski (@rogalski)
 - Mark Davidoff (@markddavidoff)
 - Martin Renou (@martinRenou)
 - Mat Clayton (@matclayton)
 - Matthias Bussonnier (@Carreau)
 - Nutchanon Ninyawee (@CircleOnCircles)
+- @overratedpro
 - Paul Ivanov (@ivanov)
+- Philipp A. (@flying-sheep)
 - Ronie Martinez (@roniemartinez)
 - Ross Barnowski (@rossbar)
 - Sean Hammond (@sherbie)
