@@ -153,7 +153,11 @@ def test_git_get_content_at_revision_git_calls(revision, expect):
         assert check_output.call_count == len(expect)
         for expect_call in expect:
             check_output.assert_any_call(
-                expect_call.split(), cwd="cwd", encoding="utf-8", stderr=PIPE
+                expect_call.split(),
+                cwd="cwd",
+                encoding="utf-8",
+                stderr=PIPE,
+                env={"LC_ALL": "C"},
             )
 
 
@@ -318,7 +322,10 @@ def test_git_exists_in_revision_git_call(retval, expect):
         result = git._git_exists_in_revision(Path("path.py"), "rev2")
 
     run.assert_called_once_with(
-        ["git", "cat-file", "-e", "rev2:path.py"], check=False, stderr=DEVNULL
+        ["git", "cat-file", "-e", "rev2:path.py"],
+        check=False,
+        stderr=DEVNULL,
+        env={"LC_ALL": "C"},
     )
     assert result == expect
 
