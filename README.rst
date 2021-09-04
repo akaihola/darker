@@ -480,11 +480,11 @@ do the following:
 1. Append to the created ``.pre-commit-config.yaml`` the following lines::
 
        -   repo: https://github.com/akaihola/darker
-           rev: 1.2.4
+           rev: 1.3.0
            hooks:
            -   id: darker
 
-1. install the Git hook scripts::
+2. install the Git hook scripts::
 
        pre-commit install
 
