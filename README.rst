@@ -22,9 +22,9 @@
 .. |changelog-badge| image:: https://img.shields.io/badge/-change%20log-purple
    :alt: Change log
 .. _changelog-badge: https://github.com/akaihola/darker/blob/master/CHANGES.rst
-.. |next-milestone| image:: https://img.shields.io/github/milestones/progress/akaihola/darker/5?color=red&label=release%201.3.0
+.. |next-milestone| image:: https://img.shields.io/github/milestones/progress/akaihola/darker/9?color=red&label=release%201.3.1
    :alt: Next milestone
-.. _next-milestone: https://github.com/akaihola/darker/milestone/8
+.. _next-milestone: https://github.com/akaihola/darker/milestone/9
 
 
 What?
@@ -480,11 +480,11 @@ do the following:
 1. Append to the created ``.pre-commit-config.yaml`` the following lines::
 
        -   repo: https://github.com/akaihola/darker
-           rev: 1.2.4
+           rev: 1.3.0
            hooks:
            -   id: darker
 
-1. install the Git hook scripts::
+2. install the Git hook scripts::
 
        pre-commit install
 
