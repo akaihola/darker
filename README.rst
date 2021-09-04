@@ -5,17 +5,27 @@
 |build-badge|_ |license-badge|_ |pypi-badge|_ |downloads-badge|_ |black-badge|_ |changelog-badge|_
 
 .. |build-badge| image:: https://github.com/akaihola/darker/actions/workflows/python-package.yml/badge.svg
+   :alt: master branch build status
 .. _build-badge: https://github.com/akaihola/darker/actions/workflows/python-package.yml?query=branch%3Amaster
 .. |license-badge| image:: https://img.shields.io/badge/License-BSD%203--Clause-blue.svg
+   :alt: BSD 3 Clause license
 .. _license-badge: https://github.com/akaihola/darker/blob/master/LICENSE.rst
 .. |pypi-badge| image:: https://img.shields.io/pypi/v/darker
+   :alt: Latest release on PyPI
 .. _pypi-badge: https://pypi.org/project/darker/
 .. |downloads-badge| image:: https://pepy.tech/badge/darker
+   :alt: Number of downloads
 .. _downloads-badge: https://pepy.tech/project/darker
 .. |black-badge| image:: https://img.shields.io/badge/code%20style-black-000000.svg
+   :alt: Source code formatted using Black
 .. _black-badge: https://github.com/psf/black
 .. |changelog-badge| image:: https://img.shields.io/badge/-change%20log-purple
+   :alt: Change log
 .. _changelog-badge: https://github.com/akaihola/darker/blob/master/CHANGES.rst
+.. |next-milestone| image:: https://img.shields.io/github/milestones/progress/akaihola/darker/5?color=red&label=release%201.3.0
+   :alt: Next milestone
+.. _next-milestone: https://github.com/akaihola/darker/milestone/8
+
 
 What?
 =====
@@ -39,6 +49,21 @@ The reformatters and linters supported are:
 .. _Mypy: https://pypi.org/project/mypy
 .. _Pylint: https://pypi.org/project/pylint
 .. _Flake8: https://pypi.org/project/flake8
+
++------------------------------------------------+---------------------------------+
+| |you-can-help|                                 | |support|                       |
++================================================+=================================+
+| We're asking the community kindly for help to  | We're considering to start a    |
+| review pull requests for |next-milestone|_ .   | community support chat channel. |
+| If you have a moment to spare, please take a   | Please vote for your preferred  |
+| look at one of them and shoot us a comment!    | medium in issue `#151`_!        |
++------------------------------------------------+---------------------------------+
+
+.. |you-can-help| image:: https://img.shields.io/badge/-You%20can%20help-green?style=for-the-badge
+   :alt: You can help
+.. |support| image:: https://img.shields.io/badge/-Support-green?style=for-the-badge
+   :alt: Support
+.. _#151: https://github.com/akaihola/darker/issues/151
 
 Why?
 ====
