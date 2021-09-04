@@ -9,6 +9,7 @@
 - Carsten Kraus (@casio)
 - Christophe Simonis (@KangOl)
 - Correy Lim (@CorreyL)
+- Daniel Martin (@fizbin)
 - David Sanders (@shangxiao)
 - @dsmanl
 - Dustin Spicuzza (@virtuald)
