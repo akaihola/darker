@@ -22,7 +22,7 @@
 .. |changelog-badge| image:: https://img.shields.io/badge/-change%20log-purple
    :alt: Change log
 .. _changelog-badge: https://github.com/akaihola/darker/blob/master/CHANGES.rst
-.. |next-milestone| image:: https://img.shields.io/github/milestones/progress/akaihola/darker/8?color=red&label=bugfix%20release%201.2.4
+.. |next-milestone| image:: https://img.shields.io/github/milestones/progress/akaihola/darker/5?color=red&label=release%201.3.0
    :alt: Next milestone
 .. _next-milestone: https://github.com/akaihola/darker/milestone/8
 
@@ -50,15 +50,19 @@ The reformatters and linters supported are:
 .. _Pylint: https://pypi.org/project/pylint
 .. _Flake8: https://pypi.org/project/flake8
 
-.. sidebar:: |you-can-help|
-
-   | We're asking the community kindly for help to review pull requests for
-   | |next-milestone|_
-   | If you have a moment to spare, please take a look at one of them
-     and shoot us a comment!
++------------------------------------------------+---------------------------------+
+| |you-can-help|                                 | |support|                       |
++================================================+=================================+
+| We're asking the community kindly for help to  | We're considering to start a    |
+| review pull requests for |next-milestone|_     | community support chat channel. |
+| If you have a moment to spare, please take a   | Please vote for your preferred  |
+| look at one of them and shoot us a comment!    | medium in issue #151!           |
++------------------------------------------------+---------------------------------+
 
 .. |you-can-help| image:: https://img.shields.io/badge/-You%20can%20help-green?style=for-the-badge
    :alt: You can help
+.. |support| image:: https://img.shields.io/badge/-Support-green?style=for-the-badge
+   :alt: Support
 
 Why?
 ====
