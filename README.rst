@@ -56,13 +56,14 @@ The reformatters and linters supported are:
 | We're asking the community kindly for help to  | We're considering to start a    |
 | review pull requests for |next-milestone|_ .   | community support chat channel. |
 | If you have a moment to spare, please take a   | Please vote for your preferred  |
-| look at one of them and shoot us a comment!    | medium in issue #151!           |
+| look at one of them and shoot us a comment!    | medium in issue `#151`_!        |
 +------------------------------------------------+---------------------------------+
 
 .. |you-can-help| image:: https://img.shields.io/badge/-You%20can%20help-green?style=for-the-badge
    :alt: You can help
 .. |support| image:: https://img.shields.io/badge/-Support-green?style=for-the-badge
    :alt: Support
+.. _#151: https://github.com/akaihola/darker/issues/151
 
 Why?
 ====
