@@ -8,6 +8,11 @@ CONTRIBUTORS_RE = re.compile(r"""\nThanks goes .*\nThis project follows """, re.
 
 
 def replace(name: str, regex: Pattern[str], replacement: str, content: str) -> str:
+    """Replace/remove a section from the package description, based on a regex
+
+    Raise an exception if the regular expression doesn't match anything.
+
+    """
     modified_content = regex.sub(replacement, content)
     if modified_content != content:
         return modified_content
