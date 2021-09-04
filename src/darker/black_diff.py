@@ -145,7 +145,7 @@ def apply_black_excludes(
             report=Report(),
             gitignore=None,
             **kwargs,
-        )  # type: ignore[call-arg]
+        )
     )
 
 
