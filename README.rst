@@ -54,7 +54,7 @@ The reformatters and linters supported are:
 | |you-can-help|                                 | |support|                       |
 +================================================+=================================+
 | We're asking the community kindly for help to  | We're considering to start a    |
-| review pull requests for |next-milestone|_     | community support chat channel. |
+| review pull requests for |next-milestone|_ .   | community support chat channel. |
 | If you have a moment to spare, please take a   | Please vote for your preferred  |
 | look at one of them and shoot us a comment!    | medium in issue #151!           |
 +------------------------------------------------+---------------------------------+
