@@ -29,6 +29,7 @@
 - Nutchanon Ninyawee (@CircleOnCircles)
 - @overratedpro
 - Paul Ivanov (@ivanov)
+- Philipp A. (@flying-sheep)
 - Ronie Martinez (@roniemartinez)
 - Ross Barnowski (@rossbar)
 - Sean Hammond (@sherbie)
