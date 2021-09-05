@@ -6,7 +6,7 @@ from argparse import Action, ArgumentError
 from datetime import datetime
 from difflib import unified_diff
 from pathlib import Path
-from typing import Collection, Generator, List, Optional, Tuple
+from typing import Collection, Generator, List, Tuple
 
 from darker.black_diff import (
     BlackConfig,
@@ -197,7 +197,7 @@ def modify_file(path: Path, new_content: TextDocument) -> None:
 
 
 def print_diff(
-    path: Path, old: TextDocument, new: TextDocument, root: Optional[Path] = None
+    path: Path, old: TextDocument, new: TextDocument, root: Path = None
 ) -> None:
     """Print ``black --diff`` style output for the changes
 
