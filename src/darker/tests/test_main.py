@@ -440,10 +440,10 @@ def test_main(
     """Main function outputs diffs and modifies files correctly"""
     if root_as_cwd:
         cwd = git_repo.root
-        pwd = ""
+        pwd = Path("")
     else:
         cwd = tmp_path_factory.mktemp("not_a_git_repo")
-        pwd = str(git_repo.root) + "/"
+        pwd = git_repo.root
     monkeypatch.chdir(cwd)
     paths = git_repo.add(
         {"pyproject.toml": dedent(pyproject_toml), "a.py": newline, "b.py": newline},
@@ -452,7 +452,7 @@ def test_main(
     paths["a.py"].write_bytes(newline.join(A_PY).encode("ascii"))
     paths["b.py"].write_bytes(f"print(42 ){newline}".encode("ascii"))
 
-    retval = darker.__main__.main(arguments + [pwd + "a.py"])
+    retval = darker.__main__.main(arguments + [str(pwd / "a.py")])
 
     stdout = capsys.readouterr().out.replace(str(git_repo.root), "")
     diff_output = stdout.splitlines(False)
