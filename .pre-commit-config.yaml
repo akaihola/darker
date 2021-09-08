@@ -11,7 +11,10 @@ repos:
     rev: master
     hooks:
     -   id: darker
-        args: [--revision HEAD]
+        args: [--isort]
+        additional_dependencies:
+          - black~=21.8b0
+          - isort~=5.9
 -   repo: https://github.com/Lucas-C/pre-commit-hooks-markup
     rev: v1.0.1
     hooks:
