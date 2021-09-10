@@ -247,48 +247,46 @@ For more details, see:
 
 The following `command line arguments`_ can also be used to modify the defaults:
 
-.. code-block:: shell
+-r REVISION, --revision REVISION
+                      Git revision against which to compare the working tree.
+                      Tags, branch names, commit hashes, and other expressions
+                      like HEAD~5 work here. Also a range like master...HEAD or
+                      master... can be used to compare the best common ancestor.
+                      With the magic value :PRE-COMMIT:, Darker expects the
+                      revision range from the PRE_COMMIT_FROM_REF and
+                      PRE_COMMIT_TO_REF environment variables.
 
-     -r REVISION, --revision REVISION
-                           Git revision against which to compare the working tree.
-                           Tags, branch names, commit hashes, and other expressions
-                           like HEAD~5 work here. Also a range like master...HEAD or
-                           master... can be used to compare the best common ancestor.
-                           With the magic value :PRE-COMMIT:, Darker expects the
-                           revision range from the PRE_COMMIT_FROM_REF and
-                           PRE_COMMIT_TO_REF environment variables.
+--diff                Don't write the files back, just output a diff for
+                      each file on stdout. Highlight syntax on screen if
+                      the `pygments` package is available.
 
-     --diff                Don't write the files back, just output a diff for
-                           each file on stdout. Highlight syntax on screen if
-                           the `pygments` package is available.
+-d, --stdout          Force complete reformatted output to stdout, instead of
+                      in-place. Only valid if there's just one file to reformat.
 
-     -d, --stdout          Force complete reformatted output to stdout, instead of
-                           in-place. Only valid if there's just one file to reformat.
- 
-     --check               Don't write the files back, just return the status.
-                           Return code 0 means nothing would change. Return code
-                           1 means some files would be reformatted.
+--check               Don't write the files back, just return the status.
+                      Return code 0 means nothing would change. Return code
+                      1 means some files would be reformatted.
 
-     -i, --isort           Also sort imports using the `isort` package
+-i, --isort           Also sort imports using the `isort` package
 
-     -L CMD, --lint CMD    Also run a linter on changed files. CMD can be a name
-                           of path of the linter binary, or a full quoted command
-                           line
-     -c PATH, --config PATH
-                           Ask `black` and `isort` to read configuration from PATH.
-     -S, --skip-string-normalization
-                           Don't normalize string quotes or prefixes
-     --no-skip-string-normalization
-                           Normalize string quotes or prefixes. This can be used
-                           to override `skip_string_normalization = true` from a
-                           configuration file.
-    --skip-magic-trailing-comma
-                           Skip adding trailing commas to expressions that are
-                           split by comma where each element is on its own line.
-                           This includes function signatures. This can be used to override
-                           `skip_magic_trailing_comma` from a configuration file.
-     -l LINE_LENGTH, --line-length LINE_LENGTH
-                           How many characters per line to allow [default: 88]
+-L CMD, --lint CMD    Also run a linter on changed files. CMD can be a name
+                      of path of the linter binary, or a full quoted command
+                      line
+-c PATH, --config PATH
+                      Ask `black` and `isort` to read configuration from PATH.
+-S, --skip-string-normalization
+                      Don't normalize string quotes or prefixes
+--no-skip-string-normalization
+                      Normalize string quotes or prefixes. This can be used
+                      to override `skip_string_normalization = true` from a
+                      configuration file.
+--skip-magic-trailing-comma
+                      Skip adding trailing commas to expressions that are
+                      split by comma where each element is on its own line.
+                      This includes function signatures. This can be used to override
+                      `skip_magic_trailing_comma` from a configuration file.
+-l LINE_LENGTH, --line-length LINE_LENGTH
+                      How many characters per line to allow [default: 88]
 
 To change default values for these options for a given project,
 add a ``[tool.darker]`` section to ``pyproject.toml`` in the project's root directory.
