@@ -60,7 +60,7 @@ class OptionsForReadmeAction(Action):
             if action.dest in {"help", "version", "options_for_readme"}:
                 continue
             if action.help is not None:
-                action.help = action.help.replace("`", "``").replace("````", "``")
+                action.help = action.help.replace("`", "``")
             actions.append(action)
         formatter = HelpFormatter(parser.prog, max_help_position=7, width=88)
         formatter.add_arguments(actions)
