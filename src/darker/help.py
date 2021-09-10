@@ -22,11 +22,12 @@ SRC = "Path(s) to the Python source file(s) to reformat"
 
 REVISION = (
     "Git revision against which to compare the working tree. Tags, branch names, commit"
-    " hashes, and other expressions like HEAD~5 work here. Also a range like"
-    " master...HEAD or master... can be used to compare the best common ancestor. With"
-    " the magic value :PRE-COMMIT:, Darker works in pre-commit compatible mode. Darker"
-    " expects the revision range from the PRE_COMMIT_FROM_REF and PRE_COMMIT_TO_REF"
-    " environment variables. If those are not found, Darker works against HEAD."
+    " hashes, and other expressions like `HEAD~5` work here. Also a range like"
+    " `master...HEAD` or `master...` can be used to compare the best common ancestor."
+    " With the magic value `:PRE-COMMIT:`, Darker works in pre-commit compatible mode."
+    " Darker expects the revision range from the `PRE_COMMIT_FROM_REF` and"
+    " `PRE_COMMIT_TO_REF` environment variables. If those are not found, Darker works"
+    " against `HEAD`."
 )
 
 DIFF = (
@@ -51,11 +52,11 @@ if not isort:
 ISORT = "".join(ISORT_PARTS)
 
 LINT = (
-    "Also run a linter on changed files. CMD can be a name of path of the "
-    "linter binary, or a full quoted command line"
+    "Also run a linter on changed files. `CMD` can be a name of path of the"
+    " linter binary, or a full quoted command line"
 )
 
-CONFIG = "Ask `black` and `isort` to read configuration from PATH."
+CONFIG = "Ask `black` and `isort` to read configuration from `PATH`."
 
 VERBOSE = "Show steps taken and summarize modifications"
 QUIET = "Reduce amount of output"
@@ -68,9 +69,9 @@ NO_SKIP_STRING_NORMALIZATION = (
     " `skip_string_normalization = true` from a configuration file."
 )
 SKIP_MAGIC_TRAILING_COMMA = (
-    "Skip adding trailing commas to expressions that are split by comma "
-    "where each element is on its own line. This includes function signatures."
-    "This can be used to override"
+    "Skip adding trailing commas to expressions that are split by comma"
+    " where each element is on its own line. This includes function signatures."
+    " This can be used to override"
     " `skip_magic_trailing_comma = true` from a configuration file."
 )
 

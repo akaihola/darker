@@ -1,10 +1,14 @@
 """Command line parsing for the ``darker`` binary"""
 
-from argparse import ArgumentParser, Namespace
+from argparse import SUPPRESS, ArgumentParser, Namespace
 from typing import Any, List, Optional, Text, Tuple
 
 from darker import help as hlp
-from darker.argparse_helpers import LogLevelAction, NewlinePreservingFormatter
+from darker.argparse_helpers import (
+    LogLevelAction,
+    NewlinePreservingFormatter,
+    OptionsForReadmeAction,
+)
 from darker.config import (
     DarkerConfig,
     OutputMode,
@@ -32,7 +36,7 @@ def make_argument_parser(require_src: bool) -> ArgumentParser:
         parser.add_argument(*name_or_flags, **kwargs)
 
     add_arg(hlp.SRC, "src", nargs="+" if require_src else "*", metavar="PATH")
-    add_arg(hlp.REVISION, "-r", "--revision", default="HEAD")
+    add_arg(hlp.REVISION, "-r", "--revision", default="HEAD", metavar="REV")
     add_arg(hlp.DIFF, "--diff", action="store_true")
     add_arg(hlp.STDOUT, "-d", "--stdout", action="store_true")
     add_arg(hlp.CHECK, "--check", action="store_true")
@@ -70,7 +74,17 @@ def make_argument_parser(require_src: bool) -> ArgumentParser:
         dest="skip_magic_trailing_comma",
         const=True,
     )
-    add_arg(hlp.LINE_LENGTH, "-l", "--line-length", type=int, dest="line_length")
+    add_arg(
+        hlp.LINE_LENGTH,
+        "-l",
+        "--line-length",
+        type=int,
+        dest="line_length",
+        metavar="LENGTH",
+    )
+    # A hidden option for printing command lines option in a format suitable for
+    # `README.rst`:
+    add_arg(SUPPRESS, "--options-for-readme", action=OptionsForReadmeAction)
     return parser
 
 
