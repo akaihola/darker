@@ -38,6 +38,8 @@ class OptionsForReadmeAction(Action):
 
     """
 
+    # pylint: disable=too-few-public-methods
+
     def __init__(
         self, option_strings: List[str], dest: str = SUPPRESS, help: str = None
     ):  # pylint: disable=redefined-builtin
