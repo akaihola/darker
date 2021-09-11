@@ -24,7 +24,7 @@ try:
     except AttributeError:
         # Postpone error message about incompatbile `isort` version until `--isort` is
         # actually used.
-        def isort_code(*args: Any, **kwargs: Any) -> str:  # type: ignore[misc] # noqa: F821
+        def isort_code(*args: Any, **kwargs: Any) -> str:  # type: ignore[misc]
             """Fake `isort.code()` function to use when `isort < 5` is installed"""
             raise IncompatiblePackageError(
                 "An incompatible 'isort' package was found. Please install version"
@@ -34,7 +34,7 @@ except ImportError:
     # `isort` is an optional dependency. Prevent the `ImportError` if it's missing.
     isort = None  # type: ignore
 
-    def isort_code(*args: Any, **kwargs: Any) -> str:  # type: ignore[misc] # noqa: F821
+    def isort_code(*args: Any, **kwargs: Any) -> str:  # type: ignore[misc]
         """Fake `isort.code()` function to use when `isort` isn't installed"""
         raise MissingPackageError(
             "No module named 'isort'. Please install the 'isort' package before using"
