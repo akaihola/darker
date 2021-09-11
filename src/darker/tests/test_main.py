@@ -30,7 +30,7 @@ def test_isort_option_without_isort(git_repo, caplog):
         darker.__main__.main(["--isort", "."])
 
     assert (
-        "Please run `pip install 'darker[isort]'` to use the `--isort` option."
+        "Please run `pip install darker[isort]` to use the `--isort` option."
         in caplog.text
     )
 
