@@ -2,9 +2,10 @@
 
 import logging
 import re
-from argparse import Action, ArgumentParser, HelpFormatter, Namespace
+import sys
+from argparse import SUPPRESS, Action, ArgumentParser, HelpFormatter, Namespace
 from textwrap import fill
-from typing import Any, List, Sequence, Union
+from typing import Any, List, Optional, Sequence, Union
 
 WORD_RE = re.compile(r"\w")
 
@@ -27,6 +28,46 @@ class NewlinePreservingFormatter(HelpFormatter):
                 _fill_line(line, width, indent) for line in text.split("\n")
             )
         return super()._fill_text(text, width, indent)
+
+
+class OptionsForReadmeAction(Action):
+    """Implementation of the ``--options-for-readme`` argument
+
+    This argparse action prints optional command line arguments in a format suitable for
+    inclusion in ``README.rst``.
+
+    """
+
+    # pylint: disable=too-few-public-methods
+
+    def __init__(
+        self, option_strings: List[str], dest: str = SUPPRESS, help: str = None
+    ):  # pylint: disable=redefined-builtin
+        super().__init__(option_strings, dest, 0)
+
+    def __call__(
+        self,
+        parser: ArgumentParser,
+        namespace: Namespace,
+        values: Optional[Union[str, Sequence[Any]]],
+        option_string: str = None,
+    ) -> None:
+        optional_arguments_group = next(
+            group
+            for group in parser._action_groups
+            if group.title == "optional arguments"
+        )
+        actions = []
+        for action in optional_arguments_group._group_actions:
+            if action.dest in {"help", "version", "options_for_readme"}:
+                continue
+            if action.help is not None:
+                action.help = action.help.replace("`", "``")
+            actions.append(action)
+        formatter = HelpFormatter(parser.prog, max_help_position=7, width=88)
+        formatter.add_arguments(actions)
+        sys.stderr.write(formatter.format_help())
+        parser.exit()
 
 
 class LogLevelAction(Action):  # pylint: disable=too-few-public-methods
