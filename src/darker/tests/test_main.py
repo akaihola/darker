@@ -15,6 +15,7 @@ from black import find_project_root
 
 import darker.__main__
 import darker.import_sorting
+from darker.exceptions import MissingPackageError
 from darker.git import WORKTREE, RevisionRange
 from darker.tests.helpers import isort_present
 from darker.utils import TextDocument, joinlines
@@ -25,13 +26,13 @@ def test_isort_option_without_isort(git_repo, caplog):
     """Without isort, provide isort install instructions and error"""
     with isort_present(False), patch.object(
         darker.__main__, "isort", None
-    ), pytest.raises(SystemExit):
+    ), pytest.raises(MissingPackageError) as exc_info:
 
         darker.__main__.main(["--isort", "."])
 
     assert (
-        "Please run `pip install darker[isort]` to use the `--isort` option."
-        in caplog.text
+        str(exc_info.value)
+        == "Please run `pip install darker[isort]` to use the `--isort` option."
     )
 
 

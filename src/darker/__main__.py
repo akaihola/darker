@@ -18,6 +18,7 @@ from darker.chooser import choose_lines
 from darker.command_line import parse_command_line
 from darker.config import OutputMode, dump_config
 from darker.diff import diff_and_get_opcodes, opcodes_to_chunks
+from darker.exceptions import DependencyError, MissingPackageError
 from darker.git import (
     WORKTREE,
     EditedLinenumsDiffer,
@@ -301,8 +302,7 @@ def main(argv: List[str] = None) -> int:
         print("\n")
 
     if args.isort and not isort:
-        logger.error(f"{ISORT_INSTRUCTION} to use the `--isort` option.")
-        exit(1)
+        raise MissingPackageError(f"{ISORT_INSTRUCTION} to use the `--isort` option.")
 
     black_config = read_black_config(tuple(args.src), args.config)
     if args.config:
@@ -368,7 +368,9 @@ def main_with_error_handling() -> int:
     """Entry point for console script"""
     try:
         return main()
-    except ArgumentError as exc_info:
+    except (ArgumentError, DependencyError) as exc_info:
+        if logger.root.level < logging.WARNING:
+            raise
         sys.exit(str(exc_info))
 
 
