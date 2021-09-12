@@ -5,11 +5,12 @@ These features will be included in the next release:
 
 Added
 -----
+- Mention Black's possible new line range formatting support in README
 
 Fixed
 -----
 - ``/foo $ darker --diff /bar/my-repo`` now works: the current working directory can be
-   in a different part of the directory hierarchy
+  in a different part of the directory hierarchy
 - An incompatible ``isort`` version now causes a short user-friendly error message
 
 

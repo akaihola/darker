@@ -78,19 +78,22 @@ you'd like to only change formatting when you're touching the code for other rea
 This can also be useful
 when contributing to upstream codebases that are not under your complete control.
 
-However, partial formatting is not supported by Black_ itself,
-for various good reasons, and it won't be implemented either
+Partial formatting is not supported by Black_ itself,
+for various good reasons, and so far there hasn't been a plan to implemented it either
 (`134`__, `142`__, `245`__, `370`__, `511`__, `830`__).
+However, in September 2021 Black developers started to hint towards adding this feature
+after all (`1352`__). This might at least simplify Darker's algorithm substantially.
 
-__ https://github.com/python/black/issues/134
-__ https://github.com/python/black/issues/142
-__ https://github.com/python/black/issues/245
-__ https://github.com/python/black/issues/370
-__ https://github.com/python/black/issues/511
-__ https://github.com/python/black/issues/830
+__ https://github.com/psf/black/issues/134
+__ https://github.com/psf/black/issues/142
+__ https://github.com/psf/black/issues/245
+__ https://github.com/psf/black/issues/370
+__ https://github.com/psf/black/issues/511
+__ https://github.com/psf/black/issues/830
+__ https://github.com/psf/black/issues/1352
 
-This is where ``darker`` enters the stage.
-This tool is for those who want to do partial formatting anyway.
+But for the time being, this is where ``darker`` enters the stage.
+This tool is for those who want to do partial formatting right now.
 
 Note that this tool is meant for special situations
 when dealing with existing code bases.
