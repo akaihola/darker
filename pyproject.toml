@@ -15,6 +15,3 @@ src = [
     "src",
 ]
 revision = "origin/master..."
-lint = [
-    "pylint",
-]
