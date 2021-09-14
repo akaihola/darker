@@ -75,6 +75,7 @@ def run_linter(
         return None
     if revrange.rev2 is not WORKTREE:
         raise NotImplementedError(
+            f"{cmdline}: "
             "Linting arbitrary commits is not supported. "
             "Please use -r {<rev>|<rev>..|<rev>...} instead."
         )
