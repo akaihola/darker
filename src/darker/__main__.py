@@ -19,6 +19,7 @@ from darker.command_line import parse_command_line
 from darker.config import OutputMode, dump_config
 from darker.diff import diff_and_get_opcodes, opcodes_to_chunks
 from darker.git import (
+    PRE_COMMIT_FROM_TO_REFS,
     WORKTREE,
     EditedLinenumsDiffer,
     RevisionRange,
@@ -321,7 +322,11 @@ def main(argv: List[str] = None) -> int:
     revrange = RevisionRange.parse(args.revision)
     output_mode = OutputMode.from_args(args)
     write_modified_files = not args.check and output_mode == OutputMode.NOTHING
-    if revrange.rev2 != WORKTREE and write_modified_files:
+    if (
+        args.revision != PRE_COMMIT_FROM_TO_REFS
+        and revrange.rev2 != WORKTREE
+        and write_modified_files
+    ):
         raise ArgumentError(
             Action(["-r", "--revision"], "revision"),
             f"Can't write reformatted files for revision '{revrange.rev2}'."

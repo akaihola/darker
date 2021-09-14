@@ -500,6 +500,21 @@ def test_main_historical(git_repo):
         darker.__main__.main(["--revision=foo..bar", "."])
 
 
+def test_main_historical_pre_commit(git_repo, monkeypatch):
+    """Allow overwriting the working tree when using as a pre-commit hook"""
+    paths = git_repo.add({"a.py": "original = 1\n"}, commit="Initial commit")
+    monkeypatch.setenv("PRE_COMMIT_FROM_REF", git_repo.get_hash())
+    git_repo.add({"a.py": "modified=2\n"}, commit="Modify a.py")
+    monkeypatch.setenv("PRE_COMMIT_TO_REF", git_repo.get_hash())
+    paths["a.py"].write_text("working_tree=3\n")
+
+    retval = darker.__main__.main(["--revision=:PRE-COMMIT:", "a.py"])
+
+    result = paths["a.py"].read_text()
+    assert retval == 0
+    assert result == "modified = 2\n"
+
+
 def test_print_diff(tmp_path, monkeypatch, capsys):
     """print_diff() prints Black-style diff output with 5 lines of context"""
     monkeypatch.chdir(tmp_path)
