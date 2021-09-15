@@ -338,7 +338,7 @@ def test_help_description_without_isort_package(capsys):
     with isort_present(False):
 
         assert (
-            "Please run `pip install 'darker[isort]'` to enable sorting of import "
+            "Please run `pip install darker[isort]` to enable sorting of import "
             "definitions" in get_darker_help_output(capsys)
         )
 
@@ -348,7 +348,7 @@ def test_help_isort_option_without_isort_package(capsys):
     with isort_present(False):
 
         assert (
-            "Please run `pip install 'darker[isort]'` to enable usage of this option."
+            "Please run `pip install darker[isort]` to enable usage of this option."
             in get_darker_help_output(capsys)
         )
 

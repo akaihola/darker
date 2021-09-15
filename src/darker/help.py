@@ -1,6 +1,6 @@
 """Help and usage instruction texts used for the command line parser"""
 
-ISORT_INSTRUCTION = "Please run `pip install 'darker[isort]'`"
+ISORT_INSTRUCTION = "Please run `pip install darker[isort]`"
 
 DESCRIPTION_PARTS = [
     "Re-format Python source files by using\n",
