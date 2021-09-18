@@ -178,10 +178,7 @@ def run_black(src_contents: TextDocument, black_config: BlackConfig) -> TextDocu
     if contents_for_black.strip():
         dst_contents = format_str(contents_for_black, mode=Mode(**mode))
     else:
-        if "\n" in src_contents.string:
-            dst_contents = "\n"
-        else:
-            dst_contents = ""
+        dst_contents = "\n" if "\n" in src_contents.string else ""
     return TextDocument.from_str(
         dst_contents,
         encoding=src_contents.encoding,
