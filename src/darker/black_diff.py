@@ -172,6 +172,8 @@ def run_black(src_contents: TextDocument, black_config: BlackConfig) -> TextDocu
         # ``skip-string-normalization``, hence the inverse boolean
         mode["string_normalization"] = not black_config["skip_string_normalization"]
 
+    # The custom handling of empty and all-whitespace files below will be unnecessary if
+    # https://github.com/psf/black/pull/2484 lands in Black.
     contents_for_black = src_contents.string_with_newline("\n")
     if contents_for_black.strip():
         dst_contents = format_str(contents_for_black, mode=Mode(**mode))
