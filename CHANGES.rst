@@ -5,6 +5,7 @@ These features will be included in the next release:
 
 Added
 -----
+- Empty and all-whitespace files are now reformatted property
 
 Fixed
 -----
