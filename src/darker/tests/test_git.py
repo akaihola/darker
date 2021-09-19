@@ -144,19 +144,20 @@ def test_revisionrange_parse(revision_range, expect):
 )
 def test_git_get_content_at_revision_git_calls(revision, expect):
     """get_git_content_at_revision() calls Git correctly"""
-    with patch("darker.git.check_output") as check_output:
+    with patch("darker.git.run") as run:
         # a dummy Unix timestamp:
-        check_output.return_value = b"1000000"
+        run.return_value.stdout = b"1000000"
 
         git.git_get_content_at_revision(Path("my.txt"), revision, Path("cwd"))
 
-        assert check_output.call_count == len(expect)
+        assert run.call_count == len(expect)
         for expect_call in expect:
-            check_output.assert_any_call(
+            run.assert_any_call(
                 expect_call.split(),
                 cwd="cwd",
+                check=True,
+                capture_output=True,
                 encoding="utf-8",
-                stderr=PIPE,
                 env={"LC_ALL": "C"},
             )
 
