@@ -330,7 +330,7 @@ def main(argv: List[str] = None) -> int:
                 " As an experimental feature, allowing overwriting of files."
                 " See https://github.com/akaihola/darker/issues/180 for details."
             )
-        elif revrange.rev2 != WORKTREE and write_modified_files:
+        elif revrange.rev2 != WORKTREE:
             raise ArgumentError(
                 Action(["-r", "--revision"], "revision"),
                 f"Can't write reformatted files for revision '{revrange.rev2}'."
