@@ -5,6 +5,8 @@ These features will be included in the next release:
 
 Added
 -----
+- Darker now allows itself to modify files when called with ``pre-commit -o HEAD``, but
+  also emits a warning about this being an experimental features
 
 Fixed
 -----
