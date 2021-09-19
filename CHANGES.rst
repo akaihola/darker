@@ -6,6 +6,8 @@ These features will be included in the next release:
 Added
 -----
 - Empty and all-whitespace files are now reformatted properly
+- Darker now allows itself to modify files when called with ``pre-commit -o HEAD``, but
+  also emits a warning about this being an experimental feature
 - Mention Black's possible new line range formatting support in README
 
 Fixed
