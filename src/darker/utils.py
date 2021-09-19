@@ -239,9 +239,11 @@ class Buf:
             self.seek_line(-1)
 
 
-def glob_python_files(paths: Iterable[Path]) -> Set[Path]:
+def glob_python_files(paths: Iterable[Path], common_root: Path) -> Set[Path]:
     """Find the set of ``.py`` files in all given paths recursively"""
     more_files: Set[Path] = set()
-    for path in paths:
-        more_files.update(path.glob("**/*.py"))
+    for root in paths:
+        more_files.update(
+            path.relative_to(common_root) for path in root.glob("**/*.py")
+        )
     return more_files

@@ -352,7 +352,7 @@ def main(argv: List[str] = None) -> int:
         try:
             changed_files = git_get_modified_python_files(paths, revrange, git_root)
         except NotGitRespository:
-            changed_files = glob_python_files(paths)
+            changed_files = glob_python_files(paths, git_root)
     for path, old, new in format_edited_parts(
         git_root,
         changed_files,

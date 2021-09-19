@@ -372,16 +372,17 @@ def test_textdocument_from_file(tmp_path):
 
 def test_glob_python_files(tmp_path):
     """``glob_python_files()`` finds ``*.py`` recursively, eliminating duplicates"""
-    (tmp_path / "subdir_a").mkdir()
-    (tmp_path / "subdir_b").mkdir()
-    (tmp_path / "subdir_b/subdir_c").mkdir()
-    (tmp_path / "subdir_a" / "non-python file.txt").touch()
-    (tmp_path / "subdir_a" / "python file.py").touch()
-    (tmp_path / "subdir_b/subdir_c" / "another python file.py").touch()
+    subdir_a = tmp_path / "subdir_a"
+    subdir_c = tmp_path / "subdir_b/subdir_c"
+    subdir_a.mkdir()
+    subdir_c.mkdir(parents=True)
+    (subdir_a / "non-python file.txt").touch()
+    (subdir_a / "python file.py").touch()
+    (subdir_c / "another python file.py").touch()
 
-    result = glob_python_files({tmp_path, tmp_path / "subdir_b"})
+    result = glob_python_files({tmp_path, tmp_path / "subdir_b"}, tmp_path)
 
     assert result == {
-        tmp_path / "subdir_a/python file.py",
-        tmp_path / "subdir_b/subdir_c/another python file.py",
+        Path("subdir_a/python file.py"),
+        Path("subdir_b/subdir_c/another python file.py"),
     }
