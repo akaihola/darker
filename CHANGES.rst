@@ -5,6 +5,7 @@ These features will be included in the next release:
 
 Added
 -----
+- Darker can now be used in a plain directory tree in addition to Git repositories
 
 Fixed
 -----
