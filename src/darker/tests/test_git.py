@@ -156,7 +156,8 @@ def test_git_get_content_at_revision_git_calls(revision, expect):
                 expect_call.split(),
                 cwd="cwd",
                 check=True,
-                capture_output=True,
+                stdout=PIPE,
+                stderr=PIPE,
                 encoding="utf-8",
                 env={"LC_ALL": "C"},
             )
