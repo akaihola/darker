@@ -1,6 +1,5 @@
 """Darker - apply black reformatting to only areas edited since the last commit"""
 
-import glob
 import logging
 import sys
 from argparse import Action, ArgumentError
@@ -350,11 +349,10 @@ def main(argv: List[str] = None) -> int:
         except NotGitRespository:
             changed_files = set()
             for path in paths:
-                if str(path).endswith(".py"):
-                    changed_files.add(Path(path))
+                if path.suffix == ".py":
+                    changed_files.add(path)
                 else:
-                    more_files = glob.glob(str(path) + "/**/*.py", recursive=True)
-                    changed_files.update({Path(p) for p in more_files})
+                    changed_files.update(path.glob("**/*.py"))
     for path, old, new in format_edited_parts(
         git_root,
         changed_files,
