@@ -164,19 +164,21 @@ def _git_check_output_lines(
         )
         return result.stdout.splitlines()
     except CalledProcessError as exc_info:
-        if exc_info.returncode == 129 and exc_info.stderr.startswith(
-            "Not a git repository"
+        retval = exc_info.returncode
+        msg = exc_info.stderr
+        if (retval == 129 and msg.startswith("Not a git repository")) or (
+            retval == 1 and msg.startswith("error: could not access ")
         ):
             raise NotGitRespository(f"{cwd} is not a git repository") from exc_info
         if not exit_on_error:
             raise
-        if exc_info.returncode != 128:
-            sys.stderr.write(exc_info.stderr)
+        if retval != 128:
+            sys.stderr.write(msg)
             raise
 
         # Bad revision or another Git failure. Follow Black's example and return the
         # error status 123.
-        for error_line in exc_info.stderr.splitlines():
+        for error_line in msg.splitlines():
             logger.error(error_line)
         sys.exit(123)
 
