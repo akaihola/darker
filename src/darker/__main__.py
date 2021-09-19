@@ -26,12 +26,17 @@ from darker.git import (
     RevisionRange,
     get_missing_at_revision,
     git_get_content_at_revision,
-    git_get_modified_files,
+    git_get_modified_python_files,
 )
 from darker.help import ISORT_INSTRUCTION
 from darker.import_sorting import apply_isort, isort
 from darker.linting import run_linters
-from darker.utils import GIT_DATEFORMAT, TextDocument, get_common_root
+from darker.utils import (
+    GIT_DATEFORMAT,
+    TextDocument,
+    get_common_root,
+    glob_python_files,
+)
 from darker.verification import BinarySearch, NotEquivalentError, verify_ast_unchanged
 
 logger = logging.getLogger(__name__)
@@ -345,14 +350,9 @@ def main(argv: List[str] = None) -> int:
     else:
         # In other modes, only process files which have been modified.
         try:
-            changed_files = git_get_modified_files(paths, revrange, git_root)
+            changed_files = git_get_modified_python_files(paths, revrange, git_root)
         except NotGitRespository:
-            changed_files = set()
-            for path in paths:
-                if path.suffix == ".py":
-                    changed_files.add(path)
-                else:
-                    changed_files.update(path.glob("**/*.py"))
+            changed_files = glob_python_files(paths)
     for path, old, new in format_edited_parts(
         git_root,
         changed_files,

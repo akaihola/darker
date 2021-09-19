@@ -6,7 +6,7 @@ import tokenize
 from datetime import datetime
 from itertools import chain
 from pathlib import Path
-from typing import Iterable, List, Tuple, Union
+from typing import Iterable, List, Set, Tuple, Union
 
 logger = logging.getLogger(__name__)
 
@@ -237,3 +237,11 @@ class Buf:
             return False
         finally:
             self.seek_line(-1)
+
+
+def glob_python_files(paths: Iterable[Path]) -> Set[Path]:
+    """Find the set of ``.py`` files in all given paths recursively"""
+    more_files: Set[Path] = set()
+    for path in paths:
+        more_files.update(path.glob("**/*.py"))
+    return more_files

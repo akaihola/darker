@@ -213,10 +213,10 @@ def get_missing_at_revision(paths: Iterable[Path], rev2: str) -> Set[Path]:
     return {path for path in paths if not _git_exists_in_revision(path, rev2)}
 
 
-def git_get_modified_files(
+def git_get_modified_python_files(
     paths: Iterable[Path], revrange: RevisionRange, cwd: Path
 ) -> Set[Path]:
-    """Ask Git for modified and untracked files
+    """Ask Git for modified and untracked ``*.py`` files
 
     - ``git diff --name-only --relative <rev> -- <path(s)>``
     - ``git ls-files --others --exclude-standard -- <path(s)>``

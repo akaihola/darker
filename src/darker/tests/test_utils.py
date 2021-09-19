@@ -13,6 +13,7 @@ from darker.utils import (
     detect_newline,
     get_common_root,
     get_path_ancestry,
+    glob_python_files,
     joinlines,
 )
 
@@ -367,3 +368,20 @@ def test_textdocument_from_file(tmp_path):
     assert document.encoding == "iso-8859-1"
     assert document.newline == "\r\n"
     assert document.mtime == "2001-09-09 01:46:40.000000 +0000"
+
+
+def test_glob_python_files(tmp_path):
+    """``glob_python_files()`` finds ``*.py`` recursively, eliminating duplicates"""
+    (tmp_path / "subdir_a").mkdir()
+    (tmp_path / "subdir_b").mkdir()
+    (tmp_path / "subdir_b/subdir_c").mkdir()
+    (tmp_path / "subdir_a" / "non-python file.txt").touch()
+    (tmp_path / "subdir_a" / "python file.py").touch()
+    (tmp_path / "subdir_b/subdir_c" / "another python file.py").touch()
+
+    result = glob_python_files({tmp_path, tmp_path / "subdir_b"})
+
+    assert result == {
+        tmp_path / "subdir_a/python file.py",
+        tmp_path / "subdir_b/subdir_c/another python file.py",
+    }
