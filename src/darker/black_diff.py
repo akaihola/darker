@@ -152,10 +152,9 @@ def apply_black_excludes(
 def run_black(src_contents: TextDocument, black_config: BlackConfig) -> TextDocument:
     """Run the black formatter for the Python source code given as a string
 
-    Return lines of the original file as well as the formatted content.
-
     :param src_contents: The source code
     :param black_config: Configuration to use for running Black
+    :return: The reformatted content
 
     """
     # Collect relevant Black configuration options from ``black_config`` in order to
@@ -174,8 +173,15 @@ def run_black(src_contents: TextDocument, black_config: BlackConfig) -> TextDocu
         mode["string_normalization"] = not black_config["skip_string_normalization"]
 
     contents_for_black = src_contents.string_with_newline("\n")
+    if contents_for_black.strip():
+        dst_contents = format_str(contents_for_black, mode=Mode(**mode))
+    else:
+        if "\n" in src_contents.string:
+            dst_contents = "\n"
+        else:
+            dst_contents = ""
     return TextDocument.from_str(
-        format_str(contents_for_black, mode=Mode(**mode)),
+        dst_contents,
         encoding=src_contents.encoding,
         override_newline=src_contents.newline,
     )
