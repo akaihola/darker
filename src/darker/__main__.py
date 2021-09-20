@@ -2,6 +2,7 @@
 
 import logging
 import sys
+import warnings
 from argparse import Action, ArgumentError
 from datetime import datetime
 from difflib import unified_diff
@@ -20,6 +21,7 @@ from darker.config import OutputMode, dump_config
 from darker.diff import diff_and_get_opcodes, opcodes_to_chunks
 from darker.exceptions import DependencyError, MissingPackageError
 from darker.git import (
+    PRE_COMMIT_FROM_TO_REFS,
     WORKTREE,
     EditedLinenumsDiffer,
     RevisionRange,
@@ -321,12 +323,19 @@ def main(argv: List[str] = None) -> int:
     revrange = RevisionRange.parse(args.revision)
     output_mode = OutputMode.from_args(args)
     write_modified_files = not args.check and output_mode == OutputMode.NOTHING
-    if revrange.rev2 != WORKTREE and write_modified_files:
-        raise ArgumentError(
-            Action(["-r", "--revision"], "revision"),
-            f"Can't write reformatted files for revision '{revrange.rev2}'."
-            " Either --diff or --check must be used.",
-        )
+    if write_modified_files:
+        if args.revision == PRE_COMMIT_FROM_TO_REFS and revrange.rev2 == "HEAD":
+            warnings.warn(
+                "Darker was called by pre-commit, comparing HEAD to an older commit."
+                " As an experimental feature, allowing overwriting of files."
+                " See https://github.com/akaihola/darker/issues/180 for details."
+            )
+        elif revrange.rev2 != WORKTREE:
+            raise ArgumentError(
+                Action(["-r", "--revision"], "revision"),
+                f"Can't write reformatted files for revision '{revrange.rev2}'."
+                " Either --diff or --check must be used.",
+            )
 
     missing = get_missing_at_revision(paths, revrange.rev2)
     if missing:
