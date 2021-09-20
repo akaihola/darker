@@ -948,6 +948,18 @@ Thanks goes to these wonderful people (`emoji key`_):
                   title="Documentation">📖</a>
            </td>
        </tr>
+       <tr>
+           <td align="center">
+               <a href="https://github.com/wnoise">
+                   <img src="https://avatars.githubusercontent.com/u/9107?v=3" width="100px;" alt="@wnoise"/>
+                   <br />
+                   <sub><b>Aaron Denney</b></sub>
+               </a>
+               <br />
+               <a href="https://github.com/akaihola/darker/issues?q=author%3Awnoise"
+                  title="Bug reports">🐛</a>
+           </td>
+       </tr>
    </table>
    <!-- ALL-CONTRIBUTORS-LIST:END -->
 

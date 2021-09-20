@@ -4,6 +4,7 @@
 
 (in alphabetic order and with GitHub handles)
 
+- Aaron Denney (@wnoise)
 - Alexander Tishin (@Mystic-Mirage)
 - Antti Kaihola (@akaihola)
 - Carsten Kraus (@casio)
