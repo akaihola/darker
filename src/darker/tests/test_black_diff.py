@@ -174,3 +174,25 @@ def test_run_black_ignores_excludes():
     )
 
     assert result.string == "a = 1\n"
+
+
+@pytest.mark.parametrize(
+    "src_content, expect",
+    [
+        ("", ""),
+        ("\n", "\n"),
+        ("\r\n", "\r\n"),
+        (" ", ""),
+        ("\t", ""),
+        (" \t", ""),
+        (" \t\n", "\n"),
+        (" \t\r\n", "\r\n"),
+    ],
+)
+def test_run_black_all_whitespace_input(src_content, expect):
+    """All-whitespace files are reformatted correctly"""
+    src = TextDocument.from_str(src_content)
+
+    result = run_black(src, BlackConfig())
+
+    assert result.string == expect
