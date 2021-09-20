@@ -501,6 +501,49 @@ def test_main_historical(git_repo):
         darker.__main__.main(["--revision=foo..bar", "."])
 
 
+def test_main_pre_commit_head(git_repo, monkeypatch):
+    """Warn if run by pre-commit, rev2=HEAD and no ``--diff`` or ``--check`` provided"""
+    git_repo.add({"a.py": "original = 1"}, commit="Add a.py")
+    initial = git_repo.get_hash()
+    git_repo.add({"a.py": "modified  = 2"}, commit="Modify a.py")
+    monkeypatch.setenv("PRE_COMMIT_FROM_REF", initial)
+    monkeypatch.setenv("PRE_COMMIT_TO_REF", "HEAD")
+    with pytest.warns(
+        UserWarning,
+        match=re.escape(
+            "Darker was called by pre-commit, comparing HEAD to an older commit."
+            " As an experimental feature, allowing overwriting of files."
+            " See https://github.com/akaihola/darker/issues/180 for details."
+        ),
+    ):
+
+        result = darker.__main__.main(["--revision=:PRE-COMMIT:", "a.py"])
+
+    assert result == 0
+
+
+def test_main_historical_pre_commit(git_repo, monkeypatch):
+    """Stop if run by pre-commit, rev2 older than HEAD and no ``--diff``/``--check``"""
+    git_repo.add({"README.txt": ""}, commit="Initial commit")
+    initial = git_repo.get_hash()
+    git_repo.add({"a.py": "original"}, commit="Add a.py")
+    older_commit = git_repo.get_hash()
+    git_repo.add({"a.py": "modified"}, commit="Modify a.py")
+    monkeypatch.setenv("PRE_COMMIT_FROM_REF", initial)
+    monkeypatch.setenv("PRE_COMMIT_TO_REF", older_commit)
+    with pytest.raises(
+        ArgumentError,
+        match=(
+            re.escape(
+                f"Can't write reformatted files for revision '{older_commit}'."
+                " Either --diff or --check must be used."
+            )
+        ),
+    ):
+
+        darker.__main__.main(["--revision=:PRE-COMMIT:", "a.py"])
+
+
 def test_print_diff(tmp_path, monkeypatch, capsys):
     """print_diff() prints Black-style diff output with 5 lines of context"""
     monkeypatch.chdir(tmp_path)
