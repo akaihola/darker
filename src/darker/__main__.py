@@ -347,12 +347,10 @@ def main(argv: List[str] = None) -> int:
         # With `-d` / `--stdout`, process the file whether modified or not. Paths have
         # previously been validated to contain exactly one existing file.
         changed_files = paths
+    elif git_is_repository(git_root):
+        changed_files = git_get_modified_python_files(paths, revrange, git_root)
     else:
-        # In other modes, only process files which have been modified.
-        if git_is_repository(git_root):
-            changed_files = git_get_modified_python_files(paths, revrange, git_root)
-        else:
-            changed_files = glob_python_files(paths, git_root)
+        changed_files = glob_python_files(paths, git_root)
     for path, old, new in format_edited_parts(
         git_root,
         changed_files,
