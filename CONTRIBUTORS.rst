@@ -19,6 +19,7 @@
 - Filipp Samoylov (@samoylovfp)
 - Filippos Giannakos (@philipgian)
 - Giel van Schijndel (@muggenhor)
+- Hugo Dupras (@jabesq)
 - Iryna (@irynahryshanovich)
 - Krischtopp (@Krischtopp)
 - Leo Torres (@leotrs)
