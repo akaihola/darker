@@ -22,11 +22,11 @@ from darker.exceptions import DependencyError, MissingPackageError
 from darker.git import (
     WORKTREE,
     EditedLinenumsDiffer,
-    NotGitRespository,
     RevisionRange,
     get_missing_at_revision,
     git_get_content_at_revision,
     git_get_modified_python_files,
+    git_is_repository,
 )
 from darker.help import ISORT_INSTRUCTION
 from darker.import_sorting import apply_isort, isort
@@ -349,9 +349,9 @@ def main(argv: List[str] = None) -> int:
         changed_files = paths
     else:
         # In other modes, only process files which have been modified.
-        try:
+        if git_is_repository(git_root):
             changed_files = git_get_modified_python_files(paths, revrange, git_root)
-        except NotGitRespository:
+        else:
             changed_files = glob_python_files(paths, git_root)
     for path, old, new in format_edited_parts(
         git_root,

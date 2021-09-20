@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from functools import lru_cache
 from pathlib import Path
-from subprocess import DEVNULL, PIPE, CalledProcessError, run
+from subprocess import DEVNULL, PIPE, CalledProcessError, check_output, run
 from typing import Iterable, List, Set
 
 from darker.diff import diff_and_get_opcodes, opcodes_to_edit_linenums
@@ -32,8 +32,19 @@ WORKTREE = ":WORKTREE:"
 PRE_COMMIT_FROM_TO_REFS = ":PRE-COMMIT:"
 
 
-class NotGitRespository(Exception):
-    "Raised when git commands are run in a folder that is not a git repository"
+def git_is_repository(path: Path) -> bool:
+    """Return ``True`` if ``path`` is inside a Git working tree"""
+    try:
+        lines = _git_check_output_lines(
+            ["rev-parse", "--is-inside-work-tree"], path, exit_on_error=False
+        )
+        return lines[:1] == ["true"]
+    except CalledProcessError as exc_info:
+        if exc_info.returncode != 128 or not exc_info.stderr.startswith(
+            "fatal: not a git repository"
+        ):
+            raise
+        return False
 
 
 def git_get_mtime_at_commit(path: Path, revision: str, cwd: Path) -> str:
@@ -153,32 +164,23 @@ def _git_check_output_lines(
     """Log command line, run Git, split stdout to lines, exit with 123 on error"""
     logger.debug("[%s]$ %s", cwd, " ".join(cmd))
     try:
-        result = run(
+        return check_output(
             ["git"] + cmd,
             cwd=str(cwd),
-            check=True,
             encoding="utf-8",
-            stdout=PIPE,
             stderr=PIPE,
             env={"LC_ALL": "C"},
-        )
-        return result.stdout.splitlines()
+        ).splitlines()
     except CalledProcessError as exc_info:
-        retval = exc_info.returncode
-        msg = exc_info.stderr
-        if (retval == 129 and msg.startswith("Not a git repository")) or (
-            retval == 1 and msg.startswith("error: could not access ")
-        ):
-            raise NotGitRespository(f"{cwd} is not a git repository") from exc_info
         if not exit_on_error:
             raise
-        if retval != 128:
-            sys.stderr.write(msg)
+        if exc_info.returncode != 128:
+            sys.stderr.write(exc_info.stderr)
             raise
 
         # Bad revision or another Git failure. Follow Black's example and return the
         # error status 123.
-        for error_line in msg.splitlines():
+        for error_line in exc_info.stderr.splitlines():
             logger.error(error_line)
         sys.exit(123)
 
