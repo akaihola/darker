@@ -4,6 +4,7 @@
 
 (in alphabetic order and with GitHub handles)
 
+- Aaron Denney (@wnoise)
 - Alexander Tishin (@Mystic-Mirage)
 - Antti Kaihola (@akaihola)
 - Carsten Kraus (@casio)
@@ -18,6 +19,7 @@
 - Filipp Samoylov (@samoylovfp)
 - Filippos Giannakos (@philipgian)
 - Giel van Schijndel (@muggenhor)
+- Hugo Dupras (@jabesq)
 - Iryna (@irynahryshanovich)
 - Krischtopp (@Krischtopp)
 - Leo Torres (@leotrs)
