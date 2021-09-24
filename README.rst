@@ -536,6 +536,8 @@ Some of them we might want to integrate to be part of a Darker run.
 - diff-cov-lint__ – Pylint and coverage reports for git diff only
 - xenon__ – Monitor code complexity
 - pyupgrade__ – Upgrade syntax for newer versions of the language (see `#51`_)
+- yapf_ – Google's Python formatter
+- yapf_diff__ – apply yapf_ or other formatters to modified lines only
 
 __ https://github.com/asottile/blacken-docs
 __ https://github.com/keewis/blackdoc
@@ -544,6 +546,8 @@ __ https://pypi.org/project/numpydoc
 __ https://gitlab.com/sVerentsov/diff-cov-lint
 __ https://github.com/rubik/xenon
 __ https://github.com/asottile/pyupgrade
+__ https://github.com/google/yapf/blob/main/yapf/third_party/yapf_diff/yapf_diff.py
+.. _yapf: https://github.com/google/yapf
 .. _#51: https://github.com/akaihola/darker/pull/51
 
 
