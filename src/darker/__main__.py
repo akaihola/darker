@@ -132,14 +132,14 @@ def _reformat_single_file(  # pylint: disable=too-many-arguments,too-many-locals
 
     # 5. get the diff between the edited and reformatted file
     opcodes = diff_and_get_opcodes(rev2_isorted, formatted)
-    
+
     # 6. convert the diff into chunks
     black_chunks = list(opcodes_to_chunks(opcodes, rev2_isorted, formatted))
 
     # Exit early if nothing to do
     if not black_chunks:
         return rev2_isorted
-    
+
     max_context_lines = len(rev2_isorted.lines)
     minimum_context_lines = BinarySearch(0, max_context_lines + 1)
     last_successful_reformat = None
