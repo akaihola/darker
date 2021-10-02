@@ -15,6 +15,7 @@ Fixed
 - ``/foo $ darker --diff /bar/my-repo`` now works: the current working directory can be
   in a different part of the directory hierarchy
 - An incompatible ``isort`` version now causes a short user-friendly error message
+- Improve bisect performance by not recomputing invariant data within bisect loop
 
 
 1.3.0_ - 2021-09-04
