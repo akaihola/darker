@@ -5,6 +5,16 @@ These features will be included in the next release:
 
 Added
 -----
+
+Fixed
+-----
+
+
+1.3.1_ - 2021-09-dd
+===================
+
+Added
+-----
 - Empty and all-whitespace files are now reformatted properly
 - Darker now allows itself to modify files when called with ``pre-commit -o HEAD``, but
   also emits a warning about this being an experimental feature
@@ -199,7 +209,8 @@ Added
 -----
 - Initial implementation
 
-.. _Unreleased: https://github.com/akaihola/darker/compare/1.3.0...HEAD
+.. _Unreleased: https://github.com/akaihola/darker/compare/1.3.1...HEAD
+.. _1.3.1: https://github.com/akaihola/darker/compare/1.3.0...1.3.1
 .. _1.3.0: https://github.com/akaihola/darker/compare/1.2.4...1.3.0
 .. _1.2.4: https://github.com/akaihola/darker/compare/1.2.3...1.2.4
 .. _1.2.3: https://github.com/akaihola/darker/compare/1.2.2...1.2.3
