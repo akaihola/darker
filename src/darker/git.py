@@ -254,13 +254,13 @@ def git_get_modified_files(
 class EditedLinenumsDiffer:
     """Find out changed lines for a file between given Git revisions"""
 
-    git_root: Path
+    root: Path
     revrange: RevisionRange
 
     @lru_cache(maxsize=1)
     def compare_revisions(self, path_in_repo: Path, context_lines: int) -> List[int]:
         """Return numbers of lines changed between a given revision and the worktree"""
-        content = TextDocument.from_file(self.git_root / path_in_repo)
+        content = TextDocument.from_file(self.root / path_in_repo)
         return self.revision_vs_lines(path_in_repo, content, context_lines)
 
     def revision_vs_lines(
@@ -274,8 +274,6 @@ class EditedLinenumsDiffer:
         :return: Line numbers of lines changed between the revision and given content
 
         """
-        old = git_get_content_at_revision(
-            path_in_repo, self.revrange.rev1, self.git_root
-        )
+        old = git_get_content_at_revision(path_in_repo, self.revrange.rev1, self.root)
         edited_opcodes = diff_and_get_opcodes(old, content)
         return list(opcodes_to_edit_linenums(edited_opcodes, context_lines))

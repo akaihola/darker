@@ -509,17 +509,32 @@ def test_black_options_skip_magic_trailing_comma(git_repo, config, options, expe
         options=["a.py"],
         # Expected arguments to the `format_edited_parts()` call.
         # `Path("git_root")` will be replaced with the temporary Git repository root:
-        expect=(Path("git_root"), {Path("a.py")}, RevisionRange("HEAD"), False, {}),
+        expect=(
+            Path("git_root"),
+            {Path("a.py")},
+            set(),
+            RevisionRange("HEAD"),
+            False,
+            {},
+        ),
     ),
     dict(
         options=["--isort", "a.py"],
-        expect=(Path("git_root"), {Path("a.py")}, RevisionRange("HEAD"), True, {}),
+        expect=(
+            Path("git_root"),
+            {Path("a.py")},
+            set(),
+            RevisionRange("HEAD"),
+            True,
+            {},
+        ),
     ),
     dict(
         options=["--config", "my.cfg", "a.py"],
         expect=(
             Path("git_root"),
             {Path("a.py")},
+            set(),
             RevisionRange("HEAD"),
             False,
             {"config": "my.cfg"},
@@ -530,6 +545,7 @@ def test_black_options_skip_magic_trailing_comma(git_repo, config, options, expe
         expect=(
             Path("git_root"),
             {Path("a.py")},
+            set(),
             RevisionRange("HEAD"),
             False,
             {"line_length": 90},
@@ -540,6 +556,7 @@ def test_black_options_skip_magic_trailing_comma(git_repo, config, options, expe
         expect=(
             Path("git_root"),
             {Path("a.py")},
+            set(),
             RevisionRange("HEAD"),
             False,
             {"skip_string_normalization": True},
@@ -547,7 +564,14 @@ def test_black_options_skip_magic_trailing_comma(git_repo, config, options, expe
     ),
     dict(
         options=["--diff", "a.py"],
-        expect=(Path("git_root"), {Path("a.py")}, RevisionRange("HEAD"), False, {}),
+        expect=(
+            Path("git_root"),
+            {Path("a.py")},
+            set(),
+            RevisionRange("HEAD"),
+            False,
+            {},
+        ),
     ),
 )
 def test_options(git_repo, options, expect):

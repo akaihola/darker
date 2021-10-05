@@ -30,7 +30,7 @@ logger = logging.getLogger(__name__)
 
 
 def _parse_linter_line(
-    line: str, git_root: Path
+    line: str, root: Path
 ) -> Union[Tuple[Path, int], Tuple[None, None]]:
     # Parse an error/note line.
     # Given: line == "dir/file.py:123: error: Foo\n"
@@ -54,18 +54,18 @@ def _parse_linter_line(
         logger.debug("Unparseable linter output: %s", line[:-1])
         return None, None
     path_from_cwd = Path(path_str).absolute()
-    path_in_repo = path_from_cwd.relative_to(git_root)
+    path_in_repo = path_from_cwd.relative_to(root)
     return path_in_repo, linenum
 
 
 def run_linter(
-    cmdline: str, git_root: Path, paths: Set[Path], revrange: RevisionRange
+    cmdline: str, root: Path, paths: Set[Path], revrange: RevisionRange
 ) -> Optional[int]:
     """Run the given linter and print linting errors falling on changed lines
 
     :param cmdline: The command line for running the linter
-    :param git_root: The repository root for the changed files
-    :param paths: Paths of files to check, relative to ``git_root``
+    :param root: The root for the relative paths
+    :param paths: Paths of files to check, relative to ``root``
     :param revrange: The Git revision rango to compare
     :return: The number of modified lines with linting errors from this linter, or
              ``None`` if there are no paths to check
@@ -80,15 +80,15 @@ def run_linter(
         )
     error_count = 0
     linter_process = Popen(
-        cmdline.split() + [str(git_root / path) for path in sorted(paths)],
+        cmdline.split() + [str(root / path) for path in sorted(paths)],
         stdout=PIPE,
         encoding="utf-8",
     )
     # assert needed for MyPy (see https://stackoverflow.com/q/57350490/15770)
     assert linter_process.stdout is not None
-    edited_linenums_differ = EditedLinenumsDiffer(git_root, revrange)
+    edited_linenums_differ = EditedLinenumsDiffer(root, revrange)
     for line in linter_process.stdout:
-        path_in_repo, linter_error_linenum = _parse_linter_line(line, git_root)
+        path_in_repo, linter_error_linenum = _parse_linter_line(line, root)
         if path_in_repo is None:
             continue
         edited_linenums = edited_linenums_differ.compare_revisions(
@@ -102,16 +102,16 @@ def run_linter(
 
 def run_linters(
     linter_cmdlines: List[str],
-    git_root: Path,
+    root: Path,
     paths: Set[Path],
     revrange: RevisionRange,
 ) -> bool:
     """Run the given linters on a set of files in the repository
 
     :param linter_cmdlines: The command lines for linter tools to run on the files
-    :param git_root: The root of the Git repository the files are in
-    :param paths: The files to check in the repository. This should only include files
-                  which have been modified in the repository between the given Git
+    :param root: The root of the relative paths
+    :param paths: The files to check, relative to ``root``. This should only include
+                  files which have been modified in the repository between the given Git
                   revisions.
     :param revrange: The Git revisions to compare
     :return: ``True`` if at least one linting error was found on a modified line
@@ -124,6 +124,6 @@ def run_linters(
         #     for each file reported by a linter
         # 12. extract line numbers in each file reported by a linter for changed lines
         # 13. print only linter error lines which fall on changed lines
-        if run_linter(linter_cmdline, git_root, paths, revrange):
+        if run_linter(linter_cmdline, root, paths, revrange):
             some_linters_failed = True
     return some_linters_failed

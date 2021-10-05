@@ -7,7 +7,7 @@ import regex as re
 from darker import black_diff
 from darker.black_diff import (
     BlackConfig,
-    apply_black_excludes,
+    filter_python_files,
     read_black_config,
     run_black,
 )
@@ -95,8 +95,11 @@ def test_black_config(tmpdir, config_path, config_lines, expect):
     extend_exclude=None,
     force_exclude=None,
 )
-def test_apply_black_excludes(tmp_path, exclude, extend_exclude, force_exclude, expect):
-    """``apply_black_excludes()`` skips excluded files correctly"""
+def test_filter_python_files(
+    tmp_path, monkeypatch, exclude, extend_exclude, force_exclude, expect
+):
+    """``filter_python_files()`` skips excluded files correctly"""
+    monkeypatch.chdir(tmp_path)
     names = {
         Path(name)
         for name in {
@@ -108,6 +111,14 @@ def test_apply_black_excludes(tmp_path, exclude, extend_exclude, force_exclude, 
             "exclude+force.py",
             "extend+force.py",
             "exclude+extend+force.py",
+            "none+explicit.py",
+            "exclude+explicit.py",
+            "extend+explicit.py",
+            "force+explicit.py",
+            "exclude+extend+explicit.py",
+            "exclude+force+explicit.py",
+            "extend+force+explicit.py",
+            "exclude+extend+force+explicit.py",
         }
     }
     paths = {tmp_path / name for name in names}
@@ -120,10 +131,23 @@ def test_apply_black_excludes(tmp_path, exclude, extend_exclude, force_exclude, 
             "force_exclude": re.compile(force_exclude) if force_exclude else None,
         }
     )
+    explicit = {
+        Path("none+explicit.py"),
+        Path("exclude+explicit.py"),
+        Path("extend+explicit.py"),
+        Path("force+explicit.py"),
+        Path("exclude+extend+explicit.py"),
+        Path("exclude+force+explicit.py"),
+        Path("extend+force+explicit.py"),
+        Path("exclude+extend+force+explicit.py"),
+    }
 
-    result = apply_black_excludes(names, tmp_path, black_config)
+    result = filter_python_files({Path(".")} | explicit, tmp_path, black_config)
 
-    assert result == {tmp_path / f"{path}.py" for path in expect}
+    expect_paths = {tmp_path / f"{path}.py" for path in expect} | {
+        tmp_path / p for p in explicit
+    }
+    assert result == expect_paths
 
 
 @pytest.mark.parametrize("encoding", ["utf-8", "iso-8859-1"])

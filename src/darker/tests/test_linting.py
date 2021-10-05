@@ -211,7 +211,7 @@ def test_run_linters(linter_cmdlines, linters_return, expect_result):
 
         result = linting.run_linters(
             linter_cmdlines,
-            Path("dummy git_root"),
+            Path("dummy root"),
             {Path("dummy paths")},
             RevisionRange("dummy revrange"),
         )
@@ -219,7 +219,7 @@ def test_run_linters(linter_cmdlines, linters_return, expect_result):
         expect_calls = [
             call(
                 linter_cmdline,
-                Path("dummy git_root"),
+                Path("dummy root"),
                 {Path("dummy paths")},
                 RevisionRange("dummy revrange"),
             )
