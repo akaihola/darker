@@ -214,8 +214,7 @@ def _get_rev1_path(path: Path) -> Path:
     # This is a VSCode temporary file. Drop the hash and the `.tmp` suffix to get the
     # original file name for retrieving the previous revision to diff against.
     path_with_hash = path.with_suffix("")
-    original_path = path_with_hash.with_suffix("")
-    return original_path
+    return path_with_hash.with_suffix("")
 
 
 def modify_file(path: Path, new_content: TextDocument) -> None:
