@@ -4,7 +4,7 @@ import logging
 import os
 import re
 import sys
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from functools import lru_cache
 from pathlib import Path
@@ -139,6 +139,20 @@ class RevisionRange:
         )
 
 
+def _git_get_old_revision(revrange: RevisionRange, cwd: Path) -> str:
+    """Find out the common ancestor using Git if necessary
+
+    For ``RevisionRange(..., use_common_ancestor=True)`` objects, use ``git merge-base``
+    to find the common ancestor. Otherwise just return ``revrange.rev1``.
+
+    """
+    if not revrange.use_common_ancestor:
+        return revrange.rev1
+    rev2 = "HEAD" if revrange.rev2 == WORKTREE else revrange.rev2
+    merge_base_cmd = ["merge-base", revrange.rev1, rev2]
+    return _git_check_output_lines(merge_base_cmd, cwd)[0]
+
+
 def should_reformat_file(path: Path) -> bool:
     return path.exists() and path.suffix == ".py"
 
@@ -219,12 +233,7 @@ def git_get_modified_files(
     """
     relative_paths = {p.resolve().relative_to(cwd) for p in paths}
     str_paths = [path.as_posix() for path in relative_paths]
-    if revrange.use_common_ancestor:
-        rev2 = "HEAD" if revrange.rev2 == WORKTREE else revrange.rev2
-        merge_base_cmd = ["merge-base", revrange.rev1, rev2]
-        rev1 = _git_check_output_lines(merge_base_cmd, cwd)[0]
-    else:
-        rev1 = revrange.rev1
+    rev1 = _git_get_old_revision(revrange, cwd)
     diff_cmd = [
         "diff",
         "--name-only",
@@ -256,6 +265,11 @@ class EditedLinenumsDiffer:
 
     git_root: Path
     revrange: RevisionRange
+    _old_revision: str = field(init=False)
+
+    def __post_init__(self) -> None:
+        old_revision = _git_get_old_revision(self.revrange, self.git_root)
+        object.__setattr__(self, "_old_revision", old_revision)
 
     @lru_cache(maxsize=1)
     def compare_revisions(self, path_in_repo: Path, context_lines: int) -> List[int]:
@@ -275,7 +289,7 @@ class EditedLinenumsDiffer:
 
         """
         old = git_get_content_at_revision(
-            path_in_repo, self.revrange.rev1, self.git_root
+            path_in_repo, self._old_revision, self.git_root
         )
         edited_opcodes = diff_and_get_opcodes(old, content)
         return list(opcodes_to_edit_linenums(edited_opcodes, context_lines))

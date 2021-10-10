@@ -8,6 +8,8 @@ Added
 
 Fixed
 -----
+- ``--revision rev1...rev2`` now actually applies reformatting and filters linter output
+  to only lines modified compared to the common ancestor of ``rev1`` and ``rev2``
 
 
 1.3.1_ - 2021-10-05
