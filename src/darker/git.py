@@ -202,6 +202,56 @@ def get_missing_at_revision(paths: Iterable[Path], rev2: str) -> Set[Path]:
     return {path for path in paths if not _git_exists_in_revision(path, rev2)}
 
 
+def _git_diff_name_only(
+    rev1: str, rev2: str, relative_paths: Set[Path], cwd: Path
+) -> Set[Path]:
+    """Collect names of changed files between commits from Git
+
+    :param rev1: The old commit to compare to
+    :param rev2: The new commit to compare, or the string ``":WORKTREE:"`` to compare
+                 current working tree to ``rev1``
+    :param relative_paths: Relative paths to the files to compare
+    :param cwd: The Git repository root
+    :return: Relative paths of changed files
+
+    """
+    diff_cmd = [
+        "diff",
+        "--name-only",
+        "--relative",
+        rev1,
+        # rev2 is inserted here if not WORKTREE
+        "--",
+        *{path.as_posix() for path in relative_paths},
+    ]
+    if rev2 != WORKTREE:
+        diff_cmd.insert(diff_cmd.index("--"), rev2)
+    lines = _git_check_output_lines(diff_cmd, cwd)
+    return {Path(line) for line in lines}
+
+
+def _git_ls_files_others(relative_paths: Set[Path], cwd: Path) -> Set[Path]:
+    """Collect names of untracked non-excluded files from Git
+
+    This will return those files in ``relative_paths`` which are untracked and not
+    excluded by ``.gitignore`` or other Git's exclusion mechanisms.
+
+    :param relative_paths: Relative paths to the files to consider
+    :param cwd: The Git repository root
+    :return: Relative paths of untracked files
+
+    """
+    ls_files_cmd = [
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "--",
+        *{path.as_posix() for path in relative_paths},
+    ]
+    lines = _git_check_output_lines(ls_files_cmd, cwd)
+    return {Path(line) for line in lines}
+
+
 def git_get_modified_files(
     paths: Iterable[Path], revrange: RevisionRange, cwd: Path
 ) -> Set[Path]:
@@ -210,43 +260,22 @@ def git_get_modified_files(
     - ``git diff --name-only --relative <rev> -- <path(s)>``
     - ``git ls-files --others --exclude-standard -- <path(s)>``
 
-    Return file names relative to the Git repository root.
-
     :param paths: Paths to the files to diff
     :param revrange: Git revision range to compare
     :param cwd: The Git repository root
+    :return: File names relative to the Git repository root
 
     """
     relative_paths = {p.resolve().relative_to(cwd) for p in paths}
-    str_paths = [path.as_posix() for path in relative_paths]
     if revrange.use_common_ancestor:
         rev2 = "HEAD" if revrange.rev2 == WORKTREE else revrange.rev2
         merge_base_cmd = ["merge-base", revrange.rev1, rev2]
         rev1 = _git_check_output_lines(merge_base_cmd, cwd)[0]
     else:
         rev1 = revrange.rev1
-    diff_cmd = [
-        "diff",
-        "--name-only",
-        "--relative",
-        rev1,
-        # revrange.rev2 is inserted here if not WORKTREE
-        "--",
-        *str_paths,
-    ]
-    if revrange.rev2 != WORKTREE:
-        diff_cmd.insert(diff_cmd.index("--"), revrange.rev2)
-    lines = _git_check_output_lines(diff_cmd, cwd)
+    changed_paths = _git_diff_name_only(rev1, revrange.rev2, relative_paths, cwd)
     if revrange.rev2 == WORKTREE:
-        ls_files_cmd = [
-            "ls-files",
-            "--others",
-            "--exclude-standard",
-            "--",
-            *str_paths,
-        ]
-        lines.extend(_git_check_output_lines(ls_files_cmd, cwd))
-    changed_paths = (Path(line) for line in lines)
+        changed_paths.update(_git_ls_files_others(relative_paths, cwd))
     return {path for path in changed_paths if should_reformat_file(cwd / path)}
 
 
