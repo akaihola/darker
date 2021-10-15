@@ -20,9 +20,10 @@ provided that the ``<linenum>`` falls on a changed line.
 """
 
 import logging
+from contextlib import contextmanager
 from pathlib import Path
 from subprocess import PIPE, Popen
-from typing import List, Optional, Set, Tuple, Union
+from typing import IO, Generator, List, Optional, Set, Tuple, Union
 
 from darker.git import WORKTREE, EditedLinenumsDiffer, RevisionRange
 
@@ -58,6 +59,43 @@ def _parse_linter_line(
     return path_in_repo, linenum
 
 
+def _require_rev2_worktree(rev2: str) -> None:
+    """Exit with an error message if ``rev2`` is not ``WORKTREE``
+
+    This is used when running linters since linting arbitrary commits is not supported.
+
+    :param rev2: The ``rev2`` revision to lint.
+
+    """
+    if rev2 is not WORKTREE:
+        raise NotImplementedError(
+            "Linting arbitrary commits is not supported. "
+            "Please use -r {<rev>|<rev>..|<rev>...} instead."
+        )
+
+
+@contextmanager
+def _check_linter_output(
+    cmdline: str, git_root: Path, paths: Set[Path]
+) -> Generator[IO[str], None, None]:
+    """Run a linter as a subprocess and return its standard output stream
+
+    :param cmdline: The command line for running the linter
+    :param git_root: The repository root for the changed files
+    :param paths: Paths of files to check, relative to ``git_root``
+    :return: The standard output stream of the linter subprocess
+
+    """
+    with Popen(
+        cmdline.split() + [str(git_root / path) for path in sorted(paths)],
+        stdout=PIPE,
+        encoding="utf-8",
+    ) as linter_process:
+        # assert needed for MyPy (see https://stackoverflow.com/q/57350490/15770)
+        assert linter_process.stdout is not None
+        yield linter_process.stdout
+
+
 def run_linter(
     cmdline: str, git_root: Path, paths: Set[Path], revrange: RevisionRange
 ) -> Optional[int]:
@@ -73,30 +111,26 @@ def run_linter(
     """
     if not paths:
         return None
-    if revrange.rev2 is not WORKTREE:
-        raise NotImplementedError(
-            "Linting arbitrary commits is not supported. "
-            "Please use -r {<rev>|<rev>..|<rev>...} instead."
-        )
+    _require_rev2_worktree(revrange.rev2)
     error_count = 0
-    linter_process = Popen(
-        cmdline.split() + [str(git_root / path) for path in sorted(paths)],
-        stdout=PIPE,
-        encoding="utf-8",
-    )
-    # assert needed for MyPy (see https://stackoverflow.com/q/57350490/15770)
-    assert linter_process.stdout is not None
     edited_linenums_differ = EditedLinenumsDiffer(git_root, revrange)
-    for line in linter_process.stdout:
-        path_in_repo, linter_error_linenum = _parse_linter_line(line, git_root)
-        if path_in_repo is None:
-            continue
-        edited_linenums = edited_linenums_differ.compare_revisions(
-            path_in_repo, context_lines=0
-        )
-        if linter_error_linenum in edited_linenums:
-            print(line, end="")
-            error_count += 1
+    missing_files = set()
+    with _check_linter_output(cmdline, git_root, paths) as linter_stdout:
+        for line in linter_stdout:
+            path_in_repo, linter_error_linenum = _parse_linter_line(line, git_root)
+            if path_in_repo is None or path_in_repo in missing_files:
+                continue
+            try:
+                edited_linenums = edited_linenums_differ.compare_revisions(
+                    path_in_repo, context_lines=0
+                )
+            except FileNotFoundError:
+                logger.warning("Missing file %s from %s", path_in_repo, cmdline)
+                missing_files.add(path_in_repo)
+                continue
+            if linter_error_linenum in edited_linenums:
+                print(line, end="")
+                error_count += 1
     return error_count
 
 
