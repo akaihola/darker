@@ -405,6 +405,34 @@ def test_git_diff_name_only(git_repo):
     assert result == {Path("a.py")}
 
 
+def test_git_ls_files_others(git_repo):
+    """``_git_ls_files_others()`` only returns paths of untracked non-ignored files"""
+    git_repo.add(
+        {
+            "tracked.py": "tracked",
+            "tracked.ignored": "tracked",
+            ".gitignore": "*.ignored",
+        },
+        commit="Initial commit",
+    )
+    (git_repo.root / "untracked.py").write_text("untracked")
+    (git_repo.root / "untracked.ignored").write_text("untracked")
+
+    result = git._git_ls_files_others(
+        {
+            Path("tracked.py"),
+            Path("tracked.ignored"),
+            Path("untracked.py"),
+            Path("untracked.ignored"),
+            Path("missing.py"),
+            Path("missing.ignored"),
+        },
+        git_repo.root,
+    )
+
+    assert result == {Path("untracked.py")}
+
+
 @pytest.mark.kwparametrize(
     dict(paths=["a.py"], expect=[]),
     dict(expect=[]),
