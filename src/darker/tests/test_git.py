@@ -391,6 +391,20 @@ def test_get_missing_at_revision_worktree(git_repo):
     assert result == {Path("dir/a.py"), Path("dir/b.py")}
 
 
+def test_git_diff_name_only(git_repo):
+    """``_git_diff_name_only()`` only returns paths of modified files"""
+    git_repo.add({"a.py": "a", "b.py": "b", "c.py": "c"}, commit="Initial commit")
+    first = git_repo.get_hash()
+    git_repo.add({"a.py": "A", "b.dy": "B"}, commit="only a.py modified")
+    second = git_repo.get_hash()
+
+    result = git._git_diff_name_only(
+        first, second, {Path("a.py"), Path("c.py"), Path("Z.py")}, git_repo.root
+    )
+
+    assert result == {Path("a.py")}
+
+
 @pytest.mark.kwparametrize(
     dict(paths=["a.py"], expect=[]),
     dict(expect=[]),
