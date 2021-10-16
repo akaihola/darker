@@ -391,6 +391,48 @@ def test_get_missing_at_revision_worktree(git_repo):
     assert result == {Path("dir/a.py"), Path("dir/b.py")}
 
 
+def test_git_diff_name_only(git_repo):
+    """``_git_diff_name_only()`` only returns paths of modified files"""
+    git_repo.add({"a.py": "a", "b.py": "b", "c.py": "c"}, commit="Initial commit")
+    first = git_repo.get_hash()
+    git_repo.add({"a.py": "A", "b.dy": "B"}, commit="only a.py modified")
+    second = git_repo.get_hash()
+
+    result = git._git_diff_name_only(
+        first, second, {Path("a.py"), Path("c.py"), Path("Z.py")}, git_repo.root
+    )
+
+    assert result == {Path("a.py")}
+
+
+def test_git_ls_files_others(git_repo):
+    """``_git_ls_files_others()`` only returns paths of untracked non-ignored files"""
+    git_repo.add(
+        {
+            "tracked.py": "tracked",
+            "tracked.ignored": "tracked",
+            ".gitignore": "*.ignored",
+        },
+        commit="Initial commit",
+    )
+    (git_repo.root / "untracked.py").write_text("untracked")
+    (git_repo.root / "untracked.ignored").write_text("untracked")
+
+    result = git._git_ls_files_others(
+        {
+            Path("tracked.py"),
+            Path("tracked.ignored"),
+            Path("untracked.py"),
+            Path("untracked.ignored"),
+            Path("missing.py"),
+            Path("missing.ignored"),
+        },
+        git_repo.root,
+    )
+
+    assert result == {Path("untracked.py")}
+
+
 @pytest.mark.kwparametrize(
     dict(paths=["a.py"], expect=[]),
     dict(expect=[]),
