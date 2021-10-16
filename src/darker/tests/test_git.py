@@ -170,7 +170,13 @@ def test_git_get_content_at_revision_obtain_file_content(
         git.git_get_content_at_revision(Path("my.txt"), revision, Path("/path"))
 
         expected_calls = [
-            call(expected_call.split(), cwd="/path", encoding="utf-8", stderr=PIPE)
+            call(
+                expected_call.split(),
+                cwd=str(Path("/path")),
+                encoding="utf-8",
+                stderr=PIPE,
+                env={"LC_ALL": "C"},
+            )
             for expected_call in expect_git_calls
         ]
         assert check_output.call_args_list == expected_calls
