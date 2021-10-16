@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from subprocess import DEVNULL, PIPE, CalledProcessError, check_call
 from typing import List, Union
-from unittest.mock import patch
+from unittest.mock import call, patch
 
 import pytest
 
@@ -121,6 +121,10 @@ def test_revisionrange_parse(revision_range, expect):
 
 @pytest.mark.kwparametrize(
     dict(
+        revision=":WORKTREE:",
+        expect=[],
+    ),
+    dict(
         revision="HEAD",
         expect=[
             "git show HEAD:./my.txt",
@@ -142,23 +146,20 @@ def test_revisionrange_parse(revision_range, expect):
         ],
     ),
 )
-def test_git_get_content_at_revision_git_calls(revision, expect):
-    """get_git_content_at_revision() calls Git correctly"""
+def test_git_get_content_at_revision_git_calls(tmp_path, revision, expect):
+    """``git_get_content_at_revision`` makes expected Git subprocess calls"""
+    (tmp_path / "my.txt").touch()
+    expected_calls = [
+        call(expected_call.split(), cwd=str(tmp_path), encoding="utf-8", stderr=PIPE)
+        for expected_call in expect
+    ]
     with patch("darker.git.check_output") as check_output:
         # a dummy Unix timestamp:
         check_output.return_value = b"1000000"
 
-        git.git_get_content_at_revision(Path("my.txt"), revision, Path("cwd"))
+        git.git_get_content_at_revision(Path("my.txt"), revision, tmp_path)
 
-        assert check_output.call_count == len(expect)
-        for expect_call in expect:
-            check_output.assert_any_call(
-                expect_call.split(),
-                cwd="cwd",
-                encoding="utf-8",
-                stderr=PIPE,
-                env={"LC_ALL": "C"},
-            )
+        assert check_output.call_args_list == expected_calls
 
 
 @pytest.mark.kwparametrize(
