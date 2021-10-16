@@ -131,7 +131,7 @@ def test_revisionrange_parse(revision_range, expect):
             "git log -1 --format=%ct HEAD -- my.txt",
         ],
         expect_textdocument_calls=[
-            call.from_lines([b'1627107028'], mtime='2021-07-24 06:10:28.000000 +0000')
+            call.from_lines([b"1627107028"], mtime="2021-07-24 06:10:28.000000 +0000")
         ],
     ),
     dict(
@@ -141,7 +141,7 @@ def test_revisionrange_parse(revision_range, expect):
             "git log -1 --format=%ct HEAD^ -- my.txt",
         ],
         expect_textdocument_calls=[
-            call.from_lines([b'1627107028'], mtime='2021-07-24 06:10:28.000000 +0000')
+            call.from_lines([b"1627107028"], mtime="2021-07-24 06:10:28.000000 +0000")
         ],
     ),
     dict(
@@ -151,7 +151,7 @@ def test_revisionrange_parse(revision_range, expect):
             "git log -1 --format=%ct master -- my.txt",
         ],
         expect_textdocument_calls=[
-            call.from_lines([b'1627107028'], mtime='2021-07-24 06:10:28.000000 +0000')
+            call.from_lines([b"1627107028"], mtime="2021-07-24 06:10:28.000000 +0000")
         ],
     ),
     expect_git_calls=[],
