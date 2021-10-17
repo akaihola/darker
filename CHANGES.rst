@@ -8,6 +8,11 @@ Added
 
 Fixed
 -----
+- ``.py.<hash>.tmp`` files from VSCode are now correctly compared to corresponding
+  ``.py`` files in earlier revisions of the Git reposiotry
+- Honor exclusion patterns from Black configuration when choosing files to reformat.
+  This only applies when recursing directories specified on the command line, and only
+  affects Black reformatting, not ``isort`` or linters.
 
 
 1.3.1_ - 2021-10-05
