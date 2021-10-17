@@ -42,6 +42,9 @@ def test_ast_verifier_is_equivalent():
     assert not verifier.is_equivalent_to_baseline(
         TextDocument.from_lines(["if False: pass"])
     )
+    assert not verifier.is_equivalent_to_baseline(
+        TextDocument.from_lines(["if False:"])
+    )
 
 
 def test_ast_verifier_assert_equivalent():
@@ -54,6 +57,8 @@ def test_ast_verifier_assert_equivalent():
         verifier.assert_equivalent_to_baseline(
             TextDocument.from_lines(["if False: pass"])
         )
+    with pytest.raises(NotEquivalentError):
+        verifier.assert_equivalent_to_baseline(TextDocument.from_lines(["if False:"]))
 
 
 def test_binary_search_premature_result():
