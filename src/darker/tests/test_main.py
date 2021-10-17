@@ -114,49 +114,45 @@ A_PY_DIFF_BLACK_ISORT = [
 
 
 @pytest.mark.kwparametrize(
-    dict(enable_isort=False, black_config={}, expect=[A_PY_BLACK]),
-    dict(enable_isort=True, black_config={}, expect=[A_PY_BLACK_ISORT]),
+    dict(
+        enable_isort=False,
+        black_config={},
+        black_exclude=set(),
+        expect=[A_PY_BLACK],
+    ),
+    dict(
+        enable_isort=True,
+        black_config={},
+        black_exclude=set(),
+        expect=[A_PY_BLACK_ISORT],
+    ),
     dict(
         enable_isort=False,
         black_config={"skip_string_normalization": True},
+        black_exclude=set(),
         expect=[A_PY_BLACK_UNNORMALIZE],
     ),
     dict(
         enable_isort=False,
-        black_config={"exclude": re.compile(r"/a\.py$")},
+        black_exclude={Path("a.py")},
         expect=[],
     ),
     dict(
         enable_isort=True,
-        black_config={"exclude": re.compile(r"/a\.py$")},
+        black_exclude={Path("a.py")},
         expect=[A_PY_ISORT],
     ),
-    dict(
-        enable_isort=False,
-        black_config={"extend_exclude": re.compile(r"/a\.py$")},
-        expect=[],
-    ),
-    dict(
-        enable_isort=True,
-        black_config={"extend_exclude": re.compile(r"/a\.py$")},
-        expect=[A_PY_ISORT],
-    ),
-    dict(
-        enable_isort=False,
-        black_config={"force_exclude": re.compile(r"/a\.py$")},
-        expect=[],
-    ),
-    dict(
-        enable_isort=True,
-        black_config={"force_exclude": re.compile(r"/a\.py$")},
-        expect=[A_PY_ISORT],
-    ),
+    black_config={},
 )
 @pytest.mark.parametrize("newline", ["\n", "\r\n"], ids=["unix", "windows"])
-def test_format_edited_parts(git_repo, enable_isort, black_config, newline, expect):
+def test_format_edited_parts(
+    git_repo, enable_isort, black_config, black_exclude, newline, expect
+):
     """Correct reformatting and import sorting changes are produced
 
-    Also, Black reformatting is skipped for files excluded in Black configuration
+    Black reformatting is done even if a file is excluded in Black configuration.
+    File exclusion is done in Darker before calling
+    :func:`~darker.__main__.format_edited_parts`.
 
     """
     paths = git_repo.add({"a.py": newline, "b.py": newline}, commit="Initial commit")
@@ -165,7 +161,8 @@ def test_format_edited_parts(git_repo, enable_isort, black_config, newline, expe
 
     result = darker.__main__.format_edited_parts(
         Path(git_repo.root),
-        [Path("a.py")],
+        {Path("a.py")},
+        black_exclude,
         RevisionRange("HEAD"),
         enable_isort,
         black_config,
@@ -199,6 +196,7 @@ def test_format_edited_parts_all_unchanged(git_repo, monkeypatch):
         darker.__main__.format_edited_parts(
             Path(git_repo.root),
             {Path("a.py"), Path("b.py")},
+            set(),
             RevisionRange("HEAD"),
             True,
             {},
@@ -221,7 +219,8 @@ def test_format_edited_parts_ast_changed(git_repo, caplog):
         _ = list(
             darker.__main__.format_edited_parts(
                 git_repo.root,
-                [Path("a.py")],
+                {Path("a.py")},
+                set(),
                 RevisionRange("HEAD"),
                 enable_isort=False,
                 black_config={},
@@ -266,6 +265,7 @@ def test_format_edited_parts_isort_on_already_formatted(git_repo):
     result = darker.__main__.format_edited_parts(
         git_repo.root,
         {Path("a.py")},
+        set(),
         RevisionRange("HEAD"),
         enable_isort=True,
         black_config={},
@@ -321,6 +321,7 @@ def test_format_edited_parts_historical(git_repo, rev1, rev2, expect):
     result = darker.__main__.format_edited_parts(
         git_repo.root,
         {Path("a.py")},
+        set(),
         RevisionRange(rev1, rev2),
         enable_isort=True,
         black_config={},
@@ -352,15 +353,16 @@ def test_format_edited_parts_historical(git_repo, rev1, rev2, expect):
         expect_retval=1,
     ),
     dict(
-        arguments=["--check", "--lint", "echo a.py:1: message"],
+        arguments=["--check", "--lint", "echo subdir/a.py:1: message"],
         # Windows compatible path assertion using `pathlib.Path()`
-        expect_stdout=[f"a.py:1: message {Path('/a.py')}"],
+        expect_stdout=[f"subdir/a.py:1: message {Path('/subdir/a.py')}"],
         expect_retval=1,
     ),
     dict(
-        arguments=["--diff", "--lint", "echo a.py:1: message"],
+        arguments=["--diff", "--lint", "echo subdir/a.py:1: message"],
         # Windows compatible path assertion using `pathlib.Path()`
-        expect_stdout=A_PY_DIFF_BLACK + [f"a.py:1: message {Path('/a.py')}"],
+        expect_stdout=A_PY_DIFF_BLACK
+        + [f"subdir/a.py:1: message {Path('/subdir/a.py')}"],
     ),
     dict(
         arguments=[],
@@ -447,13 +449,17 @@ def test_main(
         pwd = git_repo.root
     monkeypatch.chdir(cwd)
     paths = git_repo.add(
-        {"pyproject.toml": dedent(pyproject_toml), "a.py": newline, "b.py": newline},
+        {
+            "pyproject.toml": dedent(pyproject_toml),
+            "subdir/a.py": newline,
+            "b.py": newline,
+        },
         commit="Initial commit",
     )
-    paths["a.py"].write_bytes(newline.join(A_PY).encode("ascii"))
+    paths["subdir/a.py"].write_bytes(newline.join(A_PY).encode("ascii"))
     paths["b.py"].write_bytes(f"print(42 ){newline}".encode("ascii"))
 
-    retval = darker.__main__.main(arguments + [str(pwd / "a.py")])
+    retval = darker.__main__.main(arguments + [str(pwd / "subdir")])
 
     stdout = capsys.readouterr().out.replace(str(git_repo.root), "")
     diff_output = stdout.splitlines(False)
@@ -469,7 +475,9 @@ def test_main(
         else:
             assert all("\t" not in line for line in diff_output)
     assert diff_output == expect_stdout
-    assert paths["a.py"].read_bytes().decode("ascii") == newline.join(expect_a_py)
+    assert paths["subdir/a.py"].read_bytes().decode("ascii") == newline.join(
+        expect_a_py
+    )
     assert paths["b.py"].read_bytes().decode("ascii") == f"print(42 ){newline}"
     assert retval == expect_retval
 

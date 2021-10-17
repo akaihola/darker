@@ -11,7 +11,7 @@ from typing import Collection, Generator, List, Tuple
 
 from darker.black_diff import (
     BlackConfig,
-    apply_black_excludes,
+    filter_python_files,
     read_black_config,
     run_black,
 )
@@ -39,8 +39,9 @@ logger = logging.getLogger(__name__)
 
 
 def format_edited_parts(
-    git_root: Path,
+    root: Path,
     changed_files: Collection[Path],  # pylint: disable=unsubscriptable-object
+    black_exclude: Collection[Path],  # pylint: disable=unsubscriptable-object
     revrange: RevisionRange,
     enable_isort: bool,
     black_config: BlackConfig,
@@ -48,13 +49,17 @@ def format_edited_parts(
 ) -> Generator[Tuple[Path, TextDocument, TextDocument], None, None]:
     """Black (and optional isort) formatting for chunks with edits since the last commit
 
-    Files excluded by Black's configuration are not reformatted using Black, but their
-    imports are still sorted. Also, linters will be run for all files in a separate step
-    after this function has completed.
+    Files inside given directories and excluded by Black's configuration are not
+    reformatted using Black, but their imports are still sorted. Also, linters will be
+    run for all files in a separate step after this function has completed.
 
-    :param git_root: The root of the Git repository the files are in
-    :param changed_files: Files which have been modified in the repository between the
-                          given Git revisions
+    Files listed explicitly on the command line are always reformatted.
+
+    :param root: The common root of all files to reformat
+    :param changed_files: Python files and explicitly requested files which have been
+                          modified in the repository between the given Git revisions
+    :param black_exclude: Python files to not reformat using Black, according to Black
+                          configuration
     :param revrange: The Git revisions to compare
     :param enable_isort: ``True`` to also run ``isort`` first on each changed file
     :param black_config: Configuration to use for running Black
@@ -63,12 +68,9 @@ def format_edited_parts(
              be reformatted, and skips unchanged files.
 
     """
-    files_to_blacken = apply_black_excludes(changed_files, git_root, black_config)
     for path_in_repo in sorted(changed_files):
-        src = git_root / path_in_repo
-        rev2_content = git_get_content_at_revision(
-            path_in_repo, revrange.rev2, git_root
-        )
+        src = root / path_in_repo
+        rev2_content = git_get_content_at_revision(path_in_repo, revrange.rev2, root)
 
         # 1. run isort
         if enable_isort:
@@ -80,12 +82,12 @@ def format_edited_parts(
             )
         else:
             rev2_isorted = rev2_content
-        if src in files_to_blacken:
+        if path_in_repo not in black_exclude:
             # 9. A re-formatted Python file which produces an identical AST was
             #    created successfully - write an updated file or print the diff if
             #    there were any changes to the original
             content_after_reformatting = _reformat_single_file(
-                git_root,
+                root,
                 path_in_repo,
                 revrange,
                 rev2_content,
@@ -101,8 +103,8 @@ def format_edited_parts(
 
 
 def _reformat_single_file(  # pylint: disable=too-many-arguments,too-many-locals
-    git_root: Path,
-    path_in_repo: Path,
+    root: Path,
+    relative_path: Path,
     revrange: RevisionRange,
     rev2_content: TextDocument,
     rev2_isorted: TextDocument,
@@ -111,8 +113,8 @@ def _reformat_single_file(  # pylint: disable=too-many-arguments,too-many-locals
 ) -> TextDocument:
     """In a Python file, reformat chunks with edits since the last commit using Black
 
-    :param git_root: The root of the Git repository the files are in
-    :param path_in_repo: Relative path to a Python source code file
+    :param root: The common root of all files to reformat
+    :param relative_path: Relative path to a Python source code file
     :param revrange: The Git revisions to compare
     :param rev2_content: Contents of the file at ``revrange.rev2``
     :param rev2_isorted: Contents of the file after optional import sorting
@@ -122,8 +124,8 @@ def _reformat_single_file(  # pylint: disable=too-many-arguments,too-many-locals
     :raise: NotEquivalentError
 
     """
-    src = git_root / path_in_repo
-    edited_linenums_differ = EditedLinenumsDiffer(git_root, revrange)
+    src = root / relative_path
+    edited_linenums_differ = EditedLinenumsDiffer(root, revrange)
 
     # 4. run black
     formatted = run_black(rev2_isorted, black_config)
@@ -157,7 +159,7 @@ def _reformat_single_file(  # pylint: disable=too-many-arguments,too-many-locals
         # 2. diff the given revision and worktree for the file
         # 3. extract line numbers in the edited to-file for changed lines
         edited_linenums = edited_linenums_differ.revision_vs_lines(
-            path_in_repo, rev2_isorted, context_lines
+            relative_path, rev2_isorted, context_lines
         )
         if enable_isort and not edited_linenums and rev2_isorted == rev2_content:
             logger.debug("No changes in %s after isort", src)
@@ -191,7 +193,7 @@ def _reformat_single_file(  # pylint: disable=too-many-arguments,too-many-locals
             minimum_context_lines.respond(True)
             last_successful_reformat = chosen
     if not last_successful_reformat:
-        raise NotEquivalentError(path_in_repo)
+        raise NotEquivalentError(relative_path)
     return last_successful_reformat
 
 
@@ -206,10 +208,10 @@ def print_diff(
 ) -> None:
     """Print ``black --diff`` style output for the changes
 
-    :param path: The relative path of the file to print the diff output for
+    :param path: The path of the file to print the diff output for, relative to CWD
     :param old: Old contents of the file
     :param new: New contents of the file
-    :param root: The root of the repository (current working directory if omitted)
+    :param root: The root for the relative path (current working directory if omitted)
 
     Modification times should be in the format "YYYY-MM-DD HH:MM:SS:mmmmmm +0000"
 
@@ -319,7 +321,7 @@ def main(argv: List[str] = None) -> int:
         black_config["skip_magic_trailing_comma"] = args.skip_magic_trailing_comma
 
     paths = {Path(p) for p in args.src}
-    git_root = get_common_root(paths)
+    root = get_common_root(paths)
     failures_on_modified_lines = False
 
     revrange = RevisionRange.parse(args.revision)
@@ -348,16 +350,27 @@ def main(argv: List[str] = None) -> int:
             f"Error: Path(s) {missing_reprs} do not exist in {rev2_repr}",
         )
 
+    # These are absolute paths:
+    files_to_process = filter_python_files(paths, root, {})
+    files_to_blacken = filter_python_files(paths, root, black_config)
     if output_mode == OutputMode.CONTENT:
         # With `-d` / `--stdout`, process the file whether modified or not. Paths have
         # previously been validated to contain exactly one existing file.
-        changed_files = paths
+        changed_files_to_process = files_to_process
+        black_exclude = set()
     else:
         # In other modes, only process files which have been modified.
-        changed_files = git_get_modified_files(paths, revrange, git_root)
+        # These are relative to `root`:
+        changed_files_to_process = git_get_modified_files(
+            files_to_process, revrange, root
+        )
+        black_exclude = {
+            f for f in changed_files_to_process if root / f not in files_to_blacken
+        }
     for path, old, new in format_edited_parts(
-        git_root,
-        changed_files,
+        root,
+        changed_files_to_process,
+        black_exclude,
         revrange,
         args.isort,
         black_config,
@@ -365,12 +378,12 @@ def main(argv: List[str] = None) -> int:
     ):
         failures_on_modified_lines = True
         if output_mode == OutputMode.DIFF:
-            print_diff(path, old, new, git_root)
+            print_diff(path, old, new, root)
         elif output_mode == OutputMode.CONTENT:
             print_source(new)
         if write_modified_files:
             modify_file(path, new)
-    if run_linters(args.lint, git_root, changed_files, revrange):
+    if run_linters(args.lint, root, changed_files_to_process, revrange):
         failures_on_modified_lines = True
     return 1 if args.check and failures_on_modified_lines else 0
 
