@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from subprocess import DEVNULL, PIPE, CalledProcessError, check_call
 from typing import List, Union
-from unittest.mock import patch
+from unittest.mock import call, patch
 
 import pytest
 
@@ -121,44 +121,66 @@ def test_revisionrange_parse(revision_range, expect):
 
 @pytest.mark.kwparametrize(
     dict(
+        revision=":WORKTREE:",
+        expect_textdocument_calls=[call.from_file(Path("/path/my.txt"))],
+    ),
+    dict(
         revision="HEAD",
-        expect=[
+        expect_git_calls=[
             "git show HEAD:./my.txt",
             "git log -1 --format=%ct HEAD -- my.txt",
+        ],
+        expect_textdocument_calls=[
+            call.from_lines([b"1627107028"], mtime="2021-07-24 06:10:28.000000 +0000")
         ],
     ),
     dict(
         revision="HEAD^",
-        expect=[
+        expect_git_calls=[
             "git show HEAD^:./my.txt",
             "git log -1 --format=%ct HEAD^ -- my.txt",
+        ],
+        expect_textdocument_calls=[
+            call.from_lines([b"1627107028"], mtime="2021-07-24 06:10:28.000000 +0000")
         ],
     ),
     dict(
         revision="master",
-        expect=[
+        expect_git_calls=[
             "git show master:./my.txt",
             "git log -1 --format=%ct master -- my.txt",
         ],
+        expect_textdocument_calls=[
+            call.from_lines([b"1627107028"], mtime="2021-07-24 06:10:28.000000 +0000")
+        ],
     ),
+    expect_git_calls=[],
 )
-def test_git_get_content_at_revision_git_calls(revision, expect):
-    """get_git_content_at_revision() calls Git correctly"""
-    with patch("darker.git.check_output") as check_output:
-        # a dummy Unix timestamp:
-        check_output.return_value = b"1000000"
+def test_git_get_content_at_revision_obtain_file_content(
+    revision, expect_git_calls, expect_textdocument_calls
+):
+    """``git_get_content_at_revision`` calls Git or reads files based on revision"""
+    with patch("darker.git.check_output") as check_output, patch(
+        "darker.git.TextDocument"
+    ) as text_document_class:
+        # this dummy value acts both as a dummy Unix timestamp for the file as well as
+        # the contents of the file:
+        check_output.return_value = b"1627107028"
 
-        git.git_get_content_at_revision(Path("my.txt"), revision, Path("cwd"))
+        git.git_get_content_at_revision(Path("my.txt"), revision, Path("/path"))
 
-        assert check_output.call_count == len(expect)
-        for expect_call in expect:
-            check_output.assert_any_call(
-                expect_call.split(),
-                cwd="cwd",
+        expected_calls = [
+            call(
+                expected_call.split(),
+                cwd=str(Path("/path")),
                 encoding="utf-8",
                 stderr=PIPE,
                 env={"LC_ALL": "C"},
             )
+            for expected_call in expect_git_calls
+        ]
+        assert check_output.call_args_list == expected_calls
+        assert text_document_class.method_calls == expect_textdocument_calls
 
 
 @pytest.mark.kwparametrize(
