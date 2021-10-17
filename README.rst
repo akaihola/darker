@@ -243,6 +243,11 @@ Project-specific default options for ``darker``, Black_ and isort_
 are read from the project's ``pyproject.toml`` file in the repository root.
 isort_ also looks for a few other places for configuration.
 
+Darker does honor exclusion options in Black configuration files when recursing
+directories, but the exclusions are only applied to Black reformatting. Isort and
+linters are still run on excluded files. Also, individual files explicitly listed on the
+command line are still reformatted even if they match exclusion patterns.
+
 For more details, see:
 
 - `Black documentation about pyproject.toml`_
@@ -438,6 +443,12 @@ Visual Studio Code
 
 You can pass additional arguments to ``darker`` in the ``blackArgs`` option
 (e.g. ``["--diff", "--isort"]``), but make sure at least ``--diff`` is included.
+
+Note that VSCode first copies the file to reformat into a temporary
+``<filename>.py.<hash>.tmp`` file, then calls Black (or Darker in this case) on that
+file, and brings the changes in the modified files back into the editor.
+Darker is aware of this behavior, and will correctly compare ``.py.<hash>.tmp`` files
+to corresponding ``.py`` files from earlier repository revisions.
 
 
 Vim
