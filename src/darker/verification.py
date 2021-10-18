@@ -97,8 +97,3 @@ class ASTVerifier:
 
         self._comparisons[document.string] = comparison
         return self._comparisons[document.string]
-
-    def assert_equivalent_to_baseline(self, document: TextDocument) -> None:
-        """Raises NotEquivalentError if document is not AST-equivalent to baseline"""
-        if not self.is_equivalent_to_baseline(document):
-            raise NotEquivalentError

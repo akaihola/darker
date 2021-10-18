@@ -47,20 +47,6 @@ def test_ast_verifier_is_equivalent():
     )
 
 
-def test_ast_verifier_assert_equivalent():
-    """``darker.verification.ASTVerifier.assert_equivalent_to_baseline``"""
-    verifier = ASTVerifier(baseline=TextDocument.from_lines(["if True: pass"]))
-    verifier.assert_equivalent_to_baseline(
-        TextDocument.from_lines(["if True:", "    pass"])
-    )
-    with pytest.raises(NotEquivalentError):
-        verifier.assert_equivalent_to_baseline(
-            TextDocument.from_lines(["if False: pass"])
-        )
-    with pytest.raises(NotEquivalentError):
-        verifier.assert_equivalent_to_baseline(TextDocument.from_lines(["if False:"]))
-
-
 def test_binary_search_premature_result():
     """``darker.verification.BinarySearch``"""
     with pytest.raises(RuntimeError):
