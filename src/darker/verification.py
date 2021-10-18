@@ -70,9 +70,10 @@ def verify_ast_unchanged(
 
 
 class ASTVerifier:
-    """Verifies if reformatted TextDocument is AST-equivalent to baseline.
+    """Verify if reformatted TextDocument is AST-equivalent to baseline
 
     Keeps in-memory data about previous comparisons to improve performance.
+
     """
 
     def __init__(self, baseline: TextDocument) -> None:
