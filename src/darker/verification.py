@@ -69,7 +69,7 @@ def verify_ast_unchanged(
         raise NotEquivalentError(str(exc_info))
 
 
-class ASTVerifier:
+class ASTVerifier:  # pylint: disable=too-few-public-methods
     """Verify if reformatted TextDocument is AST-equivalent to baseline
 
     Keeps in-memory data about previous comparisons to improve performance.
