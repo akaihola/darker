@@ -110,4 +110,4 @@ def test_isort_file_skip_comment():
     )
 
     # assert
-    assert actual == None
+    assert actual is None
