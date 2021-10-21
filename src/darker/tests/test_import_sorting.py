@@ -96,3 +96,16 @@ def test_isort_config(monkeypatch, tmpdir, line_length, settings_file, expect):
         TextDocument.from_str(content), Path("test1.py"), config
     )
     assert actual.string == expect
+
+def test_isort_file_skip_comment():
+    """``apply_isort()`` handles ``FileSkipComment`` exception correctly"""
+    # arrange
+    content = "# isort:skip_file"
+
+    # act
+    actual = darker.import_sorting.apply_isort(
+        TextDocument.from_str(content), Path("test1.py")
+    )
+
+    # assert
+    assert actual.string == "Passed in content contains a file skip comment and was skipped."
