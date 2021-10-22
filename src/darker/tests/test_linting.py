@@ -3,7 +3,6 @@
 """Unit tests for :mod:`darker.linting`"""
 
 from pathlib import Path
-from textwrap import dedent
 from unittest.mock import call, patch
 
 import pytest
@@ -196,74 +195,6 @@ def test_run_linter_return_value(git_repo, location, expect):
     )
 
     assert result == expect
-
-
-def test_run_linter_common_ancestor(git_repo, capsys):
-    """``_run_linter()`` compares against the common ancestor of ``rev1...rev2``"""
-    a_py_initial = dedent(
-        """
-        a=1
-        # unmodified line in between
-        b=2
-        # unmodified line in between
-        print( a+b )
-        """
-    )
-    a_py_master = dedent(
-        """
-        a=1           # every
-        # unmodified line in between
-        b=2           # line
-        # unmodified line in between
-        print( a+b )  # changed
-        """
-    )
-    a_py_feature = dedent(
-        """
-        a= 1  # changed
-        # unmodified line in between
-        b=2
-        # unmodified line in between
-        print( a+b )
-        """
-    )
-    a_py_worktree = dedent(
-        """
-        a= 1  # changed
-        # unmodified line in between
-        b=2
-        # unmodified line in between
-        print(a+b )  # changed
-        """
-    )
-    paths = git_repo.add({"a.py": a_py_initial}, commit="Initial commit")
-    initial = git_repo.get_hash()
-    git_repo.add({"a.py": a_py_master}, commit="on master")
-    git_repo.create_branch("feature", initial)
-    git_repo.add({"a.py": a_py_feature}, commit="on feature")
-    paths["a.py"].write_text(a_py_worktree)
-    with patch.object(linting, "Popen") as popen_class_mock:
-        popen_class_mock.return_value.stdout = [
-            "a.py:1: blank\n",
-            "a.py:2: a=1\n",
-            "a.py:3: unmodified\n",
-            "a.py:4: b=2\n",
-            "a.py:5: unmodified\n",
-            "a.py:6: print(a+b)\n",
-        ]
-
-        result = linting.run_linter(
-            "dummy linter command line",
-            git_repo.root,
-            {Path("a.py")},
-            RevisionRange.parse("master..."),
-        )
-
-    assert result == 2
-    assert capsys.readouterr().out.splitlines() == [
-        "a.py:2: a=1",
-        "a.py:6: print(a+b)",
-    ]
 
 
 @pytest.mark.kwparametrize(

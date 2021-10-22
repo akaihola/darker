@@ -58,7 +58,7 @@ def test_reformat_single_file_common_ancestor(git_repo):
     result = darker.__main__._reformat_single_file(
         git_repo.root,
         Path("a.py"),
-        RevisionRange.parse("master..."),
+        RevisionRange.parse("master...").with_common_ancestor(git_repo.root),
         rev2_content=worktree,
         rev2_isorted=worktree,
         enable_isort=False,

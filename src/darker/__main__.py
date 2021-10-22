@@ -342,7 +342,7 @@ def main(argv: List[str] = None) -> int:
     root = get_common_root(paths)
     failures_on_modified_lines = False
 
-    revrange = RevisionRange.parse(args.revision)
+    revrange = RevisionRange.parse(args.revision).with_common_ancestor(git_root)
     output_mode = OutputMode.from_args(args)
     write_modified_files = not args.check and output_mode == OutputMode.NOTHING
     if write_modified_files:

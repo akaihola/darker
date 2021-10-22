@@ -4,7 +4,7 @@ import logging
 import os
 import re
 import sys
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime
 from functools import lru_cache
 from pathlib import Path
@@ -138,18 +138,24 @@ class RevisionRange:
             use_common_ancestor=revision_range not in ["", "HEAD"],
         )
 
-def _git_get_old_revision(revrange: RevisionRange, cwd: Path) -> str:
-    """Find out the common ancestor using Git if necessary
+    def with_common_ancestor(self, cwd: Path) -> "RevisionRange":
+        """Replace ``rev1`` with the common ancestor of ``rev1`` and ``rev2``
 
-    For ``RevisionRange(..., use_common_ancestor=True)`` objects, use ``git merge-base``
-    to find the common ancestor. Otherwise just return ``revrange.rev1``.
+        If ``self.use_common_ancesor == True``, returns a new ``RevisionRange`` object
+        with the replaced ``rev1`` and ``use_common_ancestor == False``.
 
-    """
-    if not revrange.use_common_ancestor:
-        return revrange.rev1
-    rev2 = "HEAD" if revrange.rev2 == WORKTREE else revrange.rev2
-    merge_base_cmd = ["merge-base", revrange.rev1, rev2]
-    return _git_check_output_lines(merge_base_cmd, cwd)[0]
+        """
+        if not self.use_common_ancestor:
+            return self
+        rev2 = "HEAD" if self.rev2 == WORKTREE else self.rev2
+        merge_base_cmd = ["merge-base", self.rev1, rev2]
+        common_ancestor = _git_check_output_lines(merge_base_cmd, cwd)[0]
+        rev1 = _git_check_output_lines(["show", "-s", "--pretty=%H", self.rev1], cwd)[0]
+        return type(self)(
+            self.rev1 if common_ancestor == rev1 else common_ancestor,
+            self.rev2,
+            use_common_ancestor=False,
+        )
 
 
 def should_reformat_file(path: Path) -> bool:
@@ -279,9 +285,11 @@ def git_get_modified_files(
     :return: File names relative to the Git repository root
 
     """
+    assert not revrange.use_common_ancestor
     relative_paths = {p.resolve().relative_to(cwd) for p in paths}
-    rev1 = _git_get_old_revision(revrange, cwd)
-    changed_paths = _git_diff_name_only(rev1, revrange.rev2, relative_paths, cwd)
+    changed_paths = _git_diff_name_only(
+        revrange.rev1, revrange.rev2, relative_paths, cwd
+    )
     if revrange.rev2 == WORKTREE:
         changed_paths.update(_git_ls_files_others(relative_paths, cwd))
     return {path for path in changed_paths if should_reformat_file(cwd / path)}
@@ -293,11 +301,9 @@ class EditedLinenumsDiffer:
 
     root: Path
     revrange: RevisionRange
-    _old_revision: str = field(init=False)
 
     def __post_init__(self) -> None:
-        old_revision = _git_get_old_revision(self.revrange, self.git_root)
-        object.__setattr__(self, "_old_revision", old_revision)
+        assert not self.revrange.use_common_ancestor
 
     @lru_cache(maxsize=1)
     def compare_revisions(self, path_in_repo: Path, context_lines: int) -> List[int]:
@@ -322,6 +328,6 @@ class EditedLinenumsDiffer:
         :return: Line numbers of lines changed between the revision and given content
 
         """
-        old = git_get_content_at_revision(path_in_repo, self._old_revision, self.root)
+        old = git_get_content_at_revision(path_in_repo, self.revrange.rev1, self.root)
         edited_opcodes = diff_and_get_opcodes(old, content)
         return list(opcodes_to_edit_linenums(edited_opcodes, context_lines))
