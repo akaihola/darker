@@ -5,7 +5,12 @@ from typing import List
 import pytest
 
 from darker.utils import DiffChunk, TextDocument
-from darker.verification import BinarySearch, NotEquivalentError, verify_ast_unchanged
+from darker.verification import (
+    ASTVerifier,
+    BinarySearch,
+    NotEquivalentError,
+    verify_ast_unchanged,
+)
 
 
 @pytest.mark.kwparametrize(
@@ -26,6 +31,20 @@ def test_verify_ast_unchanged(dst_content, expect):
         assert expect is AssertionError
     else:
         assert expect is None
+
+
+def test_ast_verifier_is_equivalent():
+    """``darker.verification.ASTVerifier.is_equivalent_to_baseline``"""
+    verifier = ASTVerifier(baseline=TextDocument.from_lines(["if True: pass"]))
+    assert verifier.is_equivalent_to_baseline(
+        TextDocument.from_lines(["if True:", "    pass"])
+    )
+    assert not verifier.is_equivalent_to_baseline(
+        TextDocument.from_lines(["if False: pass"])
+    )
+    assert not verifier.is_equivalent_to_baseline(
+        TextDocument.from_lines(["if False:"])
+    )
 
 
 def test_binary_search_premature_result():

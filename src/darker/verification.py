@@ -1,8 +1,8 @@
 """Verification for unchanged AST before and after reformatting"""
 
-from typing import List
+from typing import Dict, List
 
-from black import assert_equivalent
+from black import assert_equivalent, parse_ast, stringify_ast
 
 from darker.utils import DiffChunk, TextDocument, debug_dump
 
@@ -67,3 +67,34 @@ def verify_ast_unchanged(
     except AssertionError as exc_info:
         debug_dump(black_chunks, edited_linenums)
         raise NotEquivalentError(str(exc_info))
+
+
+class ASTVerifier:  # pylint: disable=too-few-public-methods
+    """Verify if reformatted TextDocument is AST-equivalent to baseline
+
+    Keeps in-memory data about previous comparisons to improve performance.
+
+    """
+
+    def __init__(self, baseline: TextDocument) -> None:
+        self._baseline_ast_str = self._to_ast_str(baseline)
+        self._comparisons: Dict[str, bool] = {baseline.string: True}
+
+    @staticmethod
+    def _to_ast_str(document: TextDocument) -> str:
+        return "\n".join(stringify_ast(parse_ast(document.string)))
+
+    def is_equivalent_to_baseline(self, document: TextDocument) -> bool:
+        """Returns true if document is AST-equivalent to baseline"""
+        if document.string in self._comparisons:
+            return self._comparisons[document.string]
+
+        try:
+            document_ast_str = self._to_ast_str(document)
+        except SyntaxError:
+            comparison = False
+        else:
+            comparison = self._baseline_ast_str == document_ast_str
+
+        self._comparisons[document.string] = comparison
+        return self._comparisons[document.string]

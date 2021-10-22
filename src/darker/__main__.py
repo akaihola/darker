@@ -32,8 +32,8 @@ from darker.git import (
 from darker.help import ISORT_INSTRUCTION
 from darker.import_sorting import apply_isort, isort
 from darker.linting import run_linters
-from darker.utils import GIT_DATEFORMAT, TextDocument, get_common_root
-from darker.verification import BinarySearch, NotEquivalentError, verify_ast_unchanged
+from darker.utils import GIT_DATEFORMAT, TextDocument, debug_dump, get_common_root
+from darker.verification import ASTVerifier, BinarySearch, NotEquivalentError
 
 logger = logging.getLogger(__name__)
 
@@ -143,6 +143,9 @@ def _reformat_single_file(  # pylint: disable=too-many-arguments,too-many-locals
     max_context_lines = len(rev2_isorted.lines)
     minimum_context_lines = BinarySearch(0, max_context_lines + 1)
     last_successful_reformat = None
+
+    verifier = ASTVerifier(baseline=rev2_isorted)
+
     while not minimum_context_lines.found:
         context_lines = minimum_context_lines.get_next()
         if context_lines > 0:
@@ -176,13 +179,8 @@ def _reformat_single_file(  # pylint: disable=too-many-arguments,too-many-locals
             len(rev2_isorted.lines),
             len(chosen.lines),
         )
-        try:
-            verify_ast_unchanged(rev2_isorted, chosen, black_chunks, edited_linenums)
-        except NotEquivalentError:
-            # Diff produced misaligned chunks which couldn't be reconstructed into
-            # a partially re-formatted Python file which produces an identical AST.
-            # Try again with a larger `-U<context_lines>` option for `git diff`,
-            # or give up if `context_lines` is already very large.
+        if not verifier.is_equivalent_to_baseline(chosen):
+            debug_dump(black_chunks, edited_linenums)
             logger.debug(
                 "AST verification of %s with %s lines of context failed",
                 src,

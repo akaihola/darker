@@ -8,7 +8,7 @@ from argparse import ArgumentError
 from pathlib import Path
 from textwrap import dedent
 from types import SimpleNamespace
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
 import pytest
 from black import find_project_root
@@ -44,12 +44,13 @@ def run_isort(git_repo, monkeypatch, caplog, request):
     paths = git_repo.add({"test1.py": "original"}, commit="Initial commit")
     paths["test1.py"].write_bytes(b"changed")
     args = getattr(request, "param", ())
-    with patch.multiple(
-        darker.__main__,
-        run_black=Mock(return_value=TextDocument()),
-        verify_ast_unchanged=Mock(),
-    ), patch("darker.import_sorting.isort_code") as isort_code:
-        isort_code.return_value = "dummy isort output"
+    isorted_code = "import os; import sys;"
+    blacken_code = "import os\nimport sys\n"
+    patch_run_black_ctx = patch.object(
+        darker.__main__, "run_black", return_value=TextDocument(blacken_code)
+    )
+    with patch_run_black_ctx, patch("darker.import_sorting.isort_code") as isort_code:
+        isort_code.return_value = isorted_code
         darker.__main__.main(["--isort", "./test1.py", *args])
         return SimpleNamespace(
             isort_code=darker.import_sorting.isort_code, caplog=caplog
@@ -213,11 +214,10 @@ def test_format_edited_parts_ast_changed(git_repo, caplog):
     caplog.set_level(logging.DEBUG, logger="darker.__main__")
     paths = git_repo.add({"a.py": "1\n2\n3\n4\n5\n6\n7\n8\n"}, commit="Initial commit")
     paths["a.py"].write_bytes(b"8\n7\n6\n5\n4\n3\n2\n1\n")
-    with patch.object(
-        darker.__main__, "verify_ast_unchanged"
-    ) as verify_ast_unchanged, pytest.raises(NotEquivalentError):
-        verify_ast_unchanged.side_effect = NotEquivalentError
-
+    mock_ctx = patch.object(
+        darker.verification.ASTVerifier, "is_equivalent_to_baseline", return_value=False
+    )
+    with mock_ctx, pytest.raises(NotEquivalentError):
         _ = list(
             darker.__main__.format_edited_parts(
                 git_repo.root,
