@@ -184,6 +184,39 @@ def test_git_get_content_at_revision_obtain_file_content(
 
 
 @pytest.mark.kwparametrize(
+    dict(revrange="HEAD", expect="HEAD"),
+    dict(revrange="{initial}", expect="{initial}"),
+    dict(revrange="{initial}..", expect="{initial}"),
+    dict(revrange="{initial}..HEAD", expect="{initial}"),
+    dict(revrange="{initial}..feature", expect="{initial}"),
+    dict(revrange="{initial}...", expect="{initial}"),
+    dict(revrange="{initial}...HEAD", expect="{initial}"),
+    dict(revrange="{initial}...feature", expect="{initial}"),
+    dict(revrange="master", expect="{initial}"),
+    dict(revrange="master..", expect="master"),
+    dict(revrange="master..HEAD", expect="master"),
+    dict(revrange="master..feature", expect="master"),
+    dict(revrange="master...", expect="{initial}"),
+    dict(revrange="master...HEAD", expect="{initial}"),
+    dict(revrange="master...feature", expect="{initial}"),
+)
+def test_git_get_old_revision(git_repo, revrange, expect):
+    """``_git_get_old_revision()`` gets common ancestor using Git when necessary"""
+    git_repo.add({"a": "i"}, commit="Initial commit")
+    initial = git_repo.get_hash()
+    git_repo.add({"a": "m"}, commit="in master")
+    master = git_repo.get_hash()
+    git_repo.create_branch("feature", initial)
+    git_repo.add({"a": "f"}, commit="in feature")
+
+    result = git._git_get_old_revision(
+        git.RevisionRange.parse(revrange.format(initial=initial)), git_repo.root
+    )
+
+    assert result == expect.format(initial=initial, master=master)
+
+
+@pytest.mark.kwparametrize(
     dict(path=".", create=False, expect=False),
     dict(path="main", create=True, expect=False),
     dict(path="main.c", create=True, expect=False),
@@ -720,6 +753,26 @@ def test_edited_linenums_differ_revision_vs_lines(git_repo, context_lines, expec
     git_repo.add({"a.py": "1\n2\n3\n4\n5\n6\n7\n8\n"}, commit="Initial commit")
     content = TextDocument.from_lines(["1", "2", "three", "4", "5", "6", "seven", "8"])
     differ = git.EditedLinenumsDiffer(git_repo.root, git.RevisionRange("HEAD"))
+
+    linenums = differ.revision_vs_lines(Path("a.py"), content, context_lines)
+
+    assert linenums == expect
+
+
+@edited_linenums_differ_cases
+def test_edited_linenums_differ_revision_vs_lines_common_ancestor(
+    git_repo, context_lines, expect
+):
+    """Tests for EditedLinenumsDiffer.revision_vs_lines()"""
+    git_repo.add({"a.py": "1\n2\n3\n4\n5\n6\n7\n8\n"}, commit="Initial commit")
+    initial = git_repo.get_hash()
+    git_repo.add({"a.py": "a\nb\nc\nd\ne\nf\ng\nh\n"}, commit="on master")
+    git_repo.create_branch("feature", initial)
+    git_repo.add({"a.py": "1\n2\nthree\n4\n5\n6\n7\n8\n"}, commit="on feature")
+    content = TextDocument.from_lines(["1", "2", "three", "4", "5", "6", "seven", "8"])
+    differ = git.EditedLinenumsDiffer(
+        git_repo.root, git.RevisionRange("master", use_common_ancestor=True)
+    )
 
     linenums = differ.revision_vs_lines(Path("a.py"), content, context_lines)
 

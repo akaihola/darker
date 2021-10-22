@@ -13,6 +13,8 @@ Fixed
 - Honor exclusion patterns from Black configuration when choosing files to reformat.
   This only applies when recursing directories specified on the command line, and only
   affects Black reformatting, not ``isort`` or linters.
+- ``--revision rev1...rev2`` now actually applies reformatting and filters linter output
+  to only lines modified compared to the common ancestor of ``rev1`` and ``rev2``
 
 
 1.3.1_ - 2021-10-05
