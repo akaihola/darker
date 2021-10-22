@@ -117,26 +117,30 @@ def read_black_config(src: Tuple[str, ...], value: Optional[str]) -> BlackConfig
     return config
 
 
-def apply_black_excludes(
+def filter_python_files(
     paths: Collection[Path],  # pylint: disable=unsubscriptable-object
     root: Path,
     black_config: BlackConfig,
 ) -> Set[Path]:
-    """Get the subset of files which are not excluded by Black's configuration
+    """Get Python files and explicitly listed files not excluded by Black's config
 
-    :param paths: Relative paths from ``root`` to Python source file paths to consider
+    :param paths: Relative file/directory paths from CWD to Python sources
     :param root: A common root directory for all ``paths``
     :param black_config: Black configuration which contains the exclude options read
                          from Black's configuration files
-    :return: Absolute paths of files which should be reformatted using Black
+    :return: Absolute paths of files which should be reformatted according to
+             ``black_config``
 
     """
     sig = inspect.signature(gen_python_files)
     # those two exist and are required in black>=21.7b1.dev9
     kwargs = dict(verbose=False, quiet=False) if "verbose" in sig.parameters else {}
-    return set(
+    absolute_paths = {p.resolve() for p in paths}
+    directories = {p for p in absolute_paths if p.is_dir()}
+    files = {p for p in absolute_paths if p not in directories}
+    files_from_directories = set(
         gen_python_files(
-            (root / path for path in paths),
+            directories,
             root,
             include=DEFAULT_INCLUDE_RE,
             exclude=black_config.get("exclude", DEFAULT_EXCLUDE_RE),
@@ -147,6 +151,7 @@ def apply_black_excludes(
             **kwargs,
         )
     )
+    return files_from_directories | files
 
 
 def run_black(src_contents: TextDocument, black_config: BlackConfig) -> TextDocument:
