@@ -115,8 +115,9 @@ def test_git_get_content_at_revision(git_repo, revision, expect_lines, expect_mt
 )
 def test_revisionrange_parse(revision_range, expect):
     """Test for :meth:`RevisionRange.parse`"""
-    revrange = git.RevisionRange.parse(revision_range)
-    assert (revrange.rev1, revrange.rev2, revrange.use_common_ancestor) == expect
+    result = git.RevisionRange._parse(revision_range)
+
+    assert result == expect
 
 
 @pytest.mark.kwparametrize(
@@ -181,6 +182,41 @@ def test_git_get_content_at_revision_obtain_file_content(
         ]
         assert check_output.call_args_list == expected_calls
         assert text_document_class.method_calls == expect_textdocument_calls
+
+
+@pytest.mark.kwparametrize(
+    dict(revrange="HEAD", expect="HEAD..:WORKTREE:"),
+    dict(revrange="{initial}", expect="{initial}..:WORKTREE:"),
+    dict(revrange="{initial}..", expect="{initial}..:WORKTREE:"),
+    dict(revrange="{initial}..HEAD", expect="{initial}..HEAD"),
+    dict(revrange="{initial}..feature", expect="{initial}..feature"),
+    dict(revrange="{initial}...", expect="{initial}..:WORKTREE:"),
+    dict(revrange="{initial}...HEAD", expect="{initial}..HEAD"),
+    dict(revrange="{initial}...feature", expect="{initial}..feature"),
+    dict(revrange="master", expect="{initial}..:WORKTREE:"),
+    dict(revrange="master..", expect="master..:WORKTREE:"),
+    dict(revrange="master..HEAD", expect="master..HEAD"),
+    dict(revrange="master..feature", expect="master..feature"),
+    dict(revrange="master...", expect="{initial}..:WORKTREE:"),
+    dict(revrange="master...HEAD", expect="{initial}..HEAD"),
+    dict(revrange="master...feature", expect="{initial}..feature"),
+)
+def test_revisionrange_parse_with_common_ancestor(git_repo, revrange, expect):
+    """``_git_get_old_revision()`` gets common ancestor using Git when necessary"""
+    git_repo.add({"a": "i"}, commit="Initial commit")
+    initial = git_repo.get_hash()
+    git_repo.add({"a": "m"}, commit="in master")
+    master = git_repo.get_hash()
+    git_repo.create_branch("feature", initial)
+    git_repo.add({"a": "f"}, commit="in feature")
+
+    result = git.RevisionRange.parse_with_common_ancestor(
+        revrange.format(initial=initial), git_repo.root
+    )
+
+    rev1, rev2 = expect.format(initial=initial, master=master).split("..")
+    assert result.rev1 == rev1
+    assert result.rev2 == rev2
 
 
 @pytest.mark.kwparametrize(
@@ -492,10 +528,9 @@ def test_git_get_modified_files(git_repo, modify_paths, paths, expect):
         else:
             absolute_path.parent.mkdir(parents=True, exist_ok=True)
             absolute_path.write_bytes(content.encode("ascii"))
+    revrange = git.RevisionRange("HEAD", ":WORKTREE:")
 
-    result = git.git_get_modified_files(
-        {root / p for p in paths}, git.RevisionRange("HEAD"), cwd=root
-    )
+    result = git.git_get_modified_files({root / p for p in paths}, revrange, cwd=root)
 
     assert result == {Path(p) for p in expect}
 
@@ -648,7 +683,7 @@ def test_git_get_modified_files_revision_range(
     """Test for :func:`darker.git.git_get_modified_files` with a revision range"""
     result = git.git_get_modified_files(
         [Path(branched_repo.root)],
-        git.RevisionRange.parse(revrange),
+        git.RevisionRange.parse_with_common_ancestor(revrange, branched_repo.root),
         Path(branched_repo.root),
     )
 
@@ -684,14 +719,12 @@ def test_git_get_modified_files_revision_range(
 def test_revisionrange_parse_pre_commit(
     environ, expect_rev1, expect_rev2, expect_use_common_ancestor
 ):
-    """RevisionRange.parse(':PRE-COMMIT:') gets the range from environment variables"""
+    """RevisionRange._parse(':PRE-COMMIT:') gets the range from environment variables"""
     with patch.dict(os.environ, environ):
 
-        result = git.RevisionRange.parse(":PRE-COMMIT:")
+        result = git.RevisionRange._parse(":PRE-COMMIT:")
 
-        assert result.rev1 == expect_rev1
-        assert result.rev2 == expect_rev2
-        assert result.use_common_ancestor == expect_use_common_ancestor
+        assert result == (expect_rev1, expect_rev2, expect_use_common_ancestor)
 
 
 edited_linenums_differ_cases = pytest.mark.kwparametrize(
@@ -707,7 +740,8 @@ def test_edited_linenums_differ_compare_revisions(git_repo, context_lines, expec
     """Tests for EditedLinenumsDiffer.revision_vs_worktree()"""
     paths = git_repo.add({"a.py": "1\n2\n3\n4\n5\n6\n7\n8\n"}, commit="Initial commit")
     paths["a.py"].write_bytes(b"1\n2\nthree\n4\n5\n6\nseven\n8\n")
-    differ = git.EditedLinenumsDiffer(Path(git_repo.root), git.RevisionRange("HEAD"))
+    revrange = git.RevisionRange("HEAD", ":WORKTREE:")
+    differ = git.EditedLinenumsDiffer(git_repo.root, revrange)
 
     linenums = differ.compare_revisions(Path("a.py"), context_lines)
 
@@ -719,7 +753,8 @@ def test_edited_linenums_differ_revision_vs_lines(git_repo, context_lines, expec
     """Tests for EditedLinenumsDiffer.revision_vs_lines()"""
     git_repo.add({"a.py": "1\n2\n3\n4\n5\n6\n7\n8\n"}, commit="Initial commit")
     content = TextDocument.from_lines(["1", "2", "three", "4", "5", "6", "seven", "8"])
-    differ = git.EditedLinenumsDiffer(git_repo.root, git.RevisionRange("HEAD"))
+    revrange = git.RevisionRange("HEAD", ":WORKTREE:")
+    differ = git.EditedLinenumsDiffer(git_repo.root, revrange)
 
     linenums = differ.revision_vs_lines(Path("a.py"), content, context_lines)
 

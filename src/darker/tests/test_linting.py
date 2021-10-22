@@ -146,10 +146,9 @@ def test_run_linter(
     src_paths = git_repo.add({"test.py": "1\n2\n"}, commit="Initial commit")
     src_paths["test.py"].write_bytes(b"one\n2\n")
     cmdline = f"echo {location}"
+    revrange = RevisionRange("HEAD", ":WORKTREE:")
 
-    linting.run_linter(
-        cmdline, Path(git_repo.root), {Path(p) for p in paths}, RevisionRange("HEAD")
-    )
+    linting.run_linter(cmdline, git_repo.root, {Path(p) for p in paths}, revrange)
 
     # We can now verify that the linter received the correct paths on its command line
     # by checking standard output from the our `echo` "linter".
@@ -172,7 +171,7 @@ def test_run_linter_non_worktree():
             "dummy-linter",
             Path("/dummy"),
             {Path("dummy.py")},
-            RevisionRange.parse("..HEAD"),
+            RevisionRange.parse_with_common_ancestor("..HEAD", Path("dummy cwd")),
         )
 
 
@@ -191,7 +190,7 @@ def test_run_linter_return_value(git_repo, location, expect):
     cmdline = f"echo {location}"
 
     result = linting.run_linter(
-        cmdline, Path(git_repo.root), {Path("test.py")}, RevisionRange("HEAD")
+        cmdline, git_repo.root, {Path("test.py")}, RevisionRange("HEAD", ":WORKTREE:")
     )
 
     assert result == expect
@@ -263,7 +262,7 @@ def test_run_linters(linter_cmdlines, linters_return, expect_result):
             linter_cmdlines,
             Path("dummy root"),
             {Path("dummy paths")},
-            RevisionRange("dummy revrange"),
+            RevisionRange("dummy rev1", "dummy rev2"),
         )
 
         expect_calls = [
@@ -271,7 +270,7 @@ def test_run_linters(linter_cmdlines, linters_return, expect_result):
                 linter_cmdline,
                 Path("dummy root"),
                 {Path("dummy paths")},
-                RevisionRange("dummy revrange"),
+                RevisionRange("dummy rev1", "dummy rev2"),
             )
             for linter_cmdline in linter_cmdlines
         ]
@@ -293,7 +292,7 @@ def test_run_linter_on_new_file(git_repo, capsys):
         "echo file2.py:1:",
         Path(git_repo.root),
         {Path("file2.py")},
-        RevisionRange("initial"),
+        RevisionRange("initial", ":WORKTREE:"),
     )
 
     output = capsys.readouterr().out.splitlines()

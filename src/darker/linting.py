@@ -67,7 +67,7 @@ def _require_rev2_worktree(rev2: str) -> None:
     :param rev2: The ``rev2`` revision to lint.
 
     """
-    if rev2 is not WORKTREE:
+    if rev2 != WORKTREE:
         raise NotImplementedError(
             "Linting arbitrary commits is not supported. "
             "Please use -r {<rev>|<rev>..|<rev>...} instead."

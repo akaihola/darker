@@ -9,7 +9,7 @@ from datetime import datetime
 from functools import lru_cache
 from pathlib import Path
 from subprocess import DEVNULL, PIPE, CalledProcessError, check_output, run
-from typing import Iterable, List, Set
+from typing import Iterable, List, Set, Tuple
 
 from darker.diff import diff_and_get_opcodes, opcodes_to_edit_linenums
 from darker.utils import GIT_DATEFORMAT, TextDocument
@@ -85,9 +85,9 @@ class RevisionRange:
     ``rev1`` is the "old" revision, and ``rev2``, the "new" revision which should be
     compared against ``rev1``.
 
-    If ``use_common_ancestor`` is true, the comparison should not be made against
-    ``rev1`` but instead against the branch point, i.e. the latest commit which is
-    common to both ``rev1`` and ``rev2``. This is useful e.g. when CI is doing a check
+    When parsing a revision range expression with triple dots (e.g. ``master...HEAD``),
+    the branch point, or common ancestor of the revisions, is used instead of the
+    provided ``rev1``. This is useful e.g. when CI is doing a check
     on a feature branch, and there have been commits in the main branch after the branch
     point. Without the ability to compare to the branch point, Darker would suggest
     corrections to formatting on lines changes in the main branch even if those lines
@@ -96,33 +96,43 @@ class RevisionRange:
     """
 
     rev1: str
-    rev2: str = WORKTREE
-    use_common_ancestor: bool = False
-
-    def __post_init__(self) -> None:
-        if self.rev2 == "":
-            super().__setattr__("rev2", WORKTREE)
+    rev2: str
 
     @classmethod
-    def parse(cls, revision_range: str) -> "RevisionRange":
-        """Convert a range expression to a ``RevisionRange`' object
+    def parse_with_common_ancestor(
+        cls, revision_range: str, cwd: Path
+    ) -> "RevisionRange":
+        """Convert a range expression to a ``RevisionRange`` object
 
-        >>> RevisionRange.parse("a..b")
-        RevisionRange(rev1='a', rev2='b', use_common_ancestor=False)
-        >>> RevisionRange.parse("a...b")
-        RevisionRange(rev1='a', rev2='b', use_common_ancestor=True)
-        >>> RevisionRange.parse("a..")
-        RevisionRange(rev1='a', rev2=':WORKTREE:', use_common_ancestor=False)
-        >>> RevisionRange.parse("a...")
-        RevisionRange(rev1='a', rev2=':WORKTREE:', use_common_ancestor=True)
+        If the expression contains triple dots (e.g. ``master...HEAD``), finds the
+        common ancestor of the two revisions and uses that as the first revision.
+
+        """
+        rev1, rev2, use_common_ancestor = cls._parse(revision_range)
+        if use_common_ancestor:
+            return cls._with_common_ancestor(rev1, rev2, cwd)
+        return cls(rev1, rev2)
+
+    @staticmethod
+    def _parse(revision_range: str) -> Tuple[str, str, bool]:
+        """Convert a range expression to revisions, using common ancestor if appropriate
+
+        >>> RevisionRange._parse("a..b")
+        ('a', 'b', False)
+        >>> RevisionRange._parse("a...b")
+        ('a', 'b', True)
+        >>> RevisionRange._parse("a..")
+        ('a', ':WORKTREE:', False)
+        >>> RevisionRange._parse("a...")
+        ('a', ':WORKTREE:', True)
 
         """
         if revision_range == PRE_COMMIT_FROM_TO_REFS:
             try:
-                return cls(
+                return (
                     os.environ["PRE_COMMIT_FROM_REF"],
                     os.environ["PRE_COMMIT_TO_REF"],
-                    use_common_ancestor=True,
+                    True,
                 )
             except KeyError:
                 # Fallback to running against HEAD
@@ -131,12 +141,17 @@ class RevisionRange:
         if match:
             rev1, range_dots, rev2 = match.groups()
             use_common_ancestor = range_dots == "..."
-            return cls(rev1 or "HEAD", rev2, use_common_ancestor)
-        return cls(
-            revision_range or "HEAD",
-            WORKTREE,
-            use_common_ancestor=revision_range not in ["", "HEAD"],
-        )
+            return (rev1 or "HEAD", rev2 or WORKTREE, use_common_ancestor)
+        return (revision_range or "HEAD", WORKTREE, revision_range not in ["", "HEAD"])
+
+    @classmethod
+    def _with_common_ancestor(cls, rev1: str, rev2: str, cwd: Path) -> "RevisionRange":
+        """Find common ancestor for revisions and return a ``RevisionRange`` object"""
+        rev2_for_merge_base = "HEAD" if rev2 == WORKTREE else rev2
+        merge_base_cmd = ["merge-base", rev1, rev2_for_merge_base]
+        common_ancestor = _git_check_output_lines(merge_base_cmd, cwd)[0]
+        rev1_hash = _git_check_output_lines(["show", "-s", "--pretty=%H", rev1], cwd)[0]
+        return cls(rev1 if common_ancestor == rev1_hash else common_ancestor, rev2)
 
 
 def should_reformat_file(path: Path) -> bool:
@@ -267,13 +282,9 @@ def git_get_modified_files(
 
     """
     relative_paths = {p.resolve().relative_to(cwd) for p in paths}
-    if revrange.use_common_ancestor:
-        rev2 = "HEAD" if revrange.rev2 == WORKTREE else revrange.rev2
-        merge_base_cmd = ["merge-base", revrange.rev1, rev2]
-        rev1 = _git_check_output_lines(merge_base_cmd, cwd)[0]
-    else:
-        rev1 = revrange.rev1
-    changed_paths = _git_diff_name_only(rev1, revrange.rev2, relative_paths, cwd)
+    changed_paths = _git_diff_name_only(
+        revrange.rev1, revrange.rev2, relative_paths, cwd
+    )
     if revrange.rev2 == WORKTREE:
         changed_paths.update(_git_ls_files_others(relative_paths, cwd))
     return {path for path in changed_paths if should_reformat_file(cwd / path)}
