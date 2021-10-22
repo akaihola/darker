@@ -7,6 +7,8 @@ Added
 -----
 - Linter failures now result in an exit value of 1, regardless of whether ``--check``
   was used or not. This makes linting in Darker compatible with ``pre-commit``.
+- Declare Python 3.9 and 3.10 as supported in package metadata
+- Run test build in a Python 3.10 environment on GitHub Actions
 
 Fixed
 -----
