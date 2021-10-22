@@ -442,6 +442,7 @@ def test_get_rev1_path(path, expect):
         # Windows compatible path assertion using `pathlib.Path()`
         expect_stdout=A_PY_DIFF_BLACK
         + [f"subdir/a.py:1: message {Path('/subdir/a.py')}"],
+        expect_retval=1,
     ),
     dict(
         arguments=[],
