@@ -5,6 +5,8 @@ These features will be included in the next release:
 
 Added
 -----
+- Linter failures now result in an exit value of 1, regardless of whether ``--check``
+  was used or not. This makes linting in Darker compatible with ``pre-commit``.
 
 Fixed
 -----

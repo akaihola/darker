@@ -340,7 +340,6 @@ def main(argv: List[str] = None) -> int:
 
     paths = {Path(p) for p in args.src}
     root = get_common_root(paths)
-    failures_on_modified_lines = False
 
     revrange = RevisionRange.parse_with_common_ancestor(args.revision, root)
     output_mode = OutputMode.from_args(args)
@@ -385,6 +384,8 @@ def main(argv: List[str] = None) -> int:
         black_exclude = {
             f for f in changed_files_to_process if root / f not in files_to_blacken
         }
+
+    formatting_failures_on_modified_lines = False
     for path, old, new in format_edited_parts(
         root,
         changed_files_to_process,
@@ -394,16 +395,22 @@ def main(argv: List[str] = None) -> int:
         black_config,
         report_unmodified=output_mode == OutputMode.CONTENT,
     ):
-        failures_on_modified_lines = True
+        formatting_failures_on_modified_lines = True
         if output_mode == OutputMode.DIFF:
             print_diff(path, old, new, root)
         elif output_mode == OutputMode.CONTENT:
             print_source(new)
         if write_modified_files:
             modify_file(path, new)
-    if run_linters(args.lint, root, changed_files_to_process, revrange):
-        failures_on_modified_lines = True
-    return 1 if args.check and failures_on_modified_lines else 0
+    linter_failures_on_modified_lines = run_linters(
+        args.lint, root, changed_files_to_process, revrange
+    )
+    return (
+        1
+        if linter_failures_on_modified_lines
+        or (args.check and formatting_failures_on_modified_lines)
+        else 0
+    )
 
 
 def main_with_error_handling() -> int:
