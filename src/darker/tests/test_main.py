@@ -721,3 +721,13 @@ def test_modify_file(tmp_path, new_content, expect):
 
     result = path.read_bytes()
     assert result == expect
+
+
+def test_stdout_path_resolution(git_repo, capsys):
+    """When using ``--stdout``, file paths are resolved correctly"""
+    git_repo.add({"src/menu.py": "print ( 'foo' )\n"})
+
+    result = darker.__main__.main(["--stdout", "./src/menu.py"])
+
+    assert result == 0
+    assert capsys.readouterr().out == 'print("foo")\n\n'
