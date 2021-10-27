@@ -9,6 +9,7 @@ Added
   was used or not. This makes linting in Darker compatible with ``pre-commit``.
 - Declare Python 3.9 and 3.10 as supported in package metadata
 - Run test build in a Python 3.10 environment on GitHub Actions
+- Explanation in README about how to use ``args:`` in pre-commit configuration
 
 Fixed
 -----
