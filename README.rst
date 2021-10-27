@@ -503,6 +503,21 @@ do the following:
 .. _pre-commit Installation: https://pre-commit.com/#installation
 
 
+Using arguments
+---------------
+
+You can provide arguments, such as enabling isort, by specifying ``args``.
+Note the inclusion of the isort Python package under ``additional_dependencies``::
+
+   -   repo: https://github.com/akaihola/darker
+       rev: 1.3.1
+       hooks:
+       -   id: darker
+           args: [--isort]
+           additional_dependencies:
+           -   isort~=5.9
+
+
 How does it work?
 =================
 
