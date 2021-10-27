@@ -470,9 +470,9 @@ def test_black_options_skip_string_normalization(git_repo, config, options, expe
     added_files["main.py"].write_bytes(b"bar")
     mode_class_mock = Mock(wraps=black_diff.Mode)
     # Speed up tests by mocking `format_str` to skip running Black
-    format_str_to_lines = Mock(return_value=["bar"])
+    format_str_to_chunks = Mock(return_value=[["bar"]])
     with patch.multiple(
-        black_diff, Mode=mode_class_mock, format_str_to_lines=format_str_to_lines
+        black_diff, Mode=mode_class_mock, format_str_to_chunks=format_str_to_chunks
     ):
 
         main(options + [str(path) for path in added_files.values()])
@@ -498,9 +498,9 @@ def test_black_options_skip_magic_trailing_comma(git_repo, config, options, expe
     added_files["main.py"].write_bytes(b"a = [1, 2,]")
     mode_class_mock = Mock(wraps=black_diff.Mode)
     # Speed up tests by mocking `format_str` to skip running Black
-    format_str_to_lines = Mock(return_value=["a = [1, 2,]"])
+    format_str_to_chunks = Mock(return_value=[["a = [1, 2,]"]])
     with patch.multiple(
-        black_diff, Mode=mode_class_mock, format_str_to_lines=format_str_to_lines
+        black_diff, Mode=mode_class_mock, format_str_to_chunks=format_str_to_chunks
     ):
 
         main(options + [str(path) for path in added_files.values()])
