@@ -43,13 +43,13 @@ from black import FileMode as Mode
 from black import (
     TargetVersion,
     find_pyproject_toml,
-    format_str,
     parse_pyproject_toml,
     re_compile_maybe_verbose,
 )
 from black.const import DEFAULT_EXCLUDES, DEFAULT_INCLUDES
 from black.files import gen_python_files
 from black.report import Report
+from darker.linewise_black import format_str_to_lines
 
 from darker.utils import TextDocument
 
@@ -181,7 +181,8 @@ def run_black(src_contents: TextDocument, black_config: BlackConfig) -> TextDocu
     # https://github.com/psf/black/pull/2484 lands in Black.
     contents_for_black = src_contents.string_with_newline("\n")
     if contents_for_black.strip():
-        dst_contents = format_str(contents_for_black, mode=Mode(**mode))
+        dst_lines = format_str_to_lines(contents_for_black, mode=Mode(**mode))
+        dst_contents = "".join(dst_lines)
     else:
         dst_contents = "\n" if "\n" in src_contents.string else ""
     return TextDocument.from_str(
