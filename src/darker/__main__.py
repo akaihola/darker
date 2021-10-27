@@ -373,9 +373,9 @@ def main(argv: List[str] = None) -> int:
     if output_mode == OutputMode.CONTENT:
         # With `-d` / `--stdout`, process the file whether modified or not. Paths have
         # previously been validated to contain exactly one existing file.
-        changed_files_to_process = set(
+        changed_files_to_process = {
             p.resolve().relative_to(root) for p in files_to_process
-        )
+        }
         black_exclude = set()
     else:
         # In other modes, only process files which have been modified.
