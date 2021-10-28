@@ -203,57 +203,37 @@ def test_run_linter_return_value(git_repo, location, expect):
     dict(
         linter_cmdlines=[],
         linters_return=[],
-        expect_result=False,
-    ),
-    dict(
-        linter_cmdlines=["linter"],
-        linters_return=[None],
-        expect_result=False,
+        expect_result=0,
     ),
     dict(
         linter_cmdlines=["linter"],
         linters_return=[0],
-        expect_result=False,
+        expect_result=0,
     ),
     dict(
         linter_cmdlines=["linter"],
         linters_return=[1],
-        expect_result=True,
+        expect_result=1,
     ),
     dict(
         linter_cmdlines=["linter"],
         linters_return=[42],
-        expect_result=True,
-    ),
-    dict(
-        linter_cmdlines=["linter1", "linter2"],
-        linters_return=[None, None],
-        expect_result=False,
-    ),
-    dict(
-        linter_cmdlines=["linter1", "linter2"],
-        linters_return=[None, 0],
-        expect_result=False,
-    ),
-    dict(
-        linter_cmdlines=["linter1", "linter2"],
-        linters_return=[None, 42],
-        expect_result=True,
+        expect_result=42,
     ),
     dict(
         linter_cmdlines=["linter1", "linter2"],
         linters_return=[0, 0],
-        expect_result=False,
+        expect_result=0,
     ),
     dict(
         linter_cmdlines=["linter1", "linter2"],
         linters_return=[0, 42],
-        expect_result=True,
+        expect_result=42,
     ),
     dict(
         linter_cmdlines=["linter1", "linter2 command line"],
         linters_return=[42, 42],
-        expect_result=True,
+        expect_result=84,
     ),
 )
 def test_run_linters(linter_cmdlines, linters_return, expect_result):
