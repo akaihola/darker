@@ -12,6 +12,7 @@
 - Christophe Simonis (@KangOl)
 - Correy Lim (@CorreyL)
 - Daniel Martin (@fizbin)
+- David Dreher (@DavidCDreher)
 - David Sanders (@shangxiao)
 - @dsmanl
 - Dustin Spicuzza (@virtuald)
