@@ -186,7 +186,7 @@ Added
   against when finding out modified lines. Defaults to ``HEAD`` as before.
 - ``--no-skip-string-normalization`` flag to override
   ``skip_string_normalization = true`` from a configuration file
-- the ``--diff`` and ``--lint`` options will highlight syntax on screen if the
+- The ``--diff`` and ``--lint`` options will highlight syntax on screen if the
   pygments_ package is available.
 
 Fixed
