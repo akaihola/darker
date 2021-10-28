@@ -644,6 +644,8 @@ Thanks goes to these wonderful people (`emoji key`_):
                    <sub><b>Christian Decker</b></sub>
                </a>
                <br />
+               <a href="https://github.com/akaihola/darker/pulls?q=is%3Apr+author%3Achrisdecker1201"
+                  title="Code">💻</a>
                <a href="https://github.com/akaihola/darker/issues?q=author%3Achrisdecker1201"
                   title="Bug reports">🐛</a>
            </td>
