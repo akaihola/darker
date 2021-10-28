@@ -1020,7 +1020,7 @@ Thanks goes to these wonderful people (`emoji key`_):
                <br />
                <a href="https://github.com/akaihola/darker/issues?q=author%3Ayoursvivek"
                   title="Bug reports">🐛</a>
-                  <a href="https://github.com/akaihola/darker/commits?author=yoursvivek"
+               <a href="https://github.com/akaihola/darker/commits?author=yoursvivek"
                   title="Documentation">📖</a>
            </td>
            <td align="center">
@@ -1032,6 +1032,8 @@ Thanks goes to these wonderful people (`emoji key`_):
                <br />
                <a href="https://github.com/akaihola/darker/issues?q=author%3Awjdp"
                   title="Bug reports">🐛</a>
+               <a href="https://github.com/akaihola/darker/pulls?q=is%3Apr+author%3Awjdp"
+                  title="Documentation">📖</a>
            </td>
            <td align="center">
                <a href="https://github.com/wnoise">
