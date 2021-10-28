@@ -34,21 +34,15 @@ This utility reformats and checks Python source code files in a Git repository.
 However, it only applies reformatting and reports errors
 in regions which have changed in the Git working tree since the last commit.
 
-The reformatters and linters supported are:
+The reformatters supported are:
 
 - Black_ for code reformatting
 - isort_ for sorting imports
-- Mypy_ for static type checking
-- Pylint_ for generic static checking of code
-- Flake8_ for style guide enforcement
 
-*New in version 1.1.0:* Support for Mypy_, Pylint_ and other linters.
+See `Using linters`_ below for the list of supported linters.
 
 .. _Black: https://github.com/python/black
 .. _isort: https://github.com/timothycrosley/isort
-.. _Mypy: https://pypi.org/project/mypy
-.. _Pylint: https://pypi.org/project/pylint
-.. _Flake8: https://pypi.org/project/flake8
 
 +------------------------------------------------+---------------------------------+
 | |you-can-help|                                 | |support|                       |
@@ -124,11 +118,7 @@ By default, ``darker`` just runs Black_ to reformat the code.
 You can enable additional features with command line options:
 
 - ``-i`` / ``--isort``: Reorder imports using isort_
-- ``-L <linter>`` / ``--lint <linter>``: Run a supported linter:
-
-  - ``-L mypy``: do static type checking using Mypy_
-  - ``-L pylint``: analyze code using Pylint_
-  - ``-L flake8``: enforce the Python style guide using Flake8_
+- ``-L <linter>`` / ``--lint <linter>``: Run a supported linter (see `Using linters`_)
 
 *New in version 1.1.0:* The ``-L`` / ``--lint`` option.
 *New in version 1.2.2:* Package available in conda-forge_.
@@ -516,6 +506,55 @@ Note the inclusion of the isort Python package under ``additional_dependencies``
            args: [--isort]
            additional_dependencies:
            -   isort~=5.9
+
+
+.. _Using linters:
+
+Using linters
+=============
+
+One way to use Darker is to filter linter output to modified lines only.
+Darker supports any linter with output in one of the following formats::
+
+    <file>:<linenum>: <description>
+    <file>:<linenum>:<col>: <description>
+
+Most notably, the following linters/checkers have been verified to work with Darker:
+
+- Mypy_ for static type checking
+- Pylint_ for generic static checking of code
+- Flake8_ for style guide enforcement
+- `cov_to_lint.py`_ for test coverage
+
+*New in version 1.1.0:* Support for Mypy_, Pylint_, Flake8_ and compatible linters.
+
+*New in version 1.2.0:* Support for test coverage output using `cov_to_lint.py`_.
+
+To run a linter, use the ``--lint`` / ``-L`` command line option:
+
+  - ``-L mypy``: do static type checking using Mypy_
+  - ``-L pylint``: analyze code using Pylint_
+  - ``-L flake8``: enforce the Python style guide using Flake8_
+  - ``-L cov_to_lint.py``: read ``.coverage`` and list non-covered modified lines
+
+Darker also groups linter output into blocks of consecutive lines
+separated by blank lines.
+Here's an example of `cov_to_lint.py`_ output::
+
+    $ darker --revision 0.1.0.. --check --lint cov_to_lint.py src
+    src/darker/__main__.py:94:  no coverage:             logger.debug("No changes in %s after isort", src)
+    src/darker/__main__.py:95:  no coverage:             break
+
+    src/darker/__main__.py:125: no coverage:         except NotEquivalentError:
+
+    src/darker/__main__.py:130: no coverage:             if context_lines == max_context_lines:
+    src/darker/__main__.py:131: no coverage:                 raise
+    src/darker/__main__.py:132: no coverage:             logger.debug(
+
+.. _Mypy: https://pypi.org/project/mypy
+.. _Pylint: https://pypi.org/project/pylint
+.. _Flake8: https://pypi.org/project/flake8
+.. _cov_to_lint.py: https://gist.github.com/akaihola/2511fe7d2f29f219cb995649afd3d8d2
 
 
 How does it work?
