@@ -43,3 +43,4 @@
 - TJ Kolleh (@tkolleh)
 - Vivek Kushwaha (@yoursvivek)
 - Will (@Hainguyen1210)
+- Will Pimblett (@wjdp)

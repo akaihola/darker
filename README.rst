@@ -1020,6 +1020,16 @@ Thanks goes to these wonderful people (`emoji key`_):
                   title="Documentation">📖</a>
            </td>
            <td align="center">
+               <a href="https://github.com/wjdp">
+                   <img src="https://avatars.githubusercontent.com/u/1690934?v=3" width="100px;" alt="@wjdp"/>
+                   <br />
+                   <sub><b>Will Pimblett</b></sub>
+               </a>
+               <br />
+               <a href="https://github.com/akaihola/darker/issues?q=author%3Awjdp"
+                  title="Bug reports">🐛</a>
+           </td>
+           <td align="center">
                <a href="https://github.com/wnoise">
                    <img src="https://avatars.githubusercontent.com/u/9107?v=3" width="100px;" alt="@wnoise"/>
                    <br />
