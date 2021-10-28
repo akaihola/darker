@@ -63,14 +63,14 @@ def test_check_linter_output():
         _descr="Check one file, report on a modified line in test.py",
         paths=["one.py"],
         location="test.py:1:",
-        expect_output=["test.py:1: {git_repo.root / 'one.py'}"],
+        expect_output=["", "test.py:1: {git_repo.root / 'one.py'}"],
         expect_log=[],
     ),
     dict(
         _descr="Check one file, report on a column of a modified line in test.py",
         paths=["one.py"],
         location="test.py:1:42:",
-        expect_output=["test.py:1:42: {git_repo.root / 'one.py'}"],
+        expect_output=["", "test.py:1:42: {git_repo.root / 'one.py'}"],
         expect_log=[],
     ),
     dict(
@@ -92,6 +92,7 @@ def test_check_linter_output():
         paths=["one.py", "two.py"],
         location="test.py:1:",
         expect_output=[
+            "",
             "test.py:1: {git_repo.root / 'one.py'} {git_repo.root / 'two.py'}"
         ],
         expect_log=[],
@@ -101,6 +102,7 @@ def test_check_linter_output():
         paths=["one.py", "two.py"],
         location="test.py:1:42:",
         expect_output=[
+            "",
             "test.py:1:42: {git_repo.root / 'one.py'} {git_repo.root / 'two.py'}"
         ],
         expect_log=[],
@@ -296,4 +298,4 @@ def test_run_linter_on_new_file(git_repo, capsys):
     )
 
     output = capsys.readouterr().out.splitlines()
-    assert output == [f"file2.py:1: {git_repo.root / 'file2.py'}"]
+    assert output == ["", f"file2.py:1: {git_repo.root / 'file2.py'}"]

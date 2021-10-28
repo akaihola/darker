@@ -116,6 +116,7 @@ def run_linter(
     edited_linenums_differ = EditedLinenumsDiffer(root, revrange)
     missing_files = set()
     with _check_linter_output(cmdline, root, paths) as linter_stdout:
+        prev_path, prev_linenum = None, 0
         for line in linter_stdout:
             path_in_repo, linter_error_linenum = _parse_linter_line(line, root)
             if path_in_repo is None or path_in_repo in missing_files:
@@ -129,6 +130,9 @@ def run_linter(
                 missing_files.add(path_in_repo)
                 continue
             if linter_error_linenum in edited_linenums:
+                if path_in_repo != prev_path or linter_error_linenum > prev_linenum + 1:
+                    print()
+                prev_path, prev_linenum = path_in_repo, linter_error_linenum
                 print(line, end="")
                 error_count += 1
     return error_count

@@ -434,14 +434,14 @@ def test_get_rev1_path(path, expect):
     dict(
         arguments=["--check", "--lint", "echo subdir/a.py:1: message"],
         # Windows compatible path assertion using `pathlib.Path()`
-        expect_stdout=[f"subdir/a.py:1: message {Path('/subdir/a.py')}"],
+        expect_stdout=["", f"subdir/a.py:1: message {Path('/subdir/a.py')}"],
         expect_retval=1,
     ),
     dict(
         arguments=["--diff", "--lint", "echo subdir/a.py:1: message"],
         # Windows compatible path assertion using `pathlib.Path()`
         expect_stdout=A_PY_DIFF_BLACK
-        + [f"subdir/a.py:1: message {Path('/subdir/a.py')}"],
+        + ["", f"subdir/a.py:1: message {Path('/subdir/a.py')}"],
         expect_retval=1,
     ),
     dict(
