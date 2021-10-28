@@ -20,6 +20,7 @@ Fixed
   affects Black reformatting, not ``isort`` or linters.
 - ``--revision rev1...rev2`` now actually applies reformatting and filters linter output
   to only lines modified compared to the common ancestor of ``rev1`` and ``rev2``
+- Relative paths are now resolved correctly when using the ``--stdout`` option
 - Downgrade to Flake8 version 3.x for Pytest compatibility.
   See `tholo/pytest-flake8#81`__
 
