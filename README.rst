@@ -790,6 +790,8 @@ Thanks goes to these wonderful people (`emoji key`_):
                <br />
                <a href="https://github.com/akaihola/darker/issues?q=author%3Ajasleen19"
                   title="Bug reports">🐛</a>
+               <a href="https://github.com/akaihola/darker/pulls?q=is%3Apr+reviewed-by%3Ajasleen19"
+                  title="Reviewed Pull Requests">👀</a>
            </td>
            <td align="center">
                <a href="https://github.com/KangOl">
