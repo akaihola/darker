@@ -22,9 +22,9 @@
 .. |changelog-badge| image:: https://img.shields.io/badge/-change%20log-purple
    :alt: Change log
 .. _changelog-badge: https://github.com/akaihola/darker/blob/master/CHANGES.rst
-.. |next-milestone| image:: https://img.shields.io/github/milestones/progress/akaihola/darker/10?color=red&label=release%201.3.2
+.. |next-milestone| image:: https://img.shields.io/github/milestones/progress/akaihola/darker/11?color=red&label=release%201.4.0
    :alt: Next milestone
-.. _next-milestone: https://github.com/akaihola/darker/milestone/10
+.. _next-milestone: https://github.com/akaihola/darker/milestone/11
 
 
 What?
@@ -491,7 +491,7 @@ do the following:
 1. Append to the created ``.pre-commit-config.yaml`` the following lines::
 
        -   repo: https://github.com/akaihola/darker
-           rev: 1.3.1
+           rev: 1.3.2
            hooks:
            -   id: darker
 
@@ -510,7 +510,7 @@ You can provide arguments, such as enabling isort, by specifying ``args``.
 Note the inclusion of the isort Python package under ``additional_dependencies``::
 
    -   repo: https://github.com/akaihola/darker
-       rev: 1.3.1
+       rev: 1.3.2
        hooks:
        -   id: darker
            args: [--isort]
