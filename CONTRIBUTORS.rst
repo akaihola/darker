@@ -7,6 +7,7 @@
 - Aaron Denney (@wnoise)
 - Alexander Tishin (@Mystic-Mirage)
 - Antti Kaihola (@akaihola)
+- August Masquelier (@levouh)
 - Carsten Kraus (@casio)
 - Christian Decker (@chrisdecker1201)
 - Christophe Simonis (@KangOl)
