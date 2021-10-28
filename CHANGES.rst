@@ -5,6 +5,16 @@ These features will be included in the next release:
 
 Added
 -----
+
+Fixed
+-----
+
+
+1.3.2_ - 2021-10-28
+===================
+
+Added
+-----
 - Linter failures now result in an exit value of 1, regardless of whether ``--check``
   was used or not. This makes linting in Darker compatible with ``pre-commit``.
 - Declare Python 3.9 and 3.10 as supported in package metadata
@@ -226,7 +236,8 @@ Added
 -----
 - Initial implementation
 
-.. _Unreleased: https://github.com/akaihola/darker/compare/1.3.1...HEAD
+.. _Unreleased: https://github.com/akaihola/darker/compare/1.3.2...HEAD
+.. _1.3.2: https://github.com/akaihola/darker/compare/1.3.1...1.3.2
 .. _1.3.1: https://github.com/akaihola/darker/compare/1.3.0...1.3.1
 .. _1.3.0: https://github.com/akaihola/darker/compare/1.2.4...1.3.0
 .. _1.2.4: https://github.com/akaihola/darker/compare/1.2.3...1.2.4
