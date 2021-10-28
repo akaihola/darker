@@ -3,6 +3,7 @@
 """Unit tests for :mod:`darker.linting`"""
 
 from pathlib import Path
+from textwrap import dedent
 from unittest.mock import call, patch
 
 import pytest
@@ -63,14 +64,14 @@ def test_check_linter_output():
         _descr="Check one file, report on a modified line in test.py",
         paths=["one.py"],
         location="test.py:1:",
-        expect_output=["test.py:1: {git_repo.root / 'one.py'}"],
+        expect_output=["", "test.py:1: {git_repo.root / 'one.py'}"],
         expect_log=[],
     ),
     dict(
         _descr="Check one file, report on a column of a modified line in test.py",
         paths=["one.py"],
         location="test.py:1:42:",
-        expect_output=["test.py:1:42: {git_repo.root / 'one.py'}"],
+        expect_output=["", "test.py:1:42: {git_repo.root / 'one.py'}"],
         expect_log=[],
     ),
     dict(
@@ -92,6 +93,7 @@ def test_check_linter_output():
         paths=["one.py", "two.py"],
         location="test.py:1:",
         expect_output=[
+            "",
             "test.py:1: {git_repo.root / 'one.py'} {git_repo.root / 'two.py'}"
         ],
         expect_log=[],
@@ -101,6 +103,7 @@ def test_check_linter_output():
         paths=["one.py", "two.py"],
         location="test.py:1:42:",
         expect_output=[
+            "",
             "test.py:1:42: {git_repo.root / 'one.py'} {git_repo.root / 'two.py'}"
         ],
         expect_log=[],
@@ -200,57 +203,37 @@ def test_run_linter_return_value(git_repo, location, expect):
     dict(
         linter_cmdlines=[],
         linters_return=[],
-        expect_result=False,
-    ),
-    dict(
-        linter_cmdlines=["linter"],
-        linters_return=[None],
-        expect_result=False,
+        expect_result=0,
     ),
     dict(
         linter_cmdlines=["linter"],
         linters_return=[0],
-        expect_result=False,
+        expect_result=0,
     ),
     dict(
         linter_cmdlines=["linter"],
         linters_return=[1],
-        expect_result=True,
+        expect_result=1,
     ),
     dict(
         linter_cmdlines=["linter"],
         linters_return=[42],
-        expect_result=True,
-    ),
-    dict(
-        linter_cmdlines=["linter1", "linter2"],
-        linters_return=[None, None],
-        expect_result=False,
-    ),
-    dict(
-        linter_cmdlines=["linter1", "linter2"],
-        linters_return=[None, 0],
-        expect_result=False,
-    ),
-    dict(
-        linter_cmdlines=["linter1", "linter2"],
-        linters_return=[None, 42],
-        expect_result=True,
+        expect_result=42,
     ),
     dict(
         linter_cmdlines=["linter1", "linter2"],
         linters_return=[0, 0],
-        expect_result=False,
+        expect_result=0,
     ),
     dict(
         linter_cmdlines=["linter1", "linter2"],
         linters_return=[0, 42],
-        expect_result=True,
+        expect_result=42,
     ),
     dict(
         linter_cmdlines=["linter1", "linter2 command line"],
         linters_return=[42, 42],
-        expect_result=True,
+        expect_result=84,
     ),
 )
 def test_run_linters(linter_cmdlines, linters_return, expect_result):
@@ -296,4 +279,39 @@ def test_run_linter_on_new_file(git_repo, capsys):
     )
 
     output = capsys.readouterr().out.splitlines()
-    assert output == [f"file2.py:1: {git_repo.root / 'file2.py'}"]
+    assert output == ["", f"file2.py:1: {git_repo.root / 'file2.py'}"]
+
+
+def test_run_linter_line_separation(git_repo, capsys):
+    """``run_linter`` separates contiguous blocks of linter output with empty lines"""
+    paths = git_repo.add({"a.py": "1\n2\n3\n4\n5\n6\n"}, commit="Initial commit")
+    paths["a.py"].write_bytes(b"a\nb\nc\nd\ne\nf\n")
+    linter_output = git_repo.root / "dummy-linter-output.txt"
+    linter_output.write_text(
+        dedent(
+            """
+            a.py:2: first block
+            a.py:3: of linter output
+            a.py:5: second block
+            a.py:6: of linter output
+            """
+        )
+    )
+
+    linting.run_linter(
+        f"cat {linter_output}",
+        Path(git_repo.root),
+        {Path(p) for p in paths},
+        RevisionRange("HEAD", ":WORKTREE:"),
+    )
+
+    result = capsys.readouterr().out
+    assert result == dedent(
+        """
+        a.py:2: first block
+        a.py:3: of linter output
+
+        a.py:5: second block
+        a.py:6: of linter output
+        """
+    )
