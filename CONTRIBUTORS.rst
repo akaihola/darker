@@ -23,6 +23,7 @@
 - Giel van Schijndel (@muggenhor)
 - Hugo Dupras (@jabesq)
 - Iryna (@irynahryshanovich)
+- Jasleen Kaur (@jasleen19)
 - Krischtopp (@Krischtopp)
 - Leo Torres (@leotrs)
 - Łukasz Rogalski (@rogalski)
