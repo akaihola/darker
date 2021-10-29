@@ -510,8 +510,8 @@ def test_git_ls_files_others(git_repo):
     modify_paths={},
     paths=[],
 )
-def test_git_get_modified_files(git_repo, modify_paths, paths, expect):
-    """Tests for `darker.git.git_get_modified_files()`"""
+def test_git_get_modified_python_files(git_repo, modify_paths, paths, expect):
+    """Tests for `darker.git.git_get_modified_python_files()`"""
     root = Path(git_repo.root)
     git_repo.add(
         {
@@ -532,7 +532,9 @@ def test_git_get_modified_files(git_repo, modify_paths, paths, expect):
             absolute_path.write_bytes(content.encode("ascii"))
     revrange = git.RevisionRange("HEAD", ":WORKTREE:")
 
-    result = git.git_get_modified_files({root / p for p in paths}, revrange, cwd=root)
+    result = git.git_get_modified_python_files(
+        {root / p for p in paths}, revrange, cwd=root
+    )
 
     assert result == {Path(p) for p in expect}
 
@@ -679,11 +681,11 @@ def branched_repo(tmp_path_factory):
         expect={"mod_both.py", "mod_same.py", "mod_branch.py"},
     ),
 )
-def test_git_get_modified_files_revision_range(
+def test_git_get_modified_python_files_revision_range(
     _description, branched_repo, revrange, expect
 ):
-    """Test for :func:`darker.git.git_get_modified_files` with a revision range"""
-    result = git.git_get_modified_files(
+    """Test for :func:`darker.git.git_get_modified_python_files` with revision range"""
+    result = git.git_get_modified_python_files(
         [Path(branched_repo.root)],
         git.RevisionRange.parse_with_common_ancestor(revrange, branched_repo.root),
         Path(branched_repo.root),

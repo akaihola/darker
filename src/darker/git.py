@@ -278,10 +278,10 @@ def _git_ls_files_others(relative_paths: Set[Path], cwd: Path) -> Set[Path]:
     return {Path(line) for line in lines}
 
 
-def git_get_modified_files(
+def git_get_modified_python_files(
     paths: Iterable[Path], revrange: RevisionRange, cwd: Path
 ) -> Set[Path]:
-    """Ask Git for modified and untracked files
+    """Ask Git for modified and untracked ``*.py`` files
 
     - ``git diff --name-only --relative <rev> -- <path(s)>``
     - ``git ls-files --others --exclude-standard -- <path(s)>``
