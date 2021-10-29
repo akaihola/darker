@@ -1,6 +1,5 @@
 """Configuration and fixtures for the Pytest based test suite"""
 
-import os
 from pathlib import Path
 from subprocess import check_call
 from typing import Dict, Optional
@@ -88,7 +87,10 @@ def git_repo(tmp_path, monkeypatch):
     """Create a temporary Git repository and change current working directory into it"""
     repository = GitRepoFixture.create_repository(tmp_path)
     monkeypatch.chdir(tmp_path)
-    monkeypatch.delenv("GIT_DIR")
+    # While `GitRepoFixture.create_repository()` already deletes `GIT_*` environment
+    # variables for any Git commands run by the fixture, let's explicitly remove
+    # `GIT_DIR` in case a test should call Git directly:
+    monkeypatch.delenv("GIT_DIR", raising=False)
     return repository
 
 
