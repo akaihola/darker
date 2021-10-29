@@ -18,6 +18,25 @@ from darker.tests.helpers import raises_or_matches
 from darker.utils import GIT_DATEFORMAT, TextDocument
 
 
+def test_tmp_path_sanity(tmp_path):
+    """Make sure Pytest temporary directories aren't inside a Git repository"""
+    try:
+        result = git._git_check_output_lines(
+            ["rev-parse", "--absolute-git-dir"], tmp_path, exit_on_error=False
+        )
+    except CalledProcessError as exc_info:
+        if exc_info.returncode != 128 or not exc_info.stderr.startswith(
+            "fatal: not a git repository"
+        ):
+            raise
+    else:
+        output = "\n".join(result)
+        raise AssertionError(
+            f"Temporary directory {tmp_path} for tests is not clean."
+            f" There is a Git directory in {output}"
+        )
+
+
 @pytest.mark.parametrize(
     "revision_range, expect",
     [
