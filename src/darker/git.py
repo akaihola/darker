@@ -173,7 +173,8 @@ def _git_check_output_lines(
             cwd=str(cwd),
             check=True,
             encoding="utf-8",
-            capture_output=True,
+            stdout=PIPE,
+            stderr=PIPE,
             env={"LC_ALL": "C"},
         )
         return result.stdout.splitlines()

@@ -175,7 +175,8 @@ def test_git_get_content_at_revision_obtain_file_content(
                 expected_call.split(),
                 cwd=str(Path("/path")),
                 check=True,
-                capture_output=True,
+                stdout=PIPE,
+                stderr=PIPE,
                 encoding="utf-8",
                 env={"LC_ALL": "C"},
             )
