@@ -23,25 +23,24 @@ import logging
 from contextlib import contextmanager
 from pathlib import Path
 from subprocess import PIPE, Popen
-from typing import IO, Generator, List, Set, Tuple, Union
+from typing import IO, Generator, List, Set, Tuple
 
 from darker.git import WORKTREE, EditedLinenumsDiffer, RevisionRange
+from darker.highlighting import colorize
 
 logger = logging.getLogger(__name__)
 
 
-def _parse_linter_line(
-    line: str, root: Path
-) -> Union[Tuple[Path, int], Tuple[None, None]]:
+def _parse_linter_line(line: str, root: Path) -> Tuple[Path, int, str, str]:
     # Parse an error/note line.
     # Given: line == "dir/file.py:123: error: Foo\n"
     # Sets: path = Path("abs/path/to/dir/file.py:123"
     #       linenum = 123
     #       description = "error: Foo"
     try:
-        location, _ = line[:-1].split(": ", 1)
-        path_str, linenum_bytes, *rest = location.split(":")
-        linenum = int(linenum_bytes)
+        location, description = line[:-1].split(": ", 1)
+        path_str, linenum_str, *rest = location.split(":")
+        linenum = int(linenum_str)
         if len(rest) > 1:
             raise ValueError("Too many colon-separated tokens")
         if len(rest) == 1:
@@ -53,10 +52,10 @@ def _parse_linter_line(
         # "Found XX errors in YY files (checked ZZ source files)"
         # "Success: no issues found in 1 source file"
         logger.debug("Unparseable linter output: %s", line[:-1])
-        return None, None
+        return Path(), 0, "", ""
     path_from_cwd = Path(path_str).absolute()
     path_in_repo = path_from_cwd.relative_to(root)
-    return path_in_repo, linenum
+    return path_in_repo, linenum, location + ":", description
 
 
 def _require_rev2_worktree(rev2: str) -> None:
@@ -117,8 +116,17 @@ def run_linter(
     with _check_linter_output(cmdline, root, paths) as linter_stdout:
         prev_path, prev_linenum = None, 0
         for line in linter_stdout:
-            path_in_repo, linter_error_linenum = _parse_linter_line(line, root)
-            if path_in_repo is None or path_in_repo in missing_files:
+            (
+                path_in_repo,
+                linter_error_linenum,
+                location,
+                description,
+            ) = _parse_linter_line(line, root)
+            if (
+                path_in_repo is None
+                or path_in_repo in missing_files
+                or linter_error_linenum == 0
+            ):
                 continue
             try:
                 edited_linenums = edited_linenums_differ.compare_revisions(
@@ -132,7 +140,8 @@ def run_linter(
                 if path_in_repo != prev_path or linter_error_linenum > prev_linenum + 1:
                     print()
                 prev_path, prev_linenum = path_in_repo, linter_error_linenum
-                print(line, end="")
+                print(colorize(location, "lint_location"), end=" ")
+                print(colorize(description, "lint_description"))
                 error_count += 1
     return error_count
 
