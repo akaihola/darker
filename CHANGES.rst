@@ -46,6 +46,7 @@ Added
 - Darker now allows itself to modify files when called with ``pre-commit -o HEAD``, but
   also emits a warning about this being an experimental feature
 - Mention Black's possible new line range formatting support in README
+- Darker can now be used in a plain directory tree in addition to Git repositories
 
 Fixed
 -----
