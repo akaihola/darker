@@ -8,13 +8,14 @@ from argparse import ArgumentError
 from pathlib import Path
 from textwrap import dedent
 from types import SimpleNamespace
-from unittest.mock import patch
+from unittest.mock import call, patch
 
 import pytest
 from black import find_project_root
 
 import darker.__main__
 import darker.import_sorting
+import darker.linting
 from darker.exceptions import MissingPackageError
 from darker.git import WORKTREE, RevisionRange
 from darker.tests.helpers import isort_present
@@ -560,6 +561,57 @@ def test_main(
     )
     assert paths["b.py"].read_bytes().decode("ascii") == f"print(42 ){newline}"
     assert retval == expect_retval
+
+
+def test_main_in_plain_directory(tmp_path, capsys):
+    """Darker works also in a plain directory tree"""
+    subdir_a = tmp_path / "subdir_a"
+    subdir_c = tmp_path / "subdir_b/subdir_c"
+    subdir_a.mkdir()
+    subdir_c.mkdir(parents=True)
+    (subdir_a / "non-python file.txt").write_text("not  reformatted\n")
+    (subdir_a / "python file.py").write_text("import  sys, os\nprint('ok')")
+    (subdir_c / "another python file.py").write_text("a  =5")
+    with patch.object(darker.linting, "run_linter") as run_linter:
+
+        retval = darker.__main__.main(
+            ["--diff", "--check", "--isort", "--lint", "my-linter", str(tmp_path)]
+        )
+
+    assert retval == 1
+    assert run_linter.call_args_list == [
+        call(
+            "my-linter",
+            tmp_path,
+            {
+                Path("subdir_a/python file.py"),
+                Path("subdir_b/subdir_c/another python file.py"),
+            },
+            RevisionRange(rev1="HEAD", rev2=":WORKTREE:"),
+        )
+    ]
+    output = capsys.readouterr().out
+    output = re.sub(
+        r"\d{4}-\d\d-\d\d \d\d:\d\d:\d\d\.\d\d\d\d\d\d", "<timestamp>", output
+    )
+    assert output == dedent(
+        """\
+        --- subdir_a/python file.py	<timestamp> +0000
+        +++ subdir_a/python file.py	<timestamp> +0000
+        @@ -1,2 +1,4 @@
+        -import  sys, os
+        -print('ok')
+        +import os
+        +import sys
+        +
+        +print("ok")
+        --- subdir_b/subdir_c/another python file.py	<timestamp> +0000
+        +++ subdir_b/subdir_c/another python file.py	<timestamp> +0000
+        @@ -1 +1 @@
+        -a  =5
+        +a = 5
+        """
+    )
 
 
 @pytest.mark.parametrize(

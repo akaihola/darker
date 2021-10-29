@@ -32,6 +32,21 @@ WORKTREE = ":WORKTREE:"
 PRE_COMMIT_FROM_TO_REFS = ":PRE-COMMIT:"
 
 
+def git_is_repository(path: Path) -> bool:
+    """Return ``True`` if ``path`` is inside a Git working tree"""
+    try:
+        lines = _git_check_output_lines(
+            ["rev-parse", "--is-inside-work-tree"], path, exit_on_error=False
+        )
+        return lines[:1] == ["true"]
+    except CalledProcessError as exc_info:
+        if exc_info.returncode != 128 or not exc_info.stderr.startswith(
+            "fatal: not a git repository"
+        ):
+            raise
+        return False
+
+
 def git_get_mtime_at_commit(path: Path, revision: str, cwd: Path) -> str:
     """Return the committer date of the given file at the given revision
 
@@ -267,10 +282,10 @@ def _git_ls_files_others(relative_paths: Set[Path], cwd: Path) -> Set[Path]:
     return {Path(line) for line in lines}
 
 
-def git_get_modified_files(
+def git_get_modified_python_files(
     paths: Iterable[Path], revrange: RevisionRange, cwd: Path
 ) -> Set[Path]:
-    """Ask Git for modified and untracked files
+    """Ask Git for modified and untracked ``*.py`` files
 
     - ``git diff --name-only --relative <rev> -- <path(s)>``
     - ``git ls-files --others --exclude-standard -- <path(s)>``

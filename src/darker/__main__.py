@@ -27,7 +27,8 @@ from darker.git import (
     RevisionRange,
     get_missing_at_revision,
     git_get_content_at_revision,
-    git_get_modified_files,
+    git_get_modified_python_files,
+    git_is_repository,
 )
 from darker.help import ISORT_INSTRUCTION
 from darker.highlighting import colorize
@@ -369,10 +370,14 @@ def main(argv: List[str] = None) -> int:
         black_exclude = set()
     else:
         # In other modes, only process files which have been modified.
-        # These are relative to `root`:
-        changed_files_to_process = git_get_modified_files(
-            files_to_process, revrange, root
-        )
+        if git_is_repository(root):
+            changed_files_to_process = git_get_modified_python_files(
+                files_to_process, revrange, root
+            )
+        else:
+            changed_files_to_process = {
+                path.relative_to(root) for path in files_to_process
+            }
         black_exclude = {
             f for f in changed_files_to_process if root / f not in files_to_blacken
         }
