@@ -24,11 +24,11 @@ from darker.git import (
     PRE_COMMIT_FROM_TO_REFS,
     WORKTREE,
     EditedLinenumsDiffer,
-    NotGitRespository,
     RevisionRange,
     get_missing_at_revision,
     git_get_content_at_revision,
     git_get_modified_python_files,
+    git_is_repository,
 )
 from darker.help import ISORT_INSTRUCTION
 from darker.highlighting import colorize
@@ -370,11 +370,11 @@ def main(argv: List[str] = None) -> int:
         black_exclude = set()
     else:
         # In other modes, only process files which have been modified.
-        try:
+        if git_is_repository(root):
             changed_files_to_process = git_get_modified_python_files(
                 files_to_process, revrange, root
             )
-        except NotGitRespository:
+        else:
             changed_files_to_process = {
                 path.relative_to(root) for path in files_to_process
             }

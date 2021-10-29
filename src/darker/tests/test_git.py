@@ -161,12 +161,12 @@ def test_git_get_content_at_revision_obtain_file_content(
     revision, expect_git_calls, expect_textdocument_calls
 ):
     """``git_get_content_at_revision`` calls Git or reads files based on revision"""
-    with patch("darker.git.run") as run, patch(
+    with patch("darker.git.check_output") as check_output, patch(
         "darker.git.TextDocument"
     ) as text_document_class:
         # this dummy value acts both as a dummy Unix timestamp for the file as well as
         # the contents of the file:
-        run.return_value.stdout = b"1627107028"
+        check_output.return_value = b"1627107028"
 
         git.git_get_content_at_revision(Path("my.txt"), revision, Path("/path"))
 
@@ -174,15 +174,13 @@ def test_git_get_content_at_revision_obtain_file_content(
             call(
                 expected_call.split(),
                 cwd=str(Path("/path")),
-                check=True,
-                stdout=PIPE,
-                stderr=PIPE,
                 encoding="utf-8",
+                stderr=PIPE,
                 env={"LC_ALL": "C"},
             )
             for expected_call in expect_git_calls
         ]
-        assert run.call_args_list == expected_calls
+        assert check_output.call_args_list == expected_calls
         assert text_document_class.method_calls == expect_textdocument_calls
 
 
