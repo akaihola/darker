@@ -396,10 +396,11 @@ def test_git_exists_in_revision_git_call(retval, expect):
     with patch.object(git, "run") as run:
         run.return_value.returncode = retval
 
-        result = git._git_exists_in_revision(Path("path.py"), "rev2")
+        result = git._git_exists_in_revision(Path("path.py"), "rev2", Path("."))
 
     run.assert_called_once_with(
         ["git", "cat-file", "-e", "rev2:path.py"],
+        cwd=".",
         check=False,
         stderr=DEVNULL,
         env={"LC_ALL": "C"},
@@ -429,7 +430,9 @@ def test_git_exists_in_revision(git_repo, rev2, path, expect):
     del_a = git_repo.get_hash()
     git_repo.add({"dir/b.py": None}, commit="Delete dir/b.py")
 
-    result = git._git_exists_in_revision(Path(path), rev2.format(add=add, del_a=del_a))
+    result = git._git_exists_in_revision(
+        Path(path), rev2.format(add=add, del_a=del_a), git_repo.root
+    )
 
     assert result == expect
 
@@ -450,6 +453,7 @@ def test_get_missing_at_revision(git_repo, rev2, expect):
     result = git.get_missing_at_revision(
         {Path("dir"), Path("dir/a.py"), Path("dir/b.py")},
         rev2.format(add=add, del_a=del_a),
+        git_repo.root,
     )
 
     assert result == expect
@@ -462,7 +466,7 @@ def test_get_missing_at_revision_worktree(git_repo):
     paths["dir/b.py"].unlink()
 
     result = git.get_missing_at_revision(
-        {Path("dir"), Path("dir/a.py"), Path("dir/b.py")}, git.WORKTREE
+        {Path("dir"), Path("dir/a.py"), Path("dir/b.py")}, git.WORKTREE, git_repo.root
     )
 
     assert result == {Path("dir/a.py"), Path("dir/b.py")}
