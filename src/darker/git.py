@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from functools import lru_cache
 from pathlib import Path
-from subprocess import DEVNULL, PIPE, CalledProcessError, check_output, run
+from subprocess import DEVNULL, PIPE, CalledProcessError, run
 from typing import Iterable, List, Set, Tuple
 
 from darker.diff import diff_and_get_opcodes, opcodes_to_edit_linenums
@@ -30,6 +30,10 @@ COMMIT_RANGE_RE = re.compile(r"(.*?)(\.{2,3})(.*)$")
 #   for determining the revision range
 WORKTREE = ":WORKTREE:"
 PRE_COMMIT_FROM_TO_REFS = ":PRE-COMMIT:"
+
+
+class NotGitRespository(Exception):
+    "Raised when git commands are run in a folder that is not a git repository"
 
 
 def git_get_mtime_at_commit(path: Path, revision: str, cwd: Path) -> str:
@@ -164,14 +168,20 @@ def _git_check_output_lines(
     """Log command line, run Git, split stdout to lines, exit with 123 on error"""
     logger.debug("[%s]$ %s", cwd, " ".join(cmd))
     try:
-        return check_output(
+        result = run(
             ["git"] + cmd,
             cwd=str(cwd),
+            check=True,
             encoding="utf-8",
-            stderr=PIPE,
+            capture_output=True,
             env={"LC_ALL": "C"},
-        ).splitlines()
+        )
+        return result.stdout.splitlines()
     except CalledProcessError as exc_info:
+        if exc_info.returncode == 129 and exc_info.stderr.startswith(
+            "Not a git repository"
+        ):
+            raise NotGitRespository(f"{cwd} is not a git repository") from exc_info
         if not exit_on_error:
             raise
         if exc_info.returncode != 128:

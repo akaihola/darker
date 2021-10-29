@@ -1,5 +1,6 @@
 """Darker - apply black reformatting to only areas edited since the last commit"""
 
+import glob
 import logging
 import sys
 import warnings
@@ -24,6 +25,7 @@ from darker.git import (
     PRE_COMMIT_FROM_TO_REFS,
     WORKTREE,
     EditedLinenumsDiffer,
+    NotGitRespository,
     RevisionRange,
     get_missing_at_revision,
     git_get_content_at_revision,
@@ -369,10 +371,18 @@ def main(argv: List[str] = None) -> int:
         black_exclude = set()
     else:
         # In other modes, only process files which have been modified.
-        # These are relative to `root`:
-        changed_files_to_process = git_get_modified_files(
-            files_to_process, revrange, root
-        )
+        try:
+            changed_files_to_process = git_get_modified_files(
+                files_to_process, revrange, root
+            )
+        except NotGitRespository:
+            changed_files_to_process = set()
+            for path in files_to_process:
+                if str(path).endswith(".py"):
+                    changed_files_to_process.add(Path(path))
+                else:
+                    more_files = glob.glob(str(path) + "/**/*.py", recursive=True)
+                    changed_files_to_process.update({Path(p) for p in more_files})
         black_exclude = {
             f for f in changed_files_to_process if root / f not in files_to_blacken
         }
