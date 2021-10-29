@@ -1,6 +1,5 @@
 """Darker - apply black reformatting to only areas edited since the last commit"""
 
-import glob
 import logging
 import sys
 import warnings
@@ -378,11 +377,10 @@ def main(argv: List[str] = None) -> int:
         except NotGitRespository:
             changed_files_to_process = set()
             for path in files_to_process:
-                if str(path).endswith(".py"):
-                    changed_files_to_process.add(Path(path))
+                if path.suffix == ".py":
+                    changed_files_to_process.add(path)
                 else:
-                    more_files = glob.glob(str(path) + "/**/*.py", recursive=True)
-                    changed_files_to_process.update({Path(p) for p in more_files})
+                    changed_files_to_process.update(path.glob("**/*.py"))
         black_exclude = {
             f for f in changed_files_to_process if root / f not in files_to_blacken
         }
