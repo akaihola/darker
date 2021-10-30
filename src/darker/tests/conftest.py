@@ -1,6 +1,5 @@
 """Configuration and fixtures for the Pytest based test suite"""
 
-import os
 from pathlib import Path
 from subprocess import check_call
 from typing import Dict, Optional
@@ -19,9 +18,10 @@ class GitRepoFixture:
     @classmethod
     def create_repository(cls, root: Path) -> "GitRepoFixture":
         """Fixture method for creating a Git repository in the given directory"""
-        env = os.environ.copy()
-        # for testing, ignore ~/.gitconfig settings like templateDir and defaultBranch
-        env["HOME"] = str(root)
+        # For testing, ignore ~/.gitconfig settings like templateDir and defaultBranch.
+        # Also, this makes sure GIT_DIR or other GIT_* variables are not set, and that
+        # Git's messages are in English.
+        env = {"HOME": str(root), "LC_ALL": "C"}
         instance = cls(root, env)
         # pylint: disable=protected-access
         instance._run("init")
@@ -87,6 +87,10 @@ def git_repo(tmp_path, monkeypatch):
     """Create a temporary Git repository and change current working directory into it"""
     repository = GitRepoFixture.create_repository(tmp_path)
     monkeypatch.chdir(tmp_path)
+    # While `GitRepoFixture.create_repository()` already deletes `GIT_*` environment
+    # variables for any Git commands run by the fixture, let's explicitly remove
+    # `GIT_DIR` in case a test should call Git directly:
+    monkeypatch.delenv("GIT_DIR", raising=False)
     return repository
 
 

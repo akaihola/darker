@@ -77,7 +77,6 @@ def git_get_content_at_revision(path: Path, revision: str, cwd: Path) -> TextDoc
         abspath = cwd / path
         return TextDocument.from_file(abspath)
     cmd = ["show", f"{revision}:./{path.as_posix()}"]
-    logger.debug("[%s]$ %s", cwd, " ".join(cmd))
     try:
         return TextDocument.from_lines(
             _git_check_output_lines(cmd, cwd, exit_on_error=False),
@@ -177,7 +176,7 @@ def _git_check_output_lines(
     cmd: List[str], cwd: Path, exit_on_error: bool = True
 ) -> List[str]:
     """Log command line, run Git, split stdout to lines, exit with 123 on error"""
-    logger.debug("[%s]$ %s", cwd, " ".join(cmd))
+    logger.debug("[%s]$ git %s", cwd, " ".join(cmd))
     try:
         return check_output(
             ["git"] + cmd,
@@ -200,11 +199,12 @@ def _git_check_output_lines(
         sys.exit(123)
 
 
-def _git_exists_in_revision(path: Path, rev2: str) -> bool:
+def _git_exists_in_revision(path: Path, rev2: str, cwd: Path) -> bool:
     """Return ``True`` if the given path exists in the given Git revision
 
     :param path: The path of the file or directory to check
     :param rev2: The Git revision to look at
+    :param cwd: The Git repository root
     :return: ``True`` if the file or directory exists at the revision, or ``False`` if
              it doesn't.
 
@@ -212,11 +212,12 @@ def _git_exists_in_revision(path: Path, rev2: str) -> bool:
     # Surprise: On Windows, `git cat-file` doesn't work with backslash directory
     # separators in paths. We need to use Posix paths and forward slashes instead.
     cmd = ["git", "cat-file", "-e", f"{rev2}:{path.as_posix()}"]
-    result = run(cmd, check=False, stderr=DEVNULL, env={"LC_ALL": "C"})
+    logger.debug("[%s]$ %s", cwd, " ".join(cmd))
+    result = run(cmd, cwd=str(cwd), check=False, stderr=DEVNULL, env={"LC_ALL": "C"})
     return result.returncode == 0
 
 
-def get_missing_at_revision(paths: Iterable[Path], rev2: str) -> Set[Path]:
+def get_missing_at_revision(paths: Iterable[Path], rev2: str, cwd: Path) -> Set[Path]:
     """Return paths missing in the given revision
 
     In case of ``WORKTREE``, just check if the files exist on the filesystem instead of
@@ -224,12 +225,13 @@ def get_missing_at_revision(paths: Iterable[Path], rev2: str) -> Set[Path]:
 
     :param paths: Paths to check
     :param rev2: The Git revision to look at, or ``WORKTREE`` for the working tree
+    :param cwd: The Git repository root
     :return: The set of file or directory paths which are missing in the revision
 
     """
     if rev2 == WORKTREE:
         return {path for path in paths if not path.exists()}
-    return {path for path in paths if not _git_exists_in_revision(path, rev2)}
+    return {path for path in paths if not _git_exists_in_revision(path, rev2, cwd)}
 
 
 def _git_diff_name_only(
