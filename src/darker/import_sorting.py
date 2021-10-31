@@ -74,11 +74,14 @@ def apply_isort(
         )
     )
 
+    code = content.string
     try:
-        return TextDocument.from_str(
-            isort_code(code=content.string, **isort_args),
-            encoding=content.encoding,
-            mtime=content.mtime,
-        )
+        code = isort_code(code=code, **isort_args),
     except FileSkipComment:
         pass
+
+    return TextDocument.from_str(
+        code,
+        encoding=content.encoding,
+        mtime=content.mtime,
+    )
