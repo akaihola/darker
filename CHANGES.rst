@@ -33,7 +33,7 @@ Fixed
 - Relative paths are now resolved correctly when using the ``--stdout`` option
 - Downgrade to Flake8 version 3.x for Pytest compatibility.
   See `tholo/pytest-flake8#81`__
-- Handle ``FileSkipComment`` to use isort extension with the file skip comment ``#isort:file_skip``
+- Handle isort file skip comment ``#isort:file_skip`` without an exception
 
 __ https://github.com/tholo/pytest-flake8/issues/81
 
