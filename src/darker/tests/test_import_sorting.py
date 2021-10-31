@@ -5,7 +5,9 @@ from pathlib import Path
 from textwrap import dedent
 
 import pytest
+from pytest import raises
 from black import find_project_root
+from isort.exceptions import FileSkipComment
 
 import darker.import_sorting
 from darker.tests.helpers import isort_present
@@ -108,4 +110,4 @@ def test_isort_file_skip_comment():
     )
 
     # assert
-    assert actual.string == "Passed in content contains a file skip comment and was skipped."
+    assert actual == None
