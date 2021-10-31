@@ -97,6 +97,7 @@ def test_isort_config(monkeypatch, tmpdir, line_length, settings_file, expect):
     )
     assert actual.string == expect
 
+
 def test_isort_file_skip_comment():
     """``apply_isort()`` handles ``FileSkipComment`` exception correctly"""
     content = "# isort:skip_file"
