@@ -100,7 +100,8 @@ def test_isort_config(monkeypatch, tmpdir, line_length, settings_file, expect):
 
 def test_isort_file_skip_comment():
     """``apply_isort()`` handles ``FileSkipComment`` exception correctly"""
-    content = "# isort:skip_file"
+    # Avoid https://github.com/PyCQA/isort/pull/1833 by splitting the skip string
+    content = "# iso" + "rt:skip_file"
 
     actual = darker.import_sorting.apply_isort(
         TextDocument.from_str(content), Path("test1.py")
