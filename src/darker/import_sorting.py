@@ -16,6 +16,7 @@ else:
 
 try:
     import isort
+    from isort.exceptions import FileSkipComment
 
     # Work around Mypy problem
     # https://github.com/python/mypy/issues/7030#issuecomment-504128883
@@ -72,8 +73,15 @@ def apply_isort(
             ", ".join(f"{k}={v!r}" for k, v in isort_args.items())
         )
     )
+
+    message = ""
+    try:
+        message = isort_code(code=content.string, **isort_args)
+    except FileSkipComment as exception:
+        message = exception.message
+
     return TextDocument.from_str(
-        isort_code(code=content.string, **isort_args),
+        message,
         encoding=content.encoding,
         mtime=content.mtime,
     )
