@@ -72,8 +72,15 @@ def apply_isort(
             ", ".join(f"{k}={v!r}" for k, v in isort_args.items())
         )
     )
+
+    code = content.string
+    try:
+        code = isort_code(code=code, **isort_args)
+    except isort.exceptions.FileSkipComment:
+        pass
+
     return TextDocument.from_str(
-        isort_code(code=content.string, **isort_args),
+        code,
         encoding=content.encoding,
         mtime=content.mtime,
     )
