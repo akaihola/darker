@@ -5,9 +5,7 @@ from pathlib import Path
 from textwrap import dedent
 
 import pytest
-from pytest import raises
 from black import find_project_root
-from isort.exceptions import FileSkipComment
 
 import darker.import_sorting
 from darker.tests.helpers import isort_present
@@ -101,13 +99,10 @@ def test_isort_config(monkeypatch, tmpdir, line_length, settings_file, expect):
 
 def test_isort_file_skip_comment():
     """``apply_isort()`` handles ``FileSkipComment`` exception correctly"""
-    # arrange
     content = "# isort:skip_file"
 
-    # act
     actual = darker.import_sorting.apply_isort(
         TextDocument.from_str(content), Path("test1.py")
     )
 
-    # assert
     assert actual.string == content

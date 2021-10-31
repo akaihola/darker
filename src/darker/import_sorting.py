@@ -16,7 +16,6 @@ else:
 
 try:
     import isort
-    from isort.exceptions import FileSkipComment
 
     # Work around Mypy problem
     # https://github.com/python/mypy/issues/7030#issuecomment-504128883
@@ -76,8 +75,8 @@ def apply_isort(
 
     code = content.string
     try:
-        code = isort_code(code=code, **isort_args),
-    except FileSkipComment:
+        code = isort_code(code=code, **isort_args)
+    except isort.exceptions.FileSkipComment:
         pass
 
     return TextDocument.from_str(
