@@ -508,6 +508,63 @@ Note the inclusion of the isort Python package under ``additional_dependencies``
            -   isort~=5.9
 
 
+GitHub Actions integration
+==========================
+
+You can use Darker within a GitHub Actions workflow
+without setting your own Python environment.
+Great for enforcing that modifications and additions to your code
+match the Black_ code style.
+
+Compatibility
+-------------
+
+This action is known to support all GitHub-hosted runner OSes. In addition, only
+published versions of Darker are supported (i.e. whatever is available on PyPI).
+
+Usage
+-----
+
+Create a file named ``.github/workflows/darker.yml`` inside your repository with:
+
+.. code-block:: yaml
+
+   name: Lint
+   
+   on: [push, pull_request]
+   
+   jobs:
+     lint:
+       runs-on: ubuntu-latest
+       steps:
+         - uses: actions/checkout@v2
+           with:
+             fetch-depth: 0 
+         - uses: akaihola/darker@1.4.0
+
+We recommend the use per version tags.
+The version of Darker the action will use can be configured via ``version``.
+The action defaults to the action's version tag.
+Only versions available from PyPI are supported, so no commit SHAs or branch names.
+
+You can also configure the arguments passed to Darker via ``options``
+(defaults to ``'--check --diff'``) and ``src`` (default is ``'.'``).
+
+Here's an example configuration:
+
+.. code-block:: yaml
+
+   - uses: akaihola/darker@1.4.0
+     with:
+       options: "--check --verbose"
+       src: "./src"
+       version: "1.3.2"
+
+*New in version 1.1.0:*
+GitHub Actions integration. Modeled after how Black_ does it,
+thanks to Black authors for the example!
+
+
 .. _Using linters:
 
 Using linters
