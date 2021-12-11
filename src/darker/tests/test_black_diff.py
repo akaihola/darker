@@ -1,8 +1,11 @@
+"""Unit tests for `darker.black_diff`"""
+
+import re
 from pathlib import Path
 from unittest.mock import ANY, patch
 
 import pytest
-import regex as re
+import regex
 
 from darker import black_diff
 from darker.black_diff import (
@@ -126,9 +129,9 @@ def test_filter_python_files(
         path.touch()
     black_config = BlackConfig(
         {
-            "exclude": re.compile(exclude) if exclude else None,
-            "extend_exclude": re.compile(extend_exclude) if extend_exclude else None,
-            "force_exclude": re.compile(force_exclude) if force_exclude else None,
+            "exclude": regex.compile(exclude) if exclude else None,
+            "extend_exclude": regex.compile(extend_exclude) if extend_exclude else None,
+            "force_exclude": regex.compile(force_exclude) if force_exclude else None,
         }
     )
     explicit = {
@@ -190,9 +193,9 @@ def test_run_black_ignores_excludes():
         src,
         BlackConfig(
             {
-                "exclude": re.compile(r".*"),
-                "extend_exclude": re.compile(r".*"),
-                "force_exclude": re.compile(r".*"),
+                "exclude": regex.compile(r".*"),
+                "extend_exclude": regex.compile(r".*"),
+                "force_exclude": regex.compile(r".*"),
             }
         ),
     )
