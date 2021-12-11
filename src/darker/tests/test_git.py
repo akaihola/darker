@@ -195,7 +195,7 @@ def test_git_get_content_at_revision_obtain_file_content(
                 cwd=str(Path("/path")),
                 encoding="utf-8",
                 stderr=PIPE,
-                env={"LC_ALL": "C"},
+                env={"LC_ALL": "C", "PATH": os.environ["PATH"]},
             )
             for expected_call in expect_git_calls
         ]
@@ -403,7 +403,7 @@ def test_git_exists_in_revision_git_call(retval, expect):
         cwd=".",
         check=False,
         stderr=DEVNULL,
-        env={"LC_ALL": "C"},
+        env={"LC_ALL": "C", "PATH": os.environ["PATH"]},
     )
     assert result == expect
 
@@ -790,12 +790,14 @@ def test_local_gitconfig_ignored_by_gitrepofixture(tmp_path):
     """Tests that ~/.gitconfig is ignored when running darker's git tests"""
     (tmp_path / "HEAD").write_text("ref: refs/heads/main")
 
-    with patch.dict(os.environ, {"HOME": str(tmp_path)}):
-        # Note: once we decide to drop support for git < 2.28, the HEAD file
-        # creation above can be removed, and setup can simplify to
-        # check_call("git config --global init.defaultBranch main".split())
-        check_call("git config --global init.templateDir".split() + [str(tmp_path)])
-        root = tmp_path / "repo"
-        root.mkdir()
-        git_repo = GitRepoFixture.create_repository(root)
-        assert git_repo.get_branch() == "master"
+    # Note: once we decide to drop support for git < 2.28, the HEAD file
+    # creation above can be removed, and setup can simplify to
+    # check_call("git config --global init.defaultBranch main".split())
+    check_call(
+        "git config --global init.templateDir".split() + [str(tmp_path)],
+        env={"HOME": str(tmp_path), "PATH": os.environ["PATH"]},
+    )
+    root = tmp_path / "repo"
+    root.mkdir()
+    git_repo = GitRepoFixture.create_repository(root)
+    assert git_repo.get_branch() == "master"
