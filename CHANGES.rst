@@ -9,6 +9,7 @@ Added
 
 Fixed
 -----
+- ``regex`` module now always available for unit tests
 
 
 1.3.2_ - 2021-10-28
