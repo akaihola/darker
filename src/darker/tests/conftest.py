@@ -1,5 +1,6 @@
 """Configuration and fixtures for the Pytest based test suite"""
 
+import os
 from pathlib import Path
 from subprocess import check_call
 from typing import Dict, Optional
@@ -21,7 +22,7 @@ class GitRepoFixture:
         # For testing, ignore ~/.gitconfig settings like templateDir and defaultBranch.
         # Also, this makes sure GIT_DIR or other GIT_* variables are not set, and that
         # Git's messages are in English.
-        env = {"HOME": str(root), "LC_ALL": "C"}
+        env = {"HOME": str(root), "LC_ALL": "C", "PATH": os.environ["PATH"]}
         instance = cls(root, env)
         # pylint: disable=protected-access
         instance._run("init")

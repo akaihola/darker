@@ -10,6 +10,7 @@ Added
 Fixed
 -----
 - ``regex`` module now always available for unit tests
+- Compatibility with NixOS. Keep ``$PATH`` intact so Git can be called.
 
 
 1.3.2_ - 2021-10-28

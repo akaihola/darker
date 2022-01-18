@@ -9,7 +9,7 @@ from datetime import datetime
 from functools import lru_cache
 from pathlib import Path
 from subprocess import DEVNULL, PIPE, CalledProcessError, check_output, run
-from typing import Iterable, List, Set, Tuple
+from typing import Dict, Iterable, List, Set, Tuple
 
 from darker.diff import diff_and_get_opcodes, opcodes_to_edit_linenums
 from darker.utils import GIT_DATEFORMAT, TextDocument
@@ -172,6 +172,19 @@ def should_reformat_file(path: Path) -> bool:
     return path.exists() and path.suffix == ".py"
 
 
+@lru_cache(maxsize=1)
+def _make_git_env() -> Dict[str, str]:
+    """Create custom minimal environment variables to use when invoking Git
+
+    This makes sure that
+    - Git always runs in English
+    - ``$PATH`` is preserved (essential on NixOS)
+    - the environment is otherwise cleared
+
+    """
+    return {"LC_ALL": "C", "PATH": os.environ["PATH"]}
+
+
 def _git_check_output_lines(
     cmd: List[str], cwd: Path, exit_on_error: bool = True
 ) -> List[str]:
@@ -183,7 +196,7 @@ def _git_check_output_lines(
             cwd=str(cwd),
             encoding="utf-8",
             stderr=PIPE,
-            env={"LC_ALL": "C"},
+            env=_make_git_env(),
         ).splitlines()
     except CalledProcessError as exc_info:
         if not exit_on_error:
@@ -213,7 +226,13 @@ def _git_exists_in_revision(path: Path, rev2: str, cwd: Path) -> bool:
     # separators in paths. We need to use Posix paths and forward slashes instead.
     cmd = ["git", "cat-file", "-e", f"{rev2}:{path.as_posix()}"]
     logger.debug("[%s]$ %s", cwd, " ".join(cmd))
-    result = run(cmd, cwd=str(cwd), check=False, stderr=DEVNULL, env={"LC_ALL": "C"})
+    result = run(
+        cmd,
+        cwd=str(cwd),
+        check=False,
+        stderr=DEVNULL,
+        env=_make_git_env(),
+    )
     return result.returncode == 0
 
 
