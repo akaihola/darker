@@ -263,11 +263,11 @@ def print_source(new: TextDocument) -> None:
             from pygments.formatters import TerminalFormatter
             from pygments.lexers.python import PythonLexer
         except ImportError:
-            print(new.string)
+            print(new.string, end="")
         else:
-            print(highlight(new.string, PythonLexer(), TerminalFormatter()))
+            print(highlight(new.string, PythonLexer(), TerminalFormatter()), end="")
     else:
-        print(new.string)
+        print(new.string, end="")
 
 
 def main(argv: List[str] = None) -> int:

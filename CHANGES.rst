@@ -11,6 +11,8 @@ Fixed
 -----
 - ``regex`` module now always available for unit tests
 - Compatibility with NixOS. Keep ``$PATH`` intact so Git can be called.
+- Removed additional newline at the end of the file with the ``--stdout`` flag
+  compared to without.
 
 
 1.3.2_ - 2021-10-28
