@@ -13,6 +13,8 @@ Fixed
 - Compatibility with NixOS. Keep ``$PATH`` intact so Git can be called.
 - Updated tests to pass on new Pygments versions
 - Compatibility with Black 22.1
+- Removed additional newline at the end of the file with the ``--stdout`` flag
+  compared to without.
 
 
 1.3.2_ - 2021-10-28

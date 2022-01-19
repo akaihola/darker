@@ -785,4 +785,4 @@ def test_stdout_path_resolution(git_repo, capsys):
     result = darker.__main__.main(["--stdout", "./src/menu.py"])
 
     assert result == 0
-    assert capsys.readouterr().out == 'print("foo")\n\n'
+    assert capsys.readouterr().out == 'print("foo")\n'
