@@ -64,7 +64,7 @@ def test_without_pygments_colorize():
                 "\x1b[91m- a\x1b[39;49;00m\n\x1b[32m+ b\x1b[39;49;00m\n",
                 # Pygments 2.11.2:
                 "\x1b[91m- a\x1b[39;49;00m\x1b[37m\x1b[39;49;00m\n"
-                "\x1b[32m+ b\x1b[39;49;00m\x1b[37m\x1b[39;49;00m\n",
+                + "\x1b[32m+ b\x1b[39;49;00m\x1b[37m\x1b[39;49;00m\n",
             },
         ),
         (
