@@ -8,7 +8,7 @@ from argparse import ArgumentError
 from pathlib import Path
 from textwrap import dedent
 from types import SimpleNamespace
-from unittest.mock import call, patch
+from unittest.mock import Mock, call, patch
 
 import pytest
 
@@ -776,6 +776,50 @@ def test_modify_file(tmp_path, new_content, expect):
 
     result = path.read_bytes()
     assert result == expect
+
+
+@pytest.mark.kwparametrize(
+    dict(
+        new_content=TextDocument(lines=['print("foo")']),
+        tty=False,
+        with_pygments=False,
+        expect=('print("foo")\n',),
+    ),
+    dict(
+        new_content=TextDocument(lines=['print("foo")']),
+        tty=False,
+        with_pygments=True,
+        expect=('print("foo")\n',),
+    ),
+    dict(
+        new_content=TextDocument(lines=['print("foo")']),
+        tty=True,
+        with_pygments=False,
+        expect=('print("foo")\n',),
+    ),
+    dict(
+        new_content=TextDocument(lines=['print("foo")']),
+        tty=True,
+        with_pygments=True,
+        expect=(
+            '\x1b[36mprint\x1b[39;49;00m(\x1b[33m"\x1b[39;49;00mfoo'
+            + '\x1b[33m"\x1b[39;49;00m)\n',
+            '\x1b[36mprint\x1b[39;49;00m(\x1b[33m"\x1b[39;49;00m\x1b[33mfoo'
+            + '\x1b[39;49;00m\x1b[33m"\x1b[39;49;00m)\n',
+        ),
+    ),
+)
+def test_print_source(new_content, tty, with_pygments, expect, capsys):
+    """Highlight is applied only if tty, final newline is handled correctly."""
+    with patch("sys.stdout.isatty", Mock(return_value=tty)), patch(
+        "darker.__main__._import_pygments",
+        Mock(
+            return_value=darker.__main__._import_pygments(),
+            side_effect=None if with_pygments else ImportError(),
+        ),
+    ):
+        darker.__main__.print_source(new_content)
+        assert capsys.readouterr().out in expect
 
 
 def test_stdout_path_resolution(git_repo, capsys):
