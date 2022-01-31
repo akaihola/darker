@@ -63,7 +63,7 @@ def apply_isort(
     if config:
         isort_args["settings_file"] = config
     else:
-        isort_args["settings_path"] = str(find_project_root((str(src),)))
+        isort_args["settings_path"] = str(find_project_root((str(src),))[0])
     if line_length:
         isort_args["line_length"] = line_length
 

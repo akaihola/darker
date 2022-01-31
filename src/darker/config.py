@@ -104,7 +104,8 @@ def load_config(srcs: Iterable[str]) -> DarkerConfig:
                  are used to look for the ``pyproject.toml`` configuration file.
 
     """
-    path = find_project_root(tuple(srcs or ["."])) / "pyproject.toml"
+    project_root = find_project_root(tuple(srcs or ["."]))[0]
+    path = project_root / "pyproject.toml"
     if path.is_file():
         pyproject_toml = toml.load(path)
         config = cast(
