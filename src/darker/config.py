@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Iterable, List, cast
 
 import toml
-from black import find_project_root
+from black import find_pyproject_toml
 
 if sys.version_info >= (3, 8):
     from typing import TypedDict
@@ -104,8 +104,8 @@ def load_config(srcs: Iterable[str]) -> DarkerConfig:
                  are used to look for the ``pyproject.toml`` configuration file.
 
     """
-    path = find_project_root(tuple(srcs or ["."])) / "pyproject.toml"
-    if path.is_file():
+    path = find_pyproject_toml(tuple(srcs or ["."]))
+    if path is not None:
         pyproject_toml = toml.load(path)
         config = cast(
             DarkerConfig, pyproject_toml.get("tool", {}).get("darker", {}) or {}
