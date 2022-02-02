@@ -50,22 +50,28 @@ def test_without_pygments_colorize():
             "except RuntimeError:",
             "python",
             True,
-            "\x1b[34mexcept\x1b[39;49;00m \x1b[36mRuntimeError\x1b[39;49;00m:",
+            {"\x1b[34mexcept\x1b[39;49;00m \x1b[36mRuntimeError\x1b[39;49;00m:"},
         ),
-        ("except RuntimeError:", "python", False, "except RuntimeError:"),
-        ("a = 1", "python", True, "a = \x1b[34m1\x1b[39;49;00m"),
-        ("a = 1\n", "python", True, "a = \x1b[34m1\x1b[39;49;00m\n"),
+        ("except RuntimeError:", "python", False, {"except RuntimeError:"}),
+        ("a = 1", "python", True, {"a = \x1b[34m1\x1b[39;49;00m"}),
+        ("a = 1\n", "python", True, {"a = \x1b[34m1\x1b[39;49;00m\n"}),
         (
             "- a\n+ b\n",
             "diff",
             True,
-            "\x1b[91m- a\x1b[39;49;00m\n\x1b[32m+ b\x1b[39;49;00m\n",
+            {
+                # Pygments 2.10.0:
+                "\x1b[91m- a\x1b[39;49;00m\n\x1b[32m+ b\x1b[39;49;00m\n",
+                # Pygments 2.11.2:
+                "\x1b[91m- a\x1b[39;49;00m\x1b[37m\x1b[39;49;00m\n"
+                + "\x1b[32m+ b\x1b[39;49;00m\x1b[37m\x1b[39;49;00m\n",
+            },
         ),
         (
             "- a\n+ b\n",
             "diff",
-            True,
-            "\x1b[91m- a\x1b[39;49;00m\n\x1b[32m+ b\x1b[39;49;00m\n",
+            False,
+            {"- a\n+ b\n"},
         ),
     ],
 )
@@ -74,7 +80,7 @@ def test_colorize(text, lexer, tty, expect):
     with patch("sys.stdout.isatty", Mock(return_value=tty)):
 
         result = with_pygments.colorize(text, lexer)
-    assert result == expect
+    assert result in expect
 
 
 @pytest.mark.parametrize(
