@@ -12,6 +12,8 @@ Fixed
 - ``regex`` module now always available for unit tests
 - Compatibility with NixOS. Keep ``$PATH`` intact so Git can be called.
 - Updated tests to pass on new Pygments versions
+- Consider ``.py.tmp`` as files which should be reformatted.
+  This enables VSCode Format On Save.
 
 
 1.3.2_ - 2021-10-28
