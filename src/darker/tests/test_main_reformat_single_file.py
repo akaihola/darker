@@ -6,7 +6,7 @@ from pathlib import Path
 from textwrap import dedent
 
 import darker.__main__
-from darker.git import RevisionRange
+from darker.git import EditedLinenumsDiffer, RevisionRange
 from darker.utils import TextDocument
 
 
@@ -58,7 +58,10 @@ def test_reformat_single_file_common_ancestor(git_repo):
     result = darker.__main__._reformat_single_file(
         git_repo.root,
         Path("a.py"),
-        RevisionRange.parse_with_common_ancestor("master...", git_repo.root),
+        EditedLinenumsDiffer(
+            git_repo.root,
+            RevisionRange.parse_with_common_ancestor("master...", git_repo.root),
+        ),
         rev2_content=worktree,
         rev2_isorted=worktree,
         enable_isort=False,

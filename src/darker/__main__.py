@@ -91,7 +91,7 @@ def format_edited_parts(
             content_after_reformatting = _reformat_single_file(
                 root,
                 path_in_repo,
-                revrange,
+                EditedLinenumsDiffer(root, revrange),
                 rev2_content,
                 rev2_isorted,
                 enable_isort,
@@ -107,7 +107,7 @@ def format_edited_parts(
 def _reformat_single_file(  # pylint: disable=too-many-arguments,too-many-locals
     root: Path,
     relative_path: Path,
-    revrange: RevisionRange,
+    edited_linenums_differ: EditedLinenumsDiffer,
     rev2_content: TextDocument,
     rev2_isorted: TextDocument,
     enable_isort: bool,
@@ -117,7 +117,7 @@ def _reformat_single_file(  # pylint: disable=too-many-arguments,too-many-locals
 
     :param root: The common root of all files to reformat
     :param relative_path: Relative path to a Python source code file
-    :param revrange: The Git revisions to compare
+    :param edited_linenums_differ: Helper for finding out which lines were edited
     :param rev2_content: Contents of the file at ``revrange.rev2``
     :param rev2_isorted: Contents of the file after optional import sorting
     :param enable_isort: ``True`` if ``isort`` was already run for the file
@@ -128,7 +128,6 @@ def _reformat_single_file(  # pylint: disable=too-many-arguments,too-many-locals
     """
     src = root / relative_path
     rev1_relative_path = _get_rev1_path(relative_path)
-    edited_linenums_differ = EditedLinenumsDiffer(root, revrange)
 
     # 4. run black
     formatted = run_black(rev2_isorted, black_config)
