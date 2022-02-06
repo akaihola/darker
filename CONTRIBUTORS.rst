@@ -34,6 +34,7 @@
 - Martin Renou (@martinRenou)
 - Mat Clayton (@matclayton)
 - Matthias Bussonnier (@Carreau)
+- @mayk0gan
 - @NathanPickle
 - Nutchanon Ninyawee (@CircleOnCircles)
 - @overratedpro
