@@ -26,6 +26,7 @@
 - Hugo Dupras (@jabesq)
 - Iryna (@irynahryshanovich)
 - Jasleen Kaur (@jasleen19)
+- Jens Diemer (@jedie)
 - Krischtopp (@Krischtopp)
 - Leo Torres (@leotrs)
 - Łukasz Rogalski (@rogalski)
