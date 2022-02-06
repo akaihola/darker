@@ -884,6 +884,8 @@ Thanks goes to these wonderful people (`emoji key`_):
                    <sub><b>Hugo Dupras</b></sub>
                </a>
                <br />
+               <a href="https://github.com/akaihola/darker/search?q=author%3Ajabesq+is%3Apr&type=issues"
+                  title="Code">💻</a>
                <a href="https://github.com/akaihola/darker/issues?q=author%3Ajabesq"
                   title="Bug reports">🐛</a>
            </td>
