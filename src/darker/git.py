@@ -151,8 +151,7 @@ class RevisionRange:
             except KeyError:
                 # Fallback to running against HEAD
                 revision_range = "HEAD"
-        match = COMMIT_RANGE_RE.match(revision_range)
-        if match:
+        if match := COMMIT_RANGE_RE.match(revision_range):
             rev1, range_dots, rev2 = match.groups()
             use_common_ancestor = range_dots == "..."
             return (rev1 or "HEAD", rev2 or WORKTREE, use_common_ancestor)
