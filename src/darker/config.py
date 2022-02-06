@@ -7,7 +7,8 @@ from pathlib import Path
 from typing import Iterable, List, cast
 
 import toml
-from black import find_project_root
+
+from darker.black_compat import find_project_root
 
 if sys.version_info >= (3, 8):
     from typing import TypedDict

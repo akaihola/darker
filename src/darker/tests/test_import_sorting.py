@@ -5,9 +5,9 @@ from pathlib import Path
 from textwrap import dedent
 
 import pytest
-from black import find_project_root
 
 import darker.import_sorting
+from darker.black_compat import find_project_root
 from darker.tests.helpers import isort_present
 from darker.utils import TextDocument
 

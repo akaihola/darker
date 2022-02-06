@@ -6,8 +6,8 @@ from subprocess import check_call
 from typing import Dict, Optional
 
 import pytest
-from black import find_project_root
 
+from darker.black_compat import find_project_root
 from darker.git import _git_check_output_lines
 
 

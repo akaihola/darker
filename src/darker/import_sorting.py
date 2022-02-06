@@ -3,8 +3,7 @@ import sys
 from pathlib import Path
 from typing import Any, Optional
 
-from black import find_project_root
-
+from darker.black_compat import find_project_root
 from darker.exceptions import IncompatiblePackageError, MissingPackageError
 from darker.utils import TextDocument
 

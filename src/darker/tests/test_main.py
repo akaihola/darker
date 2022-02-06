@@ -11,11 +11,11 @@ from types import SimpleNamespace
 from unittest.mock import call, patch
 
 import pytest
-from black import find_project_root
 
 import darker.__main__
 import darker.import_sorting
 import darker.linting
+from darker.black_compat import find_project_root
 from darker.exceptions import MissingPackageError
 from darker.git import WORKTREE, RevisionRange
 from darker.tests.helpers import isort_present
