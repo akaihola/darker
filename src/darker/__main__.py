@@ -18,7 +18,7 @@ from darker.black_diff import (
 from darker.chooser import choose_lines
 from darker.command_line import parse_command_line
 from darker.config import OutputMode, dump_config
-from darker.diff import diff_and_get_opcodes, opcodes_to_chunks
+from darker.diff import diff_chunks
 from darker.exceptions import DependencyError, MissingPackageError
 from darker.git import (
     PRE_COMMIT_FROM_TO_REFS,
@@ -70,6 +70,7 @@ def format_edited_parts(
              be reformatted, and skips unchanged files.
 
     """
+    edited_linenums_differ = EditedLinenumsDiffer(root, revrange)
     for relative_path_in_rev2 in sorted(changed_files):
         # With VSCode, `relative_path_in_rev2` may be a `.py.<HASH>.tmp` file in the
         # working tree insted of a `.py` file.
@@ -82,7 +83,8 @@ def format_edited_parts(
         if enable_isort:
             rev2_isorted = apply_isort(
                 rev2_content,
-                absolute_path_in_rev2,
+                relative_path_in_rev2,
+                edited_linenums_differ,
                 black_config.get("config"),
                 black_config.get("line_length"),
             )
@@ -96,7 +98,7 @@ def format_edited_parts(
                 root,
                 relative_path_in_rev2,
                 _get_path_in_repo(relative_path_in_rev2),
-                EditedLinenumsDiffer(root, revrange),
+                edited_linenums_differ,
                 rev2_content,
                 rev2_isorted,
                 enable_isort,
@@ -147,10 +149,8 @@ def _reformat_single_file(  # pylint: disable=too-many-arguments,too-many-locals
     logger.debug("Black reformat resulted in %s lines", len(formatted.lines))
 
     # 5. get the diff between the edited and reformatted file
-    opcodes = diff_and_get_opcodes(rev2_isorted, formatted)
-
     # 6. convert the diff into chunks
-    black_chunks = list(opcodes_to_chunks(opcodes, rev2_isorted, formatted))
+    black_chunks = diff_chunks(rev2_isorted, formatted)
 
     # Exit early if nothing to do
     if not black_chunks:
