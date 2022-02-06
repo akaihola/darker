@@ -33,6 +33,7 @@
 - Martin Renou (@martinRenou)
 - Mat Clayton (@matclayton)
 - Matthias Bussonnier (@Carreau)
+- @NathanPickle
 - Nutchanon Ninyawee (@CircleOnCircles)
 - @overratedpro
 - Paul Ivanov (@ivanov)
