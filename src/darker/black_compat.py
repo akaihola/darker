@@ -19,6 +19,3 @@ def find_project_root(srcs: Sequence[str]) -> Path:
         return cast(Tuple[Path], root)[0]
     # Black < 22
     return cast(Path, root)
-
-
-find_project_root.cache_clear = black_find_project_root.cache_clear

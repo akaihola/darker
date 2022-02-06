@@ -6,8 +6,8 @@ from subprocess import check_call
 from typing import Dict, Optional
 
 import pytest
+from black import find_project_root as black_find_project_root
 
-from darker.black_compat import find_project_root
 from darker.git import _git_check_output_lines
 
 
@@ -97,5 +97,11 @@ def git_repo(tmp_path, monkeypatch):
 
 @pytest.fixture
 def find_project_root_cache_clear():
-    """Clear LRU caching in :func:`black.find_project_root` before each test"""
-    find_project_root.cache_clear()
+    """Clear LRU caching in :func:`black.find_project_root` before each test
+
+    NOTE: We use `darker.black_compat.find_project_root` to wrap Black's original
+    function since its signature has changed along the way. However, clearing the cache
+    needs to be done on the original of course.
+
+    """
+    black_find_project_root.cache_clear()

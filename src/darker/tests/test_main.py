@@ -15,7 +15,6 @@ import pytest
 import darker.__main__
 import darker.import_sorting
 import darker.linting
-from darker.black_compat import find_project_root
 from darker.exceptions import MissingPackageError
 from darker.git import WORKTREE, RevisionRange
 from darker.tests.helpers import isort_present
@@ -38,9 +37,7 @@ def test_isort_option_without_isort(git_repo, caplog):
 
 
 @pytest.fixture
-def run_isort(git_repo, monkeypatch, caplog, request):
-    find_project_root.cache_clear()
-
+def run_isort(git_repo, monkeypatch, caplog, request, find_project_root_cache_clear):
     monkeypatch.chdir(git_repo.root)
     paths = git_repo.add({"test1.py": "original"}, commit="Initial commit")
     paths["test1.py"].write_bytes(b"changed")
