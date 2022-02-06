@@ -6,6 +6,8 @@ These features will be included in the next release:
 Added
 -----
 - GitHub Actions integration
+- Sort imports only if the range of modified lines overlaps with changes resulting from
+  sorting the imports.
 
 Fixed
 -----
