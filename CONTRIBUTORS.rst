@@ -37,7 +37,7 @@
 - Matthias Bussonnier (@Carreau)
 - Matthijs van der Burgh (@MatthijsBurgh)
 - @mayk0gan
-- Nathan Huffnam (@njhuffman)
+- Nathan Huffman (@njhuffman)
 - Nutchanon Ninyawee (@CircleOnCircles)
 - @overratedpro
 - Paul Ivanov (@ivanov)

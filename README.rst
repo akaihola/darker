@@ -1047,7 +1047,7 @@ Thanks goes to these wonderful people (`emoji key`_):
                <a href="https://github.com/njhuffman">
                    <img src="https://avatars.githubusercontent.com/u/66969728?v=3" width="100px;" alt="@njhuffman"/>
                    <br />
-                   <sub><b>Nathan Huffnam</b></sub>
+                   <sub><b>Nathan Huffman</b></sub>
                </a>
                <br />
                <a href="https://github.com/akaihola/darker/issues?q=author%3Anjhuffman"
