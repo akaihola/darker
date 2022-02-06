@@ -208,7 +208,7 @@ def test_format_edited_parts_all_unchanged(git_repo, monkeypatch):
         )
     )
 
-    assert result == []
+    assert not result
 
 
 def test_format_edited_parts_ast_changed(git_repo, caplog):
@@ -276,7 +276,7 @@ def test_format_edited_parts_isort_on_already_formatted(git_repo):
         report_unmodified=False,
     )
 
-    assert list(result) == []
+    assert not list(result)
 
 
 @pytest.mark.kwparametrize(
