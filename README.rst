@@ -30,8 +30,8 @@
 What?
 =====
 
-This utility reformats and checks Python source code files in a Git repository.
-However, it only applies reformatting and reports errors
+This utility reformats and checks Python source code files.
+However, when run in a Git repository, it only applies reformatting and reports errors
 in regions which have changed in the Git working tree since the last commit.
 
 The reformatters supported are:
@@ -52,6 +52,8 @@ See `Using linters`_ below for the list of supported linters.
 | If you have a moment to spare, please take a   | Please vote for your preferred  |
 | look at one of them and shoot us a comment!    | medium in issue `#151`_!        |
 +------------------------------------------------+---------------------------------+
+
+*New in version 1.4.0:* Darker can be used in plain directories, not only Git repositories.
 
 .. |you-can-help| image:: https://img.shields.io/badge/-You%20can%20help-green?style=for-the-badge
    :alt: You can help
