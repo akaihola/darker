@@ -44,6 +44,7 @@
 - Sean Hammond (@sherbie)
 - Shantanu (@hauntsaninja)
 - Talha Junaid (@talhajunaidd)
+- Thomas Güttler (@guettli)
 - TJ Kolleh (@tkolleh)
 - Vivek Kushwaha (@yoursvivek)
 - Will (@Hainguyen1210)
