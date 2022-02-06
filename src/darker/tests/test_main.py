@@ -38,6 +38,12 @@ def test_isort_option_without_isort(git_repo, caplog):
 
 @pytest.fixture
 def run_isort(git_repo, monkeypatch, caplog, request, find_project_root_cache_clear):
+    """Fixture for running Darker with requested arguments and a patched `isort`
+
+    Provides an `run_isort.isort_code` mock object which allows checking whether and how
+    the `isort.code()` function was called.
+
+    """
     monkeypatch.chdir(git_repo.root)
     paths = git_repo.add({"test1.py": "original"}, commit="Initial commit")
     paths["test1.py"].write_bytes(b"changed")

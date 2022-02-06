@@ -1,5 +1,7 @@
 """Tests for :mod:`darker.import_sorting`"""
 
+# pylint: disable=unused-argument
+
 from importlib import reload
 from pathlib import Path
 from textwrap import dedent
