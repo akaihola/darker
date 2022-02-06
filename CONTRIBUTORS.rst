@@ -29,6 +29,7 @@
 - Krischtopp (@Krischtopp)
 - Leo Torres (@leotrs)
 - Łukasz Rogalski (@rogalski)
+- Magnus N. Malmquist (@magnunm)
 - Mark Davidoff (@markddavidoff)
 - Martin Renou (@martinRenou)
 - Mat Clayton (@matclayton)

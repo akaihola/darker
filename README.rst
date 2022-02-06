@@ -934,6 +934,16 @@ Thanks goes to these wonderful people (`emoji key`_):
                   title="Bug reports">🐛</a>
            </td>
            <td align="center">
+               <a href="https://github.com/magnunm">
+                   <img src="https://avatars.githubusercontent.com/u/45951302?v=3" width="100px;" alt="@magnunm"/>
+                   <br />
+                   <sub><b>Magnus N. Malmquist</b></sub>
+               </a>
+               <br />
+               <a href="https://github.com/akaihola/darker/issues?q=author%3Amagnunm"
+                  title="Bug reports">🐛</a>
+           </td>
+           <td align="center">
                <a href="https://github.com/markddavidoff">
                    <img src="https://avatars.githubusercontent.com/u/1360543?v=3" width="100px;" alt="@markddavidoff"/>
                    <br />
