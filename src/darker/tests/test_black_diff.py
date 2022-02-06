@@ -1,6 +1,7 @@
 """Unit tests for `darker.black_diff`"""
 
 import re
+from dataclasses import dataclass, field
 from pathlib import Path
 from unittest.mock import ANY, patch
 
@@ -15,6 +16,20 @@ from darker.black_diff import (
     run_black,
 )
 from darker.utils import TextDocument
+
+
+@dataclass
+class RegexEquality:
+    """Compare equality to either `re.Pattern` or `regex.Pattern`"""
+
+    pattern: str
+    flags: int = field(default=re.UNICODE)
+
+    def __eq__(self, other):
+        return (
+            other.pattern == self.pattern
+            and other.flags & 0x1FF == re.compile(self.pattern).flags | self.flags
+        )
 
 
 @pytest.mark.kwparametrize(
@@ -46,15 +61,19 @@ from darker.utils import TextDocument
     dict(config_lines=[r"include = '\.pyi$'"], expect={}),
     dict(
         config_lines=[r"exclude = '\.pyx$'"],
-        expect={"exclude": re.compile("\\.pyx$")},
+        expect={"exclude": RegexEquality("\\.pyx$")},
     ),
     dict(
         config_lines=["extend-exclude = '''", r"^/setup\.py", r"|^/dummy\.py", "'''"],
-        expect={"extend_exclude": re.compile("(?x)^/setup\\.py\n|^/dummy\\.py\n")},
+        expect={
+            "extend_exclude": RegexEquality(
+                "(?x)^/setup\\.py\n|^/dummy\\.py\n", re.VERBOSE
+            )
+        },
     ),
     dict(
         config_lines=["force-exclude = '''", r"^/setup\.py", r"|\.pyc$", "'''"],
-        expect={"force_exclude": re.compile("(?x)^/setup\\.py\n|\\.pyc$\n")},
+        expect={"force_exclude": RegexEquality("(?x)^/setup\\.py\n|\\.pyc$\n")},
     ),
     config_path=None,
 )

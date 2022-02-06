@@ -1,11 +1,12 @@
 """Tests for :mod:`darker.import_sorting`"""
 
+# pylint: disable=unused-argument
+
 from importlib import reload
 from pathlib import Path
 from textwrap import dedent
 
 import pytest
-from black import find_project_root
 
 import darker.import_sorting
 from darker.tests.helpers import isort_present
@@ -76,9 +77,15 @@ def test_apply_isort(encoding, newline):
         ),
     ),
 )
-def test_isort_config(monkeypatch, tmpdir, line_length, settings_file, expect):
+def test_isort_config(
+    monkeypatch,
+    tmpdir,
+    find_project_root_cache_clear,
+    line_length,
+    settings_file,
+    expect,
+):
     """``apply_isort()`` parses ``pyproject.toml``correctly"""
-    find_project_root.cache_clear()
     monkeypatch.chdir(tmpdir)
     (tmpdir / "pyproject.toml").write(
         dedent(
