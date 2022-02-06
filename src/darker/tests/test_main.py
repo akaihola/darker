@@ -387,6 +387,7 @@ def test_reformat_single_file(
     result = darker.__main__._reformat_single_file(
         git_repo.root,
         Path(relative_path),
+        Path("file.py"),
         EditedLinenumsDiffer(git_repo.root, RevisionRange(rev1, rev2)),
         TextDocument(rev2_content),
         TextDocument(rev2_isorted),
@@ -407,9 +408,9 @@ def test_reformat_single_file(
     dict(path="file.12345.tmp", expect="file.12345.tmp"),
     dict(path="subdir/file.12345.tmp", expect="subdir/file.12345.tmp"),
 )
-def test_get_rev1_path(path, expect):
-    """``_get_rev1_path`` drops two suffixes from ``.py.<HASH>.tmp``"""
-    result = darker.__main__._get_rev1_path(Path(path))
+def test_get_path_in_repo(path, expect):
+    """``_get_path_in_repo`` drops two suffixes from ``.py.<HASH>.tmp``"""
+    result = darker.__main__._get_path_in_repo(Path(path))
 
     assert result == Path(expect)
 

@@ -70,27 +70,32 @@ def format_edited_parts(
              be reformatted, and skips unchanged files.
 
     """
-    for path_in_repo in sorted(changed_files):
-        src = root / path_in_repo
-        rev2_content = git_get_content_at_revision(path_in_repo, revrange.rev2, root)
+    for relative_path_in_rev2 in sorted(changed_files):
+        # With VSCode, `relative_path_in_rev2` may be a `.py.<HASH>.tmp` file in the
+        # working tree insted of a `.py` file.
+        absolute_path_in_rev2 = root / relative_path_in_rev2
+        rev2_content = git_get_content_at_revision(
+            relative_path_in_rev2, revrange.rev2, root
+        )
 
         # 1. run isort
         if enable_isort:
             rev2_isorted = apply_isort(
                 rev2_content,
-                src,
+                absolute_path_in_rev2,
                 black_config.get("config"),
                 black_config.get("line_length"),
             )
         else:
             rev2_isorted = rev2_content
-        if path_in_repo not in black_exclude:
+        if relative_path_in_rev2 not in black_exclude:
             # 9. A re-formatted Python file which produces an identical AST was
             #    created successfully - write an updated file or print the diff if
             #    there were any changes to the original
             content_after_reformatting = _reformat_single_file(
                 root,
-                path_in_repo,
+                relative_path_in_rev2,
+                _get_path_in_repo(relative_path_in_rev2),
                 EditedLinenumsDiffer(root, revrange),
                 rev2_content,
                 rev2_isorted,
@@ -101,12 +106,13 @@ def format_edited_parts(
             # File was excluded by Black configuration, don't reformat
             content_after_reformatting = rev2_isorted
         if report_unmodified or content_after_reformatting != rev2_content:
-            yield (src, rev2_content, content_after_reformatting)
+            yield (absolute_path_in_rev2, rev2_content, content_after_reformatting)
 
 
 def _reformat_single_file(  # pylint: disable=too-many-arguments,too-many-locals
     root: Path,
-    relative_path: Path,
+    relative_path_in_rev2: Path,
+    relative_path_in_repo: Path,
     edited_linenums_differ: EditedLinenumsDiffer,
     rev2_content: TextDocument,
     rev2_isorted: TextDocument,
@@ -116,7 +122,10 @@ def _reformat_single_file(  # pylint: disable=too-many-arguments,too-many-locals
     """In a Python file, reformat chunks with edits since the last commit using Black
 
     :param root: The common root of all files to reformat
-    :param relative_path: Relative path to a Python source code file
+    :param relative_path_in_rev2: Relative path to a Python source code file. Possibly a
+                                  VSCode ``.py.<HASH>.tmp`` file in the working tree.
+    :param relative_path_in_repo: Relative path to source in the Git repository. Same as
+                                  ``relative_path_in_rev2`` save for VSCode temp files.
     :param edited_linenums_differ: Helper for finding out which lines were edited
     :param rev2_content: Contents of the file at ``revrange.rev2``
     :param rev2_isorted: Contents of the file after optional import sorting
@@ -126,12 +135,15 @@ def _reformat_single_file(  # pylint: disable=too-many-arguments,too-many-locals
     :raise: NotEquivalentError
 
     """
-    src = root / relative_path
-    rev1_relative_path = _get_rev1_path(relative_path)
+    absolute_path_in_rev2 = root / relative_path_in_rev2
 
     # 4. run black
     formatted = run_black(rev2_isorted, black_config)
-    logger.debug("Read %s lines from edited file %s", len(rev2_isorted.lines), src)
+    logger.debug(
+        "Read %s lines from edited file %s",
+        len(rev2_isorted.lines),
+        absolute_path_in_rev2,
+    )
     logger.debug("Black reformat resulted in %s lines", len(formatted.lines))
 
     # 5. get the diff between the edited and reformatted file
@@ -156,15 +168,15 @@ def _reformat_single_file(  # pylint: disable=too-many-arguments,too-many-locals
             logger.debug(
                 "Trying with %s lines of context for `git diff -U %s`",
                 context_lines,
-                src,
+                absolute_path_in_rev2,
             )
         # 2. diff the given revision and worktree for the file
         # 3. extract line numbers in the edited to-file for changed lines
         edited_linenums = edited_linenums_differ.revision_vs_lines(
-            rev1_relative_path, rev2_isorted, context_lines
+            relative_path_in_repo, rev2_isorted, context_lines
         )
         if enable_isort and not edited_linenums and rev2_isorted == rev2_content:
-            logger.debug("No changes in %s after isort", src)
+            logger.debug("No changes in %s after isort", absolute_path_in_rev2)
             last_successful_reformat = rev2_isorted
             break
 
@@ -187,7 +199,7 @@ def _reformat_single_file(  # pylint: disable=too-many-arguments,too-many-locals
             debug_dump(black_chunks, edited_linenums)
             logger.debug(
                 "AST verification of %s with %s lines of context failed",
-                src,
+                absolute_path_in_rev2,
                 context_lines,
             )
             minimum_context_lines.respond(False)
@@ -195,11 +207,11 @@ def _reformat_single_file(  # pylint: disable=too-many-arguments,too-many-locals
             minimum_context_lines.respond(True)
             last_successful_reformat = chosen
     if not last_successful_reformat:
-        raise NotEquivalentError(relative_path)
+        raise NotEquivalentError(relative_path_in_rev2)
     return last_successful_reformat
 
 
-def _get_rev1_path(path: Path) -> Path:
+def _get_path_in_repo(path: Path) -> Path:
     """Return the relative path to the file in the old revision
 
     This is usually the same as the relative path on the command line. But in the
