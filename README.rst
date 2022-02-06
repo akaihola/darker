@@ -1023,6 +1023,16 @@ Thanks goes to these wonderful people (`emoji key`_):
                <a href="https://github.com/akaihola/darker/pulls?q=is%3Apr+author%3Aphilipgian"
                   title="Code">💻</a>
            </td>
+           <td>
+               <a href="https://github.com/qubidt">
+                   <img src="https://avatars.githubusercontent.com/u/6306455?v=3" width="100px;" alt="@qubidt"/>
+                   <br />
+                   <sub><b>Bao</b></sub>
+               </a>
+               <br />
+               <a href="https://github.com/akaihola/darker/issues?q=author%3Aoverratedpro"
+                  title="Bug reports">🐛</a>
+           </td>
            <td align="center">
                <a href="https://github.com/rogalski">
                    <img src="https://avatars.githubusercontent.com/u/9485217?v=3" width="100px;" alt="@rogalski"/>
@@ -1065,6 +1075,8 @@ Thanks goes to these wonderful people (`emoji key`_):
                <a href="https://github.com/akaihola/darker/pulls?q=is%3Apr+reviewed-by%3Asamoylovfp"
                   title="Reviewed Pull Requests">👀</a>
            </td>
+       </tr>
+       <tr>
            <td align="center">
                <a href="https://github.com/shangxiao">
                    <img src="https://avatars.githubusercontent.com/u/1845938?v=3" width="100px;" alt="@shangxiao"/>
@@ -1077,8 +1089,6 @@ Thanks goes to these wonderful people (`emoji key`_):
                <a href="https://github.com/akaihola/darker/issues?q=author%3Ashangxiao"
                   title="Bug reports">🐛</a>
            </td>
-       </tr>
-       <tr>
            <td align="center">
                <a href="https://github.com/sherbie">
                    <img src="https://avatars.githubusercontent.com/u/15087653?v=3" width="100px;" alt="@sherbie"/>
@@ -1143,6 +1153,8 @@ Thanks goes to these wonderful people (`emoji key`_):
                <a href="https://github.com/akaihola/darker/pulls?q=is%3Apr+author%3Awjdp"
                   title="Documentation">📖</a>
            </td>
+       </tr>
+       <tr>
            <td align="center">
                <a href="https://github.com/wnoise">
                    <img src="https://avatars.githubusercontent.com/u/9107?v=3" width="100px;" alt="@wnoise"/>

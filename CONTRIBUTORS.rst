@@ -8,6 +8,7 @@
 - Alexander Tishin (@Mystic-Mirage)
 - Antti Kaihola (@akaihola)
 - August Masquelier (@levouh)
+- Bao (@qubidt)
 - Carsten Kraus (@casio)
 - Christian Decker (@chrisdecker1201)
 - Christophe Simonis (@KangOl)
