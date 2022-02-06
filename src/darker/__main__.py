@@ -360,8 +360,7 @@ def main(argv: List[str] = None) -> int:
                 " Either --diff or --check must be used.",
             )
 
-    missing = get_missing_at_revision(paths, revrange.rev2, root)
-    if missing:
+    if missing := get_missing_at_revision(paths, revrange.rev2, root):
         missing_reprs = " ".join(repr(str(path)) for path in missing)
         rev2_repr = "the working tree" if revrange.rev2 == WORKTREE else revrange.rev2
         raise ArgumentError(
