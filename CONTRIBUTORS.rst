@@ -34,6 +34,7 @@
 - Martin Renou (@martinRenou)
 - Mat Clayton (@matclayton)
 - Matthias Bussonnier (@Carreau)
+- Matthijs van der Burgh (@MatthijsBurgh)
 - @mayk0gan
 - Nathan Huffnam (@njhuffman)
 - Nutchanon Ninyawee (@CircleOnCircles)

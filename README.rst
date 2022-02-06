@@ -986,6 +986,18 @@ Thanks goes to these wonderful people (`emoji key`_):
                   title="Bug reports">🐛</a>
            </td>
            <td>
+               <a href="https://github.com/MatthijsBurgh">
+                   <img src="https://avatars.githubusercontent.com/u/18014833?v=3" width="100px;" alt="@MatthijsBurgh"/>
+                   <br />
+                   <sub><b>Matthijs van der Burgh</b></sub>
+               </a>
+               <br />
+               <a href="https://github.com/akaihola/darker/issues?q=author%3AMatthijsBurgh"
+                  title="Bug reports">🐛</a>
+           </td>
+       </tr>
+       <tr>
+           <td>
                <a href="https://github.com/mayk0gan">
                    <img src="https://avatars.githubusercontent.com/u/96263702?v=3" width="100px;" alt="@mayk0gan"/>
                    <br />
@@ -995,8 +1007,6 @@ Thanks goes to these wonderful people (`emoji key`_):
                <a href="https://github.com/akaihola/darker/issues?q=author%3Amayk0gan"
                   title="Bug reports">🐛</a>
            </td>
-       </tr>
-       <tr>
            <td>
                <a href="https://github.com/muggenhor">
                    <img src="https://avatars.githubusercontent.com/u/484066?v=3" width="100px;" alt="@muggenhor"/>
@@ -1065,6 +1075,8 @@ Thanks goes to these wonderful people (`emoji key`_):
                <a href="https://github.com/akaihola/darker/pulls?q=is%3Apr+author%3Aphilipgian"
                   title="Code">💻</a>
            </td>
+       </tr>
+       <tr>
            <td>
                <a href="https://github.com/qubidt">
                    <img src="https://avatars.githubusercontent.com/u/6306455?v=3" width="100px;" alt="@qubidt"/>
@@ -1075,8 +1087,6 @@ Thanks goes to these wonderful people (`emoji key`_):
                <a href="https://github.com/akaihola/darker/issues?q=author%3Aoverratedpro"
                   title="Bug reports">🐛</a>
            </td>
-       </tr>
-       <tr>
            <td align="center">
                <a href="https://github.com/rogalski">
                    <img src="https://avatars.githubusercontent.com/u/9485217?v=3" width="100px;" alt="@rogalski"/>
@@ -1141,6 +1151,8 @@ Thanks goes to these wonderful people (`emoji key`_):
                <a href="https://github.com/akaihola/darker/pulls?q=is%3Apr+reviewed-by%3Asherbie"
                   title="Reviewed Pull Requests">👀</a>
            </td>
+       </tr>
+       <tr>
            <td align="center">
                <a href="https://github.com/talhajunaidd">
                    <img src="https://avatars.githubusercontent.com/u/6547611?v=3" width="100px;" alt="@talhajunaidd"/>
@@ -1151,8 +1163,6 @@ Thanks goes to these wonderful people (`emoji key`_):
                <a href="https://github.com/akaihola/darker/commits?author=talhajunaidd"
                   title="Code">💻</a>
            </td>
-       </tr>
-       <tr>
            <td align="center">
                <a href="https://github.com/tkolleh">
                    <img src="https://avatars.githubusercontent.com/u/3095197?v=3" width="100px;" alt="@tkolleh"/>
