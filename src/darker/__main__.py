@@ -258,16 +258,32 @@ def print_source(new: TextDocument) -> None:
     """Print the reformatted Python source code"""
     if sys.stdout.isatty():
         try:
-            # pylint: disable=import-outside-toplevel
-            from pygments import highlight
-            from pygments.formatters import TerminalFormatter
-            from pygments.lexers.python import PythonLexer
+            (
+                highlight,
+                TerminalFormatter,  # pylint: disable=invalid-name
+                PythonLexer,
+            ) = _import_pygments()  # type: ignore
         except ImportError:
-            print(new.string)
+            print(new.string, end="")
         else:
-            print(highlight(new.string, PythonLexer(), TerminalFormatter()))
+            print(highlight(new.string, PythonLexer(), TerminalFormatter()), end="")
     else:
-        print(new.string)
+        print(new.string, end="")
+
+
+def _import_pygments():  # type: ignore
+    """Import within a function to ease mocking the import in unit-tests.
+
+    Cannot be typed as it imports parts of its own return type.
+    """
+    # pylint: disable=import-outside-toplevel
+    from pygments import highlight
+    from pygments.formatters import (  # pylint: disable=no-name-in-module
+        TerminalFormatter,
+    )
+    from pygments.lexers.python import PythonLexer
+
+    return highlight, TerminalFormatter, PythonLexer
 
 
 def main(argv: List[str] = None) -> int:
