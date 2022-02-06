@@ -1022,15 +1022,15 @@ Thanks goes to these wonderful people (`emoji key`_):
                   title="Reviewed Pull Requests">👀</a>
            </td>
            <td>
-               <a href="https://github.com/NathanPickle">
-                   <img src="https://avatars.githubusercontent.com/u/66969728?v=3" width="100px;" alt="@NathanPickle"/>
+               <a href="https://github.com/njhuffman">
+                   <img src="https://avatars.githubusercontent.com/u/66969728?v=3" width="100px;" alt="@njhuffman"/>
                    <br />
-                   <sub><b>NathanPickle</b></sub>
+                   <sub><b>Nathan Huffnam</b></sub>
                </a>
                <br />
-               <a href="https://github.com/akaihola/darker/issues?q=author%3ANathanPickle"
+               <a href="https://github.com/akaihola/darker/issues?q=author%3Anjhuffman"
                   title="Bug reports">🐛</a>
-               <a href="https://github.com/akaihola/darker/commits?author=NathanPickle"
+               <a href="https://github.com/akaihola/darker/commits?author=njhuffman"
                   title="Code">💻</a>
            </td>
            <td>

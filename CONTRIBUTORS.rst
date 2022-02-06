@@ -35,7 +35,7 @@
 - Mat Clayton (@matclayton)
 - Matthias Bussonnier (@Carreau)
 - @mayk0gan
-- @NathanPickle
+- Nathan Huffnam (@njhuffman)
 - Nutchanon Ninyawee (@CircleOnCircles)
 - @overratedpro
 - Paul Ivanov (@ivanov)
