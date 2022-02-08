@@ -15,7 +15,10 @@ Fixed
 
 Added
 -----
-- GitHub Actions integration
+- Experimental GitHub Actions integration
+- Consecutive lines of linter output are now separated by a blank line.
+- Highligh linter output if Pygments is installed.
+- Allow running Darker on plain directories in addition to Git repositories.
 
 Fixed
 -----
@@ -25,6 +28,8 @@ Fixed
 - Compatibility with Black 22.1
 - Removed additional newline at the end of the file with the ``--stdout`` flag
   compared to without.
+- Handle isort file skip comment ``#isort:file_skip`` without an exception.
+- Fix compatibility with Pygments 2.11.2.
 
 
 1.3.2_ - 2021-10-28
@@ -50,7 +55,6 @@ Fixed
 - Relative paths are now resolved correctly when using the ``--stdout`` option
 - Downgrade to Flake8 version 3.x for Pytest compatibility.
   See `tholo/pytest-flake8#81`__
-- Handle isort file skip comment ``#isort:file_skip`` without an exception
 
 __ https://github.com/tholo/pytest-flake8/issues/81
 
