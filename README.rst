@@ -22,16 +22,16 @@
 .. |changelog-badge| image:: https://img.shields.io/badge/-change%20log-purple
    :alt: Change log
 .. _changelog-badge: https://github.com/akaihola/darker/blob/master/CHANGES.rst
-.. |next-milestone| image:: https://img.shields.io/github/milestones/progress/akaihola/darker/11?color=red&label=release%201.4.0
+.. |next-milestone| image:: https://img.shields.io/github/milestones/progress/akaihola/darker/12?color=red&label=release%201.4.1
    :alt: Next milestone
-.. _next-milestone: https://github.com/akaihola/darker/milestone/11
+.. _next-milestone: https://github.com/akaihola/darker/milestone/12
 
 
 What?
 =====
 
-This utility reformats and checks Python source code files in a Git repository.
-However, it only applies reformatting and reports errors
+This utility reformats and checks Python source code files.
+However, when run in a Git repository, it only applies reformatting and reports errors
 in regions which have changed in the Git working tree since the last commit.
 
 The reformatters supported are:
@@ -52,6 +52,8 @@ See `Using linters`_ below for the list of supported linters.
 | If you have a moment to spare, please take a   | Please vote for your preferred  |
 | look at one of them and shoot us a comment!    | medium in issue `#151`_!        |
 +------------------------------------------------+---------------------------------+
+
+*New in version 1.4.0:* Darker can be used in plain directories, not only Git repositories.
 
 .. |you-can-help| image:: https://img.shields.io/badge/-You%20can%20help-green?style=for-the-badge
    :alt: You can help
@@ -481,7 +483,7 @@ do the following:
 1. Append to the created ``.pre-commit-config.yaml`` the following lines::
 
        -   repo: https://github.com/akaihola/darker
-           rev: 1.3.2
+           rev: 1.4.0
            hooks:
            -   id: darker
 
@@ -500,7 +502,7 @@ You can provide arguments, such as enabling isort, by specifying ``args``.
 Note the inclusion of the isort Python package under ``additional_dependencies``::
 
    -   repo: https://github.com/akaihola/darker
-       rev: 1.3.2
+       rev: 1.4.0
        hooks:
        -   id: darker
            args: [--isort]
