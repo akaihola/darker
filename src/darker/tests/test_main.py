@@ -22,6 +22,10 @@ from darker.utils import TextDocument, joinlines
 from darker.verification import NotEquivalentError
 
 
+def _replace_diff_timestamps(text, replacement="<timestamp>"):
+    return re.sub(r"\d{4}-\d\d-\d\d \d\d:\d\d:\d\d\.\d\d\d\d\d\d", replacement, text)
+
+
 def test_isort_option_without_isort(git_repo, caplog):
     """Without isort, provide isort install instructions and error"""
     with isort_present(False), patch.object(
@@ -577,9 +581,7 @@ def test_main_in_plain_directory(tmp_path, capsys):
         )
     ]
     output = capsys.readouterr().out
-    output = re.sub(
-        r"\d{4}-\d\d-\d\d \d\d:\d\d:\d\d\.\d\d\d\d\d\d", "<timestamp>", output
-    )
+    output = _replace_diff_timestamps(output)
     assert output == dedent(
         """\
         --- subdir_a/python file.py	<timestamp> +0000
@@ -668,6 +670,30 @@ def test_main_historical_pre_commit(git_repo, monkeypatch):
     ):
 
         darker.__main__.main(["--revision=:PRE-COMMIT:", "a.py"])
+
+
+def test_main_vscode_tmpfile(git_repo, capsys):
+    """Main function handles VSCode `.py.<HASH>.tmp` files correctly"""
+    _ = git_repo.add(
+        {"a.py": "print ( 'reformat me' ) \n"},
+        commit="Initial commit",
+    )
+    (git_repo.root / "a.py.hash.tmp").write_text("print ( 'reformat me now' ) \n")
+
+    retval = darker.__main__.main(["--diff", "a.py.hash.tmp"])
+
+    assert retval == 0
+    outerr = capsys.readouterr()
+    assert outerr.err == ""
+    stdout = _replace_diff_timestamps(outerr.out.replace(str(git_repo.root), ""))
+    diff_output = stdout.splitlines(False)
+    assert diff_output == [
+        "--- a.py.hash.tmp\t<timestamp> +0000",
+        "+++ a.py.hash.tmp\t<timestamp> +0000",
+        "@@ -1 +1 @@",
+        "-print ( 'reformat me now' ) ",
+        '+print("reformat me now")',
+    ]
 
 
 def test_print_diff(tmp_path, monkeypatch, capsys):
