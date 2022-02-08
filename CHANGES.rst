@@ -8,6 +8,8 @@ Added
 
 Fixed
 -----
+- Consider ``.py.tmp`` as files which should be reformatted.
+  This enables VSCode Format On Save.
 
 
 1.4.0_ - 2022-02-08
