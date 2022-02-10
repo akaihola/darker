@@ -168,8 +168,25 @@ class RevisionRange:
         return cls(rev1 if common_ancestor == rev1_hash else common_ancestor, rev2)
 
 
+def get_rev1_path(path: Path) -> Path:
+    """Return the relative path to the file in the old revision
+
+    This is usually the same as the relative path on the command line. But in the
+    special case of VSCode temporary files (like ``file.py.12345.tmp``), we actually
+    want to diff against the corresponding ``.py`` file instead.
+
+    """
+    if path.suffixes[-3::2] != [".py", ".tmp"]:
+        # The file name is not like `*.py.<HASH>.tmp`. Return it as such.
+        return path
+    # This is a VSCode temporary file. Drop the hash and the `.tmp` suffix to get the
+    # original file name for retrieving the previous revision to diff against.
+    path_with_hash = path.with_suffix("")
+    return path_with_hash.with_suffix("")
+
+
 def should_reformat_file(path: Path) -> bool:
-    return path.exists() and path.suffix == ".py"
+    return path.exists() and get_rev1_path(path).suffix == ".py"
 
 
 @lru_cache(maxsize=1)

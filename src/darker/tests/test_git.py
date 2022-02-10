@@ -239,6 +239,23 @@ def test_revisionrange_parse_with_common_ancestor(git_repo, revrange, expect):
 
 
 @pytest.mark.kwparametrize(
+    dict(path="file.py", expect="file.py"),
+    dict(path="subdir/file.py", expect="subdir/file.py"),
+    dict(path="file.py.12345.tmp", expect="file.py"),
+    dict(path="subdir/file.py.12345.tmp", expect="subdir/file.py"),
+    dict(path="file.py.tmp", expect="file.py.tmp"),
+    dict(path="subdir/file.py.tmp", expect="subdir/file.py.tmp"),
+    dict(path="file.12345.tmp", expect="file.12345.tmp"),
+    dict(path="subdir/file.12345.tmp", expect="subdir/file.12345.tmp"),
+)
+def test_get_rev1_path(path, expect):
+    """``get_rev1_path`` drops two suffixes from ``.py.<HASH>.tmp``"""
+    result = git.get_rev1_path(Path(path))
+
+    assert result == Path(expect)
+
+
+@pytest.mark.kwparametrize(
     dict(path=".", create=False, expect=False),
     dict(path="main", create=True, expect=False),
     dict(path="main.c", create=True, expect=False),
