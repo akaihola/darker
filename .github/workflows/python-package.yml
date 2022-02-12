@@ -23,6 +23,9 @@ jobs:
         - os: ubuntu-latest
           python-version: '3.7'
           constraints: '--constraint constraints-oldest.txt'
+        - os: ubuntu-latest
+          python-version: '3.10'
+          constraints: '--constraint constraints-future.txt'
 
     steps:
     - uses: actions/checkout@v2
