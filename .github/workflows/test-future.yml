@@ -1,0 +1,27 @@
+name: test-future
+
+# This workflow detects breakage against upcoming releases of dependencies
+# even in the absence of activity in Darker's own repository.
+
+on:
+  schedule:
+  - cron: "05 20 * * 6"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        ref: 'master'
+        fetch-depth: 0
+    - uses: actions/setup-python@v2
+      with:
+        python-version: '3.10'
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade 'pip>=20.3'  # strict dependency resolution added in pip 20.3
+        pip install -e '.[isort,test]' --constraint constraints-future.txt
+    - name: Test with pytest
+      run: |
+        pytest
