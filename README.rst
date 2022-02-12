@@ -543,25 +543,28 @@ Create a file named ``.github/workflows/darker.yml`` inside your repository with
            with:
              fetch-depth: 0 
          - uses: akaihola/darker@1.4.0
+           with:
+             options: "--check --diff"
+             src: "./src"
+             version: "1.4.0"
 
-We recommend the use per version tags.
-The version of Darker the action will use can be configured via ``version``.
-The action defaults to the action's version tag.
+``"uses:"`` specifies which Darker release to get the GitHub Action definition from.
+We recommend to pin this to a specific release.
+``"version:"`` specifies which version of Darker to run in the GitHub Action.
+It defaults to the same version as in ``"uses:"``,
+but you can force it to use a different version as well.
 Only versions available from PyPI are supported, so no commit SHAs or branch names.
 
-You can also configure the arguments passed to Darker via ``options``
-(defaults to ``'--check --diff'``) and ``src`` (default is ``'.'``).
+You can also configure the arguments passed to Darker via ``"options:"``.
+It defaults to ``"--check --diff"``.
+You can e.g. add ``"--isort"`` to sort imports, or ``"--verbose"`` for debug logging.
+Note that external software like linters are not yet available.
 
-Here's an example configuration:
+``"src:"`` defines the root directory to run Darker for.
+This is typically the source tree, but you can use ``"."`` (the default)
+to also reformat Python files like ``"setup.py"`` in the root of the whole repository.
 
-.. code-block:: yaml
-
-   - uses: akaihola/darker@1.4.0
-     with:
-       options: "--check --verbose"
-       src: "./src"
-       version: "1.3.2"
-
+Note that 
 *New in version 1.1.0:*
 GitHub Actions integration. Modeled after how Black_ does it,
 thanks to Black authors for the example!
