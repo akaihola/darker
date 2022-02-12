@@ -16,14 +16,12 @@ else:
     from typing_extensions import TypedDict
 
 
-class TomlArrayLinesEncoder(toml.TomlEncoder):  # type: ignore[name-defined]
+class TomlArrayLinesEncoder(toml.TomlEncoder):  # type: ignore
     """Format TOML so list items are each on their own line"""
 
-    def dump_list(self, v: List[str]) -> str:
+    def dump_list(self, v: Iterable[object]) -> str:
         """Format a list value"""
-        return "[{}\n]".format(
-            "".join("\n    {},".format(self.dump_value(item)) for item in v)
-        )
+        return "[{}\n]".format("".join(f"\n    {self.dump_value(item)}," for item in v))
 
 
 class DarkerConfig(TypedDict, total=False):
@@ -141,5 +139,5 @@ def get_modified_config(parser: ArgumentParser, args: Namespace) -> DarkerConfig
 
 def dump_config(config: DarkerConfig) -> str:
     """Return the configuration in TOML format"""
-    dump = toml.dumps(config, encoder=TomlArrayLinesEncoder())  # type: ignore[call-arg]
+    dump = toml.dumps(config, encoder=TomlArrayLinesEncoder())
     return f"[tool.darker]\n{dump}"
