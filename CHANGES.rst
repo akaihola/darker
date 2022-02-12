@@ -5,6 +5,7 @@ These features will be included in the next release:
 
 Added
 -----
+- Updated Mypy to version 0.931.
 
 Fixed
 -----
