@@ -544,7 +544,7 @@ Create a file named ``.github/workflows/darker.yml`` inside your repository with
              fetch-depth: 0 
          - uses: akaihola/darker@1.4.0
            with:
-             options: "--check --diff"
+             options: "--check --diff --revision=master..."
              src: "./src"
              version: "1.4.0"
 
@@ -558,6 +558,10 @@ Only versions available from PyPI are supported, so no commit SHAs or branch nam
 You can also configure the arguments passed to Darker via ``"options:"``.
 It defaults to ``"--check --diff"``.
 You can e.g. add ``"--isort"`` to sort imports, or ``"--verbose"`` for debug logging.
+The ``"--revision=master..."`` (or ``main...``) option instructs Darker
+to compare the current branch to the branching point from main branch
+when determining which source code lines have been changed.
+
 Note that external software like linters are not yet available.
 
 ``"src:"`` defines the root directory to run Darker for.
