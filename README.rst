@@ -693,13 +693,13 @@ Thanks goes to these wonderful people (`emoji key`_):
    <table>
        <tr>
            <td align="center">
-               <a href="https://github.com/AcksID">
-                   <img src="https://avatars.githubusercontent.com/u/23341710?v=3" width="100px;" alt="@AcksID"/>
+               <a href="https://github.com/AckslD">
+                   <img src="https://avatars.githubusercontent.com/u/23341710?v=3" width="100px;" alt="@AckslD"/>
                    <br />
                    <sub><b>Axel Dahlberg</b></sub>
                </a>
                <br />
-               <a href="https://github.com/akaihola/darker/issues?q=author%3AAcksID"
+               <a href="https://github.com/akaihola/darker/issues?q=author%3AAckslD"
                   title="Bug reports">🐛</a>
            </td>
            <td align="center">
