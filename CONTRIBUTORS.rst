@@ -27,6 +27,7 @@
 - Iryna (@irynahryshanovich)
 - Jasleen Kaur (@jasleen19)
 - Jens Diemer (@jedie)
+- Jens Hedegaard Nielsen (@jenshnielsen)
 - Krischtopp (@Krischtopp)
 - Leo Torres (@leotrs)
 - Łukasz Rogalski (@rogalski)
