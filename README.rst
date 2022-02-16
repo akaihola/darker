@@ -1125,7 +1125,17 @@ Thanks goes to these wonderful people (`emoji key`_):
                    <sub><b>Bao</b></sub>
                </a>
                <br />
-               <a href="https://github.com/akaihola/darker/issues?q=author%3Aoverratedpro"
+               <a href="https://github.com/akaihola/darker/issues?q=author%3Aqubidt"
+                  title="Bug reports">🐛</a>
+           </td>
+           <td>
+               <a href="https://github.com/RishiKumarRay">
+                   <img src="https://avatars.githubusercontent.com/u/87641376?v=3" width="100px;" alt="@RishiKumarRay"/>
+                   <br />
+                   <sub><b>Rishi Kumar Ray</b></sub>
+               </a>
+               <br />
+               <a href="https://github.com/akaihola/darker/search?q=RishiKumarRay&type=issues"
                   title="Bug reports">🐛</a>
            </td>
            <td align="center">
@@ -1150,6 +1160,8 @@ Thanks goes to these wonderful people (`emoji key`_):
                <a href="https://github.com/akaihola/darker/issues?q=author%3Aroniemartinez"
                   title="Bug reports">🐛</a>
            </td>
+       </tr>
+       <tr>
            <td align="center">
                <a href="https://github.com/rossbar">
                    <img src="https://avatars.githubusercontent.com/u/1268991?v=3" width="100px;" alt="@rossbar"/>
@@ -1160,8 +1172,6 @@ Thanks goes to these wonderful people (`emoji key`_):
                <a href="https://github.com/akaihola/darker/issues?q=author%3Arossbar"
                   title="Bug reports">🐛</a>
            </td>
-       </tr>
-       <tr>
            <td>
                <a href="https://github.com/samoylovfp">
                    <img src="https://avatars.githubusercontent.com/u/17025459?v=3" width="100px;" alt="@samoylovfp"/>
@@ -1224,6 +1234,8 @@ Thanks goes to these wonderful people (`emoji key`_):
                <a href="https://github.com/akaihola/darker/issues?q=author%3Avirtuald"
                   title="Bug reports">🐛</a>
            </td>
+       </tr>
+       <tr>
            <td align="center">
                <a href="https://github.com/yoursvivek">
                    <img src="https://avatars.githubusercontent.com/u/163296?v=3" width="100px;" alt="@yoursvivek"/>
@@ -1236,8 +1248,6 @@ Thanks goes to these wonderful people (`emoji key`_):
                <a href="https://github.com/akaihola/darker/commits?author=yoursvivek"
                   title="Documentation">📖</a>
            </td>
-       </tr>
-       <tr>
            <td align="center">
                <a href="https://github.com/wjdp">
                    <img src="https://avatars.githubusercontent.com/u/1690934?v=3" width="100px;" alt="@wjdp"/>

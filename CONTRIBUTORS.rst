@@ -44,6 +44,7 @@
 - @overratedpro
 - Paul Ivanov (@ivanov)
 - Philipp A. (@flying-sheep)
+- Rishi Kumar Ray (@RishiKumarRay)
 - Ronie Martinez (@roniemartinez)
 - Ross Barnowski (@rossbar)
 - Sean Hammond (@sherbie)
