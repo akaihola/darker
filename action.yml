@@ -5,7 +5,7 @@ inputs:
   options:
     description:
       "Options passed to Darker. Use `darker --help` to see available options. Default:
-      '--check'"
+      '--check --diff'"
     required: false
     default: "--check --diff"
   src:
