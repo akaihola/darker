@@ -709,14 +709,14 @@ Thanks goes to these wonderful people (`emoji key`_):
                    <sub><b>Antti Kaihola</b></sub>
                </a>
                <br />
-               <a href="#question-akaihola" title="Answering Questions">💬</a>
+               <a href="https://github.com/akaihola/darker/search?q=akaihola" title="Answering Questions">💬</a>
                <a href="https://github.com/akaihola/darker/commits?author=akaihola"
                   title="Code">💻</a>
                <a href="https://github.com/akaihola/darker/commits?author=akaihola"
                   title="Documentation">📖</a>
                <a href="https://github.com/akaihola/darker/pulls?q=is%3Apr+reviewed-by%3Aakaihola"
                   title="Reviewed Pull Requests">👀</a>
-               <a href="#maintenance-akaihola" title="Maintenance">🚧</a>
+               <a href="https://github.com/akaihola/darker/commits?author=akaihola" title="Maintenance">🚧</a>
            </td>
            <td align="center">
                <a href="https://github.com/Carreau">
@@ -903,7 +903,7 @@ Thanks goes to these wonderful people (`emoji key`_):
                    <sub><b>Hugo Dupras</b></sub>
                </a>
                <br />
-               <a href="https://github.com/akaihola/darker/search?q=author%3Ajabesq+is%3Apr&type=issues"
+               <a href="https://github.com/akaihola/darker/pulls?q=is%3Apr+author%3Ajabesq"
                   title="Code">💻</a>
                <a href="https://github.com/akaihola/darker/issues?q=author%3Ajabesq"
                   title="Bug reports">🐛</a>
