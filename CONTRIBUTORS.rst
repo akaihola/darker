@@ -22,6 +22,7 @@
 - Filip Kucharczyk (@Pacu2)
 - Filipp Samoylov (@samoylovfp)
 - Filippos Giannakos (@philipgian)
+- Fox_while (@foxwhite25)
 - Giel van Schijndel (@muggenhor)
 - Hugo Dupras (@jabesq)
 - Iryna (@irynahryshanovich)
