@@ -781,7 +781,7 @@ Thanks goes to these wonderful people (`emoji key`_):
        </tr>
        <tr>
            <td align="center">
-               <a href="https://github.com/dsmanl">
+               <a href="https://github.com/DavidCDreher">
                    <img src="https://avatars.githubusercontent.com/u/47252106?v=3" width="100px;" alt="@DavidCDreher"/>
                    <br />
                    <sub><b>David Dreher</b></sub>
