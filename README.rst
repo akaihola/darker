@@ -187,9 +187,12 @@ which makes edited lines conform to Black rules:
 Alternatively, Darker can output the full reformatted file
 (works only when a single Python file is provided on the command line):
 
-.. code-block:: python
+.. code-block:: shell
 
    $ darker --stdout our_file.py
+
+.. code-block:: python
+
    if True:
        print("CHANGED TEXT")
    print()
