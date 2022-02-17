@@ -1,11 +1,12 @@
+---
 name: "Darker"
 description: "Apply Black, isort and linters to modified lines only."
 author: "Antti Kaihola and contributors to Darker"
 inputs:
   options:
-    description:
-      "Options passed to Darker. Use `darker --help` to see available options. Default:
-      '--check --diff'"
+    description: >-
+      Options passed to Darker. Use `darker --help` to see available options.
+      Default: '--check --diff'
     required: false
     default: "--check --diff"
   src:
@@ -17,9 +18,9 @@ inputs:
     required: false
     default: "1.4.0"
   revision:
-    description:
-      'Git revision range to compare when determining modified lines. '
-      'Determined automatically if omitted.'
+    description: >-
+      Git revision range to compare when determining modified lines.
+      Determined automatically if omitted.
     required: false
 branding:
   color: "black"
@@ -54,7 +55,8 @@ runs:
           echo $entrypoint | python3
         fi
       env:
-        # TODO: Remove once https://github.com/actions/runner/issues/665 is fixed.
+        # TODO: Remove once https://github.com/actions/runner/issues/665 is
+        #       fixed.
         INPUT_OPTIONS: ${{ inputs.options }}
         INPUT_SRC: ${{ inputs.src }}
         INPUT_VERSION: ${{ inputs.version }}

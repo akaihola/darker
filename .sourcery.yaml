@@ -1,2 +1,3 @@
+---
 ignore:
-  - 'test_*.py'  # parameterized tests would trigger Length and Working Memory detection
+  - 'test_*.py'  # parameterized tests trigger Length & Working Memory detection

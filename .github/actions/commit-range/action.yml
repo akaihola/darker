@@ -1,3 +1,4 @@
+---
 # Copyright (c) 2022, Eindhoven University of Technology - CST Robotics Group
 # BDS 3-Clause License (see ./LICENSE.md)
 
@@ -13,7 +14,8 @@ runs:
     - name: Commit range
       id: commit-range
       env:
-        commit_list: ${{ toJson(github.event.commits) }} # Doing this inside run doesn't work because of piping
+        # Doing this inside run doesn't work because of piping:
+        commit_list: ${{ toJson(github.event.commits) }}
       run: |
         if [ "${GITHUB_EVENT_NAME}" == "push" ]
         then
@@ -26,7 +28,9 @@ runs:
             NEWEST=$(echo "${commit_list}" | jq 'last.id' | tr -d '"')
             OLDEST_PARENTS=($(git show --no-patch --format="%P" ${OLDEST}))
             NUMBER_OLDEST_PARENTS=${#OLDEST_PARENTS[@]}
-            COMMIT_RANGE="${OLDEST}^${NUMBER_OLDEST_PARENTS}...${NEWEST}" # Take second parent if possible, see https://stackoverflow.com/a/2222920
+            # Take second parent if possible,
+            # see https://stackoverflow.com/a/2222920:
+            COMMIT_RANGE="${OLDEST}^${NUMBER_OLDEST_PARENTS}...${NEWEST}"
           fi
         elif [ "${GITHUB_EVENT_NAME}" == "pull_request" ]
         then
