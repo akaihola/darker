@@ -11,8 +11,9 @@ Fixed
 -----
 - Consider ``.py.tmp`` as files which should be reformatted.
   This enables VSCode Format On Save.
-- Use Darker 1.4.0 instead of 1.3.2 in the GitHub Action.
+- Use the latest release of Darker instead of 1.3.2 in the GitHub Action.
 - Determine the commit range to check automatically in the GitHub Action.
+  **TODO:** update "master" to "1.4.1" in ``action.yml`` when releasing
 - Add a YAML linting workflow to the Darker repository.
   
 
