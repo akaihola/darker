@@ -10,6 +10,9 @@ ENV_BIN = ENV_PATH / ("Scripts" if sys.platform == "win32" else "bin")
 OPTIONS = os.getenv("INPUT_OPTIONS", default="")
 SRC = os.getenv("INPUT_SRC", default="")
 VERSION = os.getenv("INPUT_VERSION", default="")
+REVISION = os.getenv(
+    "INPUT_REVISION", default=os.getenv("INPUT_COMMIT_RANGE", default="HEAD^")
+)
 
 run([sys.executable, "-m", "venv", str(ENV_PATH)], check=True)
 
@@ -29,6 +32,8 @@ if pip_proc.returncode:
 
 
 base_cmd = [str(ENV_BIN / "darker")]
-proc = run([*base_cmd, *shlex.split(OPTIONS), *shlex.split(SRC)])
+proc = run(
+    [*base_cmd, *shlex.split(OPTIONS), "--revision", REVISION, *shlex.split(SRC)]
+)
 
 sys.exit(proc.returncode)
