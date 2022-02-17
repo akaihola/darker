@@ -18,7 +18,6 @@ Added
 - Run tests on CI against Black ``main`` branch to get an early warning of
   incompatible changes which would break Darker.
 - Determine the commit range to check automatically in the GitHub Action.
-  **TODO:** update "master" to "1.4.1" in ``action.yml`` when releasing
 - Improve GitHub Action documentation.
 - Add Nix CI builds on Linux and macOS.
 - Add a YAML linting workflow to the Darker repository.
