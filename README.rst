@@ -547,7 +547,8 @@ Create a file named ``.github/workflows/darker.yml`` inside your repository with
              fetch-depth: 0 
          - uses: akaihola/darker@1.4.0
            with:
-             options: "--check --diff --revision=master..."
+             options: "--check --diff"
+             revision: "master..."
              src: "./src"
              version: "1.4.0"
 
@@ -558,12 +559,13 @@ It defaults to the same version as in ``"uses:"``,
 but you can force it to use a different version as well.
 Only versions available from PyPI are supported, so no commit SHAs or branch names.
 
-You can also configure the arguments passed to Darker via ``"options:"``.
-It defaults to ``"--check --diff"``.
-You can e.g. add ``"--isort"`` to sort imports, or ``"--verbose"`` for debug logging.
-The ``"--revision=master..."`` (or ``main...``) option instructs Darker
+The ``revision: "master..."`` (or ``"main..."``) option instructs Darker
 to compare the current branch to the branching point from main branch
 when determining which source code lines have been changed.
+If omitted, the Darker GitHub Action will determine the commit range automatically.
+
+*New in version 1.4.1:*
+The ``revision:`` option, with smart default value if omitted.
 
 Note that external software like linters are not yet available.
 
@@ -571,7 +573,10 @@ Note that external software like linters are not yet available.
 This is typically the source tree, but you can use ``"."`` (the default)
 to also reformat Python files like ``"setup.py"`` in the root of the whole repository.
 
-Note that 
+You can also configure other arguments passed to Darker via ``"options:"``.
+It defaults to ``"--check --diff"``.
+You can e.g. add ``"--isort"`` to sort imports, or ``"--verbose"`` for debug logging.
+
 *New in version 1.1.0:*
 GitHub Actions integration. Modeled after how Black_ does it,
 thanks to Black authors for the example!
