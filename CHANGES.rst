@@ -5,6 +5,23 @@ These features will be included in the next release:
 
 Added
 -----
+
+Fixed
+-----
+
+
+1.4.1_ - 2022-02-17
+===================
+
+Added
+-----
+- Run tests on CI against Black ``main`` branch to get an early warning of
+  incompatible changes which would break Darker.
+- Determine the commit range to check automatically in the GitHub Action.
+  **TODO:** update "master" to "1.4.1" in ``action.yml`` when releasing
+- Improve GitHub Action documentation.
+- Add Nix CI builds on Linux and macOS.
+- Add a YAML linting workflow to the Darker repository.
 - Updated Mypy to version 0.931.
 
 Fixed
@@ -12,9 +29,6 @@ Fixed
 - Consider ``.py.tmp`` as files which should be reformatted.
   This enables VSCode Format On Save.
 - Use the latest release of Darker instead of 1.3.2 in the GitHub Action.
-- Determine the commit range to check automatically in the GitHub Action.
-  **TODO:** update "master" to "1.4.1" in ``action.yml`` when releasing
-- Add a YAML linting workflow to the Darker repository.
   
 
 1.4.0_ - 2022-02-08
@@ -266,7 +280,8 @@ Added
 -----
 - Initial implementation
 
-.. _Unreleased: https://github.com/akaihola/darker/compare/1.4.0...HEAD
+.. _Unreleased: https://github.com/akaihola/darker/compare/1.4.1...HEAD
+.. _1.4.1: https://github.com/akaihola/darker/compare/1.4.0...1.4.1
 .. _1.4.0: https://github.com/akaihola/darker/compare/1.3.2...1.4.0
 .. _1.3.2: https://github.com/akaihola/darker/compare/1.3.1...1.3.2
 .. _1.3.1: https://github.com/akaihola/darker/compare/1.3.0...1.3.1
