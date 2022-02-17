@@ -22,9 +22,9 @@
 .. |changelog-badge| image:: https://img.shields.io/badge/-change%20log-purple
    :alt: Change log
 .. _changelog-badge: https://github.com/akaihola/darker/blob/master/CHANGES.rst
-.. |next-milestone| image:: https://img.shields.io/github/milestones/progress/akaihola/darker/12?color=red&label=release%201.4.1
+.. |next-milestone| image:: https://img.shields.io/github/milestones/progress/akaihola/darker/14?color=red&label=release%201.4.2
    :alt: Next milestone
-.. _next-milestone: https://github.com/akaihola/darker/milestone/12
+.. _next-milestone: https://github.com/akaihola/darker/milestone/14
 
 
 What?
