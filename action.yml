@@ -1,11 +1,12 @@
+---
 name: "Darker"
 description: "Apply Black, isort and linters to modified lines only."
 author: "Antti Kaihola and contributors to Darker"
 inputs:
   options:
-    description:
-      "Options passed to Darker. Use `darker --help` to see available options. Default:
-      '--check --diff'"
+    description: >-
+      Options passed to Darker. Use `darker --help` to see available options.
+      Default: '--check --diff'
     required: false
     default: "--check --diff"
   src:
@@ -15,17 +16,28 @@ inputs:
   version:
     description: 'Python Version specifier (PEP440) - e.g. "1.4.0"'
     required: false
-    default: "1.4.0"
+    default: "master"  # TODO: change "master" to "1.4.1" when releasing
+  revision:
+    description: >-
+      Git revision range to compare when determining modified lines.
+      Determined automatically if omitted.
+    required: false
 branding:
   color: "black"
   icon: "check-circle"
 runs:
   using: composite
   steps:
-    - run: |
-        # Exists since using github.action_path + path to main script doesn't work
-        # because bash interprets the backslashes in github.action_path (which are used
-        # when the runner OS is Windows) destroying the path to the target file.
+    - name: Commit Range
+      id: commit-range
+      # TODO: change "master" to "1.4.1" when releasing:
+      uses: akaihola/darker/.github/actions/commit-range@master
+    - name: Run Darker
+      run: |
+        # Exists since using github.action_path + path to main script doesn't
+        # work because bash interprets the backslashes in github.action_path
+        # (which are used when the runner OS is Windows) destroying the path to
+        # the target file.
         #
         # Also semicolons are necessary because I can't get the newlines to work
         entrypoint="import sys;
@@ -44,9 +56,12 @@ runs:
           echo $entrypoint | python3
         fi
       env:
-        # TODO: Remove once https://github.com/actions/runner/issues/665 is fixed.
+        # TODO: Remove once https://github.com/actions/runner/issues/665 is
+        #       fixed.
         INPUT_OPTIONS: ${{ inputs.options }}
         INPUT_SRC: ${{ inputs.src }}
         INPUT_VERSION: ${{ inputs.version }}
+        INPUT_REVISION: ${{ inputs.revision }}
+        INPUT_COMMIT_RANGE: ${{ steps.commit-range.outputs.commit-range }}
         pythonioencoding: utf-8
       shell: bash

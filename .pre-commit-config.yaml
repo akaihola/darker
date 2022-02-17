@@ -1,22 +1,23 @@
+---
 # See https://pre-commit.com for more information
 repos:
--   repo: https://github.com/pre-commit/pre-commit-hooks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v3.3.0
     hooks:
-    -   id: trailing-whitespace
-    -   id: end-of-file-fixer
-    -   id: check-yaml
-    -   id: check-added-large-files
--   repo: https://github.com/akaihola/darker
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+  - repo: https://github.com/akaihola/darker
     rev: master
     hooks:
-    -   id: darker
+      - id: darker
         args: [--isort]
         additional_dependencies:
           - black~=21.8b0
           - isort~=5.9
--   repo: https://github.com/Lucas-C/pre-commit-hooks-markup
+  - repo: https://github.com/Lucas-C/pre-commit-hooks-markup
     rev: v1.0.1
     hooks:
-    -   id: rst-linter
+      - id: rst-linter
         args: [--allow-raw]

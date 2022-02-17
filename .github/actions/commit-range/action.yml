@@ -1,0 +1,43 @@
+---
+# Copyright (c) 2022, Eindhoven University of Technology - CST Robotics Group
+# BDS 3-Clause License (see ./LICENSE.md)
+
+name: 'Commit range'
+description: 'Determine commit range'
+outputs:
+  commit-range:
+    description: 'Range of commits in this run'
+    value: ${{ steps.commit-range.outputs.commit-range }}
+runs:
+  using: "composite"
+  steps:
+    - name: Commit range
+      id: commit-range
+      env:
+        # Doing this inside run doesn't work because of piping:
+        commit_list: ${{ toJson(github.event.commits) }}
+      run: |
+        if [ "${GITHUB_EVENT_NAME}" == "push" ]
+        then
+          NUMBER_COMMITS=$(echo "${commit_list}" | jq 'length')
+          if [ ${NUMBER_COMMITS} -le 1 ]
+          then
+            COMMIT_RANGE=""
+          else
+            OLDEST=$(echo "${commit_list}" | jq 'first.id' | tr -d '"')
+            NEWEST=$(echo "${commit_list}" | jq 'last.id' | tr -d '"')
+            OLDEST_PARENTS=($(git show --no-patch --format="%P" ${OLDEST}))
+            NUMBER_OLDEST_PARENTS=${#OLDEST_PARENTS[@]}
+            # Take second parent if possible,
+            # see https://stackoverflow.com/a/2222920:
+            COMMIT_RANGE="${OLDEST}^${NUMBER_OLDEST_PARENTS}...${NEWEST}"
+          fi
+        elif [ "${GITHUB_EVENT_NAME}" == "pull_request" ]
+        then
+          OLDEST=${{ github.event.pull_request.base.sha }}
+          NEWEST=${{ github.event.pull_request.head.sha }}
+          COMMIT_RANGE="${OLDEST}...${NEWEST}"
+        fi
+        echo -e "\e[35m\e[1m COMMIT_RANGE = ${COMMIT_RANGE} \e[0m"
+        echo "::set-output name=commit-range::${COMMIT_RANGE}"
+      shell: bash
