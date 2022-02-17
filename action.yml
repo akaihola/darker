@@ -58,5 +58,7 @@ runs:
         INPUT_OPTIONS: ${{ inputs.options }}
         INPUT_SRC: ${{ inputs.src }}
         INPUT_VERSION: ${{ inputs.version }}
+        INPUT_REVISION: ${{ inputs.revision }}
+        INPUT_COMMIT_RANGE: ${{ steps.commit-range.outputs.commit-range }}
         pythonioencoding: utf-8
       shell: bash
