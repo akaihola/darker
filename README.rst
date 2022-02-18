@@ -119,7 +119,9 @@ Use ``python -m darker`` instead of ``darker`` in that case.
 By default, ``darker`` just runs Black_ to reformat the code.
 You can enable additional features with command line options:
 
-- ``-i`` / ``--isort``: Reorder imports using isort_
+- ``-i`` / ``--isort``: Reorder imports using isort_. Note that isort_ must be
+  run in the same Python environment as the packages to process, as it imports
+  your modules to determine whether they are first or third party modules.
 - ``-L <linter>`` / ``--lint <linter>``: Run a supported linter (see `Using linters`_)
 
 *New in version 1.1.0:* The ``-L`` / ``--lint`` option.
