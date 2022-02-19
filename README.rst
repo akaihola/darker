@@ -311,6 +311,10 @@ For example:
    ]
    log_level = "INFO"
 
+Be careful to not use options which generate output which is unexpected for
+other tools. For example, VSCode only expects the reformat diff, so
+``lint = [ ... ]`` can't be used with it.
+
 *New in version 1.0.0:*
 
 - The ``-c``, ``-S`` and ``-l`` command line options.
@@ -413,6 +417,7 @@ PyCharm/IntelliJ IDEA
 
 __ https://plugins.jetbrains.com/plugin/7177-file-watchers
 
+
 Visual Studio Code
 ------------------
 
@@ -440,6 +445,8 @@ Visual Studio Code
 
 You can pass additional arguments to ``darker`` in the ``blackArgs`` option
 (e.g. ``["--diff", "--isort"]``), but make sure at least ``--diff`` is included.
+Also, this won't work if you have any linters enabled on the command line
+or in ``pyproject.toml``.
 
 Note that VSCode first copies the file to reformat into a temporary
 ``<filename>.py.<hash>.tmp`` file, then calls Black (or Darker in this case) on that
@@ -626,6 +633,14 @@ Here's an example of `cov_to_lint.py`_ output::
     src/darker/__main__.py:130: no coverage:             if context_lines == max_context_lines:
     src/darker/__main__.py:131: no coverage:                 raise
     src/darker/__main__.py:132: no coverage:             logger.debug(
+
++-----------------------------------------------------------------------+
+|                               ⚠ NOTE ⚠                                |
++=======================================================================+
+| Don't enable linting on the command line or in the configuration when | 
+| running Darker as a reformatter in VSCode. You will confuse VSCode    |
+| with unexpected output from Darker.                                   |
++-----------------------------------------------------------------------+
 
 .. _Mypy: https://pypi.org/project/mypy
 .. _Pylint: https://pypi.org/project/pylint

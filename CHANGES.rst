@@ -7,6 +7,7 @@ Added
 -----
 - Document ``isort``'s requirement to be run in the same environment as
   the modules which are processed.
+- Document VSCode and ``--lint``/``-L`` incompatibility in the README.
 
 Fixed
 -----
