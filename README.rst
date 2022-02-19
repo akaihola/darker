@@ -639,7 +639,7 @@ Here's an example of `cov_to_lint.py`_ output::
 +=======================================================================+
 | Don't enable linting on the command line or in the configuration when | 
 | running Darker as a reformatter in VSCode. You will confuse VSCode    |
-| with unexpected output from Darker.                                   |
+| with unexpected output from Darker, as it only expect black's output                                  |
 +-----------------------------------------------------------------------+
 
 .. _Mypy: https://pypi.org/project/mypy
