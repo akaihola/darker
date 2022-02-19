@@ -5,6 +5,8 @@ These features will be included in the next release:
 
 Added
 -----
+- Document ``isort``'s requirement to be run in the same environment as
+  the modules which are processed.
 
 Fixed
 -----
