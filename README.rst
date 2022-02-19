@@ -441,12 +441,13 @@ Visual Studio Code
 
     "python.formatting.provider": "black",
     "python.formatting.blackPath": "<install_location_from_step_2>",
-    "python.formatting.blackArgs": ["--diff"],
+    "python.formatting.blackArgs": [],
 
-You can pass additional arguments to ``darker`` in the ``blackArgs`` option
-(e.g. ``["--diff", "--isort"]``), but make sure at least ``--diff`` is included.
-Also, this won't work if you have any linters enabled on the command line
-or in ``pyproject.toml``.
+VSCode will always add ``--diff --quiet`` as arguments to Darker,
+but you can also pass additional arguments in the ``blackArgs`` option
+(e.g. ``["--isort", "--revision=master..."]``).
+Be sure to *not* enable any linters here or in ``pyproject.toml``
+since VSCode won't be able to understand output from them.
 
 Note that VSCode first copies the file to reformat into a temporary
 ``<filename>.py.<hash>.tmp`` file, then calls Black (or Darker in this case) on that
