@@ -11,6 +11,8 @@ Added
 
 Fixed
 -----
+- Fix NixOS builds when ``pytest-darker`` calls ``pylint``. Needed to activate
+  the virtualenv.
 
 
 1.4.1_ - 2022-02-17
