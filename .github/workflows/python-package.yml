@@ -31,8 +31,9 @@ jobs:
         run: |
           nix-shell --pure --run '
             python -m venv venv
-            venv/bin/pip install -e '.[isort,test]'
-            venv/bin/pytest
+            source venv/bin/activate
+            pip install -e '.[isort,test]'
+            pytest
           ' ./default.nix
 
   build:
