@@ -23,7 +23,11 @@ jobs:
         run: |
           # strict dependency resolution added in pip 20.3
           python -m pip install --upgrade 'pip>=20.3'
-          pip install -e '.[isort,test]' --constraint constraints-future.txt
+          pip install \
+            --constraint=constraints-future.txt \
+            --upgrade \
+            --upgrade-strategy=eager \
+            -e '.[isort,test]'
       - name: Test with pytest
         run: |
           pytest
