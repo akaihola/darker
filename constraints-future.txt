@@ -4,3 +4,4 @@
 # up-to-date by adding entries for any packages we want to get early
 # incompatibility warnings for.
 black @ git+https://github.com/psf/black.git@main 
+isort @ git+https://github.com/PyCQA/isort.git@main

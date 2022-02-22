@@ -8,6 +8,8 @@ Added
 - Document ``isort``'s requirement to be run in the same environment as
   the modules which are processed.
 - Document VSCode and ``--lint``/``-L`` incompatibility in the README.
+- Guard against breaking changes in ``isort`` by testing against its ``main``
+  branch in the ``test-future`` GitHub Workflow.
 
 Fixed
 -----
@@ -27,6 +29,8 @@ Added
 - Add Nix CI builds on Linux and macOS.
 - Add a YAML linting workflow to the Darker repository.
 - Updated Mypy to version 0.931.
+- Guard against breaking changes in Black by testing against its ``main`` branch
+  in the ``test-future`` GitHub Workflow.
 
 Fixed
 -----
