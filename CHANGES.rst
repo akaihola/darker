@@ -15,6 +15,8 @@ Fixed
 -----
 - Fix NixOS builds when ``pytest-darker`` calls ``pylint``. Needed to activate
   the virtualenv.
+- Allow more time to pass when checking file modification times in a unit test.
+  Windows tests on GitHub are sometimes really slow.
 
 
 1.4.1_ - 2022-02-17
