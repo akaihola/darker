@@ -66,8 +66,9 @@ a mixed result with only selected regions reformatted can be reconstructed.
 
 import logging
 from difflib import SequenceMatcher
-from typing import Generator, List, Tuple
+from typing import Generator, List, Sequence, Tuple
 
+from darker.multiline_strings import find_overlap
 from darker.utils import DiffChunk, TextDocument
 
 logger = logging.getLogger(__name__)
@@ -109,13 +110,21 @@ def _validate_opcodes(opcodes: List[Tuple[str, int, int, int, int]]) -> None:
 
 
 def opcodes_to_edit_linenums(
-    opcodes: List[Tuple[str, int, int, int, int]], context_lines: int
+    opcodes: List[Tuple[str, int, int, int, int]],
+    context_lines: int,
+    multiline_string_ranges: Sequence[Tuple[int, int]],
 ) -> Generator[int, None, None]:
     """Convert diff opcodes to line numbers of edited lines in the destination file
+
+    On top of a straight mapping from line ranges to individual line numbers, this
+    function extends each diff opcode line range
+    - upwards and downwards for as many lines as determined by ``context_lines``
+    - to make sure the range covers any multiline strings completely
 
     :param opcodes: The diff opcodes to convert
     :param context_lines: The number of lines before and after an edited line to mark
                           edited as well
+    :return: Generates a list of integer 1-based line numbers
 
     """
     if not opcodes:
@@ -125,8 +134,15 @@ def opcodes_to_edit_linenums(
     _tag, _i1, _i2, _j1, end = opcodes[-1]
     for tag, _i1, _i2, j1, j2 in opcodes:
         if tag != "equal":
-            chunk_end = min(j2 + 1 + context_lines, end + 1)
-            yield from range(max(j1 + 1 - context_lines, prev_chunk_end), chunk_end)
+            chunk_start = j1 + 1 - context_lines
+            chunk_end = j2 + 1 + context_lines
+            multiline_string_range = find_overlap(
+                chunk_start, chunk_end, multiline_string_ranges
+            )
+            if multiline_string_range:
+                chunk_start = min(chunk_start, multiline_string_range[0])
+                chunk_end = max(chunk_end, multiline_string_range[1])
+            yield from range(max(chunk_start, prev_chunk_end), min(chunk_end, end + 1))
             prev_chunk_end = chunk_end
 
 

@@ -203,7 +203,7 @@ EXAMPLE_OPCODES = [
     dict(context_lines=2, expect=[[1, 7], [11, 28]]),
 )
 def test_opcodes_to_edit_linenums(context_lines, expect):
-    edit_linenums = list(opcodes_to_edit_linenums(EXAMPLE_OPCODES, context_lines))
+    edit_linenums = list(opcodes_to_edit_linenums(EXAMPLE_OPCODES, context_lines, []))
     expect_ranges = [[n, n] if isinstance(n, int) else n for n in expect]
     expect_linenums = list(chain(*(range(n[0], n[1] + 1) for n in expect_ranges)))
 
@@ -211,6 +211,8 @@ def test_opcodes_to_edit_linenums(context_lines, expect):
 
 
 def test_opcodes_to_edit_linenums_empty_opcodes():
-    result = list(opcodes_to_edit_linenums([], context_lines=0))
+    result = list(
+        opcodes_to_edit_linenums([], context_lines=0, multiline_string_ranges=[])
+    )
 
     assert result == []
