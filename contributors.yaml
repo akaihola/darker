@@ -1,0 +1,129 @@
+AckslD:
+  - {link_type: issues, type: Bug reports}
+Carreau:
+  - {link_type: commits, type: Code}
+  - {link_type: commits, type: Documentation}
+  - {link_type: pulls-reviewed, type: Reviewed Pull Requests}
+CircleOnCircles:
+  - {link_type: issues, type: Bug reports}
+CorreyL:
+  - {link_type: commits, type: Code}
+  - {link_type: commits, type: Documentation}
+  - {link_type: pulls-reviewed, type: Reviewed Pull Requests}
+DavidCDreher:
+  - {link_type: issues, type: Bug reports}
+DylanYoung:
+  - {link_type: issues, type: Bug reports}
+Hainguyen1210:
+  - {link_type: issues, type: Bug reports}
+KangOl:
+  - {link_type: issues, type: Bug reports}
+Krischtopp:
+  - {link_type: issues, type: Bug reports}
+MatthijsBurgh:
+  - {link_type: issues, type: Bug reports}
+Mystic-Mirage:
+  - {link_type: commits, type: Code}
+  - {link_type: commits, type: Documentation}
+  - {link_type: pulls-reviewed, type: Reviewed Pull Requests}
+Pacu2:
+  - {link_type: pulls-author, type: Code}
+  - {link_type: pulls-reviewed, type: Reviewed Pull Requests}
+RishiKumarRay:
+  - {link_type: search, type: Bug reports}
+agandra:
+  - {link_type: issues, type: Bug reports}
+akaihola:
+  - {link_type: search, type: Answering Questions}
+  - {link_type: commits, type: Code}
+  - {link_type: commits, type: Documentation}
+  - {link_type: pulls-reviewed, type: Reviewed Pull Requests}
+  - {link_type: commits, type: Maintenance}
+casio:
+  - {link_type: issues, type: Bug reports}
+chrisdecker1201:
+  - {link_type: pulls-author, type: Code}
+  - {link_type: issues, type: Bug reports}
+dsmanl:
+  - {link_type: issues, type: Bug reports}
+fizbin:
+  - {link_type: issues, type: Bug reports}
+flying-sheep:
+  - {link_type: issues, type: Bug reports}
+foxwhite25:
+  - {link_type: search, type: Bug reports}
+guettli:
+  - {link_type: issues, type: Bug reports}
+hauntsaninja:
+  - {link_type: issues, type: Bug reports}
+irynahryshanovich:
+  - {link_type: issues, type: Bug reports}
+ivanov:
+  - {link_type: commits, type: Code}
+  - {link_type: issues, type: Bug reports}
+  - {link_type: pulls-reviewed, type: Reviewed Pull Requests}
+jabesq:
+  - {link_type: pulls-author, type: Code}
+  - {link_type: issues, type: Bug reports}
+jasleen19:
+  - {link_type: issues, type: Bug reports}
+  - {link_type: pulls-reviewed, type: Reviewed Pull Requests}
+jedie:
+  - {link_type: issues, type: Bug reports}
+jenshnielsen:
+  - {link_type: search, type: Bug reports}
+leotrs:
+  - {link_type: issues, type: Bug reports}
+levouh:
+  - {link_type: pulls-author, type: Code}
+  - {link_type: issues, type: Bug reports}
+magnunm:
+  - {link_type: issues, type: Bug reports}
+markddavidoff:
+  - {link_type: issues, type: Bug reports}
+martinRenou:
+  - {link_type: conda-issues, type: Code}
+  - {link_type: pulls-reviewed, type: Reviewed Pull Requests}
+matclayton:
+  - {link_type: issues, type: Bug reports}
+mayk0gan:
+  - {link_type: issues, type: Bug reports}
+muggenhor:
+  - {link_type: commits, type: Code}
+njhuffman:
+  - {link_type: issues, type: Bug reports}
+  - {link_type: commits, type: Code}
+overratedpro:
+  - {link_type: issues, type: Bug reports}
+philipgian:
+  - {link_type: pulls-author, type: Code}
+qubidt:
+  - {link_type: issues, type: Bug reports}
+rogalski:
+  - {link_type: pulls-author, type: Code}
+  - {link_type: issues, type: Bug reports}
+roniemartinez:
+  - {link_type: issues, type: Bug reports}
+rossbar:
+  - {link_type: issues, type: Bug reports}
+samoylovfp:
+  - {link_type: pulls-reviewed, type: Reviewed Pull Requests}
+shangxiao:
+  - {link_type: pulls-author, type: Code}
+  - {link_type: issues, type: Bug reports}
+sherbie:
+  - {link_type: pulls-reviewed, type: Reviewed Pull Requests}
+talhajunaidd:
+  - {link_type: commits, type: Code}
+tkolleh:
+  - {link_type: issues, type: Bug reports}
+virtuald:
+  - {link_type: issues, type: Bug reports}
+wjdp:
+  - {link_type: issues, type: Bug reports}
+  - {link_type: pulls-author, type: Documentation}
+wnoise:
+  - {link_type: issues, type: Bug reports}
+yoursvivek:
+  - {link_type: issues, type: Bug reports}
+  - {link_type: commits, type: Documentation}
