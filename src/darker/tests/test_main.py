@@ -391,6 +391,7 @@ def test_blacken_single_file(
     result = darker.__main__._blacken_single_file(
         git_repo.root,
         Path(relative_path),
+        Path("file.py"),
         EditedLinenumsDiffer(git_repo.root, RevisionRange(rev1, rev2)),
         TextDocument(rev2_content),
         TextDocument(rev2_isorted),
@@ -399,6 +400,23 @@ def test_blacken_single_file(
     )
 
     assert result.string == expect
+
+
+@pytest.mark.kwparametrize(
+    dict(path="file.py", expect="file.py"),
+    dict(path="subdir/file.py", expect="subdir/file.py"),
+    dict(path="file.py.12345.tmp", expect="file.py"),
+    dict(path="subdir/file.py.12345.tmp", expect="subdir/file.py"),
+    dict(path="file.py.tmp", expect="file.py.tmp"),
+    dict(path="subdir/file.py.tmp", expect="subdir/file.py.tmp"),
+    dict(path="file.12345.tmp", expect="file.12345.tmp"),
+    dict(path="subdir/file.12345.tmp", expect="subdir/file.12345.tmp"),
+)
+def test_get_path_in_repo(path, expect):
+    """``_get_path_in_repo`` drops two suffixes from ``.py.<HASH>.tmp``"""
+    result = darker.__main__._get_path_in_repo(Path(path))
+
+    assert result == Path(expect)
 
 
 @pytest.mark.kwparametrize(

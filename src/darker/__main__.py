@@ -28,7 +28,6 @@ from darker.git import (
     EditedLinenumsDiffer,
     RevisionRange,
     get_missing_at_revision,
-    get_rev1_path,
     git_get_content_at_revision,
     git_get_modified_python_files,
     git_is_repository,
@@ -80,62 +79,72 @@ def format_edited_parts(
     with get_executor(max_workers=workers) as executor:
         # pylint: disable=unsubscriptable-object
         futures: List[concurrent.futures.Future[ProcessedDocument]] = []
-        for path_in_repo in sorted(changed_files):
+        for relative_path_in_rev2 in sorted(changed_files):
             future = executor.submit(
                 _isort_and_blacken_single_file,
                 root,
-                path_in_repo,
+                relative_path_in_rev2,
+                black_exclude,
                 revrange,
-                black_config,
                 enable_isort,
-                enable_black=path_in_repo not in black_exclude,
+                black_config,
             )
             futures.append(future)
 
         for future in concurrent.futures.as_completed(futures):
-            src, rev2_content, content_after_reformatting = future.result()
+            (
+                absolute_path_in_rev2,
+                rev2_content,
+                content_after_reformatting,
+            ) = future.result()
             if report_unmodified or content_after_reformatting != rev2_content:
-                yield (src, rev2_content, content_after_reformatting)
+                yield (absolute_path_in_rev2, rev2_content, content_after_reformatting)
 
 
 def _isort_and_blacken_single_file(  # pylint: disable=too-many-arguments
     root: Path,
-    relative_path: Path,
+    relative_path_in_rev2: Path,
+    black_exclude: Collection[Path],  # pylint: disable=unsubscriptable-object
     revrange: RevisionRange,
-    black_config: BlackConfig,
     enable_isort: bool,
-    enable_black: bool,
+    black_config: BlackConfig,
 ) -> ProcessedDocument:
     """Black and/or isort formatting for modified chunks in a single file
 
     :param root: Root directory for the relative path
-    :param relative_path: Relative path to a Python source code file
+    :param relative_path_in_rev2: Relative path to a Python source code file
+    :param black_exclude: Python files to not reformat using Black, according to Black
+                          configuration
     :param revrange: The Git revisions to compare
-    :param black_config: Configuration to use for running Black
     :param enable_isort: ``True`` to run ``isort`` first on the file contents
-    :param enable_black: ``True`` to also run ``black`` on the file contents
+    :param black_config: Configuration to use for running Black
     :return: Details about changes for the file
 
     """
-    src = root / relative_path
-    rev2_content = git_get_content_at_revision(relative_path, revrange.rev2, root)
+    # With VSCode, `relative_path_in_rev2` may be a `.py.<HASH>.tmp` file in the
+    # working tree insted of a `.py` file.
+    absolute_path_in_rev2 = root / relative_path_in_rev2
+    rev2_content = git_get_content_at_revision(
+        relative_path_in_rev2, revrange.rev2, root
+    )
     # 1. run isort
     if enable_isort:
         rev2_isorted = apply_isort(
             rev2_content,
-            src,
+            absolute_path_in_rev2,
             black_config.get("config"),
             black_config.get("line_length"),
         )
     else:
         rev2_isorted = rev2_content
-    if enable_black:
+    if relative_path_in_rev2 not in black_exclude:
         # 9. A re-formatted Python file which produces an identical AST was
         #    created successfully - write an updated file or print the diff if
         #    there were any changes to the original
         content_after_reformatting = _blacken_single_file(
             root,
-            relative_path,
+            relative_path_in_rev2,
+            _get_path_in_repo(relative_path_in_rev2),
             EditedLinenumsDiffer(root, revrange),
             rev2_content,
             rev2_isorted,
@@ -145,12 +154,13 @@ def _isort_and_blacken_single_file(  # pylint: disable=too-many-arguments
     else:
         # File was excluded by Black configuration, don't reformat
         content_after_reformatting = rev2_isorted
-    return src, rev2_content, content_after_reformatting
+    return absolute_path_in_rev2, rev2_content, content_after_reformatting
 
 
 def _blacken_single_file(  # pylint: disable=too-many-arguments,too-many-locals
     root: Path,
-    relative_path: Path,
+    relative_path_in_rev2: Path,
+    relative_path_in_repo: Path,
     edited_linenums_differ: EditedLinenumsDiffer,
     rev2_content: TextDocument,
     rev2_isorted: TextDocument,
@@ -159,8 +169,11 @@ def _blacken_single_file(  # pylint: disable=too-many-arguments,too-many-locals
 ) -> TextDocument:
     """In a Python file, reformat chunks with edits since the last commit using Black
 
-    :param root: Root directory for the relative path
-    :param relative_path: Relative path to a Python source code file
+    :param root: The common root of all files to reformat
+    :param relative_path_in_rev2: Relative path to a Python source code file. Possibly a
+                                  VSCode ``.py.<HASH>.tmp`` file in the working tree.
+    :param relative_path_in_repo: Relative path to source in the Git repository. Same as
+                                  ``relative_path_in_rev2`` save for VSCode temp files.
     :param edited_linenums_differ: Helper for finding out which lines were edited
     :param rev2_content: Contents of the file at ``revrange.rev2``
     :param rev2_isorted: Contents of the file after optional import sorting
@@ -170,12 +183,15 @@ def _blacken_single_file(  # pylint: disable=too-many-arguments,too-many-locals
     :raise: NotEquivalentError
 
     """
-    src = root / relative_path
-    rev1_relative_path = get_rev1_path(relative_path)
+    absolute_path_in_rev2 = root / relative_path_in_rev2
 
     # 4. run black
     formatted = run_black(rev2_isorted, black_config)
-    logger.debug("Read %s lines from edited file %s", len(rev2_isorted.lines), src)
+    logger.debug(
+        "Read %s lines from edited file %s",
+        len(rev2_isorted.lines),
+        absolute_path_in_rev2,
+    )
     logger.debug("Black reformat resulted in %s lines", len(formatted.lines))
 
     # 5. get the diff between the edited and reformatted file
@@ -200,15 +216,15 @@ def _blacken_single_file(  # pylint: disable=too-many-arguments,too-many-locals
             logger.debug(
                 "Trying with %s lines of context for `git diff -U %s`",
                 context_lines,
-                src,
+                absolute_path_in_rev2,
             )
         # 2. diff the given revision and worktree for the file
         # 3. extract line numbers in the edited to-file for changed lines
         edited_linenums = edited_linenums_differ.revision_vs_lines(
-            rev1_relative_path, rev2_isorted, context_lines
+            relative_path_in_repo, rev2_isorted, context_lines
         )
         if enable_isort and not edited_linenums and rev2_isorted == rev2_content:
-            logger.debug("No changes in %s after isort", src)
+            logger.debug("No changes in %s after isort", absolute_path_in_rev2)
             last_successful_reformat = rev2_isorted
             break
 
@@ -231,7 +247,7 @@ def _blacken_single_file(  # pylint: disable=too-many-arguments,too-many-locals
             debug_dump(black_chunks, edited_linenums)
             logger.debug(
                 "AST verification of %s with %s lines of context failed",
-                src,
+                absolute_path_in_rev2,
                 context_lines,
             )
             minimum_context_lines.respond(False)
@@ -239,8 +255,25 @@ def _blacken_single_file(  # pylint: disable=too-many-arguments,too-many-locals
             minimum_context_lines.respond(True)
             last_successful_reformat = chosen
     if not last_successful_reformat:
-        raise NotEquivalentError(relative_path)
+        raise NotEquivalentError(relative_path_in_rev2)
     return last_successful_reformat
+
+
+def _get_path_in_repo(path: Path) -> Path:
+    """Return the relative path to the file in the old revision
+
+    This is usually the same as the relative path on the command line. But in the
+    special case of VSCode temporary files (like ``file.py.12345.tmp``), we actually
+    want to diff against the corresponding ``.py`` file instead.
+
+    """
+    if path.suffixes[-3::2] != [".py", ".tmp"]:
+        # The file name is not like `*.py.<HASH>.tmp`. Return it as such.
+        return path
+    # This is a VSCode temporary file. Drop the hash and the `.tmp` suffix to get the
+    # original file name for retrieving the previous revision to diff against.
+    path_with_hash = path.with_suffix("")
+    return path_with_hash.with_suffix("")
 
 
 def modify_file(path: Path, new_content: TextDocument) -> None:
