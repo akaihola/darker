@@ -41,8 +41,15 @@ The reformatters supported are:
 
 See `Using linters`_ below for the list of supported linters.
 
+To easily run Darker as a Pytest_ plugin, see pytest-darker_.
+
+To integrate Darker with your IDE or with pre-commit_,
+see the relevant sections below in this document.
+
 .. _Black: https://github.com/python/black
 .. _isort: https://github.com/timothycrosley/isort
+.. _Pytest: https://docs.pytest.org/
+.. _pytest-darker: https://pypi.org/project/pytest-darker/
 
 +------------------------------------------------+---------------------------------+
 | |you-can-help|                                 | |support|                       |
