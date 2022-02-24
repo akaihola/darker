@@ -72,3 +72,51 @@ def test_blacken_single_file_common_ancestor(git_repo):
         "",
         "print(a + b)  # changed",
     )
+
+
+def test_reformat_single_file_docstring(git_repo):
+    """``_reformat_single_file()`` handles docstrings as one contiguous block"""
+    initial = dedent(
+        '''\
+        def docstring_func():
+            """
+        originally unindented
+
+            originally indented
+            """
+        '''
+    )
+    modified = dedent(
+        '''\
+        def docstring_func():
+            """
+        originally unindented
+
+            modified and still indented
+            """
+        '''
+    )
+    expect = dedent(
+        '''\
+        def docstring_func():
+            """
+            originally unindented
+
+                modified and still indented
+            """
+        '''
+    )
+    paths = git_repo.add({"a.py": initial}, commit="Initial commit")
+    paths["a.py"].write_text(modified)
+
+    result = darker.__main__._blacken_single_file(
+        git_repo.root,
+        Path("a.py"),
+        RevisionRange("HEAD", ":WORKTREE:"),
+        rev2_content=TextDocument.from_str(modified),
+        rev2_isorted=TextDocument.from_str(modified),
+        enable_isort=False,
+        black_config={},
+    )
+
+    assert result.lines == tuple(expect.splitlines())
