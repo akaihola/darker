@@ -34,6 +34,9 @@ Fixed
   the virtualenv.
 - Allow more time to pass when checking file modification times in a unit test.
   Windows tests on GitHub are sometimes really slow.
+- Multiline strings are now always reformatted completely even if just a part
+  was modified by the user and reformatted by Black. This prevents the
+  "back-and-forth indent" symptom.
 
 
 1.4.1_ - 2022-02-17
