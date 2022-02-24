@@ -1,5 +1,6 @@
 """Darker - apply black reformatting to only areas edited since the last commit"""
 
+import concurrent.futures
 import logging
 import sys
 import warnings
@@ -8,7 +9,6 @@ from datetime import datetime
 from difflib import unified_diff
 from pathlib import Path
 from typing import Collection, Generator, List, Tuple
-import concurrent.futures
 
 from darker.black_diff import (
     BlackConfig,
@@ -77,9 +77,8 @@ def format_edited_parts(
 
     """
     with concurrent.futures.ThreadPoolExecutor(max_workers=jobs or None) as executor:
-        futures: List[
-            concurrent.futures.Future[ProcessedDocument]
-        ] = []  # pylint: disable=unsubscriptable-object
+        # pylint: disable=unsubscriptable-object
+        futures: List[concurrent.futures.Future[ProcessedDocument]] = []
         for path_in_repo in sorted(changed_files):
             future = executor.submit(
                 _format_single_file,
@@ -98,7 +97,7 @@ def format_edited_parts(
                 yield (src, rev2_content, content_after_reformatting)
 
 
-def _format_single_file(
+def _format_single_file(  # pylint: disable=too-many-arguments
     git_root: Path,
     path_in_repo: Path,
     black_exclude: Collection[Path],  # pylint: disable=unsubscriptable-object
