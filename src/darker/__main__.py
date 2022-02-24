@@ -54,7 +54,7 @@ def format_edited_parts(
     report_unmodified: bool,
     jobs: int = 1,
 ) -> Generator[ProcessedDocument, None, None]:
-    """Black (and optional isort) formatting for chunks with edits since the last commit
+    """Black (and optional isort) formatting modified chunks in a set of files
 
     Files inside given directories and excluded by Black's configuration are not
     reformatted using Black, but their imports are still sorted. Also, linters will be
@@ -81,13 +81,13 @@ def format_edited_parts(
         futures: List[concurrent.futures.Future[ProcessedDocument]] = []
         for path_in_repo in sorted(changed_files):
             future = executor.submit(
-                _format_single_file,
+                _isort_and_blacken_single_file,
                 root,
                 path_in_repo,
-                black_exclude,
                 revrange,
                 black_config,
                 enable_isort,
+                enable_black=path_in_repo not in black_exclude,
             )
             futures.append(future)
 
@@ -97,16 +97,27 @@ def format_edited_parts(
                 yield (src, rev2_content, content_after_reformatting)
 
 
-def _format_single_file(  # pylint: disable=too-many-arguments
-    git_root: Path,
-    path_in_repo: Path,
-    black_exclude: Collection[Path],  # pylint: disable=unsubscriptable-object
+def _isort_and_blacken_single_file(  # pylint: disable=too-many-arguments
+    root: Path,
+    relative_path: Path,
     revrange: RevisionRange,
     black_config: BlackConfig,
     enable_isort: bool,
+    enable_black: bool,
 ) -> ProcessedDocument:
-    src = git_root / path_in_repo
-    rev2_content = git_get_content_at_revision(path_in_repo, revrange.rev2, git_root)
+    """Black and/or isort formatting for modified chunks in a single file
+
+    :param root: Root directory for the relative path
+    :param relative_path: Relative path to a Python source code file
+    :param revrange: The Git revisions to compare
+    :param black_config: Configuration to use for running Black
+    :param enable_isort: ``True`` to run ``isort`` first on the file contents
+    :param enable_black: ``True`` to also run ``black`` on the file contents
+    :return: Details about changes for the file
+
+    """
+    src = root / relative_path
+    rev2_content = git_get_content_at_revision(relative_path, revrange.rev2, root)
     # 1. run isort
     if enable_isort:
         rev2_isorted = apply_isort(
@@ -117,13 +128,13 @@ def _format_single_file(  # pylint: disable=too-many-arguments
         )
     else:
         rev2_isorted = rev2_content
-    if path_in_repo not in black_exclude:
+    if enable_black:
         # 9. A re-formatted Python file which produces an identical AST was
         #    created successfully - write an updated file or print the diff if
         #    there were any changes to the original
-        content_after_reformatting = _reformat_single_file(
-            git_root,
-            path_in_repo,
+        content_after_reformatting = _blacken_single_file(
+            root,
+            relative_path,
             revrange,
             rev2_content,
             rev2_isorted,
@@ -136,7 +147,7 @@ def _format_single_file(  # pylint: disable=too-many-arguments
     return src, rev2_content, content_after_reformatting
 
 
-def _reformat_single_file(  # pylint: disable=too-many-arguments,too-many-locals
+def _blacken_single_file(  # pylint: disable=too-many-arguments,too-many-locals
     root: Path,
     relative_path: Path,
     revrange: RevisionRange,
@@ -147,7 +158,7 @@ def _reformat_single_file(  # pylint: disable=too-many-arguments,too-many-locals
 ) -> TextDocument:
     """In a Python file, reformat chunks with edits since the last commit using Black
 
-    :param root: The common root of all files to reformat
+    :param root: Root directory for the relative path
     :param relative_path: Relative path to a Python source code file
     :param revrange: The Git revisions to compare
     :param rev2_content: Contents of the file at ``revrange.rev2``
