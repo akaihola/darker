@@ -8,7 +8,9 @@ Added
 - The ``--workers``/``-W`` option now specifies how many Darker jobs are used to
   process files in parallel to complete reformatting/linting faster.
 - Linters can now be installed and run in the GitHub Action using the ``lint:`` option.
-  
+- Sort imports only if the range of modified lines overlaps with changes resulting from
+  sorting the imports.
+
 Fixed
 -----
 - Avoid memory leak from using ``@lru_cache`` on a method.
