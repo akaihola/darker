@@ -76,7 +76,7 @@ def format_edited_parts(
              be reformatted, and skips unchanged files.
 
     """
-    with concurrent.futures.ThreadPoolExecutor(max_workers=jobs or None) as executor:
+    with concurrent.futures.ProcessPoolExecutor(max_workers=jobs or None) as executor:
         # pylint: disable=unsubscriptable-object
         futures: List[concurrent.futures.Future[ProcessedDocument]] = []
         for path_in_repo in sorted(changed_files):
