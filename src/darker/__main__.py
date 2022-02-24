@@ -8,6 +8,7 @@ from datetime import datetime
 from difflib import unified_diff
 from pathlib import Path
 from typing import Collection, Generator, List, Tuple
+import concurrent.futures
 
 from darker.black_diff import (
     BlackConfig,
@@ -40,6 +41,8 @@ from darker.verification import ASTVerifier, BinarySearch, NotEquivalentError
 
 logger = logging.getLogger(__name__)
 
+ProcessedDocument = Tuple[Path, TextDocument, TextDocument]
+
 
 def format_edited_parts(
     root: Path,
@@ -49,7 +52,8 @@ def format_edited_parts(
     enable_isort: bool,
     black_config: BlackConfig,
     report_unmodified: bool,
-) -> Generator[Tuple[Path, TextDocument, TextDocument], None, None]:
+    jobs: int = 1,
+) -> Generator[ProcessedDocument, None, None]:
     """Black (and optional isort) formatting for chunks with edits since the last commit
 
     Files inside given directories and excluded by Black's configuration are not
@@ -67,42 +71,70 @@ def format_edited_parts(
     :param enable_isort: ``True`` to also run ``isort`` first on each changed file
     :param black_config: Configuration to use for running Black
     :param report_unmodified: ``True`` to yield also files which weren't modified
+    :param jobs: number of cpu processes to use (0 - autodetect)
     :return: A generator which yields details about changes for each file which should
              be reformatted, and skips unchanged files.
 
     """
-    for path_in_repo in sorted(changed_files):
-        src = root / path_in_repo
-        rev2_content = git_get_content_at_revision(path_in_repo, revrange.rev2, root)
-
-        # 1. run isort
-        if enable_isort:
-            rev2_isorted = apply_isort(
-                rev2_content,
-                src,
-                black_config.get("config"),
-                black_config.get("line_length"),
-            )
-        else:
-            rev2_isorted = rev2_content
-        if path_in_repo not in black_exclude:
-            # 9. A re-formatted Python file which produces an identical AST was
-            #    created successfully - write an updated file or print the diff if
-            #    there were any changes to the original
-            content_after_reformatting = _reformat_single_file(
+    with concurrent.futures.ThreadPoolExecutor(max_workers=jobs or None) as executor:
+        futures: List[
+            concurrent.futures.Future[ProcessedDocument]
+        ] = []  # pylint: disable=unsubscriptable-object
+        for path_in_repo in sorted(changed_files):
+            future = executor.submit(
+                _format_single_file,
                 root,
                 path_in_repo,
+                black_exclude,
                 revrange,
-                rev2_content,
-                rev2_isorted,
-                enable_isort,
                 black_config,
+                enable_isort,
             )
-        else:
-            # File was excluded by Black configuration, don't reformat
-            content_after_reformatting = rev2_isorted
-        if report_unmodified or content_after_reformatting != rev2_content:
-            yield (src, rev2_content, content_after_reformatting)
+            futures.append(future)
+
+        for future in concurrent.futures.as_completed(futures):
+            src, rev2_content, content_after_reformatting = future.result()
+            if report_unmodified or content_after_reformatting != rev2_content:
+                yield (src, rev2_content, content_after_reformatting)
+
+
+def _format_single_file(
+    git_root: Path,
+    path_in_repo: Path,
+    black_exclude: Collection[Path],  # pylint: disable=unsubscriptable-object
+    revrange: RevisionRange,
+    black_config: BlackConfig,
+    enable_isort: bool,
+) -> ProcessedDocument:
+    src = git_root / path_in_repo
+    rev2_content = git_get_content_at_revision(path_in_repo, revrange.rev2, git_root)
+    # 1. run isort
+    if enable_isort:
+        rev2_isorted = apply_isort(
+            rev2_content,
+            src,
+            black_config.get("config"),
+            black_config.get("line_length"),
+        )
+    else:
+        rev2_isorted = rev2_content
+    if path_in_repo not in black_exclude:
+        # 9. A re-formatted Python file which produces an identical AST was
+        #    created successfully - write an updated file or print the diff if
+        #    there were any changes to the original
+        content_after_reformatting = _reformat_single_file(
+            git_root,
+            path_in_repo,
+            revrange,
+            rev2_content,
+            rev2_isorted,
+            enable_isort,
+            black_config,
+        )
+    else:
+        # File was excluded by Black configuration, don't reformat
+        content_after_reformatting = rev2_isorted
+    return src, rev2_content, content_after_reformatting
 
 
 def _reformat_single_file(  # pylint: disable=too-many-arguments,too-many-locals
@@ -391,6 +423,7 @@ def main(argv: List[str] = None) -> int:
         args.isort,
         black_config,
         report_unmodified=output_mode == OutputMode.CONTENT,
+        jobs=config["jobs"],
     ):
         formatting_failures_on_modified_lines = True
         if output_mode == OutputMode.DIFF:

@@ -76,3 +76,5 @@ SKIP_MAGIC_TRAILING_COMMA = (
 )
 
 LINE_LENGTH = "How many characters per line to allow [default: 88]"
+
+JOBS = "How many parallel jobs to allow [default: 1]"
