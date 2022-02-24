@@ -17,7 +17,6 @@ if sys.version_info < (3, 9):
         def set_result(self, result: Any) -> None:
             "Dummy method for typing"
 
-
 else:
     FutureType = Future
 
