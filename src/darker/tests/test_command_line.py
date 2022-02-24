@@ -590,7 +590,7 @@ def test_options(git_repo, options, expect):
 
     expect = (Path(git_repo.root), expect[1]) + expect[2:]
     format_edited_parts.assert_called_once_with(
-        *expect, report_unmodified=False, jobs=None
+        *expect, report_unmodified=False, jobs=1
     )
     assert retval == 0
 
