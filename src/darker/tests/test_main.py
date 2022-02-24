@@ -16,7 +16,7 @@ import darker.__main__
 import darker.import_sorting
 import darker.linting
 from darker.exceptions import MissingPackageError
-from darker.git import WORKTREE, RevisionRange
+from darker.git import WORKTREE, EditedLinenumsDiffer, RevisionRange
 from darker.tests.helpers import isort_present
 from darker.utils import TextDocument, joinlines
 from darker.verification import NotEquivalentError
@@ -391,7 +391,7 @@ def test_blacken_single_file(
     result = darker.__main__._blacken_single_file(
         git_repo.root,
         Path(relative_path),
-        RevisionRange(rev1, rev2),
+        EditedLinenumsDiffer(git_repo.root, RevisionRange(rev1, rev2)),
         TextDocument(rev2_content),
         TextDocument(rev2_isorted),
         enable_isort,
