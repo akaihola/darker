@@ -18,6 +18,7 @@ from darker.black_diff import (
 )
 from darker.chooser import choose_lines
 from darker.command_line import parse_command_line
+from darker.concurrency import get_executor
 from darker.config import OutputMode, dump_config
 from darker.diff import diff_and_get_opcodes, opcodes_to_chunks
 from darker.exceptions import DependencyError, MissingPackageError
@@ -76,7 +77,7 @@ def format_edited_parts(
              be reformatted, and skips unchanged files.
 
     """
-    with concurrent.futures.ProcessPoolExecutor(max_workers=jobs or None) as executor:
+    with get_executor(max_workers=jobs) as executor:
         # pylint: disable=unsubscriptable-object
         futures: List[concurrent.futures.Future[ProcessedDocument]] = []
         for path_in_repo in sorted(changed_files):
