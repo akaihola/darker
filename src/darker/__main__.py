@@ -425,15 +425,17 @@ def main(argv: List[str] = None) -> int:
         }
 
     formatting_failures_on_modified_lines = False
-    for path, old, new in format_edited_parts(
-        root,
-        changed_files_to_process,
-        black_exclude,
-        revrange,
-        args.isort,
-        black_config,
-        report_unmodified=output_mode == OutputMode.CONTENT,
-        jobs=config["jobs"],
+    for path, old, new in sorted(
+        format_edited_parts(
+            root,
+            changed_files_to_process,
+            black_exclude,
+            revrange,
+            args.isort,
+            black_config,
+            report_unmodified=output_mode == OutputMode.CONTENT,
+            jobs=config["jobs"],
+        ),
     ):
         formatting_failures_on_modified_lines = True
         if output_mode == OutputMode.DIFF:
