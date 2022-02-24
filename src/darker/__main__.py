@@ -20,7 +20,7 @@ from darker.chooser import choose_lines
 from darker.command_line import parse_command_line
 from darker.concurrency import get_executor
 from darker.config import OutputMode, dump_config
-from darker.diff import diff_and_get_opcodes, opcodes_to_chunks
+from darker.diff import diff_chunks
 from darker.exceptions import DependencyError, MissingPackageError
 from darker.git import (
     PRE_COMMIT_FROM_TO_REFS,
@@ -79,11 +79,13 @@ def format_edited_parts(
     with get_executor(max_workers=workers) as executor:
         # pylint: disable=unsubscriptable-object
         futures: List[concurrent.futures.Future[ProcessedDocument]] = []
+        edited_linenums_differ = EditedLinenumsDiffer(root, revrange)
         for relative_path_in_rev2 in sorted(changed_files):
             future = executor.submit(
                 _isort_and_blacken_single_file,
                 root,
                 relative_path_in_rev2,
+                edited_linenums_differ,
                 black_exclude,
                 revrange,
                 enable_isort,
@@ -104,6 +106,7 @@ def format_edited_parts(
 def _isort_and_blacken_single_file(  # pylint: disable=too-many-arguments
     root: Path,
     relative_path_in_rev2: Path,
+    edited_linenums_differ: EditedLinenumsDiffer,
     black_exclude: Collection[Path],  # pylint: disable=unsubscriptable-object
     revrange: RevisionRange,
     enable_isort: bool,
@@ -131,7 +134,8 @@ def _isort_and_blacken_single_file(  # pylint: disable=too-many-arguments
     if enable_isort:
         rev2_isorted = apply_isort(
             rev2_content,
-            absolute_path_in_rev2,
+            relative_path_in_rev2,
+            edited_linenums_differ,
             black_config.get("config"),
             black_config.get("line_length"),
         )
@@ -145,7 +149,7 @@ def _isort_and_blacken_single_file(  # pylint: disable=too-many-arguments
             root,
             relative_path_in_rev2,
             _get_path_in_repo(relative_path_in_rev2),
-            EditedLinenumsDiffer(root, revrange),
+            edited_linenums_differ,
             rev2_content,
             rev2_isorted,
             enable_isort,
@@ -195,10 +199,8 @@ def _blacken_single_file(  # pylint: disable=too-many-arguments,too-many-locals
     logger.debug("Black reformat resulted in %s lines", len(formatted.lines))
 
     # 5. get the diff between the edited and reformatted file
-    opcodes = diff_and_get_opcodes(rev2_isorted, formatted)
-
     # 6. convert the diff into chunks
-    black_chunks = list(opcodes_to_chunks(opcodes, rev2_isorted, formatted))
+    black_chunks = diff_chunks(rev2_isorted, formatted)
 
     # Exit early if nothing to do
     if not black_chunks:
