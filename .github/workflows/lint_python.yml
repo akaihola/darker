@@ -7,7 +7,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
       - run: pip install --upgrade pip wheel
-      - run: pip install bandit codespell darker-pytest flake8 flake8-2020
+      - run: pip install bandit codespell flake8 flake8-2020
                          flake8-bugbear flake8-comprehensions mypy pyupgrade safety
       - run: bandit --recursive  --skip B101,B307,B404,B603 .
       - run: black --check . || true  # Fails
@@ -16,6 +16,6 @@ jobs:
       - run: pip install --editable .
       - run: mkdir --parents --verbose .mypy_cache
       - run: mypy --ignore-missing-imports --install-types --non-interactive . || true
-      - run: darker-pytest .
+      # - run: darker-pytest .
       - run: shopt -s globstar && pyupgrade --py36-plus **/*.py || true
       - run: safety check
