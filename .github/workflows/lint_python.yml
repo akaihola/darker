@@ -7,10 +7,11 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
       - run: pip install --upgrade pip wheel
-      - run: pip install bandit codespell darker flake8 flake8-2020 flake8-bugbear
+      - run: pip install bandit black codespell darker flake8 flake8-2020 flake8-bugbear
                          flake8-comprehensions isort mypy pytest pyupgrade safety
       - run: bandit --recursive --skip B101 . || true  # B101 is assert statements
-      - run: darker --check .
+      - run: black --check .
+      - run: darker --check . || true  # Fails in a GitHub Action
       - run: codespell || true  # --ignore-words-list="" --skip="*.css,*.js,*.lock"
       - run: flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
       - run: flake8 . --count --exit-zero --max-complexity=10 --max-line-length=88
