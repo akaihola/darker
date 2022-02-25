@@ -16,11 +16,17 @@ REVISION = os.getenv(
 
 run([sys.executable, "-m", "venv", str(ENV_PATH)], check=True)
 
-req = "darker[isort]"
+req = ["darker[isort]"]
 if VERSION:
-    req += f"=={VERSION}"
+    req[0] += f"=={VERSION}"
+linter_options = []
+for linter in ["flake8", "mypy", "pylint"]:
+    if os.getenv(f"INPUT_{linter.upper()}", default=""):
+        req.append(linter)
+        linter_options.append(f"--{linter}")
+
 pip_proc = run(  # nosec
-    [str(ENV_BIN / "python"), "-m", "pip", "install", req],
+    [str(ENV_BIN / "python"), "-m", "pip", "install"] + req,
     check=False,
     stdout=PIPE,
     stderr=STDOUT,
@@ -28,13 +34,20 @@ pip_proc = run(  # nosec
 )
 if pip_proc.returncode:
     print(pip_proc.stdout)
-    print("::error::Failed to install Darker.", flush=True)
+    print("::error::Failed to install {' '.join(req)}.", flush=True)
     sys.exit(pip_proc.returncode)
 
 
 base_cmd = [str(ENV_BIN / "darker")]
 proc = run(  # nosec
-    [*base_cmd, *shlex.split(OPTIONS), "--revision", REVISION, *shlex.split(SRC)],
+    [
+        *base_cmd,
+        *shlex.split(OPTIONS),
+        *linter_options,
+        "--revision",
+        REVISION,
+        *shlex.split(SRC),
+    ],
     check=False,
 )
 
