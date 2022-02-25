@@ -12,7 +12,7 @@ jobs:
                          flake8-bugbear flake8-comprehensions
                          mypy pyupgrade safety
       - run: bandit --recursive  --skip B101,B307,B404,B603 .
-      - run: codespell --ignore-words-list="nd,unparseable"
+      - run: codespell --ignore-words-list="nd"
       - run: pip install --editable .
       - run: mypy --ignore-missing-imports --install-types --non-interactive . || true
       - run: shopt -s globstar && pyupgrade --py36-plus **/*.py
