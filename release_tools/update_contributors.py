@@ -104,7 +104,7 @@ def verify() -> None:
                 assert contribution_type == "Code"
                 link_type = "conda-issues"
             else:
-                assert False, (username, path, contribution_type)
+                raise AssertionError((username, path, contribution_type))
             contributions.append({"type": contribution_type, "link_type": link_type})
         users[username] = contributions
     click.echo(yaml.dump(users))  # type: ignore[attr-defined]
