@@ -39,7 +39,7 @@ Fixed
 - Consider ``.py.tmp`` as files which should be reformatted.
   This enables VSCode Format On Save.
 - Use the latest release of Darker instead of 1.3.2 in the GitHub Action.
-  
+
 
 1.4.0_ - 2022-02-08
 ===================

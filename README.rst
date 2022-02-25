@@ -552,16 +552,16 @@ Create a file named ``.github/workflows/darker.yml`` inside your repository with
 .. code-block:: yaml
 
    name: Lint
-   
+
    on: [push, pull_request]
-   
+
    jobs:
      lint:
        runs-on: ubuntu-latest
        steps:
          - uses: actions/checkout@v2
            with:
-             fetch-depth: 0 
+             fetch-depth: 0
          - uses: akaihola/darker@1.4.1
            with:
              options: "--check --diff"
@@ -645,7 +645,7 @@ Here's an example of `cov_to_lint.py`_ output::
 +-----------------------------------------------------------------------+
 |                               ⚠ NOTE ⚠                                |
 +=======================================================================+
-| Don't enable linting on the command line or in the configuration when | 
+| Don't enable linting on the command line or in the configuration when |
 | running Darker as a reformatter in VSCode. You will confuse VSCode    |
 | with unexpected output from Darker, as it only expect black's output  |
 +-----------------------------------------------------------------------+
