@@ -15,7 +15,7 @@ jobs:
       - run: codespell --ignore-words-list="nd,unparseable"
       - run: pip install --editable .
       - run: mkdir --parents --verbose .mypy_cache
-      - run: mypy --ignore-missing-imports --install-types --non-interactive . || true
+      - run: mypy --non-interactive . || true
       # - run: darker-pytest .
       - run: shopt -s globstar && pyupgrade --py36-plus **/*.py || true
       - run: safety check
