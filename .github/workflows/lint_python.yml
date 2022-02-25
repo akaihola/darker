@@ -14,7 +14,7 @@ jobs:
       - run: darker --check . || true  # Fails
       - run: codespell --ignore-words-list="nd,unparseable"
       - run: pip install --editable .
-      - run: mypy --non-interactive . || true
+      - run: mypy .
       # - run: darker-pytest .
-      - run: shopt -s globstar && pyupgrade --py36-plus **/*.py || true
+      - run: shopt -s globstar && pyupgrade --py36-plus **/*.py
       - run: safety check
