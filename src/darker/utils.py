@@ -225,7 +225,8 @@ class Buf:
         return self
 
     def seek_line(self, lines_delta: int) -> None:
-        assert lines_delta <= 0
+        if lines_delta > 0:
+            raise NotImplementedError("Seeking forwards is not supported")
         for _ in range(-lines_delta):
             self._buf.seek(self._line_starts.pop())
 

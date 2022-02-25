@@ -81,3 +81,7 @@ jobs:
       - name: Test with pytest
         run: |
           pytest
+      - name: Bandit security audit for non-test code
+        run: bandit --recursive --exclude=./src/darker/tests .
+      - name: Bandit security audit for unit tests, allowing asserts
+        run: bandit --recursive --skip B101 ./src/darker/tests

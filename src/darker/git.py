@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from functools import lru_cache
 from pathlib import Path
-from subprocess import DEVNULL, PIPE, CalledProcessError, check_output, run
+from subprocess import DEVNULL, PIPE, CalledProcessError, check_output, run  # nosec
 from typing import Dict, Iterable, List, Set, Tuple
 
 from darker.diff import diff_and_get_opcodes, opcodes_to_edit_linenums
@@ -69,9 +69,10 @@ def git_get_content_at_revision(path: Path, revision: str, cwd: Path) -> TextDoc
     :param cwd: The root of the Git repository
 
     """
-    assert (
-        not path.is_absolute()
-    ), f"the 'path' parameter must receive a relative path, got {path!r} instead"
+    if path.is_absolute():
+        raise ValueError(
+            f"the 'path' parameter must receive a relative path, got {path!r} instead"
+        )
 
     if revision == WORKTREE:
         abspath = cwd / path
@@ -208,7 +209,7 @@ def _git_check_output_lines(
     """Log command line, run Git, split stdout to lines, exit with 123 on error"""
     logger.debug("[%s]$ git %s", cwd, " ".join(cmd))
     try:
-        return check_output(
+        return check_output(  # nosec
             ["git"] + cmd,
             cwd=str(cwd),
             encoding="utf-8",
@@ -243,7 +244,7 @@ def _git_exists_in_revision(path: Path, rev2: str, cwd: Path) -> bool:
     # separators in paths. We need to use Posix paths and forward slashes instead.
     cmd = ["git", "cat-file", "-e", f"{rev2}:{path.as_posix()}"]
     logger.debug("[%s]$ %s", cwd, " ".join(cmd))
-    result = run(
+    result = run(  # nosec
         cmd,
         cwd=str(cwd),
         check=False,

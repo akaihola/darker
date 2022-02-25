@@ -6,7 +6,7 @@ import os
 import re
 from datetime import datetime, timedelta
 from pathlib import Path
-from subprocess import DEVNULL, PIPE, CalledProcessError, check_call
+from subprocess import DEVNULL, PIPE, CalledProcessError, check_call  # nosec
 from typing import List, Union
 from unittest.mock import call, patch
 
@@ -810,7 +810,7 @@ def test_local_gitconfig_ignored_by_gitrepofixture(tmp_path):
     # Note: once we decide to drop support for git < 2.28, the HEAD file
     # creation above can be removed, and setup can simplify to
     # check_call("git config --global init.defaultBranch main".split())
-    check_call(
+    check_call(  # nosec
         "git config --global init.templateDir".split() + [str(tmp_path)],
         env={"HOME": str(tmp_path), "PATH": os.environ["PATH"]},
     )

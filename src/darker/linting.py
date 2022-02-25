@@ -22,7 +22,7 @@ provided that the ``<linenum>`` falls on a changed line.
 import logging
 from contextlib import contextmanager
 from pathlib import Path
-from subprocess import PIPE, Popen
+from subprocess import PIPE, Popen  # nosec
 from typing import IO, Generator, List, Set, Tuple
 
 from darker.git import WORKTREE, EditedLinenumsDiffer, RevisionRange
@@ -85,13 +85,14 @@ def _check_linter_output(
     :return: The standard output stream of the linter subprocess
 
     """
-    with Popen(
+    with Popen(  # nosec
         cmdline.split() + [str(root / path) for path in sorted(paths)],
         stdout=PIPE,
         encoding="utf-8",
     ) as linter_process:
-        # assert needed for MyPy (see https://stackoverflow.com/q/57350490/15770)
-        assert linter_process.stdout is not None
+        # condition needed for MyPy (see https://stackoverflow.com/q/57350490/15770)
+        if linter_process.stdout is None:
+            raise RuntimeError("Stdout piping failed")
         yield linter_process.stdout
 
 

@@ -101,8 +101,6 @@ class LogLevelAction(Action):  # pylint: disable=too-few-public-methods
         values: Union[str, Sequence[Any], None],
         option_string: str = None,
     ) -> None:
-        assert isinstance(values, list)
-        assert all(isinstance(v, str) for v in values)
         current_level = getattr(namespace, self.dest, self.default)
         new_level = current_level + self.const
         new_level = max(new_level, logging.DEBUG)

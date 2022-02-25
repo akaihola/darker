@@ -2,7 +2,7 @@ import os
 import shlex
 import sys
 from pathlib import Path
-from subprocess import run, PIPE, STDOUT
+from subprocess import PIPE, STDOUT, run  # nosec
 
 ACTION_PATH = Path(os.environ["GITHUB_ACTION_PATH"])
 ENV_PATH = ACTION_PATH / ".darker-env"
@@ -19,8 +19,9 @@ run([sys.executable, "-m", "venv", str(ENV_PATH)], check=True)
 req = "darker[isort]"
 if VERSION:
     req += f"=={VERSION}"
-pip_proc = run(
+pip_proc = run(  # nosec
     [str(ENV_BIN / "python"), "-m", "pip", "install", req],
+    check=False,
     stdout=PIPE,
     stderr=STDOUT,
     encoding="utf-8",
@@ -32,8 +33,9 @@ if pip_proc.returncode:
 
 
 base_cmd = [str(ENV_BIN / "darker")]
-proc = run(
-    [*base_cmd, *shlex.split(OPTIONS), "--revision", REVISION, *shlex.split(SRC)]
+proc = run(  # nosec
+    [*base_cmd, *shlex.split(OPTIONS), "--revision", REVISION, *shlex.split(SRC)],
+    check=False,
 )
 
 sys.exit(proc.returncode)
