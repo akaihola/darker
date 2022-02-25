@@ -47,11 +47,11 @@ def _parse_linter_line(line: str, root: Path) -> Tuple[Path, int, str, str]:
             # Make sure it column looks like an int on "<path>:<linenum>:<column>"
             _column = int(rest[0])  # noqa: F841
     except ValueError:
-        # Encountered a non-parseable line which doesn't express a linting error.
+        # Encountered a non-parsable line which doesn't express a linting error.
         # For example, on Mypy:
         # "Found XX errors in YY files (checked ZZ source files)"
         # "Success: no issues found in 1 source file"
-        logger.debug("Unparseable linter output: %s", line[:-1])
+        logger.debug("Unparsable linter output: %s", line[:-1])
         return Path(), 0, "", ""
     path_from_cwd = Path(path_str).absolute()
     path_in_repo = path_from_cwd.relative_to(root)
