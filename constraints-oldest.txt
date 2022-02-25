@@ -5,6 +5,7 @@
 # versions in `setup.cfg`.
 bandit==1.7.1
 black==21.8b0
+codespell==2.1.0
 mypy==0.931
 pytest==6.1.0
 pytest-flake8==1.0.6

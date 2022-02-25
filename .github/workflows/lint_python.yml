@@ -8,10 +8,9 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
       - run: pip install --upgrade pip wheel
-      - run: pip install codespell flake8 flake8-2020
+      - run: pip install flake8 flake8-2020
                  flake8-bugbear flake8-comprehensions mypy
                  pyupgrade safety
-      - run: codespell --ignore-words-list="nd"
       - run: pip install --editable .
       - run: mypy --ignore-missing-imports --install-types --non-interactive . || true
       - run: shopt -s globstar && pyupgrade --py36-plus **/*.py

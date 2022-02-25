@@ -85,3 +85,5 @@ jobs:
         run: bandit --recursive --exclude=./src/darker/tests .
       - name: Bandit security audit for unit tests, allowing asserts
         run: bandit --recursive --skip B101 ./src/darker/tests
+      - name: Check English spelling in the code base using codespell
+        run: codespell
