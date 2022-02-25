@@ -8,9 +8,8 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
       - run: pip install --upgrade pip wheel
-      - run: pip install mypy
+      - run: pip install
                  pyupgrade safety
       - run: pip install --editable .
-      - run: mypy --ignore-missing-imports --install-types --non-interactive . || true
       - run: shopt -s globstar && pyupgrade --py36-plus **/*.py
       - run: safety check
