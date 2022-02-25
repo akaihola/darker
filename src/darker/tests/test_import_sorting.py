@@ -210,7 +210,7 @@ def test_isort_file_skip_comment():
     ),
 )
 def test_diff_overlaps_with_edits(edited_linenums, isort_chunks, expect):
-    """Overlapping edits and import sortings are detected correctly"""
+    """Overlapping edits and sorting of imports are detected correctly"""
     result = darker.import_sorting._diff_overlaps_with_edits(
         edited_linenums, isort_chunks
     )

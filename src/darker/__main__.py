@@ -125,7 +125,7 @@ def _isort_and_blacken_single_file(  # pylint: disable=too-many-arguments
 
     """
     # With VSCode, `relative_path_in_rev2` may be a `.py.<HASH>.tmp` file in the
-    # working tree insted of a `.py` file.
+    # working tree instead of a `.py` file.
     absolute_path_in_rev2 = root / relative_path_in_rev2
     rev2_content = git_get_content_at_revision(
         relative_path_in_rev2, revrange.rev2, root
