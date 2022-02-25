@@ -41,6 +41,8 @@ akaihola:
   - {link_type: commits, type: Maintenance}
 casio:
   - {link_type: issues, type: Bug reports}
+cclauss:
+  - {link_type: pulls-author, type: Code}
 chrisdecker1201:
   - {link_type: pulls-author, type: Code}
   - {link_type: issues, type: Bug reports}

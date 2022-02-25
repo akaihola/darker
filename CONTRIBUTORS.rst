@@ -11,6 +11,7 @@
 - Axel Dahlberg (@AckslD)
 - Bao (@qubidt)
 - Carsten Kraus (@casio)
+- Christian Clauss (@cclauss)
 - Christian Decker (@chrisdecker1201)
 - Christophe Simonis (@KangOl)
 - Correy Lim (@CorreyL)
