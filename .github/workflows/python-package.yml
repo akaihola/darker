@@ -87,3 +87,14 @@ jobs:
         run: bandit --recursive --skip B101 ./src/darker/tests
       - name: Check English spelling in the code base using codespell
         run: codespell
+      - name: Ensure modern Python style using pyupgrade
+        # This script is written in a Linux / macos / windows portable way
+        run: |
+          python -c "
+          from pyupgrade._main import main
+          from glob import glob
+          files = glob('**/*.py', recursive=True)
+          main(files + ['--py36-plus'])
+          "
+      - name: Check dependencies for known security vulterabilities using Safety
+        run: safety check
