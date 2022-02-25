@@ -22,7 +22,7 @@ provided that the ``<linenum>`` falls on a changed line.
 import logging
 from contextlib import contextmanager
 from pathlib import Path
-from subprocess import PIPE, Popen
+from subprocess import PIPE, Popen  # nosec
 from typing import IO, Generator, List, Set, Tuple
 
 from darker.git import WORKTREE, EditedLinenumsDiffer, RevisionRange
@@ -47,11 +47,11 @@ def _parse_linter_line(line: str, root: Path) -> Tuple[Path, int, str, str]:
             # Make sure it column looks like an int on "<path>:<linenum>:<column>"
             _column = int(rest[0])  # noqa: F841
     except ValueError:
-        # Encountered a non-parseable line which doesn't express a linting error.
+        # Encountered a non-parsable line which doesn't express a linting error.
         # For example, on Mypy:
         # "Found XX errors in YY files (checked ZZ source files)"
         # "Success: no issues found in 1 source file"
-        logger.debug("Unparseable linter output: %s", line[:-1])
+        logger.debug("Unparsable linter output: %s", line[:-1])
         return Path(), 0, "", ""
     path_from_cwd = Path(path_str).absolute()
     path_in_repo = path_from_cwd.relative_to(root)
@@ -85,13 +85,14 @@ def _check_linter_output(
     :return: The standard output stream of the linter subprocess
 
     """
-    with Popen(
+    with Popen(  # nosec
         cmdline.split() + [str(root / path) for path in sorted(paths)],
         stdout=PIPE,
         encoding="utf-8",
     ) as linter_process:
-        # assert needed for MyPy (see https://stackoverflow.com/q/57350490/15770)
-        assert linter_process.stdout is not None
+        # condition needed for MyPy (see https://stackoverflow.com/q/57350490/15770)
+        if linter_process.stdout is None:
+            raise RuntimeError("Stdout piping failed")
         yield linter_process.stdout
 
 

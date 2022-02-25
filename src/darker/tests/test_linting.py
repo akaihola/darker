@@ -2,6 +2,7 @@
 
 """Unit tests for :mod:`darker.linting`"""
 
+import re
 from pathlib import Path
 from textwrap import dedent
 from unittest.mock import call, patch
@@ -70,14 +71,14 @@ def test_check_linter_output():
         _descr="Check one file, report on a modified line in test.py",
         paths=["one.py"],
         location="test.py:1:",
-        expect_output=["", "test.py:1: {git_repo.root / 'one.py'}"],
+        expect_output=["", "test.py:1: {root/one.py}"],
         expect_log=[],
     ),
     dict(
         _descr="Check one file, report on a column of a modified line in test.py",
         paths=["one.py"],
         location="test.py:1:42:",
-        expect_output=["", "test.py:1:42: {git_repo.root / 'one.py'}"],
+        expect_output=["", "test.py:1:42: {root/one.py}"],
         expect_log=[],
     ),
     dict(
@@ -98,20 +99,14 @@ def test_check_linter_output():
         _descr="Check two files, report on a modified line in test.py",
         paths=["one.py", "two.py"],
         location="test.py:1:",
-        expect_output=[
-            "",
-            "test.py:1: {git_repo.root / 'one.py'} {git_repo.root / 'two.py'}"
-        ],
+        expect_output=["", "test.py:1: {root/one.py} {root/two.py}"],
         expect_log=[],
     ),
     dict(
         _descr="Check two files, rpeort on a column of a modified line in test.py",
         paths=["one.py", "two.py"],
         location="test.py:1:42:",
-        expect_output=[
-            "",
-            "test.py:1:42: {git_repo.root / 'one.py'} {git_repo.root / 'two.py'}"
-        ],
+        expect_output=["", "test.py:1:42: {root/one.py} {root/two.py}"],
         expect_log=[],
     ),
     dict(
@@ -163,10 +158,9 @@ def test_run_linter(
     # by checking standard output from the our `echo` "linter".
     # The test cases also verify that only linter reports on modified lines are output.
     result = capsys.readouterr().out.splitlines()
-    # Use evil `eval()` so we get Windows compatible expected paths:
-    # pylint: disable=eval-used
     assert result == [
-        eval(f'f"{line}"', {"git_repo": git_repo}) for line in expect_output
+        re.sub(r"\{root/(.*?)\}", lambda m: str(git_repo.root / m.group(1)), line)
+        for line in expect_output
     ]
     logs = [f"{record.levelname} {record.message}" for record in caplog.records]
     assert logs == expect_log

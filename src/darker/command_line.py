@@ -1,7 +1,7 @@
 """Command line parsing for the ``darker`` binary"""
 
 from argparse import SUPPRESS, ArgumentParser, Namespace
-from typing import Any, List, Optional, Text, Tuple
+from typing import Any, List, Optional, Tuple
 
 from darker import help as hlp
 from darker.argparse_helpers import (
@@ -31,7 +31,7 @@ def make_argument_parser(require_src: bool) -> ArgumentParser:
     )
     parser.register("action", "log_level", LogLevelAction)
 
-    def add_arg(help_text: Optional[Text], *name_or_flags: Text, **kwargs: Any) -> None:
+    def add_arg(help_text: Optional[str], *name_or_flags: str, **kwargs: Any) -> None:
         kwargs["help"] = help_text
         parser.add_argument(*name_or_flags, **kwargs)
 

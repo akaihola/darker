@@ -2,7 +2,7 @@
 
 import os
 from pathlib import Path
-from subprocess import check_call
+from subprocess import check_call  # nosec
 from typing import Dict, Optional
 
 import pytest
@@ -32,7 +32,7 @@ class GitRepoFixture:
 
     def _run(self, *args: str) -> None:
         """Helper method to run a Git command line in the repository root"""
-        check_call(["git"] + list(args), cwd=self.root, env=self.env)
+        check_call(["git"] + list(args), cwd=self.root, env=self.env)  # nosec
 
     def _run_and_get_first_line(self, *args: str) -> str:
         """Helper method to run Git in repo root and return first line of output"""

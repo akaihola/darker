@@ -11,7 +11,7 @@ from darker.tests.git_diff_example_output import (
 
 
 def test_sequencematcher():
-    """``SequenceMatcher`` detects a single changed line in between correcly"""
+    """``SequenceMatcher`` detects a single changed line in between correctly"""
     matcher = SequenceMatcher(
         None, ORIGINAL.splitlines(), CHANGED.splitlines(), autojunk=False
     )

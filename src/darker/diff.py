@@ -101,10 +101,11 @@ def diff_and_get_opcodes(
 
 def _validate_opcodes(opcodes: List[Tuple[str, int, int, int, int]]) -> None:
     """Make sure every other opcode is an 'equal' tag"""
-    assert all(
+    if not all(
         (tag1 == "equal") != (tag2 == "equal")
         for (tag1, _, _, _, _), (tag2, _, _, _, _) in zip(opcodes[:-1], opcodes[1:])
-    ), opcodes
+    ):
+        raise ValueError(f"Unexpected opcodes in {opcodes!r}")
 
 
 def opcodes_to_edit_linenums(
@@ -147,5 +148,5 @@ def opcodes_to_chunks(
 
     """
     _validate_opcodes(opcodes)
-    for tag, i1, i2, j1, j2 in opcodes:
-        yield i1 + 1, src.lines[i1:i2], dst.lines[j1:j2]
+    for _tag, src_start, src_end, dst_start, dst_end in opcodes:
+        yield src_start + 1, src.lines[src_start:src_end], dst.lines[dst_start:dst_end]
