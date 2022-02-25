@@ -9,8 +9,8 @@ jobs:
       - uses: actions/setup-python@v2
       - run: pip install --upgrade pip wheel
       - run: pip install bandit codespell flake8 flake8-2020
-                         flake8-bugbear flake8-comprehensions
-                         mypy pyupgrade safety
+                 flake8-bugbear flake8-comprehensions mypy
+                 pyupgrade safety
       - run: bandit --recursive  --skip B101,B307,B404,B603 .
       - run: codespell --ignore-words-list="nd"
       - run: pip install --editable .
