@@ -148,5 +148,5 @@ def opcodes_to_chunks(
 
     """
     _validate_opcodes(opcodes)
-    for tag, i1, i2, j1, j2 in opcodes:
-        yield i1 + 1, src.lines[i1:i2], dst.lines[j1:j2]
+    for _tag, src_start, src_end, dst_start, dst_end in opcodes:
+        yield src_start + 1, src.lines[src_start:src_end], dst.lines[dst_start:dst_end]

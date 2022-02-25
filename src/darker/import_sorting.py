@@ -19,7 +19,7 @@ try:
     # Work around Mypy problem
     # https://github.com/python/mypy/issues/7030#issuecomment-504128883
     try:
-        isort_code = getattr(isort, "code")
+        isort_code = getattr(isort, "code")  # noqa: B009
     except AttributeError:
         # Postpone error message about incompatbile `isort` version until `--isort` is
         # actually used.
