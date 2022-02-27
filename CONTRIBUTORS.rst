@@ -21,6 +21,7 @@
 - dsmanl (@dsmanl)
 - Dustin Spicuzza (@virtuald)
 - DylanYoung (@DylanYoung)
+- Eric Riddoch (@phitoduck)
 - Filippos Giannakos (@philipgian)
 - Fox_white (@foxwhite25)
 - Giel van Schijndel (@muggenhor)
