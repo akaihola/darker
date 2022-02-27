@@ -1,4 +1,5 @@
 ---
-# Configuration for Bandit to run security checks on code, excluding the test suite
+# Configuration for Bandit to run security checks on code,
+# excluding the test suite
 # Used in `.github/workflows/bandit.yml`
 exclude: ./src/darker/tests
