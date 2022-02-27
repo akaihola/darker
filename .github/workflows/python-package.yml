@@ -53,6 +53,7 @@ jobs:
           - '3.9'
           - '3.10'
         constraints: ['']
+        lint: ['--darker --flake8 --isort']
         include:
           - os: ubuntu-latest
             python-version: '3.7'
@@ -61,7 +62,9 @@ jobs:
             python-version: '3.10'
             constraints: '--constraint constraints-future.txt'
             upgrade: '--upgrade --upgrade-strategy=eager'
-
+    env:
+      RUN_MYPY: >-
+        ${{ matrix.python-version == '3.9' || matrix.python-version == '3.10' }}
     steps:
       - uses: actions/checkout@v2
         with:
@@ -78,9 +81,14 @@ jobs:
           # strict dependency resolution added in pip 20.3
           python -m pip install --upgrade 'pip>=20.3'
           pip install ${pip_options} -e '.[isort,test]'
-      - name: Test with pytest
+      - name: Run Pytest without Mypy if Python < 3.9
+        if: env.RUN_MYPY == 'false'
         run: |
-          pytest
+          pytest ${{ matrix.lint }}
+      - name: Run Pytest with Mypy if Python >= 3.9
+        if: env.RUN_MYPY == 'true'
+        run: |
+          pytest ${{ matrix.lint }} --mypy
       - name: Bandit security audit for non-test code
         run: bandit --recursive --exclude=./src/darker/tests .
       - name: Bandit security audit for unit tests, allowing asserts
