@@ -121,29 +121,40 @@ def opcodes_to_edit_linenums(
     - upwards and downwards for as many lines as determined by ``context_lines``
     - to make sure the range covers any multiline strings completely
 
-    :param opcodes: The diff opcodes to convert
+    :param opcodes: The diff opcodes to convert. 0-based, end-exclusive.
     :param context_lines: The number of lines before and after an edited line to mark
                           edited as well
+    :param multiline_string_ranges: Line ranges of multi-line strings. 1-based,
+                                    end-exclusive.
     :return: Generates a list of integer 1-based line numbers
 
     """
     if not opcodes:
         return
     _validate_opcodes(opcodes)
+
+    # Calculate the last line number beyond which we won't extend with extra context
+    # lines
+    _tag, _i1, _i2, _j1, last_opcode_end = opcodes[-1]
+    _, last_multiline_string_end = (
+        multiline_string_ranges[-1] if multiline_string_ranges else (None, 0)
+    )
+    lastline = max(last_opcode_end + 1, last_multiline_string_end)
+
     prev_chunk_end = 1
-    _tag, _i1, _i2, _j1, end = opcodes[-1]
     for tag, _i1, _i2, j1, j2 in opcodes:
-        if tag != "equal":
-            chunk_start = j1 + 1 - context_lines
-            chunk_end = j2 + 1 + context_lines
-            multiline_string_range = find_overlap(
-                chunk_start, chunk_end, multiline_string_ranges
-            )
-            if multiline_string_range:
-                chunk_start = min(chunk_start, multiline_string_range[0])
-                chunk_end = max(chunk_end, multiline_string_range[1])
-            yield from range(max(chunk_start, prev_chunk_end), min(chunk_end, end + 1))
-            prev_chunk_end = chunk_end
+        if tag == "equal":
+            continue
+        chunk_start = j1 + 1 - context_lines
+        chunk_end = j2 + 1 + context_lines
+        multiline_string_range = find_overlap(
+            chunk_start, chunk_end, multiline_string_ranges
+        )
+        if multiline_string_range:
+            chunk_start = min(chunk_start, multiline_string_range[0])
+            chunk_end = max(chunk_end, multiline_string_range[1])
+        yield from range(max(chunk_start, prev_chunk_end), min(chunk_end, lastline))
+        prev_chunk_end = chunk_end
 
 
 def opcodes_to_chunks(
