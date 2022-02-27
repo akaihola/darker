@@ -1,0 +1,20 @@
+name: Security check - Bandit
+
+on: push
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Bandit security check for code
+      uses: ioggstream/bandit-report-artifacts@v0.0.2
+      with:
+        config_file: .bandit.code.yaml
+
+    - name: Bandit security check for tests
+      uses: ioggstream/bandit-report-artifacts@v0.0.2
+      with:
+        config_file: .bandit.tests.yaml

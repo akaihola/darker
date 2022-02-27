@@ -1,0 +1,6 @@
+---
+# Configuration for Bandit to run security checks on test modules
+# Used in `.github/workflows/bandit.yml`
+targets: ./src/darker/tests
+skips:
+  - B101
