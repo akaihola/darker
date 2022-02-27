@@ -180,6 +180,7 @@ def test_opcodes_to_chunks():
 
 
 EXAMPLE_OPCODES = [
+    # 0-based, end-exclusive
     ("replace", 0, 4, 0, 1),
     ("equal", 4, 6, 1, 3),
     ("replace", 6, 8, 3, 5),
@@ -194,20 +195,59 @@ EXAMPLE_OPCODES = [
     ("equal", 20, 23, 23, 26),
     ("insert", 23, 23, 26, 27),
     ("equal", 23, 24, 27, 28),
+    ("replace", 24, 34, 28, 38),
+    ("equal", 34, 35, 38, 39),
 ]
 
 
 @pytest.mark.kwparametrize(
-    dict(context_lines=0, expect=[1, 4, 5, 13, 14, 17, 20, 22, 23, 27]),
-    dict(context_lines=1, expect=[[1, 6], [12, 24], [26, 28]]),
-    dict(context_lines=2, expect=[[1, 7], [11, 28]]),
+    dict(
+        context_lines=0,
+        multiline_string_ranges=[],
+        expect=[0, 3, 4, 12, 13, 16, 19, 21, 22, 26, [28, 37]],  # 0-based
+    ),
+    dict(
+        context_lines=1,
+        multiline_string_ranges=[],
+        expect=[[0, 5], [11, 23], [25, 38]],  # 0-based, end-inclusive
+    ),
+    dict(
+        context_lines=2,
+        multiline_string_ranges=[],
+        expect=[[0, 6], [10, 38]],  # 0-based, end-inclusive
+    ),
+    dict(
+        context_lines=0,
+        multiline_string_ranges=[  # 0-based, end exclusive
+            (2, 4),  # partial left overlap with (3, 5)
+            (13, 15),  # partial right overlap with (12, 14)
+            (16, 17),  # exact overlap with (16, 17)
+            (18, 21),  # overextending overlap with (19, 20)
+            (22, 27),  # inner overlap with (21, 23) and full overlap with (26, 27)
+            (28, 30),  # full overlap with (28, 38)...
+            (36, 46),  # ...partial left overlap with (28, 38)
+        ],
+        expect=[0, [2, 4], [12, 14], 16, [18, 26], [28, 45]],  # 0-based, end-inclusive
+    ),
 )
-def test_opcodes_to_edit_linenums(context_lines, expect):
-    edit_linenums = list(opcodes_to_edit_linenums(EXAMPLE_OPCODES, context_lines, []))
+def test_opcodes_to_edit_linenums(context_lines, multiline_string_ranges, expect):
+    """`opcodes_to_edit_linenums()` gives correct results"""
+    edit_linenums = list(
+        opcodes_to_edit_linenums(
+            EXAMPLE_OPCODES,
+            context_lines,
+            # Convert ranges from 0 to 1 based. The test case is defined using 0-based
+            # ranges so it's easier to reason about the relation between multi-line
+            # string ranges and opcode ranges.
+            [(start + 1, end + 1) for start, end in multiline_string_ranges],
+        )
+    )
+    # Normalize expected lines/ranges to 0-based, end-exclusive.
     expect_ranges = [[n, n] if isinstance(n, int) else n for n in expect]
     expect_linenums = list(chain(*(range(n[0], n[1] + 1) for n in expect_ranges)))
 
-    assert edit_linenums == expect_linenums
+    # Normalize result to 0-based, end-exclusive before comparison
+    assert [linenum - 1 for linenum in edit_linenums] == expect_linenums
 
 
 def test_opcodes_to_edit_linenums_empty_opcodes():
