@@ -13,7 +13,7 @@ Usage::
 
 import re
 import sys
-import xml.etree.ElementTree as ET
+import xml.etree.ElementTree as ET  # nosec
 from dataclasses import dataclass
 from functools import total_ordering
 from itertools import groupby
@@ -22,6 +22,7 @@ from textwrap import dedent, indent
 from typing import Any, Dict, Iterable, List, MutableMapping, Optional, Text, cast
 
 import click
+import defusedxml.ElementTree
 from airium import Airium
 from requests.models import Response
 from requests_cache.session import CachedSession
@@ -47,11 +48,12 @@ def _load_contributor_table(path: Path) -> ET.Element:
     """
     readme = Path(path).read_text(encoding="utf-8")
     match = re.search(r"<table>.*</table>", readme, re.DOTALL)
-    assert match
+    if not match:
+        raise RuntimeError("No contributors HTML table could be found in `README.rst`")
     contributor_table = match.group(0)
     contributor_table = contributor_table.replace("&", "&amp;")
     try:
-        return ET.fromstring(contributor_table)
+        return cast(ET.Element, defusedxml.ElementTree.fromstring(contributor_table))
     except ET.ParseError as exc_info:
         linenum, column = exc_info.position
         line = contributor_table.splitlines()[linenum - 1]
@@ -59,6 +61,23 @@ def _load_contributor_table(path: Path) -> ET.Element:
         click.echo((column - 1) * " ", nl=False, err=True)
         click.echo("^", err=True)
         raise
+
+
+def verify_contribution_type(url: str, contribution_type: str, *args: str) -> None:
+    """Raise an exception if the contribution type for the URL isn't valid
+
+    :param url: The URL of the search for the author's contributions
+    :param contribution_type: The name of the contribution type
+    :param args: Valid contribution types for this type of URL path
+    :raises RuntimeError: Raised if the contribution type isn't valid
+
+    """
+    valid_contribution_types = args
+    if contribution_type not in valid_contribution_types:
+        raise RuntimeError(
+            f"Contribution type for {url} was {contribution_type}, expected"
+            f" {valid_contribution_types}"
+        )
 
 
 @cli.command()
@@ -80,28 +99,37 @@ def verify() -> None:
         contributions = []
         for contribution_link in td_user.findall("a")[1:]:
             url = contribution_link.attrib["href"]
-            assert url.startswith("https://github.com/")
+            if not url.startswith("https://github.com/"):
+                raise RuntimeError(f"{url} is not a valid GitHub URL")
             path = url[19:]
             contribution_type = contribution_link.attrib["title"]
             if path.startswith("akaihola/darker/issues?q=author%3A"):
-                assert contribution_type == "Bug reports"
+                verify_contribution_type(url, contribution_type, "Bug reports")
                 link_type = "issues"
             elif path.startswith("akaihola/darker/commits?author="):
-                assert contribution_type in {"Code", "Documentation", "Maintenance"}
+                verify_contribution_type(
+                    url, contribution_type, "Code", "Documentation", "Maintenance"
+                )
                 link_type = "commits"
             elif path.startswith("akaihola/darker/pulls?q=is%3Apr+reviewed-by%3A"):
-                assert contribution_type == "Reviewed Pull Requests"
+                verify_contribution_type(
+                    url, contribution_type, "Reviewed Pull Requests"
+                )
                 link_type = "pulls-reviewed"
             elif path.startswith("akaihola/darker/pulls?q=is%3Apr+author%3A"):
-                assert contribution_type in {"Code", "Documentation"}
+                verify_contribution_type(
+                    url, contribution_type, "Code", "Documentation"
+                )
                 link_type = "pulls-author"
             elif path.startswith("akaihola/darker/search?q="):
-                assert contribution_type in {"Bug reports", "Answering Questions"}
+                verify_contribution_type(
+                    url, contribution_type, "Bug reports", "Answering Questions"
+                )
                 link_type = "search"
             elif path.startswith(
                 "conda-forge/staged-recipes/search?q=darker&type=issues&author="
             ):
-                assert contribution_type == "Code"
+                verify_contribution_type(url, contribution_type, "Code")
                 link_type = "conda-issues"
             else:
                 raise AssertionError((username, path, contribution_type))
