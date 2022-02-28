@@ -1,0 +1,5 @@
+---
+# Configuration for Bandit to run security checks on test modules
+# Used in `.github/workflows/bandit.yml`
+skips:
+  - B101
