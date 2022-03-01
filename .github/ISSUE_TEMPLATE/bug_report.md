@@ -1,6 +1,6 @@
 ---
 name: Bug report
-about: Create a report to help us improve. NOTE: To ask for help using Darker, open a [Discussion](https://github.com/akaihola/darker/discussions) instead.
+about: Create a report to help us improve. NOTE: To ask for help using Darker, use Discussions (see top of page) instead.
 title: ''
 labels: ''
 assignees: ''
