@@ -7,6 +7,15 @@ assignees: ''
 
 ---
 
+<!-- 
+
+    NOTE:
+
+    To ask for help using Darker, please use Discussions (see the top of this page).
+    This form is only for reporting bugs.
+
+-->
+
 **Describe the bug**
 A clear and concise description of what the bug is.
 
