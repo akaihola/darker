@@ -18,6 +18,7 @@
 - Daniel Martin (@fizbin)
 - David Dreher (@DavidCDreher)
 - David Sanders (@shangxiao)
+- Dhruv Kumar Jha (@dhrvjha)
 - dsmanl (@dsmanl)
 - Dustin Spicuzza (@virtuald)
 - DylanYoung (@DylanYoung)
