@@ -56,6 +56,7 @@
 - Talha Juanid (@talhajunaidd)
 - Thomas Güttler (@guettli)
 - TJ Kolleh (@tkolleh)
+- Tobias Diez (@tobiasdiez)
 - Vivek Kushwaha (@yoursvivek)
 - Will (@Hainguyen1210)
 - Will Pimblett (@wjdp)
