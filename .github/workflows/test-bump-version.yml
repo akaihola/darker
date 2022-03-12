@@ -20,4 +20,4 @@ jobs:
         # reviewing pull requests in `README.rst`.
         run: |
           pip install click packaging requests
-          python release_tools/bump_version.py --dry-run
+          python release_tools/bump_version.py --minor --dry-run

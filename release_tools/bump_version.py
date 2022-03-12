@@ -75,16 +75,16 @@ PATTERNS = {
         r"^       rev: {old_version->new_version}",
         r"^         - uses: akaihola/darker@{old_version->new_version}",
         r'^             version: "{old_version->new_version}"',
-        r"label=release%20{new_version->next_version}",
+        r"label=release%20{any_version->next_version}",
         (
             r"^\.\. \|next-milestone\| image::"
             r" https://img\.shields\.io/github/milestones/progress/akaihola/darker/"
-            r"{new_milestone->next_milestone}"
+            r"{any_milestone->next_milestone}"
         ),
         (
             r"^\.\. _next-milestone:"
             r" https://github\.com/akaihola/darker/milestone/"
-            r"{new_milestone->next_milestone}"
+            r"{any_milestone->next_milestone}"
         ),
     },
     ".github/ISSUE_TEMPLATE/bug_report.md": {
@@ -106,7 +106,7 @@ def bump_version(dry_run: bool, increment_major: bool, increment_minor: bool) ->
         path = Path(path_str)
         content = path.read_text(encoding="utf-8")
         for pattern_template in pattern_templates:
-            # example: pattern_template == r"darker/{new_milestone->next_milestone}"
+            # example: pattern_template == r"darker/{any_milestone->next_milestone}"
             template_match = CAPTURE_RE.search(pattern_template)
             if not template_match:
                 raise NoMatch("Can't find `{CAPTURE_RE}` in `{pattern_template}`")
@@ -133,16 +133,18 @@ class PatternDict(TypedDict):
     Example:
 
     >>> patterns: PatternDict = {
+    ...     "any_version": r"\d+(?:\.\d+)*",
     ...     "old_version": r"1\.0",
     ...     "new_version": r"1\.1",
-    ...     "new_milestone": r"22",
+    ...     "any_milestone": r"\d+",
     ... }
 
     """
 
+    any_version: str
     old_version: str
     new_version: str
-    new_milestone: str
+    any_milestone: str
 
 
 class ReplacementDict(TypedDict):
@@ -191,9 +193,10 @@ def get_replacements(
     milestone_numbers = get_milestone_numbers()
     next_version = get_next_milestone_version(new_version, milestone_numbers)
     patterns: PatternDict = {
+        "any_version": r"\d+(?:\.\d+)*",
         "old_version": re.escape(str(old_version)),
         "new_version": re.escape(str(new_version)),
-        "new_milestone": milestone_numbers[new_version],
+        "any_milestone": r"\d+",
     }
     replacements: ReplacementDict = {
         "new_version": str(new_version),
@@ -303,7 +306,7 @@ def lookup_patterns(
 
     """
     current_pattern_name, replacement_name = template_match.groups()
-    # example: template_match.groups() == ("new_milestone", "next_milestone")
+    # example: template_match.groups() == ("any_milestone", "next_milestone")
     if current_pattern_name not in PATTERN_NAMES:
         raise RuntimeError(
             f"Pattern name {current_pattern_name!r} for a current value is"
