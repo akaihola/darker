@@ -135,7 +135,7 @@ def verify() -> None:
                 raise AssertionError((username, path, contribution_type))
             contributions.append({"type": contribution_type, "link_type": link_type})
         users[username] = contributions
-    click.echo(yaml.dump(users))  # type: ignore[attr-defined]
+    click.echo(yaml.dump(users))
 
 
 CONTRIBUTION_SYMBOLS = {
