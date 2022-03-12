@@ -11,7 +11,7 @@ defusedxml==0.7.1
 flake8-2020==1.6.1
 flake8-bugbear==22.1.11
 flake8-comprehensions==3.7.0
-mypy==0.931
+mypy==0.940
 pytest==6.1.0
 pytest-flake8==1.0.6
 pytest-isort==1.1.0
