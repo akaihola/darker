@@ -10,6 +10,8 @@ Added
 - Document VSCode and ``--lint``/``-L`` incompatibility in the README.
 - Guard against breaking changes in ``isort`` by testing against its ``main``
   branch in the ``test-future`` GitHub Workflow.
+- ``release_tools/bump_version.py`` script for incrementing version numbers and
+  milestone numbers in various files when releasing.
 
 Fixed
 -----

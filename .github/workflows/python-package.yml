@@ -63,7 +63,7 @@ jobs:
             constraints: '--constraint constraints-future.txt'
             upgrade: '--upgrade --upgrade-strategy=eager'
     env:
-      RUN_MYPY: >-
+      RUN_MYPY_AND_PYLINT: >-
         ${{ matrix.python-version == '3.9' || matrix.python-version == '3.10' }}
     steps:
       - uses: actions/checkout@v2
@@ -81,14 +81,26 @@ jobs:
           # strict dependency resolution added in pip 20.3
           python -m pip install --upgrade 'pip>=20.3'
           pip install ${pip_options} -e '.[isort,test]'
-      - name: Run Pytest without Mypy if Python < 3.9
-        if: env.RUN_MYPY == 'false'
+      - name: Run Pytest without Mypy and Pylint if Python < 3.9
+        if: env.RUN_MYPY_AND_PYLINT == 'false'
         run: |
           pytest ${{ matrix.lint }}
-      - name: Run Pytest with Mypy if Python >= 3.9
-        if: env.RUN_MYPY == 'true'
+      - name: Run Pytest with Mypy and Pylint if Python >= 3.9
+        if: env.RUN_MYPY_AND_PYLINT == 'true'
+        shell: python
         run: |
-          pytest ${{ matrix.lint }} --mypy
+          import sys
+          from pathlib import Path
+          from subprocess import run
+          import toml
+
+          data = toml.load("pyproject.toml")
+          data["tool"]["darker"]["lint"] = ["pylint", "mypy"]
+          Path("pyproject.toml").write_text(toml.dumps(data))
+          pytest_cmd = ["pytest"] + "${{ matrix.lint }}".split()
+          retval = run(pytest_cmd).returncode
+          run(["git", "restore", "pyproject.toml"])
+          sys.exit(retval)
       - name: Check English spelling in the code base using codespell
         run: codespell
       - name: Ensure modern Python style using pyupgrade
