@@ -51,14 +51,14 @@ see the relevant sections below in this document.
 .. _Pytest: https://docs.pytest.org/
 .. _pytest-darker: https://pypi.org/project/pytest-darker/
 
-+------------------------------------------------+---------------------------------+
-| |you-can-help|                                 | |support|                       |
-+================================================+=================================+
-| We're asking the community kindly for help to  | We're considering to start a    |
-| review pull requests for |next-milestone|_ .   | community support chat channel. |
-| If you have a moment to spare, please take a   | Please vote for your preferred  |
-| look at one of them and shoot us a comment!    | medium in issue `#151`_!        |
-+------------------------------------------------+---------------------------------+
++------------------------------------------------+--------------------------------+
+| |you-can-help|                                 | |support|                      |
++================================================+================================+
+| We're asking the community kindly for help to  | We have a                      |
+| review pull requests for |next-milestone|_ .   | `community support channel`_   |
+| If you have a moment to spare, please take a   | on GitHub Discussions. Welcome |
+| look at one of them and shoot us a comment!    | to ask for help and advice!    |
++------------------------------------------------+--------------------------------+
 
 *New in version 1.4.0:* Darker can be used in plain directories, not only Git repositories.
 
@@ -67,6 +67,8 @@ see the relevant sections below in this document.
 .. |support| image:: https://img.shields.io/badge/-Support-green?style=for-the-badge
    :alt: Support
 .. _#151: https://github.com/akaihola/darker/issues/151
+.. _community support channel: https://github.com/akaihola/darker/discussions
+
 
 Why?
 ====
