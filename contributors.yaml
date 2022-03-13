@@ -47,6 +47,9 @@ cclauss:
 chrisdecker1201:
   - {link_type: pulls-author, type: Code}
   - {link_type: issues, type: Bug reports}
+dhrvjha:
+  - {link_type: search-issues, type: Bug reports}
+  - {link_type: pulls-author, type: Code}
 dsmanl:
   - {link_type: issues, type: Bug reports}
 fizbin:
@@ -122,6 +125,7 @@ talhajunaidd:
   - {link_type: commits, type: Code}
 tkolleh:
   - {link_type: issues, type: Bug reports}
+tobiasdiez: []
 virtuald:
   - {link_type: issues, type: Bug reports}
 wjdp:
