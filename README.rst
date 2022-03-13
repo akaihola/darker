@@ -22,9 +22,9 @@
 .. |changelog-badge| image:: https://img.shields.io/badge/-change%20log-purple
    :alt: Change log
 .. _changelog-badge: https://github.com/akaihola/darker/blob/master/CHANGES.rst
-.. |next-milestone| image:: https://img.shields.io/github/milestones/progress/akaihola/darker/14?color=red&label=release%201.4.2
+.. |next-milestone| image:: https://img.shields.io/github/milestones/progress/akaihola/darker/13?color=red&label=release%201.5.0
    :alt: Next milestone
-.. _next-milestone: https://github.com/akaihola/darker/milestone/14
+.. _next-milestone: https://github.com/akaihola/darker/milestone/13
 
 
 What?
@@ -505,7 +505,7 @@ do the following:
 1. Append to the created ``.pre-commit-config.yaml`` the following lines::
 
        -   repo: https://github.com/akaihola/darker
-           rev: 1.4.1
+           rev: 1.4.2
            hooks:
            -   id: darker
 
@@ -524,7 +524,7 @@ You can provide arguments, such as enabling isort, by specifying ``args``.
 Note the inclusion of the isort Python package under ``additional_dependencies``::
 
    -   repo: https://github.com/akaihola/darker
-       rev: 1.4.1
+       rev: 1.4.2
        hooks:
        -   id: darker
            args: [--isort]
@@ -564,12 +564,12 @@ Create a file named ``.github/workflows/darker.yml`` inside your repository with
          - uses: actions/checkout@v2
            with:
              fetch-depth: 0 
-         - uses: akaihola/darker@1.4.1
+         - uses: akaihola/darker@1.4.2
            with:
              options: "--check --diff"
              revision: "master..."
              src: "./src"
-             version: "1.4.1"
+             version: "1.4.2"
 
 ``"uses:"`` specifies which Darker release to get the GitHub Action definition from.
 We recommend to pin this to a specific release.

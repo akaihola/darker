@@ -36,7 +36,7 @@ If applicable, add copy/paste the output or attach a screenshots to help explain
  - OS: [e.g. Windows / macos / Linux distribution & version]
  - Python version [e.g. 3.10.0]
  - Git version [e.g. 2.33.1]
- - Darker version [e.g. 1.4.1]
+ - Darker version [e.g. 1.4.2]
  - Black version [e.g. 22.1.0]
  - other reformatter and linter versions [e.g. `isort==5.10.0`, `mypy==0.931`
 
