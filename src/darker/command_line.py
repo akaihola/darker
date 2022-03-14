@@ -82,6 +82,7 @@ def make_argument_parser(require_src: bool) -> ArgumentParser:
         dest="line_length",
         metavar="LENGTH",
     )
+    add_arg(hlp.JOBS, "-j", "--jobs", type=int, dest="jobs", default=1)
     # A hidden option for printing command lines option in a format suitable for
     # `README.rst`:
     add_arg(SUPPRESS, "--options-for-readme", action=OptionsForReadmeAction)

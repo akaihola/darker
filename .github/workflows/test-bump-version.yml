@@ -1,0 +1,23 @@
+---
+name: bump_version.py check
+
+on: push  # yamllint disable-line rule:truthy
+
+jobs:
+  test-bump-version:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+
+      - name: Make sure that `bump_version.py` still finds all version strings
+              and that there's a future milestone on GitHub Issues.
+        # If this fails, make sure the regular expressions in `bump_version.py`
+        # match changes in the files to modify. Also ensure there's a milestone
+        # in https://github.com/akaihola/darker/milestones with a future
+        # version number as its name. This is used to update the call for
+        # reviewing pull requests in `README.rst`.
+        run: |
+          pip install click packaging requests
+          python release_tools/bump_version.py --minor --dry-run

@@ -39,6 +39,7 @@ class DarkerConfig(TypedDict, total=False):
     skip_string_normalization: bool
     skip_magic_trailing_comma: bool
     line_length: int
+    jobs: int
 
 
 class OutputMode:

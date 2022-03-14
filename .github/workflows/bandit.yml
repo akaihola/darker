@@ -1,0 +1,23 @@
+---
+name: Security check - Bandit
+
+on: push  # yamllint disable-line rule:truthy
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Bandit security check for code
+        uses: ioggstream/bandit-report-artifacts@v0.0.2
+        with:
+          project_path: .
+          config_file: ./.bandit.code.yaml
+
+      - name: Bandit security check for tests
+        uses: ioggstream/bandit-report-artifacts@v0.0.2
+        with:
+          project_path: ./src/darker/tests
+          config_file: ./.bandit.tests.yaml

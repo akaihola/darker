@@ -5,11 +5,25 @@ These features will be included in the next release:
 
 Added
 -----
+- The ``--jobs`` option now specifies how many Darker jobs are used to process files in
+  parallel to complete reformatting/linting faster
+
+Fixed
+-----
+
+
+1.4.2_ - 2022-03-12
+===================
+
+Added
+-----
 - Document ``isort``'s requirement to be run in the same environment as
   the modules which are processed.
 - Document VSCode and ``--lint``/``-L`` incompatibility in the README.
 - Guard against breaking changes in ``isort`` by testing against its ``main``
   branch in the ``test-future`` GitHub Workflow.
+- ``release_tools/bump_version.py`` script for incrementing version numbers and
+  milestone numbers in various files when releasing.
 
 Fixed
 -----
@@ -61,6 +75,10 @@ Fixed
   compared to without.
 - Handle isort file skip comment ``#isort:file_skip`` without an exception.
 - Fix compatibility with Pygments 2.11.2.
+
+Removed
+-------
+- Drop support for Python 3.6 which has reached end of life.
 
 
 1.3.2_ - 2021-10-28
@@ -290,7 +308,8 @@ Added
 -----
 - Initial implementation
 
-.. _Unreleased: https://github.com/akaihola/darker/compare/1.4.1...HEAD
+.. _Unreleased: https://github.com/akaihola/darker/compare/1.4.2...HEAD
+.. _1.4.2: https://github.com/akaihola/darker/compare/1.4.1...1.4.2
 .. _1.4.1: https://github.com/akaihola/darker/compare/1.4.0...1.4.1
 .. _1.4.0: https://github.com/akaihola/darker/compare/1.3.2...1.4.0
 .. _1.3.2: https://github.com/akaihola/darker/compare/1.3.1...1.3.2

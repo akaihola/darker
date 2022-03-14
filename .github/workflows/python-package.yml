@@ -47,12 +47,12 @@ jobs:
           - windows-latest
           - macos-latest
         python-version:
-          - '3.6'
           - '3.7'
           - '3.8'
           - '3.9'
           - '3.10'
         constraints: ['']
+        lint: ['--darker --flake8 --isort']
         include:
           - os: ubuntu-latest
             python-version: '3.7'
@@ -61,7 +61,9 @@ jobs:
             python-version: '3.10'
             constraints: '--constraint constraints-future.txt'
             upgrade: '--upgrade --upgrade-strategy=eager'
-
+    env:
+      RUN_MYPY_AND_PYLINT: >-
+        ${{ matrix.python-version == '3.9' || matrix.python-version == '3.10' }}
     steps:
       - uses: actions/checkout@v2
         with:
@@ -78,13 +80,26 @@ jobs:
           # strict dependency resolution added in pip 20.3
           python -m pip install --upgrade 'pip>=20.3'
           pip install ${pip_options} -e '.[isort,test]'
-      - name: Test with pytest
+      - name: Run Pytest without Mypy and Pylint if Python < 3.9
+        if: env.RUN_MYPY_AND_PYLINT == 'false'
         run: |
-          pytest
-      - name: Bandit security audit for non-test code
-        run: bandit --recursive --exclude=./src/darker/tests .
-      - name: Bandit security audit for unit tests, allowing asserts
-        run: bandit --recursive --skip B101 ./src/darker/tests
+          pytest ${{ matrix.lint }}
+      - name: Run Pytest with Mypy and Pylint if Python >= 3.9
+        if: env.RUN_MYPY_AND_PYLINT == 'true'
+        shell: python
+        run: |
+          import sys
+          from pathlib import Path
+          from subprocess import run
+          import toml
+
+          data = toml.load("pyproject.toml")
+          data["tool"]["darker"]["lint"] = ["pylint", "mypy"]
+          Path("pyproject.toml").write_text(toml.dumps(data))
+          pytest_cmd = ["pytest"] + "${{ matrix.lint }}".split()
+          retval = run(pytest_cmd).returncode
+          run(["git", "restore", "pyproject.toml"])
+          sys.exit(retval)
       - name: Check English spelling in the code base using codespell
         run: codespell
       - name: Ensure modern Python style using pyupgrade
@@ -94,7 +109,7 @@ jobs:
           from pyupgrade._main import main
           from glob import glob
           files = glob('**/*.py', recursive=True)
-          main(files + ['--py36-plus'])
+          main(files + ['--py37-plus'])
           "
       - name: Check dependencies for known security vulterabilities using Safety
         run: safety check
