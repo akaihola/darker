@@ -76,6 +76,10 @@ Fixed
 - Handle isort file skip comment ``#isort:file_skip`` without an exception.
 - Fix compatibility with Pygments 2.11.2.
 
+Removed
+-------
+- Drop support for Python 3.6 which has reached end of life.
+
 
 1.3.2_ - 2021-10-28
 ===================
