@@ -19,7 +19,7 @@ from functools import total_ordering
 from itertools import groupby
 from pathlib import Path
 from textwrap import dedent, indent
-from typing import Any, Dict, Iterable, List, MutableMapping, Optional, Text, cast
+from typing import Any, Dict, Iterable, List, MutableMapping, Optional, cast
 
 import click
 import defusedxml.ElementTree
@@ -175,7 +175,7 @@ class GitHubSession(CachedSession):
         self,
         method: str,
         url: str,
-        headers: MutableMapping[Text, Text] = None,
+        headers: MutableMapping[str, str] = None,
         **kwargs: Any,
     ) -> Response:
         """Query GitHub API with authorization, caching and host auto-fill-in

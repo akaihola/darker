@@ -2,18 +2,13 @@
 
 import re
 import sys
-from contextlib import contextmanager
+from contextlib import contextmanager, nullcontext
 from types import ModuleType
 from typing import Any, ContextManager, Dict, List, Optional, Union
 from unittest.mock import patch
 
 import pytest
 from _pytest.python_api import RaisesContext
-
-if sys.version_info >= (3, 7):
-    from contextlib import nullcontext
-else:
-    from contextlib import suppress as nullcontext
 
 
 def filter_dict(dct: Dict[str, Any], filter_key: str) -> Dict[str, Any]:
