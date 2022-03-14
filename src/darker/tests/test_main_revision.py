@@ -43,63 +43,63 @@ from darker.tests.helpers import raises_if_exception
     dict(
         revision="",
         worktree_content=b"USERMOD=1\n",
-        expect=["+1", "+1M0", "+2-1", "+2", "+2M1-0", "+2M1"],
+        expect={"+1", "+1M0", "+2-1", "+2", "+2M1-0", "+2M1"},
     ),
     dict(
         revision="",
         worktree_content=b"ORIGINAL=1\n",
-        expect=["+1M0", "+2-1", "+2M1-0", "+2M1"],
+        expect={"+1M0", "+2-1", "+2M1-0", "+2M1"},
     ),
     dict(
         revision="",
         worktree_content=b"MODIFIED=1\n",
-        expect=["+1", "+2-1", "+2", "+2M1-0"],
+        expect={"+1", "+2-1", "+2", "+2M1-0"},
     ),
     dict(
         revision="HEAD",
         worktree_content=b"USERMOD=1\n",
-        expect=["+1", "+1M0", "+2-1", "+2", "+2M1-0", "+2M1"],
+        expect={"+1", "+1M0", "+2-1", "+2", "+2M1-0", "+2M1"},
     ),
     dict(
         revision="HEAD",
         worktree_content=b"ORIGINAL=1\n",
-        expect=["+1M0", "+2-1", "+2M1-0", "+2M1"],
+        expect={"+1M0", "+2-1", "+2M1-0", "+2M1"},
     ),
     dict(
         revision="HEAD",
         worktree_content=b"MODIFIED=1\n",
-        expect=["+1", "+2-1", "+2", "+2M1-0"],
+        expect={"+1", "+2-1", "+2", "+2M1-0"},
     ),
     dict(
         revision="HEAD^",
         worktree_content=b"USERMOD=1\n",
-        expect=["+1", "+1M0", "+2-1", "+2", "+2M1-0", "+2M1"],
+        expect={"+1", "+1M0", "+2-1", "+2", "+2M1-0", "+2M1"},
     ),
     dict(
         revision="HEAD^",
         worktree_content=b"USERMOD=1\n",
-        expect=["+1", "+1M0", "+2-1", "+2", "+2M1-0", "+2M1"],
+        expect={"+1", "+1M0", "+2-1", "+2", "+2M1-0", "+2M1"},
     ),
     dict(
         revision="HEAD^",
         worktree_content=b"ORIGINAL=1\n",
-        expect=["+2-1", "+2M1-0", "+2M1"],
+        expect={"+2-1", "+2M1-0", "+2M1"},
     ),
     dict(
         revision="HEAD^",
         worktree_content=b"MODIFIED=1\n",
-        expect=["+1", "+1M0", "+2-1", "+2"],
+        expect={"+1", "+1M0", "+2-1", "+2"},
     ),
     dict(
         revision="HEAD~2",
         worktree_content=b"USERMOD=1\n",
-        expect=["+1", "+1M0", "+2-1", "+2", "+2M1-0", "+2M1"],
+        expect={"+1", "+1M0", "+2-1", "+2", "+2M1-0", "+2M1"},
     ),
-    dict(revision="HEAD~2", worktree_content=b"ORIGINAL=1\n", expect=["+1", "+1M0"]),
+    dict(revision="HEAD~2", worktree_content=b"ORIGINAL=1\n", expect={"+1", "+1M0"}),
     dict(
         revision="HEAD~2",
         worktree_content=b"MODIFIED=1\n",
-        expect=["+1", "+1M0", "+2-1", "+2", "+2M1-0", "+2M1"],
+        expect={"+1", "+1M0", "+2-1", "+2", "+2M1-0", "+2M1"},
     ),
     dict(revision="HEAD~3", worktree_content=b"USERMOD=1\n", expect=SystemExit),
 )
@@ -141,9 +141,9 @@ def test_revision(git_repo, monkeypatch, capsys, revision, worktree_content, exp
     with raises_if_exception(expect):
         main(arguments)
 
-        modified_files = [
+        modified_files = {
             line.split("\t")[0][4:-3]
             for line in capsys.readouterr().out.splitlines()
             if line.startswith("+++ ")
-        ]
+        }
         assert modified_files == expect

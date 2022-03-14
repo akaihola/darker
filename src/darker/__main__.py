@@ -1,5 +1,6 @@
 """Darker - apply black reformatting to only areas edited since the last commit"""
 
+import concurrent.futures
 import logging
 import sys
 import warnings
@@ -17,6 +18,7 @@ from darker.black_diff import (
 )
 from darker.chooser import choose_lines
 from darker.command_line import parse_command_line
+from darker.concurrency import get_executor
 from darker.config import OutputMode, dump_config
 from darker.diff import diff_and_get_opcodes, opcodes_to_chunks
 from darker.exceptions import DependencyError, MissingPackageError
@@ -40,6 +42,8 @@ from darker.verification import ASTVerifier, BinarySearch, NotEquivalentError
 
 logger = logging.getLogger(__name__)
 
+ProcessedDocument = Tuple[Path, TextDocument, TextDocument]
+
 
 def format_edited_parts(
     root: Path,
@@ -49,8 +53,9 @@ def format_edited_parts(
     enable_isort: bool,
     black_config: BlackConfig,
     report_unmodified: bool,
-) -> Generator[Tuple[Path, TextDocument, TextDocument], None, None]:
-    """Black (and optional isort) formatting for chunks with edits since the last commit
+    jobs: int = 1,
+) -> Generator[ProcessedDocument, None, None]:
+    """Black (and optional isort) formatting modified chunks in a set of files
 
     Files inside given directories and excluded by Black's configuration are not
     reformatted using Black, but their imports are still sorted. Also, linters will be
@@ -67,45 +72,83 @@ def format_edited_parts(
     :param enable_isort: ``True`` to also run ``isort`` first on each changed file
     :param black_config: Configuration to use for running Black
     :param report_unmodified: ``True`` to yield also files which weren't modified
+    :param jobs: number of cpu processes to use (0 - autodetect)
     :return: A generator which yields details about changes for each file which should
              be reformatted, and skips unchanged files.
 
     """
-    for path_in_repo in sorted(changed_files):
-        src = root / path_in_repo
-        rev2_content = git_get_content_at_revision(path_in_repo, revrange.rev2, root)
-
-        # 1. run isort
-        if enable_isort:
-            rev2_isorted = apply_isort(
-                rev2_content,
-                src,
-                black_config.get("config"),
-                black_config.get("line_length"),
-            )
-        else:
-            rev2_isorted = rev2_content
-        if path_in_repo not in black_exclude:
-            # 9. A re-formatted Python file which produces an identical AST was
-            #    created successfully - write an updated file or print the diff if
-            #    there were any changes to the original
-            content_after_reformatting = _reformat_single_file(
+    with get_executor(max_workers=jobs) as executor:
+        # pylint: disable=unsubscriptable-object
+        futures: List[concurrent.futures.Future[ProcessedDocument]] = []
+        for path_in_repo in sorted(changed_files):
+            future = executor.submit(
+                _isort_and_blacken_single_file,
                 root,
                 path_in_repo,
                 revrange,
-                rev2_content,
-                rev2_isorted,
-                enable_isort,
                 black_config,
+                enable_isort,
+                enable_black=path_in_repo not in black_exclude,
             )
-        else:
-            # File was excluded by Black configuration, don't reformat
-            content_after_reformatting = rev2_isorted
-        if report_unmodified or content_after_reformatting != rev2_content:
-            yield (src, rev2_content, content_after_reformatting)
+            futures.append(future)
+
+        for future in concurrent.futures.as_completed(futures):
+            src, rev2_content, content_after_reformatting = future.result()
+            if report_unmodified or content_after_reformatting != rev2_content:
+                yield (src, rev2_content, content_after_reformatting)
 
 
-def _reformat_single_file(  # pylint: disable=too-many-arguments,too-many-locals
+def _isort_and_blacken_single_file(  # pylint: disable=too-many-arguments
+    root: Path,
+    relative_path: Path,
+    revrange: RevisionRange,
+    black_config: BlackConfig,
+    enable_isort: bool,
+    enable_black: bool,
+) -> ProcessedDocument:
+    """Black and/or isort formatting for modified chunks in a single file
+
+    :param root: Root directory for the relative path
+    :param relative_path: Relative path to a Python source code file
+    :param revrange: The Git revisions to compare
+    :param black_config: Configuration to use for running Black
+    :param enable_isort: ``True`` to run ``isort`` first on the file contents
+    :param enable_black: ``True`` to also run ``black`` on the file contents
+    :return: Details about changes for the file
+
+    """
+    src = root / relative_path
+    rev2_content = git_get_content_at_revision(relative_path, revrange.rev2, root)
+    # 1. run isort
+    if enable_isort:
+        rev2_isorted = apply_isort(
+            rev2_content,
+            src,
+            black_config.get("config"),
+            black_config.get("line_length"),
+        )
+    else:
+        rev2_isorted = rev2_content
+    if enable_black:
+        # 9. A re-formatted Python file which produces an identical AST was
+        #    created successfully - write an updated file or print the diff if
+        #    there were any changes to the original
+        content_after_reformatting = _blacken_single_file(
+            root,
+            relative_path,
+            revrange,
+            rev2_content,
+            rev2_isorted,
+            enable_isort,
+            black_config,
+        )
+    else:
+        # File was excluded by Black configuration, don't reformat
+        content_after_reformatting = rev2_isorted
+    return src, rev2_content, content_after_reformatting
+
+
+def _blacken_single_file(  # pylint: disable=too-many-arguments,too-many-locals
     root: Path,
     relative_path: Path,
     revrange: RevisionRange,
@@ -116,7 +159,7 @@ def _reformat_single_file(  # pylint: disable=too-many-arguments,too-many-locals
 ) -> TextDocument:
     """In a Python file, reformat chunks with edits since the last commit using Black
 
-    :param root: The common root of all files to reformat
+    :param root: Root directory for the relative path
     :param relative_path: Relative path to a Python source code file
     :param revrange: The Git revisions to compare
     :param rev2_content: Contents of the file at ``revrange.rev2``
@@ -383,14 +426,17 @@ def main(argv: List[str] = None) -> int:
         }
 
     formatting_failures_on_modified_lines = False
-    for path, old, new in format_edited_parts(
-        root,
-        changed_files_to_process,
-        black_exclude,
-        revrange,
-        args.isort,
-        black_config,
-        report_unmodified=output_mode == OutputMode.CONTENT,
+    for path, old, new in sorted(
+        format_edited_parts(
+            root,
+            changed_files_to_process,
+            black_exclude,
+            revrange,
+            args.isort,
+            black_config,
+            report_unmodified=output_mode == OutputMode.CONTENT,
+            jobs=config["jobs"],
+        ),
     ):
         formatting_failures_on_modified_lines = True
         if output_mode == OutputMode.DIFF:

@@ -1,4 +1,4 @@
-"""Unit tests for :func:`darker.__main__._reformat_single_file`"""
+"""Unit tests for :func:`darker.__main__._blacken_single_file`"""
 
 # pylint: disable=protected-access
 
@@ -10,8 +10,8 @@ from darker.git import RevisionRange
 from darker.utils import TextDocument
 
 
-def test_reformat_single_file_common_ancestor(git_repo):
-    """``_reformat_single_file()`` compares to the common ancestor of ``rev1...rev2``"""
+def test_blacken_single_file_common_ancestor(git_repo):
+    """``_blacken_single_file()`` compares to the common ancestor of ``rev1...rev2``"""
     a_py_initial = dedent(
         """\
         a=1
@@ -55,7 +55,7 @@ def test_reformat_single_file_common_ancestor(git_repo):
     git_repo.add({"a.py": a_py_feature}, commit="on feature")
     worktree = TextDocument.from_str(a_py_worktree)
 
-    result = darker.__main__._reformat_single_file(
+    result = darker.__main__._blacken_single_file(
         git_repo.root,
         Path("a.py"),
         RevisionRange.parse_with_common_ancestor("master...", git_repo.root),

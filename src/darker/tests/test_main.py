@@ -373,7 +373,7 @@ def test_format_edited_parts_historical(git_repo, rev1, rev2, expect):
     black_config={},
     expect="import  original\nprint( original )\n",
 )
-def test_reformat_single_file(
+def test_blacken_single_file(
     git_repo,
     relative_path,
     rev1,
@@ -384,11 +384,11 @@ def test_reformat_single_file(
     black_config,
     expect,
 ):
-    """Test for ``_reformat_single_file``"""
+    """Test for ``_blacken_single_file``"""
     git_repo.add(
         {"file.py": "import  original\nprint( original )\n"}, commit="Initial commit"
     )
-    result = darker.__main__._reformat_single_file(
+    result = darker.__main__._blacken_single_file(
         git_repo.root,
         Path(relative_path),
         RevisionRange(rev1, rev2),

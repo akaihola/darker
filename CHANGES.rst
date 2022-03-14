@@ -5,6 +5,8 @@ These features will be included in the next release:
 
 Added
 -----
+- The ``--jobs`` option now specifies how many Darker jobs are used to process files in
+  parallel to complete reformatting/linting faster
 
 Fixed
 -----
