@@ -15,6 +15,9 @@ import pytest
 # pylint: disable=redefined-outer-name,unused-argument
 
 
+BIN = "Scripts" if sys.platform == "win32" else "bin"
+
+
 class SysExitCalled(Exception):
     """Mock exception to catch a call to `sys.exit`"""
 
@@ -109,7 +112,7 @@ def test_installs_packages(tmp_path, main_patch, run_main_env, expect):
 
     assert main_patch.subprocess.run.call_args_list[1] == call(
         [
-            str(tmp_path / ".darker-env" / "bin" / "python"),
+            str(tmp_path / ".darker-env" / BIN / "python"),
             "-m",
             "pip",
             "install",
@@ -198,7 +201,7 @@ def test_runs_darker(tmp_path, env, expect):
 
         run_module("main")
 
-    darker = str(tmp_path / ".darker-env" / "bin" / "darker")
+    darker = str(tmp_path / ".darker-env" / BIN / "darker")
     assert darker in [c.args[0][0] for c in main_patch.subprocess.run.call_args_list]
 
 
