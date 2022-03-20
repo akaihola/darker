@@ -1,3 +1,5 @@
+"""Tests for the GitHub Action ``main.py`` module"""
+
 import re
 import sys
 from contextlib import contextmanager
@@ -32,7 +34,7 @@ def patch_main(
     """Patch `subprocess.run`, `sys.exit` and environment variables
 
     :param tmp_path: Path to use for the `GITHUB_ACTION_PATH` environment variable
-    :param run_main_env: [description]
+    :param run_main_env: Additional environment for running ``main.py``
     :yield: An object with `.subprocess.run` and `.sys.exit` mock objects
 
     """
@@ -56,6 +58,13 @@ def patch_main(
 def main_patch(
     tmp_path: Path, run_main_env: Dict[str, str]
 ) -> Generator[SimpleNamespace, None, None]:
+    """`subprocess.run, `sys.exit` and environment variables patching as Pytest fixture
+
+    :param tmp_path: Path to use for the `GITHUB_ACTION_PATH` environment variable
+    :param run_main_env: Additional environment for running ``main.py``
+    :yield: An object with `.subprocess.run` and `.sys.exit` mock objects
+
+    """
     with patch_main(tmp_path, run_main_env) as run_main_fixture:
         yield run_main_fixture
 
