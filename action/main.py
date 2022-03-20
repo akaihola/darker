@@ -56,6 +56,10 @@ proc = run(  # nosec
         *shlex.split(SRC),
     ],
     check=False,
+    stdout=PIPE,
+    stderr=STDOUT,
+    encoding="utf-8",
 )
+print(proc.stdout, end="")
 
 sys.exit(proc.returncode)
