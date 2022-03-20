@@ -39,8 +39,8 @@ pip_proc = run(  # nosec
     stderr=STDOUT,
     encoding="utf-8",
 )
+print(pip_proc.stdout, end="")
 if pip_proc.returncode:
-    print(pip_proc.stdout, end="")
     print(f"::error::Failed to install {' '.join(req)}.", flush=True)
     sys.exit(pip_proc.returncode)
 
