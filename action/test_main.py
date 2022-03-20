@@ -190,9 +190,7 @@ def test_runs_darker(tmp_path, env, expect):
         run_module("main")
 
     darker = str(tmp_path / ".darker-env" / "bin" / "darker")
-    assert (
-        call([darker] + expect, check=False) in main_patch.subprocess.run.call_args_list
-    )
+    assert darker in [c.args[0][0] for c in main_patch.subprocess.run.call_args_list]
 
 
 def test_error_if_pip_fails(tmp_path, capsys):

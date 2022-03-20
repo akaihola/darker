@@ -58,6 +58,7 @@ proc = run(  # nosec
     check=False,
     stdout=PIPE,
     stderr=STDOUT,
+    env={**os.environ, "PATH": f"{ENV_BIN}:{os.environ['PATH']}"},
     encoding="utf-8",
 )
 print(proc.stdout, end="")
