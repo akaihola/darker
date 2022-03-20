@@ -3,7 +3,7 @@ import sys
 from contextlib import contextmanager
 from pathlib import Path
 from runpy import run_module
-from subprocess import PIPE, STDOUT, CompletedProcess
+from subprocess import PIPE, STDOUT, CompletedProcess  # nosec
 from types import SimpleNamespace
 from typing import Dict, Generator
 from unittest.mock import ANY, Mock, call, patch
