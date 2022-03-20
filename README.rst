@@ -568,12 +568,18 @@ Create a file named ``.github/workflows/darker.yml`` inside your repository with
          - uses: actions/checkout@v2
            with:
              fetch-depth: 0 
+         - uses: actions/setup-python@v2
          - uses: akaihola/darker@1.4.2
            with:
              options: "--check --diff"
              revision: "master..."
              src: "./src"
              version: "1.4.2"
+             lint: "flake8,pylint"
+
+There needs to be a working Python environment, set up using ``actions/setup-python``
+in the above example. Darker will be installed in an isolated virtualenv to prevent
+conflicts with other workflows.
 
 ``"uses:"`` specifies which Darker release to get the GitHub Action definition from.
 We recommend to pin this to a specific release.
@@ -587,11 +593,6 @@ to compare the current branch to the branching point from main branch
 when determining which source code lines have been changed.
 If omitted, the Darker GitHub Action will determine the commit range automatically.
 
-*New in version 1.4.1:*
-The ``revision:`` option, with smart default value if omitted.
-
-Note that external software like linters are not yet available.
-
 ``"src:"`` defines the root directory to run Darker for.
 This is typically the source tree, but you can use ``"."`` (the default)
 to also reformat Python files like ``"setup.py"`` in the root of the whole repository.
@@ -600,9 +601,18 @@ You can also configure other arguments passed to Darker via ``"options:"``.
 It defaults to ``"--check --diff"``.
 You can e.g. add ``"--isort"`` to sort imports, or ``"--verbose"`` for debug logging.
 
+To run linters through Darker, you can provide a comma separated list of linters using
+the ``lint:`` option. Only ``flake8``, ``pylint`` and ``mypy`` are supported.
+
 *New in version 1.1.0:*
 GitHub Actions integration. Modeled after how Black_ does it,
 thanks to Black authors for the example!
+
+*New in version 1.4.1:*
+The ``revision:`` option, with smart default value if omitted.
+
+*New in version 1.5.0:*
+The ``lint:`` option.
 
 
 .. _Using linters:
