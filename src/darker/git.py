@@ -351,7 +351,7 @@ def _revision_vs_lines(
 
     The actual implementation is here instead of in
     `EditedLinenumsDiffer._revision_vs_lines` so it is accessibe both as a method and as
-    a module gloabl for use in the `_compare_revisions` function.
+    a module global for use in the `_compare_revisions` function.
 
     :param path_in_repo: Path of the file to compare, relative to repository root
     :param content: The contents to compare to, e.g. from current working tree
@@ -406,7 +406,7 @@ class EditedLinenumsDiffer:
 
         Also includes `context_lines` number of extra lines before and after each
         modified line.
-    
+
         The actual implementation is in the module global `_compare_revisions` function
         because `lru_cache` leaks memory when used on methods.
         See https://stackoverflow.com/q/33672412/15770
