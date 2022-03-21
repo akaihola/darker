@@ -353,7 +353,9 @@ def _revision_vs_lines(
     `EditedLinenumsDiffer._revision_vs_lines` so it is accessibe both as a method and as
     a module global for use in the `_compare_revisions` function.
 
+    :param root: Root directory for the relative path `path_in_repo`
     :param path_in_repo: Path of the file to compare, relative to repository root
+    :param rev1: The Git revision to compare the on-disk worktree version to
     :param content: The contents to compare to, e.g. from current working tree
     :param context_lines: The number of lines to include before and after a change
     :return: Line numbers of lines changed between the revision and given content
