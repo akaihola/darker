@@ -202,7 +202,7 @@ def test_runs_darker(tmp_path, env, expect):
         run_module("main")
 
     darker = str(tmp_path / ".darker-env" / BIN / "darker")
-    # We can change `c[0][0][0]` to `c.args[0][0]` after droppin support for Python 3.7.
+    # We can change `c[0][0][0]` to `c.args[0][0]` after dropping Python 3.7 support.
     # This gets the first list item of the first positional argument to the `run` call.
     assert darker in [c[0][0][0] for c in main_patch.subprocess.run.call_args_list]
 
