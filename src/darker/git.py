@@ -344,6 +344,58 @@ def git_get_modified_python_files(
     return {path for path in changed_paths if should_reformat_file(cwd / path)}
 
 
+def _revision_vs_lines(
+    root: Path, path_in_repo: Path, rev1: str, content: TextDocument, context_lines: int
+) -> List[int]:
+    """For file `path_in_repo`, return changed line numbers from given revision
+
+    The actual implementation is here instead of in
+    `EditedLinenumsDiffer._revision_vs_lines` so it is accessibe both as a method and as
+    a module global for use in the `_compare_revisions` function.
+
+    :param root: Root directory for the relative path `path_in_repo`
+    :param path_in_repo: Path of the file to compare, relative to repository root
+    :param rev1: The Git revision to compare the on-disk worktree version to
+    :param content: The contents to compare to, e.g. from current working tree
+    :param context_lines: The number of lines to include before and after a change
+    :return: Line numbers of lines changed between the revision and given content
+
+    """
+    old = git_get_content_at_revision(path_in_repo, rev1, root)
+    edited_opcodes = diff_and_get_opcodes(old, content)
+    return list(opcodes_to_edit_linenums(edited_opcodes, context_lines))
+
+
+@lru_cache(maxsize=1)
+def _compare_revisions(
+    root: Path, path_in_repo: Path, rev1: str, context_lines: int
+) -> List[int]:
+    """Get line numbers of lines changed between a given revision and the worktree
+
+    Also includes `context_lines` number of extra lines before and after each
+    modified line.
+
+    The actual implementation is here instead of in
+    `EditedLinenumsDiffer.compare_revisions` because `lru_cache` leaks memory when used
+    on methods. See https://stackoverflow.com/q/33672412/15770
+
+    :param root: Root directory for the relative path `path_in_repo`
+    :param path_in_repo: Path of the file to compare, relative to repository root
+    :param rev1: The Git revision to compare the on-disk worktree version to
+    :param context_lines: The number of lines to include before and after a change
+    :return: Line numbers of lines changed between the revision and given content
+
+    """
+    content = TextDocument.from_file(root / path_in_repo)
+    linenums = _revision_vs_lines(root, path_in_repo, rev1, content, context_lines)
+    logger.debug(
+        "Edited line numbers in %s: %s",
+        path_in_repo,
+        " ".join(str(n) for n in linenums),
+    )
+    return linenums
+
+
 @dataclass(frozen=True)
 class EditedLinenumsDiffer:
     """Find out changed lines for a file between given Git revisions"""
@@ -351,22 +403,33 @@ class EditedLinenumsDiffer:
     root: Path
     revrange: RevisionRange
 
-    @lru_cache(maxsize=1)
     def compare_revisions(self, path_in_repo: Path, context_lines: int) -> List[int]:
-        """Return numbers of lines changed between a given revision and the worktree"""
-        content = TextDocument.from_file(self.root / path_in_repo)
-        linenums = self.revision_vs_lines(path_in_repo, content, context_lines)
-        logger.debug(
-            "Edited line numbers in %s: %s",
-            path_in_repo,
-            " ".join(str(n) for n in linenums),
+        """Get line numbers of lines changed between a given revision and the worktree
+
+        Also includes `context_lines` number of extra lines before and after each
+        modified line.
+
+        The actual implementation is in the module global `_compare_revisions` function
+        because `lru_cache` leaks memory when used on methods.
+        See https://stackoverflow.com/q/33672412/15770
+
+        :param path_in_repo: Path of the file to compare, relative to repository root
+        :param context_lines: The number of lines to include before and after a change
+        :return: Line numbers of lines changed between the revision and given content
+
+        """
+        return _compare_revisions(
+            self.root, path_in_repo, self.revrange.rev1, context_lines
         )
-        return linenums
 
     def revision_vs_lines(
         self, path_in_repo: Path, content: TextDocument, context_lines: int
     ) -> List[int]:
         """For file `path_in_repo`, return changed line numbers from given revision
+
+        The actual implementation is in the module global `_revision_vs_lines` function
+        so this can be called from both as a method and the module global
+        `_compare_revisions` function.
 
         :param path_in_repo: Path of the file to compare, relative to repository root
         :param content: The contents to compare to, e.g. from current working tree
@@ -374,6 +437,6 @@ class EditedLinenumsDiffer:
         :return: Line numbers of lines changed between the revision and given content
 
         """
-        old = git_get_content_at_revision(path_in_repo, self.revrange.rev1, self.root)
-        edited_opcodes = diff_and_get_opcodes(old, content)
-        return list(opcodes_to_edit_linenums(edited_opcodes, context_lines))
+        return _revision_vs_lines(
+            self.root, path_in_repo, self.revrange.rev1, content, context_lines
+        )
