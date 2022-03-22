@@ -107,21 +107,29 @@ class TextDocument:
         return cls(string, None, encoding=encoding, newline=newline, mtime=mtime)
 
     @classmethod
+    def from_bytes(cls, data: bytes, mtime: str = "") -> "TextDocument":
+        """Create a document object from a binary string
+
+        :param data: The binary content of the new text document
+        :param mtime: The modification time of the original file
+
+        """
+        srcbuf = io.BytesIO(data)
+        encoding, lines = tokenize.detect_encoding(srcbuf.readline)
+        if not lines:
+            return cls(lines=[], encoding=encoding, mtime=mtime)
+        return cls.from_str(data.decode(encoding), encoding=encoding, mtime=mtime)
+
+    @classmethod
     def from_file(cls, path: Path) -> "TextDocument":
-        """Create a document object by reading an UTF-8 encoded text file
+        """Create a document object by reading a text file
 
         Also store the last modification time of the file.
 
         """
         mtime = datetime.utcfromtimestamp(path.stat().st_mtime).strftime(GIT_DATEFORMAT)
-        srcbuf = path.open("rb")
-        encoding, lines = tokenize.detect_encoding(srcbuf.readline)
-        if not lines:
-            return cls(lines=[], encoding=encoding)
-        srcbuf.seek(0)
-        return cls.from_str(
-            srcbuf.read().decode(encoding), encoding=encoding, mtime=mtime
-        )
+        with path.open("rb") as srcbuf:
+            return cls.from_bytes(srcbuf.read(), mtime)
 
     @classmethod
     def from_lines(

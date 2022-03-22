@@ -9,7 +9,7 @@ from datetime import datetime
 from functools import lru_cache
 from pathlib import Path
 from subprocess import DEVNULL, PIPE, CalledProcessError, check_output, run  # nosec
-from typing import Dict, Iterable, List, Set, Tuple
+from typing import Dict, Iterable, List, Optional, Set, Tuple, Union, overload
 
 from darker.diff import diff_and_get_opcodes, opcodes_to_edit_linenums
 from darker.utils import GIT_DATEFORMAT, TextDocument
@@ -79,8 +79,8 @@ def git_get_content_at_revision(path: Path, revision: str, cwd: Path) -> TextDoc
         return TextDocument.from_file(abspath)
     cmd = ["show", f"{revision}:./{path.as_posix()}"]
     try:
-        return TextDocument.from_lines(
-            _git_check_output_lines(cmd, cwd, exit_on_error=False),
+        return TextDocument.from_bytes(
+            _git_check_output(cmd, cwd, exit_on_error=False),
             mtime=git_get_mtime_at_commit(path, revision, cwd),
         )
     except CalledProcessError as exc_info:
@@ -207,15 +207,45 @@ def _git_check_output_lines(
     cmd: List[str], cwd: Path, exit_on_error: bool = True
 ) -> List[str]:
     """Log command line, run Git, split stdout to lines, exit with 123 on error"""
+    return _git_check_output(
+        cmd,
+        cwd,
+        exit_on_error=exit_on_error,
+        encoding="utf-8",
+    ).splitlines()
+
+
+@overload
+def _git_check_output(
+    cmd: List[str], cwd: Path, *, exit_on_error: bool = ..., encoding: None = ...
+) -> bytes:
+    ...
+
+
+@overload
+def _git_check_output(
+    cmd: List[str], cwd: Path, *, exit_on_error: bool = ..., encoding: str
+) -> str:
+    ...
+
+
+def _git_check_output(
+    cmd: List[str],
+    cwd: Path,
+    *,
+    exit_on_error: bool = True,
+    encoding: Optional[str] = None,
+) -> Union[str, bytes]:
+    """Log command line, run Git, return stdout, exit with 123 on error"""
     logger.debug("[%s]$ git %s", cwd, " ".join(cmd))
     try:
         return check_output(  # nosec
             ["git"] + cmd,
             cwd=str(cwd),
-            encoding="utf-8",
+            encoding=encoding,
             stderr=PIPE,
             env=_make_git_env(),
-        ).splitlines()
+        )
     except CalledProcessError as exc_info:
         if not exit_on_error:
             raise
