@@ -40,6 +40,8 @@ akaihola:
   - {link_type: commits, type: Documentation}
   - {link_type: pulls-reviewed, type: Reviewed Pull Requests}
   - {link_type: commits, type: Maintenance}
+brtknr:
+  - {link_type: pulls-reviewed, type: Reviewed Pull Requests}
 casio:
   - {link_type: issues, type: Bug reports}
 cclauss:
