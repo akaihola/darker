@@ -196,7 +196,9 @@ class GitHubSession(CachedSession):
             url = f"https://api.github.com{url}"
         response = super().request(method, url, headers=hdrs, **kwargs)
         if response.status_code != 200:
-            raise RuntimeError(f"{response.status_code} {response.text}")
+            raise RuntimeError(
+                f"{response.status_code} {response.text} when requesting {url}"
+            )
         return response
 
 
