@@ -51,6 +51,7 @@
 - Paul Ivanov (@ivanov)
 - Philipp A. (@flying-sheep)
 - Rishi Kumar Ray (@RishiKumarRay)
+- Roberto Polli (@ioggstream)
 - Ronie Martinez (@roniemartinez)
 - Ross Barnowski (@rossbar)
 - samoylovfp (@samoylovfp)
