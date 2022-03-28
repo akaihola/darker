@@ -25,7 +25,7 @@ class GitRepoFixture:
         env = {"HOME": str(root), "LC_ALL": "C", "PATH": os.environ["PATH"]}
         instance = cls(root, env)
         # pylint: disable=protected-access
-        instance._run("init")
+        instance._run("init", "--initial-branch=master")
         instance._run("config", "user.email", "ci@example.com")
         instance._run("config", "user.name", "CI system")
         return instance
