@@ -25,6 +25,7 @@
 - Eric Riddoch (@phitoduck)
 - Filippos Giannakos (@philipgian)
 - Fox_white (@foxwhite25)
+- Georges Discry (@gdiscry)
 - Giel van Schijndel (@muggenhor)
 - Hugo Dupras (@jabesq)
 - Iryna (@irynahryshanovich)
