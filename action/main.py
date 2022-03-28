@@ -4,6 +4,7 @@ import sys
 from pathlib import Path
 from subprocess import PIPE, STDOUT, run  # nosec
 
+LINTER_WHITELIST = {"flake8", "pylint", "mypy"}
 ACTION_PATH = Path(os.environ["GITHUB_ACTION_PATH"])
 ENV_PATH = ACTION_PATH / ".darker-env"
 ENV_BIN = ENV_PATH / ("Scripts" if sys.platform == "win32" else "bin")
@@ -16,26 +17,50 @@ REVISION = os.getenv(
 
 run([sys.executable, "-m", "venv", str(ENV_PATH)], check=True)
 
-req = "darker[isort]"
+req = ["darker[isort]"]
 if VERSION:
-    req += f"=={VERSION}"
+    req[0] += f"=={VERSION}"
+linter_options = []
+for linter_ in os.getenv("INPUT_LINT", default="").split(","):
+    linter = linter_.strip()
+    if not linter:
+        continue
+    if linter not in LINTER_WHITELIST:
+        raise RuntimeError(
+            f"{linter!r} is not supported as a linter by the GitHub Action"
+        )
+    req.append(linter)
+    linter_options.extend(["--lint", linter])
+
 pip_proc = run(  # nosec
-    [str(ENV_BIN / "python"), "-m", "pip", "install", req],
+    [str(ENV_BIN / "python"), "-m", "pip", "install"] + req,
     check=False,
     stdout=PIPE,
     stderr=STDOUT,
     encoding="utf-8",
 )
+print(pip_proc.stdout, end="")
 if pip_proc.returncode:
-    print(pip_proc.stdout)
-    print("::error::Failed to install Darker.", flush=True)
+    print(f"::error::Failed to install {' '.join(req)}.", flush=True)
     sys.exit(pip_proc.returncode)
 
 
 base_cmd = [str(ENV_BIN / "darker")]
 proc = run(  # nosec
-    [*base_cmd, *shlex.split(OPTIONS), "--revision", REVISION, *shlex.split(SRC)],
+    [
+        *base_cmd,
+        *shlex.split(OPTIONS),
+        *linter_options,
+        "--revision",
+        REVISION,
+        *shlex.split(SRC),
+    ],
     check=False,
+    stdout=PIPE,
+    stderr=STDOUT,
+    env={**os.environ, "PATH": f"{ENV_BIN}:{os.environ['PATH']}"},
+    encoding="utf-8",
 )
+print(proc.stdout, end="")
 
 sys.exit(proc.returncode)

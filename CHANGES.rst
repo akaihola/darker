@@ -7,7 +7,8 @@ Added
 -----
 - The ``--jobs`` option now specifies how many Darker jobs are used to process files in
   parallel to complete reformatting/linting faster.
-
+- Linters can now be run in the GitHub Action using the ``lint:`` option.
+  
 Fixed
 -----
 - Avoid memory leak from using ``@lru_cache`` on a method.

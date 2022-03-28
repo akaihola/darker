@@ -22,6 +22,12 @@ inputs:
       Git revision range to compare when determining modified lines.
       Determined automatically if omitted.
     required: false
+  lint:
+    description: >-
+      Comma-separated list of linters to `pip install` and run from Darker.
+      Example: flake8,pylint
+    required: false
+    default: ''
 branding:
   color: "black"
   icon: "check-circle"
@@ -61,6 +67,7 @@ runs:
         INPUT_SRC: ${{ inputs.src }}
         INPUT_VERSION: ${{ inputs.version }}
         INPUT_REVISION: ${{ inputs.revision }}
+        INPUT_LINT: ${{ inputs.lint }}
         INPUT_COMMIT_RANGE: ${{ steps.commit-range.outputs.commit-range }}
         pythonioencoding: utf-8
       shell: bash

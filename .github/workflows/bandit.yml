@@ -21,3 +21,9 @@ jobs:
         with:
           project_path: ./src/darker/tests
           config_file: ./.bandit.tests.yaml
+
+      - name: Bandit security check for GitHub Action `main.py` tests
+        uses: akaihola/bandit-report-artifacts@use-config
+        with:
+          project_path: ./action/tests
+          config_file: ./.bandit.tests.yaml

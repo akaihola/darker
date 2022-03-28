@@ -5,3 +5,4 @@
 targets: .
 exclude_dirs:
   - ./src/darker/tests
+  - ./action/tests
