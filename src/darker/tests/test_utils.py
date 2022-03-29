@@ -1,5 +1,7 @@
 """Unit tests for :mod:`darker.utils`"""
 
+# pylint: disable=redefined-outer-name, comparison-with-callable
+
 import logging
 import os
 from pathlib import Path
@@ -15,6 +17,39 @@ from darker.utils import (
     get_path_ancestry,
     joinlines,
 )
+
+
+@pytest.fixture(params=[TextDocument.from_file, TextDocument.from_bytes])
+def textdocument_factory(request):
+    """Fixture for a factory function that creates a ``TextDocument``
+
+    The fixture can be parametrized with `(bytes) -> TextDocument` functions
+    that take the raw bytes of the document.
+
+    By default, it is parametrized with the ``TextDocument.from_file()`` (for
+    which it creates a temporary file) and the ``TextDocument.from_bytes()``
+    classmethods.
+    """
+    if request.param == TextDocument.from_file:
+
+        def factory(content):
+            tmp_path = request.getfixturevalue("tmp_path")
+            path = tmp_path / "test.py"
+            path.write_bytes(content)
+            return TextDocument.from_file(path)
+
+        return factory
+
+    return request.param
+
+
+@pytest.fixture
+def textdocument(request, textdocument_factory):
+    """Fixture for a ``TextDocument``
+
+    The fixture must be parametrized with the raw bytes of the document.
+    """
+    return textdocument_factory(request.param)
 
 
 @pytest.mark.kwparametrize(
@@ -225,31 +260,23 @@ def test_textdocument_from_str(
 
 
 @pytest.mark.kwparametrize(
-    dict(content=b'print("touch\xc3\xa9")\n', expect="utf-8"),
-    dict(content=b'\xef\xbb\xbfprint("touch\xc3\xa9")\n', expect="utf-8-sig"),
-    dict(content=b'# coding: iso-8859-1\n"touch\xe9"\n', expect="iso-8859-1"),
+    dict(textdocument=b'print("touch\xc3\xa9")\n', expect="utf-8"),
+    dict(textdocument=b'\xef\xbb\xbfprint("touch\xc3\xa9")\n', expect="utf-8-sig"),
+    dict(textdocument=b'# coding: iso-8859-1\n"touch\xe9"\n', expect="iso-8859-1"),
+    indirect=["textdocument"],
 )
-def test_textdocument_from_file_detect_encoding(tmp_path, content, expect):
-    """TextDocument.from_file() detects the file encoding correctly"""
-    path = tmp_path / "test.py"
-    path.write_bytes(content)
-
-    textdocument = TextDocument.from_file(path)
-
+def test_textdocument_detect_encoding(textdocument, expect):
+    """TextDocument.from_file/bytes() detects the file encoding correctly"""
     assert textdocument.encoding == expect
 
 
 @pytest.mark.kwparametrize(
-    dict(content=b'print("unix")\n', expect="\n"),
-    dict(content=b'print("windows")\r\n', expect="\r\n"),
+    dict(textdocument=b'print("unix")\n', expect="\n"),
+    dict(textdocument=b'print("windows")\r\n', expect="\r\n"),
+    indirect=["textdocument"],
 )
-def test_textdocument_from_file_detect_newline(tmp_path, content, expect):
-    """TextDocument.from_file() detects the newline character sequence correctly"""
-    path = tmp_path / "test.py"
-    path.write_bytes(content)
-
-    textdocument = TextDocument.from_file(path)
-
+def test_textdocument_detect_newline(textdocument, expect):
+    """TextDocument.from_file/bytes() detects the newline sequence correctly"""
     assert textdocument.newline == expect
 
 

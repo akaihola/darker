@@ -139,6 +139,17 @@ def test_revisionrange_parse(revision_range, expect):
     assert result == expect
 
 
+def git_call(cmd, encoding=None):
+    """Returns a mocked call to git"""
+    return call(
+        cmd.split(),
+        cwd=str(Path("/path")),
+        encoding=encoding,
+        stderr=PIPE,
+        env={"LC_ALL": "C", "PATH": os.environ["PATH"]},
+    )
+
+
 @pytest.mark.kwparametrize(
     dict(
         revision=":WORKTREE:",
@@ -147,31 +158,31 @@ def test_revisionrange_parse(revision_range, expect):
     dict(
         revision="HEAD",
         expect_git_calls=[
-            "git show HEAD:./my.txt",
-            "git log -1 --format=%ct HEAD -- my.txt",
+            git_call("git show HEAD:./my.txt"),
+            git_call("git log -1 --format=%ct HEAD -- my.txt", encoding="utf-8"),
         ],
         expect_textdocument_calls=[
-            call.from_lines([b"1627107028"], mtime="2021-07-24 06:10:28.000000 +0000")
+            call.from_bytes(b"1627107028", mtime="2021-07-24 06:10:28.000000 +0000")
         ],
     ),
     dict(
         revision="HEAD^",
         expect_git_calls=[
-            "git show HEAD^:./my.txt",
-            "git log -1 --format=%ct HEAD^ -- my.txt",
+            git_call("git show HEAD^:./my.txt"),
+            git_call("git log -1 --format=%ct HEAD^ -- my.txt", encoding="utf-8"),
         ],
         expect_textdocument_calls=[
-            call.from_lines([b"1627107028"], mtime="2021-07-24 06:10:28.000000 +0000")
+            call.from_bytes(b"1627107028", mtime="2021-07-24 06:10:28.000000 +0000")
         ],
     ),
     dict(
         revision="master",
         expect_git_calls=[
-            "git show master:./my.txt",
-            "git log -1 --format=%ct master -- my.txt",
+            git_call("git show master:./my.txt"),
+            git_call("git log -1 --format=%ct master -- my.txt", encoding="utf-8"),
         ],
         expect_textdocument_calls=[
-            call.from_lines([b"1627107028"], mtime="2021-07-24 06:10:28.000000 +0000")
+            call.from_bytes(b"1627107028", mtime="2021-07-24 06:10:28.000000 +0000")
         ],
     ),
     expect_git_calls=[],
@@ -189,17 +200,7 @@ def test_git_get_content_at_revision_obtain_file_content(
 
         git.git_get_content_at_revision(Path("my.txt"), revision, Path("/path"))
 
-        expected_calls = [
-            call(
-                expected_call.split(),
-                cwd=str(Path("/path")),
-                encoding="utf-8",
-                stderr=PIPE,
-                env={"LC_ALL": "C", "PATH": os.environ["PATH"]},
-            )
-            for expected_call in expect_git_calls
-        ]
-        assert check_output.call_args_list == expected_calls
+        assert check_output.call_args_list == expect_git_calls
         assert text_document_class.method_calls == expect_textdocument_calls
 
 
@@ -401,6 +402,58 @@ def test_git_get_content_at_revision_stderr(git_repo, capfd, caplog):
     assert outerr.out == ""
     assert outerr.err == ""
     assert caplog.text == ""
+
+
+@pytest.fixture(scope="module")
+def encodings_repo(tmp_path_factory):
+    """Create an example Git repository using various encodings for the same file"""
+    tmpdir = tmp_path_factory.mktemp("branched_repo")
+    git_repo = GitRepoFixture.create_repository(tmpdir)
+    # Commit without an encoding cookie, defaults to utf-8
+    git_repo.add({"file.py": "darker = 'plus foncé'\n"}, commit="Default encoding")
+    git_repo.create_tag("default")
+    # Commit without an encoding cookie but with a utf-8 signature
+    content = "darker = 'plus foncé'\n".encode("utf-8-sig")
+    git_repo.add({"file.py": content}, commit="utf-8-sig")
+    git_repo.create_tag("utf-8-sig")
+    # Commit with an iso-8859-1 encoding cookie
+    content = "# coding: iso-8859-1\ndarker = 'plus foncé'\n".encode("iso-8859-1")
+    git_repo.add({"file.py": content}, commit="iso-8859-1")
+    git_repo.create_tag("iso-8859-1")
+    # Commit with a utf-8 encoding cookie
+    content = "# coding: utf-8\npython = 'パイソン'\n".encode("utf-8")
+    git_repo.add({"file.py": content}, commit="utf-8")
+    git_repo.create_tag("utf-8")
+    # Current worktree content (not committed) with a shitfjs encoding cookie
+    content = "# coding: shiftjis\npython = 'パイソン'\n".encode("shiftjis")
+    git_repo.add({"file.py": content})
+    return git_repo
+
+
+@pytest.mark.kwparametrize(
+    dict(commit="default", encoding="utf-8", lines=("darker = 'plus foncé'",)),
+    dict(commit="utf-8-sig", encoding="utf-8-sig", lines=("darker = 'plus foncé'",)),
+    dict(
+        commit="iso-8859-1",
+        encoding="iso-8859-1",
+        lines=("# coding: iso-8859-1", "darker = 'plus foncé'"),
+    ),
+    dict(
+        commit="utf-8", encoding="utf-8", lines=("# coding: utf-8", "python = 'パイソン'")
+    ),
+    dict(
+        commit=":WORKTREE:",
+        encoding="shiftjis",
+        lines=("# coding: shiftjis", "python = 'パイソン'"),
+    ),
+)
+def test_git_get_content_at_revision_encoding(encodings_repo, commit, encoding, lines):
+    """Git file is loaded using its historical encoding"""
+    result = git.git_get_content_at_revision(
+        Path("file.py"), commit, encodings_repo.root
+    )
+    assert result.encoding == encoding
+    assert result.lines == lines
 
 
 @pytest.mark.kwparametrize(

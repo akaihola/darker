@@ -3,7 +3,7 @@
 import os
 from pathlib import Path
 from subprocess import check_call  # nosec
-from typing import Dict, Optional
+from typing import Dict, Union
 
 import pytest
 from black import find_project_root as black_find_project_root
@@ -25,7 +25,7 @@ class GitRepoFixture:
         env = {"HOME": str(root), "LC_ALL": "C", "PATH": os.environ["PATH"]}
         instance = cls(root, env)
         # pylint: disable=protected-access
-        instance._run("init")
+        instance._run("init", "--initial-branch=master")
         instance._run("config", "user.email", "ci@example.com")
         instance._run("config", "user.name", "CI system")
         return instance
@@ -39,7 +39,7 @@ class GitRepoFixture:
         return _git_check_output_lines(list(args), Path(self.root))[0]
 
     def add(
-        self, paths_and_contents: Dict[str, Optional[str]], commit: str = None
+        self, paths_and_contents: Dict[str, Union[str, bytes, None]], commit: str = None
     ) -> Dict[str, Path]:
         """Add/remove/modify files and optionally commit the changes
 
@@ -58,10 +58,12 @@ class GitRepoFixture:
             path = absolute_paths[relative_path]
             if content is None:
                 self._run("rm", "--", relative_path)
-            else:
-                path.parent.mkdir(parents=True, exist_ok=True)
-                path.write_bytes(content.encode("utf-8"))
-                self._run("add", "--", relative_path)
+                continue
+            if isinstance(content, str):
+                content = content.encode("utf-8")
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_bytes(content)
+            self._run("add", "--", relative_path)
         if commit:
             self._run("commit", "-m", commit)
         return absolute_paths
