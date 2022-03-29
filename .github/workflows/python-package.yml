@@ -73,13 +73,29 @@ jobs:
         uses: actions/setup-python@v3
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Install dependencies
-        env:
-          pip_options: ${{ matrix.upgrade }} ${{ matrix.constraints }}
+      - name: Upgrade pip, install wheel and twine
         run: |
           # strict dependency resolution added in pip 20.3
-          python -m pip install --upgrade 'pip>=20.3'
-          pip install ${pip_options} -e '.[isort,test]'
+          python -m pip install --upgrade 'pip>=20.3' wheel twine
+      - name: Build source distribution
+        run: python setup.py sdist
+      - name: Build wheel distribution
+        run: python setup.py bdist_wheel
+      - name: Validate distributions
+        run: twine check dist/*
+      - name: Get Darker version
+        shell: python
+        run: |
+          from os import environ
+          from pathlib import Path
+          from runpy import run_path
+          version = run_path("src/darker/version.py")["__version__"]
+          Path(environ["GITHUB_ENV"]).write_text(f"VERSION={version}\n")
+      - name: Install Darker and its dependencies
+        env:
+          pip_options: ${{ matrix.upgrade }} ${{ matrix.constraints }}
+        run: pip install ${pip_options}
+                 "dist/darker-${{ env.VERSION }}-py3-none-any.whl[isort,test]"
       - name: Run Pytest without Mypy and Pylint if Python < 3.9
         if: env.RUN_MYPY_AND_PYLINT == 'false'
         run: |
