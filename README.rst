@@ -100,13 +100,24 @@ __ https://github.com/psf/black/issues/1352
 But for the time being, this is where ``darker`` enters the stage.
 This tool is for those who want to do partial formatting right now.
 
-> "When you make this single reformatting commit, everything that comes after is semantic changes so your commit history is clean ...
-However, by doing that you forever expose yourself to commits that are a mix of semantic changes with stylistic changes."
->  <cite>[Łukasz Langa](https://lukasz.langa.pl/)</cite> - creator of Black, [article](https://lukasz.langa.pl/36380f86-6d28-4a55-962e-91c2c959db7a/)
-
 Note that this tool is meant for special situations
 when dealing with existing code bases.
 You should just use Black_ and isort_ as is when starting a project from scratch.
+
+You may also want to still consider whether reformatting the whole code base in one
+commit would make sense in your particular case. For a deeper dive into this topic, see
+the article `Why does Black insist on reformatting my entire project?`_ from
+`Łukasz Langa`_, the creator of Black_. Here's an excerpt:
+
+    "When you make this single reformatting commit, everything that comes after is
+    **semantic changes** so your commit history is clean in the sense that it actually
+    shows what changed in terms of meaning, not style. There are tools like darker that
+    allow you to only reformat lines that were touched since the last commit. However,
+    by doing that you forever expose yourself to commits that are a mix of semantic
+    changes with stylistic changes, making it much harder to see what changed."
+
+.. _Why does Black insist on reformatting my entire project?: https://lukasz.langa.pl/36380f86-6d28-4a55-962e-91c2c959db7a/
+.. _Łukasz Langa: https://lukasz.langa.pl/
 
 How?
 ====
