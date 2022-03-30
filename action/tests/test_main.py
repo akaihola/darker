@@ -103,6 +103,10 @@ def test_creates_virtualenv(tmp_path, main_patch):
         run_main_env={"INPUT_LINT": "  flake8  ,  pylint  "},
         expect=["darker[isort]", "flake8", "pylint"],
     ),
+    dict(
+        run_main_env={"INPUT_LINT": "  flake8  >=  3.9.2  ,  pylint  ==  2.13.1  "},
+        expect=["darker[isort]", "flake8>=3.9.2", "pylint==2.13.1"],
+    ),
 )
 def test_installs_packages(tmp_path, main_patch, run_main_env, expect):
     """Darker, isort and linters are installed in the virtualenv using pip"""
@@ -126,7 +130,7 @@ def test_installs_packages(tmp_path, main_patch, run_main_env, expect):
 
 
 @pytest.mark.parametrize(
-    "linters", ["foo", "  foo  ", "foo,bar", "  foo  ,  bar  ", "pylint,foo"]
+    "linters", ["foo", "  foo  ", "foo==2.0,bar", "  foo>1.0  ,  bar  ", "pylint,foo"]
 )
 def test_wont_install_unknown_packages(tmp_path, linters):
     """Non-whitelisted linters raise an exception"""
@@ -171,6 +175,10 @@ def test_wont_install_unknown_packages(tmp_path, linters):
     ),
     dict(
         env={"INPUT_SRC": ".", "INPUT_LINT": "pylint,flake8"},
+        expect=["--lint", "pylint", "--lint", "flake8", "--revision", "HEAD^", "."],
+    ),
+    dict(
+        env={"INPUT_SRC": ".", "INPUT_LINT": "pylint == 2.13.1,flake8>=3.9.2"},
         expect=["--lint", "pylint", "--lint", "flake8", "--revision", "HEAD^", "."],
     ),
     dict(
