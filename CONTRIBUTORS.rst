@@ -45,7 +45,7 @@
 - mayk0gan (@mayk0gan)
 - Mystic-Mirage (@Mystic-Mirage)
 - Nathan Huffman (@njhuffman)
-- Nutchanon Ninyawee (@CircleOnCircles)
+- Nutchanon Ninyawee (@wasdee)
 - overratedpro (@overratedpro)
 - Pacu2 (@Pacu2)
 - Paul Ivanov (@ivanov)

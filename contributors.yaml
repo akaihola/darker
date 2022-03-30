@@ -5,8 +5,6 @@ Carreau:
   - {link_type: commits, type: Code}
   - {link_type: commits, type: Documentation}
   - {link_type: pulls-reviewed, type: Reviewed Pull Requests}
-CircleOnCircles:
-  - {link_type: issues, type: Bug reports}
 CorreyL:
   - {link_type: commits, type: Code}
   - {link_type: commits, type: Documentation}
@@ -135,6 +133,8 @@ tkolleh:
   - {link_type: issues, type: Bug reports}
 tobiasdiez: []
 virtuald:
+  - {link_type: issues, type: Bug reports}
+wasdee:
   - {link_type: issues, type: Bug reports}
 wjdp:
   - {link_type: issues, type: Bug reports}
