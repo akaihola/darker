@@ -100,6 +100,10 @@ __ https://github.com/psf/black/issues/1352
 But for the time being, this is where ``darker`` enters the stage.
 This tool is for those who want to do partial formatting right now.
 
+> "When you make this single reformatting commit, everything that comes after is semantic changes so your commit history is clean ...
+However, by doing that you forever expose yourself to commits that are a mix of semantic changes with stylistic changes."
+>  <cite>[Łukasz Langa](https://lukasz.langa.pl/)</cite> - creator of Black, [article](https://lukasz.langa.pl/36380f86-6d28-4a55-962e-91c2c959db7a/)
+
 Note that this tool is meant for special situations
 when dealing with existing code bases.
 You should just use Black_ and isort_ as is when starting a project from scratch.
@@ -587,9 +591,9 @@ Create a file named ``.github/workflows/darker.yml`` inside your repository with
 .. code-block:: yaml
 
    name: Lint
-   
+
    on: [push, pull_request]
-   
+
    jobs:
      lint:
        runs-on: ubuntu-latest
@@ -691,7 +695,7 @@ Here's an example of `cov_to_lint.py`_ output::
 +-----------------------------------------------------------------------+
 |                               ⚠ NOTE ⚠                                |
 +=======================================================================+
-| Don't enable linting on the command line or in the configuration when | 
+| Don't enable linting on the command line or in the configuration when |
 | running Darker as a reformatter in VSCode. You will confuse VSCode    |
 | with unexpected output from Darker, as it only expect black's output  |
 +-----------------------------------------------------------------------+
