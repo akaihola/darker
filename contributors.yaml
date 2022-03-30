@@ -45,6 +45,7 @@ casio:
 cclauss:
   - {link_type: pulls-author, type: Code}
 chmouel:
+  - {link_type: pulls-author, type: Code}
   - {link_type: issues, type: Bug reports}
 chrisdecker1201:
   - {link_type: pulls-author, type: Code}

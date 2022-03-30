@@ -935,6 +935,7 @@ Thanks goes to these wonderful people (`emoji key`_):
            </sub>
          </a>
          <br />
+         <a href="https://github.com/akaihola/darker/pulls?q=is%3Apr+author%3Achmouel" title="Code">💻</a>
          <a href="https://github.com/akaihola/darker/issues?q=author%3Achmouel" title="Bug reports">🐛</a>
        </td>
        <td align="center">
