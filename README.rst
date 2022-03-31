@@ -575,7 +575,7 @@ Create a file named ``.github/workflows/darker.yml`` inside your repository with
              revision: "master..."
              src: "./src"
              version: "1.4.2"
-             lint: "flake8,pylint"
+             lint: "flake8,pylint==2.13.1"
 
 There needs to be a working Python environment, set up using ``actions/setup-python``
 in the above example. Darker will be installed in an isolated virtualenv to prevent
@@ -603,6 +603,7 @@ You can e.g. add ``"--isort"`` to sort imports, or ``"--verbose"`` for debug log
 
 To run linters through Darker, you can provide a comma separated list of linters using
 the ``lint:`` option. Only ``flake8``, ``pylint`` and ``mypy`` are supported.
+Versions can be constrained using ``pip`` syntax, e.g. ``"flake8>=3.9.2"``.
 
 *New in version 1.1.0:*
 GitHub Actions integration. Modeled after how Black_ does it,

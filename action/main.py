@@ -4,6 +4,8 @@ import sys
 from pathlib import Path
 from subprocess import PIPE, STDOUT, run  # nosec
 
+from pkg_resources import parse_requirements
+
 LINTER_WHITELIST = {"flake8", "pylint", "mypy"}
 ACTION_PATH = Path(os.environ["GITHUB_ACTION_PATH"])
 ENV_PATH = ACTION_PATH / ".darker-env"
@@ -11,6 +13,7 @@ ENV_BIN = ENV_PATH / ("Scripts" if sys.platform == "win32" else "bin")
 OPTIONS = os.getenv("INPUT_OPTIONS", default="")
 SRC = os.getenv("INPUT_SRC", default="")
 VERSION = os.getenv("INPUT_VERSION", default="")
+LINT = os.getenv("INPUT_LINT", default="")
 REVISION = os.getenv(
     "INPUT_REVISION", default=os.getenv("INPUT_COMMIT_RANGE", default="HEAD^")
 )
@@ -21,15 +24,13 @@ req = ["darker[isort]"]
 if VERSION:
     req[0] += f"=={VERSION}"
 linter_options = []
-for linter_ in os.getenv("INPUT_LINT", default="").split(","):
-    linter = linter_.strip()
-    if not linter:
-        continue
+for linter_requirement in parse_requirements(LINT.replace(",", "\n")):
+    linter = linter_requirement.name
     if linter not in LINTER_WHITELIST:
         raise RuntimeError(
             f"{linter!r} is not supported as a linter by the GitHub Action"
         )
-    req.append(linter)
+    req.append(str(linter_requirement))
     linter_options.extend(["--lint", linter])
 
 pip_proc = run(  # nosec

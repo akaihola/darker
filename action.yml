@@ -25,7 +25,8 @@ inputs:
   lint:
     description: >-
       Comma-separated list of linters to `pip install` and run from Darker.
-      Example: flake8,pylint
+      Optionally, version constraints (using pip syntax) can be specified.
+      Example: flake8,pylint==2.13.1
     required: false
     default: ''
 branding:
