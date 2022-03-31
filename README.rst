@@ -105,9 +105,12 @@ when dealing with existing code bases.
 You should just use Black_ and isort_ as is when starting a project from scratch.
 
 You may also want to still consider whether reformatting the whole code base in one
-commit would make sense in your particular case. For a deeper dive into this topic, see
-the article `Why does Black insist on reformatting my entire project?`_ from
-`Łukasz Langa`_, the creator of Black_. Here's an excerpt:
+commit would make sense in your particular case. You can ignore a reformatting commit
+in ``git blame`` using the `blame.ignoreRevsFile`_ config option or ``--ignore-rev`` on
+the command line. For a deeper dive into this topic, see `Avoiding ruining git blame`_
+in Black documentation, or the article
+`Why does Black insist on reformatting my entire project?`_ from `Łukasz Langa`_
+(`@ambv`_, the creator of Black). Here's an excerpt:
 
     "When you make this single reformatting commit, everything that comes after is
     **semantic changes** so your commit history is clean in the sense that it actually
@@ -116,8 +119,11 @@ the article `Why does Black insist on reformatting my entire project?`_ from
     by doing that you forever expose yourself to commits that are a mix of semantic
     changes with stylistic changes, making it much harder to see what changed."
 
+.. _blame.ignoreRevsFile: https://git-scm.com/docs/git-blame/en#Documentation/git-blame.txt---ignore-revs-fileltfilegt
+.. _Avoiding ruining git blame: https://black.readthedocs.io/en/stable/guides/introducing_black_to_your_project.html#avoiding-ruining-git-blame
 .. _Why does Black insist on reformatting my entire project?: https://lukasz.langa.pl/36380f86-6d28-4a55-962e-91c2c959db7a/
 .. _Łukasz Langa: https://lukasz.langa.pl/
+.. _@ambv: https://github.com/ambv
 
 How?
 ====
