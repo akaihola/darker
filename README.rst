@@ -490,6 +490,35 @@ You can though ask vim to run ``darker`` on file save with the following in your
 
 Vim should automatically reload the file.
 
+Emacs
+-----
+
+You can integrate with Emacs using Steve Purcell's `emacs-reformatter`__ library.
+
+Using `use-package`__:
+
+.. code-block:: emacs-lisp
+
+    (use-package reformatter
+      :hook ((python-mode . darker-reformat-on-save-mode))
+      :config
+      (reformatter-define darker-reformat
+        :program "darker"
+        :stdin nil
+        :stdout nil
+        :args (list "-q" input-file))
+
+
+This will automatically reformat the buffer on save.
+
+You have multiple functions available to launch it manually:
+
+- darker-reformat
+- darker-reformat-region
+- darker-reformat-buffer
+
+__ https://github.com/purcell/emacs-reformatter
+__ https://github.com/jwiegley/use-package
 
 Using as a pre-commit hook
 ==========================
