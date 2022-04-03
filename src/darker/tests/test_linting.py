@@ -152,7 +152,9 @@ def test_run_linter(
     cmdline = f"echo {location}"
     revrange = RevisionRange("HEAD", ":WORKTREE:")
 
-    linting.run_linter(cmdline, git_repo.root, {Path(p) for p in paths}, revrange)
+    linting.run_linter(
+        cmdline, git_repo.root, {Path(p) for p in paths}, revrange, use_color=False
+    )
 
     # We can now verify that the linter received the correct paths on its command line
     # by checking standard output from the our `echo` "linter".
@@ -175,6 +177,7 @@ def test_run_linter_non_worktree():
             Path("/dummy"),
             {Path("dummy.py")},
             RevisionRange.parse_with_common_ancestor("..HEAD", Path("dummy cwd")),
+            use_color=False,
         )
 
 
@@ -193,7 +196,11 @@ def test_run_linter_return_value(git_repo, location, expect):
     cmdline = f"echo {location}"
 
     result = linting.run_linter(
-        cmdline, git_repo.root, {Path("test.py")}, RevisionRange("HEAD", ":WORKTREE:")
+        cmdline,
+        git_repo.root,
+        {Path("test.py")},
+        RevisionRange("HEAD", ":WORKTREE:"),
+        use_color=False,
     )
 
     assert result == expect
@@ -246,6 +253,7 @@ def test_run_linters(linter_cmdlines, linters_return, expect_result):
             Path("dummy root"),
             {Path("dummy paths")},
             RevisionRange("dummy rev1", "dummy rev2"),
+            use_color=False,
         )
 
         expect_calls = [
@@ -254,6 +262,7 @@ def test_run_linters(linter_cmdlines, linters_return, expect_result):
                 Path("dummy root"),
                 {Path("dummy paths")},
                 RevisionRange("dummy rev1", "dummy rev2"),
+                False,
             )
             for linter_cmdline in linter_cmdlines
         ]
@@ -276,6 +285,7 @@ def test_run_linter_on_new_file(git_repo, capsys):
         Path(git_repo.root),
         {Path("file2.py")},
         RevisionRange("initial", ":WORKTREE:"),
+        use_color=False,
     )
 
     output = capsys.readouterr().out.splitlines()
@@ -303,6 +313,7 @@ def test_run_linter_line_separation(git_repo, capsys):
         Path(git_repo.root),
         {Path(p) for p in paths},
         RevisionRange("HEAD", ":WORKTREE:"),
+        use_color=False,
     )
 
     result = capsys.readouterr().out

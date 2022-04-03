@@ -60,6 +60,14 @@ CONFIG = "Ask `black` and `isort` to read configuration from `PATH`."
 
 VERBOSE = "Show steps taken and summarize modifications"
 QUIET = "Reduce amount of output"
+COLOR = (
+    "Use colors even for non-terminal output. Overrides the environment variable"
+    " PY_COLORS=0"
+)
+NO_COLOR = (
+    "Don't use colors even for terminal output. Overrides the environment variable"
+    " PY_COLORS=1"
+)
 
 VERSION = "Show the version of `darker`"
 

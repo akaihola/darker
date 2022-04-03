@@ -1,6 +1,7 @@
 """Load and save configuration in TOML format"""
 
 import logging
+import os
 import sys
 from argparse import ArgumentParser, Namespace
 from pathlib import Path
@@ -36,6 +37,7 @@ class DarkerConfig(TypedDict, total=False):
     lint: List[str]
     config: str
     log_level: int
+    color: bool
     skip_string_normalization: bool
     skip_magic_trailing_comma: bool
     line_length: int
@@ -95,6 +97,21 @@ def validate_config_output_mode(config: DarkerConfig) -> None:
     OutputMode.validate_diff_stdout(
         config.get("diff", False), config.get("stdout", False)
     )
+
+
+def override_color_with_environment(pyproject_config: DarkerConfig) -> DarkerConfig:
+    """Override ``color`` if the ``PY_COLORS`` environment variable is '0' or '1'
+
+    :param config: The configuration read from ``pyproject.toml``
+    :return: The modified configuration
+
+    """
+    py_colors = os.getenv("PY_COLORS")
+    if py_colors not in {"0", "1"}:
+        return pyproject_config
+    config = pyproject_config.copy()
+    config["color"] = py_colors == "1"
+    return config
 
 
 def load_config(srcs: Iterable[str]) -> DarkerConfig:

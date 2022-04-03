@@ -8,7 +8,7 @@ from argparse import ArgumentError
 from pathlib import Path
 from textwrap import dedent
 from types import SimpleNamespace
-from unittest.mock import Mock, call, patch
+from unittest.mock import call, patch
 
 import pytest
 
@@ -579,6 +579,7 @@ def test_main_in_plain_directory(tmp_path, capsys):
                 Path("subdir_b/subdir_c/another python file.py"),
             },
             RevisionRange(rev1="HEAD", rev2=":WORKTREE:"),
+            False,
         )
     ]
     output = capsys.readouterr().out
@@ -697,12 +698,11 @@ def test_main_vscode_tmpfile(git_repo, capsys):
     ]
 
 
-def test_print_diff(tmp_path, monkeypatch, capsys):
+def test_print_diff(tmp_path, capsys):
     """print_diff() prints Black-style diff output with 5 lines of context"""
-    monkeypatch.chdir(tmp_path)
-    Path("a.py").write_text("dummy\n")
+    Path(tmp_path / "a.py").write_text("dummy\n", encoding="utf-8")
     darker.__main__.print_diff(
-        Path("a.py"),
+        Path(tmp_path / "a.py"),
         TextDocument.from_lines(
             [
                 "unchanged",
@@ -741,6 +741,8 @@ def test_print_diff(tmp_path, monkeypatch, capsys):
             ],
             mtime="2020-10-08 19:21:09.005501 +0000",
         ),
+        root=tmp_path,
+        use_color=False,
     )
 
     assert capsys.readouterr().out.splitlines() == [
@@ -791,26 +793,17 @@ def test_modify_file(tmp_path, new_content, expect):
 @pytest.mark.kwparametrize(
     dict(
         new_content=TextDocument(lines=['print("foo")']),
-        tty=False,
-        with_pygments=False,
+        use_color=False,
         expect=('print("foo")\n',),
     ),
     dict(
         new_content=TextDocument(lines=['print("foo")']),
-        tty=False,
-        with_pygments=True,
+        use_color=False,
         expect=('print("foo")\n',),
     ),
     dict(
         new_content=TextDocument(lines=['print("foo")']),
-        tty=True,
-        with_pygments=False,
-        expect=('print("foo")\n',),
-    ),
-    dict(
-        new_content=TextDocument(lines=['print("foo")']),
-        tty=True,
-        with_pygments=True,
+        use_color=True,
         expect=(
             '\x1b[36mprint\x1b[39;49;00m(\x1b[33m"\x1b[39;49;00mfoo'
             + '\x1b[33m"\x1b[39;49;00m)\n',
@@ -819,17 +812,11 @@ def test_modify_file(tmp_path, new_content, expect):
         ),
     ),
 )
-def test_print_source(new_content, tty, with_pygments, expect, capsys):
-    """Highlight is applied only if tty, final newline is handled correctly."""
-    with patch("sys.stdout.isatty", Mock(return_value=tty)), patch(
-        "darker.__main__._import_pygments",
-        Mock(
-            return_value=darker.__main__._import_pygments(),
-            side_effect=None if with_pygments else ImportError(),
-        ),
-    ):
-        darker.__main__.print_source(new_content)
-        assert capsys.readouterr().out in expect
+def test_print_source(new_content, use_color, expect, capsys):
+    """Highlight is applied only if specified, final newline is handled correctly."""
+    darker.__main__.print_source(new_content, use_color=use_color)
+
+    assert capsys.readouterr().out in expect
 
 
 def test_stdout_path_resolution(git_repo, capsys):

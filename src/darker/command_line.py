@@ -15,6 +15,7 @@ from darker.config import (
     get_effective_config,
     get_modified_config,
     load_config,
+    override_color_with_environment,
 )
 from darker.version import __version__
 
@@ -52,6 +53,8 @@ def make_argument_parser(require_src: bool) -> ArgumentParser:
         const=-10,
     )
     add_arg(hlp.QUIET, "-q", "--quiet", action="log_level", dest="log_level", const=10)
+    add_arg(hlp.COLOR, "--color", action="store_const", dest="color", const=True)
+    add_arg(hlp.NO_COLOR, "--no-color", action="store_const", dest="color", const=False)
     add_arg(hlp.VERSION, "--version", action="version", version=__version__)
     add_arg(
         hlp.SKIP_STRING_NORMALIZATION,
@@ -93,8 +96,8 @@ def parse_command_line(argv: List[str]) -> Tuple[Namespace, DarkerConfig, Darker
     """Return the parsed command line, using defaults from a configuration file
 
     Also return the effective configuration which combines defaults, the configuration
-    read from ``pyproject.toml`` (or the path given in ``--config``), and command line
-    arguments.
+    read from ``pyproject.toml`` (or the path given in ``--config``), environment
+    variables, and command line arguments.
 
     Finally, also return the set of configuration options which differ from defaults.
 
@@ -105,7 +108,8 @@ def parse_command_line(argv: List[str]) -> Tuple[Namespace, DarkerConfig, Darker
 
     # 2. Locate `pyproject.toml` based on those paths, or in the current directory if no
     #    paths were given. Load Darker configuration from it.
-    config = load_config(args.src)
+    pyproject_config = load_config(args.src)
+    config = override_color_with_environment(pyproject_config)
 
     # 3. Use configuration as defaults for re-parsing command line arguments, and don't
     #    require file/directory paths if they are specified in configuration.
