@@ -13,6 +13,7 @@ Added
 - Allow force enabling/disabling of syntax highlighting using the ``color`` option in
   ``pyproject.toml``, the ``PY_COLORS`` environment variable, and the
   ``--color``/``--no-color`` command line options.
+- Syntax highlighting is now enabled by default in the GitHub Action.
 
 Fixed
 -----
