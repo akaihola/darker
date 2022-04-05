@@ -32,7 +32,8 @@ REVISION = (
 
 DIFF = (
     "Don't write the files back, just output a diff for each file on stdout."
-    " Highlight syntax on screen if the `pygments` package is available."
+    " Highlight syntax if on a terminal and the `pygments` package is available, or if"
+    " enabled by configuration."
 )
 
 CHECK = (
@@ -43,7 +44,8 @@ CHECK = (
 
 STDOUT = (
     "Force complete reformatted output to stdout, instead of in-place. Only valid if"
-    " there's just one file to reformat."
+    " there's just one file to reformat. Highlight syntax if on a terminal and the"
+    " `pygments` package is available, or if enabled by configuration."
 )
 
 ISORT_PARTS = ["Also sort imports using the `isort` package"]
@@ -53,7 +55,9 @@ ISORT = "".join(ISORT_PARTS)
 
 LINT = (
     "Also run a linter on changed files. `CMD` can be a name of path of the"
-    " linter binary, or a full quoted command line"
+    " linter binary, or a full quoted command line. Highlight linter output syntax if"
+    " on a terminal and the `pygments` package is available, or if enabled by"
+    " configuration."
 )
 
 CONFIG = "Ask `black` and `isort` to read configuration from `PATH`."
@@ -61,12 +65,12 @@ CONFIG = "Ask `black` and `isort` to read configuration from `PATH`."
 VERBOSE = "Show steps taken and summarize modifications"
 QUIET = "Reduce amount of output"
 COLOR = (
-    "Use colors even for non-terminal output. Overrides the environment variable"
-    " PY_COLORS=0"
+    "Enable syntax highlighting even for non-terminal output. Overrides the environment"
+    " variable PY_COLORS=0"
 )
 NO_COLOR = (
-    "Don't use colors even for terminal output. Overrides the environment variable"
-    " PY_COLORS=1"
+    "Disable syntax highlighting even for terminal output. Overrides the environment"
+    " variable PY_COLORS=1"
 )
 
 VERSION = "Show the version of `darker`"
