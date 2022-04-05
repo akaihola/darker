@@ -292,10 +292,12 @@ The following `command line arguments`_ can also be used to modify the defaults:
        are not found, Darker works against ``HEAD``.
 --diff
        Don't write the files back, just output a diff for each file on stdout. Highlight
-       syntax on screen if the ``pygments`` package is available.
+       syntax if on a terminal and the ``pygments`` package is available, or if enabled
+       by configuration.
 -d, --stdout
        Force complete reformatted output to stdout, instead of in-place. Only valid if
-       there's just one file to reformat.
+       there's just one file to reformat. Highlight syntax if on a terminal and the
+       ``pygments`` package is available, or if enabled by configuration.
 --check
        Don't write the files back, just return the status. Return code 0 means nothing
        would change. Return code 1 means some files would be reformatted.
@@ -303,13 +305,21 @@ The following `command line arguments`_ can also be used to modify the defaults:
        Also sort imports using the ``isort`` package
 -L CMD, --lint CMD
        Also run a linter on changed files. ``CMD`` can be a name of path of the linter
-       binary, or a full quoted command line
+       binary, or a full quoted command line. Highlight linter output syntax if on a
+       terminal and the ``pygments`` package is available, or if enabled by
+       configuration.
 -c PATH, --config PATH
        Ask ``black`` and ``isort`` to read configuration from ``PATH``.
 -v, --verbose
        Show steps taken and summarize modifications
 -q, --quiet
        Reduce amount of output
+--color
+       Enable syntax highlighting even for non-terminal output. Overrides the
+       environment variable PY_COLORS=0
+--no-color
+       Disable syntax highlighting even for terminal output. Overrides the environment
+       variable PY_COLORS=1
 -S, --skip-string-normalization
        Don't normalize string quotes or prefixes
 --no-skip-string-normalization
@@ -322,7 +332,7 @@ The following `command line arguments`_ can also be used to modify the defaults:
 -l LENGTH, --line-length LENGTH
        How many characters per line to allow [default: 88]
 -W WORKERS, --workers WORKERS
-       How many parallel workers to allow [default: 1]
+       How many parallel workers to allow, or ``0`` for one per core [default: 1]
 
 To change default values for these options for a given project,
 add a ``[tool.darker]`` section to ``pyproject.toml`` in the project's root directory.
