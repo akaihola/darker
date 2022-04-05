@@ -85,27 +85,35 @@ def test_creates_virtualenv(tmp_path, main_patch):
 
 
 @pytest.mark.kwparametrize(
-    dict(run_main_env={}, expect=["darker[isort]"]),
-    dict(run_main_env={"INPUT_VERSION": "1.5.0"}, expect=["darker[isort]==1.5.0"]),
+    dict(run_main_env={}, expect=["darker[color,isort]"]),
+    dict(
+        run_main_env={"INPUT_VERSION": "1.5.0"}, expect=["darker[color,isort]==1.5.0"]
+    ),
+    dict(
+        run_main_env={"INPUT_VERSION": "@master"},
+        expect=[
+            "git+https://github.com/akaihola/darker@master#egg=darker[color,isort]"
+        ],
+    ),
     dict(
         run_main_env={"INPUT_LINT": "pylint"},
-        expect=["darker[isort]", "pylint"],
+        expect=["darker[color,isort]", "pylint"],
     ),
     dict(
         run_main_env={"INPUT_LINT": "pylint,flake8"},
-        expect=["darker[isort]", "pylint", "flake8"],
+        expect=["darker[color,isort]", "pylint", "flake8"],
     ),
     dict(
         run_main_env={"INPUT_LINT": "  flake8  "},
-        expect=["darker[isort]", "flake8"],
+        expect=["darker[color,isort]", "flake8"],
     ),
     dict(
         run_main_env={"INPUT_LINT": "  flake8  ,  pylint  "},
-        expect=["darker[isort]", "flake8", "pylint"],
+        expect=["darker[color,isort]", "flake8", "pylint"],
     ),
     dict(
         run_main_env={"INPUT_LINT": "  flake8  >=  3.9.2  ,  pylint  ==  2.13.1  "},
-        expect=["darker[isort]", "flake8>=3.9.2", "pylint==2.13.1"],
+        expect=["darker[color,isort]", "flake8>=3.9.2", "pylint==2.13.1"],
     ),
 )
 def test_installs_packages(tmp_path, main_patch, run_main_env, expect):
@@ -224,7 +232,7 @@ def test_error_if_pip_fails(tmp_path, capsys):
         run_module("main")
 
     assert main_patch.subprocess.run.call_args_list[-1] == call(
-        [ANY, "-m", "pip", "install", "darker[isort]"],
+        [ANY, "-m", "pip", "install", "darker[color,isort]"],
         check=False,
         stdout=PIPE,
         stderr=STDOUT,
@@ -232,7 +240,7 @@ def test_error_if_pip_fails(tmp_path, capsys):
     )
     assert (
         capsys.readouterr().out.splitlines()[-1]
-        == "::error::Failed to install darker[isort]."
+        == "::error::Failed to install darker[color,isort]."
     )
     main_patch.sys.exit.assert_called_once_with(42)
 
