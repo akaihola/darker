@@ -185,7 +185,7 @@ def test_colorize_with_no_color():
             True,
             {
                 # Pygments 2.4.0:
-                '\x1b[31;01m- a\x1b[39;49;00m\n\x1b[32m+ b\x1b[39;49;00m\n',
+                "\x1b[31;01m- a\x1b[39;49;00m\n\x1b[32m+ b\x1b[39;49;00m\n",
                 # Pygments 2.10.0:
                 "\x1b[91m- a\x1b[39;49;00m\n\x1b[32m+ b\x1b[39;49;00m\n",
                 # Pygments 2.11.2:
