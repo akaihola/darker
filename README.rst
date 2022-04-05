@@ -633,7 +633,7 @@ Create a file named ``.github/workflows/darker.yml`` inside your repository with
          - uses: actions/setup-python@v2
          - uses: akaihola/darker@1.4.2
            with:
-             options: "--check --diff"
+             options: "--check --diff --color"
              revision: "master..."
              src: "./src"
              version: "1.4.2"
@@ -661,7 +661,7 @@ This is typically the source tree, but you can use ``"."`` (the default)
 to also reformat Python files like ``"setup.py"`` in the root of the whole repository.
 
 You can also configure other arguments passed to Darker via ``"options:"``.
-It defaults to ``"--check --diff"``.
+It defaults to ``"--check --diff --color"``.
 You can e.g. add ``"--isort"`` to sort imports, or ``"--verbose"`` for debug logging.
 
 To run linters through Darker, you can provide a comma separated list of linters using
