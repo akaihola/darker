@@ -28,6 +28,7 @@ from darker.git import (
     EditedLinenumsDiffer,
     RevisionRange,
     get_missing_at_revision,
+    get_path_in_repo,
     git_get_content_at_revision,
     git_get_modified_python_files,
     git_is_repository,
@@ -148,7 +149,7 @@ def _isort_and_blacken_single_file(  # pylint: disable=too-many-arguments
         content_after_reformatting = _blacken_single_file(
             root,
             relative_path_in_rev2,
-            _get_path_in_repo(relative_path_in_rev2),
+            get_path_in_repo(relative_path_in_rev2),
             edited_linenums_differ,
             rev2_content,
             rev2_isorted,
@@ -259,23 +260,6 @@ def _blacken_single_file(  # pylint: disable=too-many-arguments,too-many-locals
     if not last_successful_reformat:
         raise NotEquivalentError(relative_path_in_rev2)
     return last_successful_reformat
-
-
-def _get_path_in_repo(path: Path) -> Path:
-    """Return the relative path to the file in the old revision
-
-    This is usually the same as the relative path on the command line. But in the
-    special case of VSCode temporary files (like ``file.py.12345.tmp``), we actually
-    want to diff against the corresponding ``.py`` file instead.
-
-    """
-    if path.suffixes[-3::2] != [".py", ".tmp"]:
-        # The file name is not like `*.py.<HASH>.tmp`. Return it as such.
-        return path
-    # This is a VSCode temporary file. Drop the hash and the `.tmp` suffix to get the
-    # original file name for retrieving the previous revision to diff against.
-    path_with_hash = path.with_suffix("")
-    return path_with_hash.with_suffix("")
 
 
 def modify_file(path: Path, new_content: TextDocument) -> None:
