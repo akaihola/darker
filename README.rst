@@ -648,7 +648,8 @@ We recommend to pin this to a specific release.
 ``"version:"`` specifies which version of Darker to run in the GitHub Action.
 It defaults to the same version as in ``"uses:"``,
 but you can force it to use a different version as well.
-Only versions available from PyPI are supported, so no commit SHAs or branch names.
+Darker versions available from PyPI are supported, as well as commit SHAs or branch
+names, prefixed with an ``@`` symbol (e.g. ``version: "@master"``).
 
 The ``revision: "master..."`` (or ``"main..."``) option instructs Darker
 to compare the current branch to the branching point from main branch

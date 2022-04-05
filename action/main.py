@@ -20,7 +20,10 @@ run([sys.executable, "-m", "venv", str(ENV_PATH)], check=True)
 
 req = ["darker[isort]"]
 if VERSION:
-    req[0] += f"=={VERSION}"
+    if VERSION.startswith("@"):
+        req[0] = f"git+https://github.com/akaihola/darker{VERSION}#egg={req[0]}"
+    else:
+        req[0] += f"=={VERSION}"
 linter_options = []
 for linter_requirement in parse_requirements(LINT.replace(",", "\n")):
     linter = linter_requirement.name
