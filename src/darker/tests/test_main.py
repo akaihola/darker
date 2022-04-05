@@ -809,6 +809,9 @@ def test_modify_file(tmp_path, new_content, expect):
             + '\x1b[33m"\x1b[39;49;00m)\n',
             '\x1b[36mprint\x1b[39;49;00m(\x1b[33m"\x1b[39;49;00m\x1b[33mfoo'
             + '\x1b[39;49;00m\x1b[33m"\x1b[39;49;00m)\n',
+            # Pygments 2.4.x:
+            '\x1b[34mprint\x1b[39;49;00m(\x1b[33m"\x1b[39;49;00mfoo'
+            + '\x1b[33m"\x1b[39;49;00m)\n',
         ),
     ),
 )
