@@ -735,6 +735,32 @@ Here's an example of `cov_to_lint.py`_ output::
 .. _cov_to_lint.py: https://gist.github.com/akaihola/2511fe7d2f29f219cb995649afd3d8d2
 
 
+Syntax highlighting
+===================
+
+Darker automatically enables syntax highlighting for the ``--diff``,
+``-d``/``--stdout`` and ``-L``/``--lint`` options if it's run on a terminal and the
+Pygments_ package is installed.
+
+You can force enable syntax highlighting on non-terminal output using
+
+- the ``color = true`` option in the ``[tool.darker]`` section of ``pyproject.toml`` of
+  your Python project's root directory,
+- the ``PY_COLORS=1`` environment variable, and
+- the ``--color`` command line option for ``darker``.
+  
+You can force disable syntax highlighting on terminal output using
+
+- the ``color = false`` option in ``pyproject.toml``,
+- the ``PY_COLORS=0`` environment variable, and
+- the ``--no-color`` command line option.
+
+In the above lists, latter configuration methods override earlier ones, so the command
+line options always take highest precedence.
+
+.. _Pygments: https://pypi.org/project/Pygments/
+
+
 How does it work?
 =================
 
