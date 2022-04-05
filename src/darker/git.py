@@ -12,6 +12,7 @@ from subprocess import DEVNULL, PIPE, CalledProcessError, check_output, run  # n
 from typing import Dict, Iterable, List, Optional, Set, Tuple, Union, overload
 
 from darker.diff import diff_and_get_opcodes, opcodes_to_edit_linenums
+from darker.multiline_strings import get_multiline_string_ranges
 from darker.utils import GIT_DATEFORMAT, TextDocument
 
 logger = logging.getLogger(__name__)
@@ -377,7 +378,12 @@ def git_get_modified_python_files(
 def _revision_vs_lines(
     root: Path, path_in_repo: Path, rev1: str, content: TextDocument, context_lines: int
 ) -> List[int]:
-    """For file `path_in_repo`, return changed line numbers from given revision
+    """Return changed line numbers between the given revision and given text content
+
+    The revision range was provided when this `EditedLinenumsDiffer` object was
+    created. Content for the given `path_in_repo` at `rev1` of that revision is
+    taken from the Git repository, and the provided text content is compared against
+    that historical version.
 
     The actual implementation is here instead of in
     `EditedLinenumsDiffer._revision_vs_lines` so it is accessibe both as a method and as
@@ -393,7 +399,10 @@ def _revision_vs_lines(
     """
     old = git_get_content_at_revision(path_in_repo, rev1, root)
     edited_opcodes = diff_and_get_opcodes(old, content)
-    return list(opcodes_to_edit_linenums(edited_opcodes, context_lines))
+    multiline_string_ranges = get_multiline_string_ranges(content)
+    return list(
+        opcodes_to_edit_linenums(edited_opcodes, context_lines, multiline_string_ranges)
+    )
 
 
 @lru_cache(maxsize=1)
@@ -455,7 +464,12 @@ class EditedLinenumsDiffer:
     def revision_vs_lines(
         self, path_in_repo: Path, content: TextDocument, context_lines: int
     ) -> List[int]:
-        """For file `path_in_repo`, return changed line numbers from given revision
+        """Return changed line numbers between the given revision and given text content
+
+        The revision range was provided when this `EditedLinenumsDiffer` object was
+        created. Content for the given `path_in_repo` at `rev1` of that revision is
+        taken from the Git repository, and the provided text content is compared against
+        that historical version.
 
         The actual implementation is in the module global `_revision_vs_lines` function
         so this can be called from both as a method and the module global
