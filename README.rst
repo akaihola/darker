@@ -321,8 +321,8 @@ The following `command line arguments`_ can also be used to modify the defaults:
        to override ``skip_magic_trailing_comma = true`` from a configuration file.
 -l LENGTH, --line-length LENGTH
        How many characters per line to allow [default: 88]
--j JOBS, --jobs JOBS
-       How many parallel jobs to allow [default: 1]
+-W WORKERS, --workers WORKERS
+       How many parallel workers to allow [default: 1]
 
 To change default values for these options for a given project,
 add a ``[tool.darker]`` section to ``pyproject.toml`` in the project's root directory.
@@ -371,7 +371,7 @@ other tools. For example, VSCode only expects the reformat diff, so
 
 *New in version 1.3.0:* The ``-d`` / ``--stdout`` command line option
 
-*New in version 1.4.0:* The ``-j`` / ``--jobs`` command line option
+*New in version 1.5.0:* The ``-W`` / ``--workers`` command line option
 
 .. _Black documentation about pyproject.toml: https://black.readthedocs.io/en/stable/pyproject_toml.html
 .. _isort documentation about config files: https://timothycrosley.github.io/isort/docs/configuration/config_files/

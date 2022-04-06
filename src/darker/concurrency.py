@@ -22,7 +22,7 @@ else:
 
 
 class DummyExecutor(Executor):
-    """Dummy synchronous executor to use with ``--jobs=1``
+    """Dummy synchronous executor to use with ``--workers=1``
 
     This makes it easier to write test cases for `darker.__main__.main`.
 

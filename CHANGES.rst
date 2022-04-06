@@ -5,8 +5,8 @@ These features will be included in the next release:
 
 Added
 -----
-- The ``--jobs`` option now specifies how many Darker jobs are used to process files in
-  parallel to complete reformatting/linting faster.
+- The ``--workers``/``-W`` option now specifies how many Darker jobs are used to
+  process files in parallel to complete reformatting/linting faster.
 - Linters can now be installed and run in the GitHub Action using the ``lint:`` option.
   
 Fixed

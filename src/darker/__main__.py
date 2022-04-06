@@ -53,7 +53,7 @@ def format_edited_parts(
     enable_isort: bool,
     black_config: BlackConfig,
     report_unmodified: bool,
-    jobs: int = 1,
+    workers: int = 1,
 ) -> Generator[ProcessedDocument, None, None]:
     """Black (and optional isort) formatting modified chunks in a set of files
 
@@ -72,12 +72,12 @@ def format_edited_parts(
     :param enable_isort: ``True`` to also run ``isort`` first on each changed file
     :param black_config: Configuration to use for running Black
     :param report_unmodified: ``True`` to yield also files which weren't modified
-    :param jobs: number of cpu processes to use (0 - autodetect)
+    :param workers: number of cpu processes to use (0 - autodetect)
     :return: A generator which yields details about changes for each file which should
              be reformatted, and skips unchanged files.
 
     """
-    with get_executor(max_workers=jobs) as executor:
+    with get_executor(max_workers=workers) as executor:
         # pylint: disable=unsubscriptable-object
         futures: List[concurrent.futures.Future[ProcessedDocument]] = []
         for path_in_repo in sorted(changed_files):
@@ -435,7 +435,7 @@ def main(argv: List[str] = None) -> int:
             args.isort,
             black_config,
             report_unmodified=output_mode == OutputMode.CONTENT,
-            jobs=config["jobs"],
+            workers=config["workers"],
         ),
     ):
         formatting_failures_on_modified_lines = True
