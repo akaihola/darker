@@ -13,6 +13,7 @@ Fixed
 -----
 - Avoid memory leak from using ``@lru_cache`` on a method.
 - Handle files encoded with an encoding other than UTF-8 without an exception.
+- The GitHub Action now handles missing ``revision:`` correctly.
 
 
 1.4.2_ - 2022-03-12
