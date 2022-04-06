@@ -14,13 +14,7 @@ OPTIONS = os.getenv("INPUT_OPTIONS", default="")
 SRC = os.getenv("INPUT_SRC", default="")
 VERSION = os.getenv("INPUT_VERSION", default="")
 LINT = os.getenv("INPUT_LINT", default="")
-
-REVISION = os.getenv("INPUT_REVISION")
-COMMIT_RANGE = os.getenv("INPUT_COMMIT_RANGE")
-if not REVISION:
-    if not COMMIT_RANGE:
-        COMMIT_RANGE = "HEAD^"
-    REVISION = COMMIT_RANGE
+REVISION = os.getenv("INPUT_REVISION") or os.getenv("INPUT_COMMIT_RANGE") or "HEAD^"
 
 run([sys.executable, "-m", "venv", str(ENV_PATH)], check=True)
 
