@@ -31,6 +31,7 @@
 - Giel van Schijndel (@muggenhor)
 - Hugo Dupras (@jabesq)
 - Iryna (@irynahryshanovich)
+- Jairo Llopis (@Yajo)
 - Jasleen Kaur (@jasleen19)
 - Jens Diemer (@jedie)
 - Jens Hedegaard Nielsen (@jenshnielsen)
