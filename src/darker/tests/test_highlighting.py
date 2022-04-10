@@ -95,7 +95,7 @@ def test_should_use_color_no_pygments(tmp_path, config, environ, cmdline, tty):
         ("color=true  PY_COLORS=1    --color tty", "should_use_color() == True"),
     ],
 )
-def test_should_use_color_pygments(tmp_path: Path, params: str, expect: bool) -> None:
+def test_should_use_color_pygments(tmp_path: Path, params: str, expect: str) -> None:
     """Color output is used only if correct configuration options are in place"""
     with (tmp_path / "pyproject.toml").open("w") as pyproject:
         print("[tool.darker]", file=pyproject)
