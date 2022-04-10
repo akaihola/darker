@@ -740,7 +740,7 @@ Syntax highlighting
 ===================
 
 Darker automatically enables syntax highlighting for the ``--diff``,
-``-d``/``--stdout`` and ``-L``/``--lint`` options if it's run on a terminal and the
+``-d``/``--stdout`` and ``-L``/``--lint`` options if it's running on a terminal and the
 Pygments_ package is installed.
 
 You can force enable syntax highlighting on non-terminal output using
