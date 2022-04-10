@@ -97,7 +97,7 @@ def _check_linter_output(
 
 
 def run_linter(
-    cmdline: str, root: Path, paths: Set[Path], revrange: RevisionRange
+    cmdline: str, root: Path, paths: Set[Path], revrange: RevisionRange, use_color: bool
 ) -> int:
     """Run the given linter and print linting errors falling on changed lines
 
@@ -141,8 +141,8 @@ def run_linter(
                 if path_in_repo != prev_path or linter_error_linenum > prev_linenum + 1:
                     print()
                 prev_path, prev_linenum = path_in_repo, linter_error_linenum
-                print(colorize(location, "lint_location"), end=" ")
-                print(colorize(description, "lint_description"))
+                print(colorize(location, "lint_location", use_color), end=" ")
+                print(colorize(description, "lint_description", use_color))
                 error_count += 1
     return error_count
 
@@ -152,6 +152,7 @@ def run_linters(
     root: Path,
     paths: Set[Path],
     revrange: RevisionRange,
+    use_color: bool,
 ) -> int:
     """Run the given linters on a set of files in the repository
 
@@ -170,6 +171,6 @@ def run_linters(
     # 12. extract line numbers in each file reported by a linter for changed lines
     # 13. print only linter error lines which fall on changed lines
     return sum(
-        run_linter(linter_cmdline, root, paths, revrange)
+        run_linter(linter_cmdline, root, paths, revrange, use_color)
         for linter_cmdline in linter_cmdlines
     )

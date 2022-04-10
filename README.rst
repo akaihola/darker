@@ -292,10 +292,12 @@ The following `command line arguments`_ can also be used to modify the defaults:
        are not found, Darker works against ``HEAD``.
 --diff
        Don't write the files back, just output a diff for each file on stdout. Highlight
-       syntax on screen if the ``pygments`` package is available.
+       syntax if on a terminal and the ``pygments`` package is available, or if enabled
+       by configuration.
 -d, --stdout
        Force complete reformatted output to stdout, instead of in-place. Only valid if
-       there's just one file to reformat.
+       there's just one file to reformat. Highlight syntax if on a terminal and the
+       ``pygments`` package is available, or if enabled by configuration.
 --check
        Don't write the files back, just return the status. Return code 0 means nothing
        would change. Return code 1 means some files would be reformatted.
@@ -303,13 +305,21 @@ The following `command line arguments`_ can also be used to modify the defaults:
        Also sort imports using the ``isort`` package
 -L CMD, --lint CMD
        Also run a linter on changed files. ``CMD`` can be a name of path of the linter
-       binary, or a full quoted command line
+       binary, or a full quoted command line. Highlight linter output syntax if on a
+       terminal and the ``pygments`` package is available, or if enabled by
+       configuration.
 -c PATH, --config PATH
        Ask ``black`` and ``isort`` to read configuration from ``PATH``.
 -v, --verbose
        Show steps taken and summarize modifications
 -q, --quiet
        Reduce amount of output
+--color
+       Enable syntax highlighting even for non-terminal output. Overrides the
+       environment variable PY_COLORS=0
+--no-color
+       Disable syntax highlighting even for terminal output. Overrides the environment
+       variable PY_COLORS=1
 -S, --skip-string-normalization
        Don't normalize string quotes or prefixes
 --no-skip-string-normalization
@@ -322,7 +332,7 @@ The following `command line arguments`_ can also be used to modify the defaults:
 -l LENGTH, --line-length LENGTH
        How many characters per line to allow [default: 88]
 -W WORKERS, --workers WORKERS
-       How many parallel workers to allow [default: 1]
+       How many parallel workers to allow, or ``0`` for one per core [default: 1]
 
 To change default values for these options for a given project,
 add a ``[tool.darker]`` section to ``pyproject.toml`` in the project's root directory.
@@ -372,6 +382,8 @@ other tools. For example, VSCode only expects the reformat diff, so
 *New in version 1.3.0:* The ``-d`` / ``--stdout`` command line option
 
 *New in version 1.5.0:* The ``-W`` / ``--workers`` command line option
+
+*New in version 1.5.0:* The ``--color`` and ``--no-color`` command line options
 
 .. _Black documentation about pyproject.toml: https://black.readthedocs.io/en/stable/pyproject_toml.html
 .. _isort documentation about config files: https://timothycrosley.github.io/isort/docs/configuration/config_files/
@@ -621,7 +633,7 @@ Create a file named ``.github/workflows/darker.yml`` inside your repository with
          - uses: actions/setup-python@v2
          - uses: akaihola/darker@1.4.2
            with:
-             options: "--check --diff"
+             options: "--check --diff --color"
              revision: "master..."
              src: "./src"
              version: "1.4.2"
@@ -636,7 +648,8 @@ We recommend to pin this to a specific release.
 ``"version:"`` specifies which version of Darker to run in the GitHub Action.
 It defaults to the same version as in ``"uses:"``,
 but you can force it to use a different version as well.
-Only versions available from PyPI are supported, so no commit SHAs or branch names.
+Darker versions available from PyPI are supported, as well as commit SHAs or branch
+names, prefixed with an ``@`` symbol (e.g. ``version: "@master"``).
 
 The ``revision: "master..."`` (or ``"main..."``) option instructs Darker
 to compare the current branch to the branching point from main branch
@@ -648,7 +661,7 @@ This is typically the source tree, but you can use ``"."`` (the default)
 to also reformat Python files like ``"setup.py"`` in the root of the whole repository.
 
 You can also configure other arguments passed to Darker via ``"options:"``.
-It defaults to ``"--check --diff"``.
+It defaults to ``"--check --diff --color"``.
 You can e.g. add ``"--isort"`` to sort imports, or ``"--verbose"`` for debug logging.
 
 To run linters through Darker, you can provide a comma separated list of linters using
@@ -721,6 +734,32 @@ Here's an example of `cov_to_lint.py`_ output::
 .. _Pylint: https://pypi.org/project/pylint
 .. _Flake8: https://pypi.org/project/flake8
 .. _cov_to_lint.py: https://gist.github.com/akaihola/2511fe7d2f29f219cb995649afd3d8d2
+
+
+Syntax highlighting
+===================
+
+Darker automatically enables syntax highlighting for the ``--diff``,
+``-d``/``--stdout`` and ``-L``/``--lint`` options if it's running on a terminal and the
+Pygments_ package is installed.
+
+You can force enable syntax highlighting on non-terminal output using
+
+- the ``color = true`` option in the ``[tool.darker]`` section of ``pyproject.toml`` of
+  your Python project's root directory,
+- the ``PY_COLORS=1`` environment variable, and
+- the ``--color`` command line option for ``darker``.
+  
+You can force disable syntax highlighting on terminal output using
+
+- the ``color = false`` option in ``pyproject.toml``,
+- the ``PY_COLORS=0`` environment variable, and
+- the ``--no-color`` command line option.
+
+In the above lists, latter configuration methods override earlier ones, so the command
+line options always take highest precedence.
+
+.. _Pygments: https://pypi.org/project/Pygments/
 
 
 How does it work?

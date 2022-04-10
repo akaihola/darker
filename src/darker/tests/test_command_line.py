@@ -2,6 +2,7 @@
 
 """Unit tests for :mod:`darker.command_line` and :mod:`darker.__main__`"""
 
+import os
 import re
 from argparse import ArgumentError
 from importlib import reload
@@ -243,6 +244,69 @@ def test_parse_command_line_config_src(
     ),
     dict(
         argv=["."],
+        environ={},
+        expect_value=("color", None),
+        expect_config=("color", None),
+        expect_modified=("color", ...),
+    ),
+    dict(
+        argv=["."],
+        environ={"PY_COLORS": "0"},
+        expect_value=("color", False),
+        expect_config=("color", False),
+        expect_modified=("color", False),
+    ),
+    dict(
+        argv=["."],
+        environ={"PY_COLORS": "1"},
+        expect_value=("color", True),
+        expect_config=("color", True),
+        expect_modified=("color", True),
+    ),
+    dict(
+        argv=["--color", "."],
+        environ={},
+        expect_value=("color", True),
+        expect_config=("color", True),
+        expect_modified=("color", True),
+    ),
+    dict(
+        argv=["--color", "."],
+        environ={"PY_COLORS": "0"},
+        expect_value=("color", True),
+        expect_config=("color", True),
+        expect_modified=("color", True),
+    ),
+    dict(
+        argv=["--color", "."],
+        environ={"PY_COLORS": "1"},
+        expect_value=("color", True),
+        expect_config=("color", True),
+        expect_modified=("color", True),
+    ),
+    dict(
+        argv=["--no-color", "."],
+        environ={},
+        expect_value=("color", False),
+        expect_config=("color", False),
+        expect_modified=("color", False),
+    ),
+    dict(
+        argv=["--no-color", "."],
+        environ={"PY_COLORS": "0"},
+        expect_value=("color", False),
+        expect_config=("color", False),
+        expect_modified=("color", False),
+    ),
+    dict(
+        argv=["--no-color", "."],
+        environ={"PY_COLORS": "1"},
+        expect_value=("color", False),
+        expect_config=("color", False),
+        expect_modified=("color", False),
+    ),
+    dict(
+        argv=["."],
         expect_value=("skip_string_normalization", None),
         expect_config=("skip_string_normalization", None),
         expect_modified=("skip_string_normalization", ...),
@@ -303,14 +367,17 @@ def test_parse_command_line_config_src(
         expect_config=("src", ["valid/path", "another/valid/path"]),
         expect_modified=("src", ["valid/path", "another/valid/path"]),
     ),
+    environ={},
 )
 def test_parse_command_line(
-    tmp_path, monkeypatch, argv, expect_value, expect_config, expect_modified
+    tmp_path, monkeypatch, argv, environ, expect_value, expect_config, expect_modified
 ):
     """``parse_command_line()`` parses options correctly"""
     monkeypatch.chdir(tmp_path)
     (tmp_path / "dummy.py").touch()
-    with raises_if_exception(expect_value) as expect_exception:
+    with patch.dict(os.environ, environ, clear=True), raises_if_exception(
+        expect_value
+    ) as expect_exception:
 
         args, effective_cfg, modified_cfg = parse_command_line(argv)
 

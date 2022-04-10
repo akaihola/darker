@@ -6,9 +6,9 @@ inputs:
   options:
     description: >-
       Options passed to Darker. Use `darker --help` to see available options.
-      Default: '--check --diff'
+      Default: '--check --diff --color'
     required: false
-    default: "--check --diff"
+    default: "--check --diff --color"
   src:
     description: "Source to run Darker. Default: '.'"
     required: false

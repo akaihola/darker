@@ -55,7 +55,8 @@ class OptionsForReadmeAction(Action):
         optional_arguments_group = next(
             group
             for group in parser._action_groups
-            if group.title == "optional arguments"
+            # The group title for options differs between Python versions
+            if group.title in {"optional arguments", "options"}
         )
         actions = []
         for action in optional_arguments_group._group_actions:

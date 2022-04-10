@@ -34,7 +34,7 @@ from darker.git import (
     git_is_repository,
 )
 from darker.help import ISORT_INSTRUCTION
-from darker.highlighting import colorize
+from darker.highlighting import colorize, should_use_color
 from darker.import_sorting import apply_isort, isort
 from darker.linting import run_linters
 from darker.utils import GIT_DATEFORMAT, TextDocument, debug_dump, get_common_root
@@ -269,7 +269,11 @@ def modify_file(path: Path, new_content: TextDocument) -> None:
 
 
 def print_diff(
-    path: Path, old: TextDocument, new: TextDocument, root: Path = None
+    path: Path,
+    old: TextDocument,
+    new: TextDocument,
+    root: Path,
+    use_color: bool,
 ) -> None:
     """Print ``black --diff`` style output for the changes
 
@@ -281,8 +285,6 @@ def print_diff(
     Modification times should be in the format "YYYY-MM-DD HH:MM:SS:mmmmmm +0000"
 
     """
-    if root is None:
-        root = Path.cwd()
     relative_path = path.resolve().relative_to(root).as_posix()
     diff = "\n".join(
         line.rstrip("\n")
@@ -296,12 +298,12 @@ def print_diff(
             n=5,  # Black shows 5 lines of context, do the same
         )
     )
-    print(colorize(diff, "diff"))
+    print(colorize(diff, "diff", use_color))
 
 
-def print_source(new: TextDocument) -> None:
+def print_source(new: TextDocument, use_color: bool) -> None:
     """Print the reformatted Python source code"""
-    if sys.stdout.isatty():
+    if use_color:
         try:
             (
                 highlight,
@@ -443,6 +445,7 @@ def main(argv: List[str] = None) -> int:
             f for f in changed_files_to_process if root / f not in files_to_blacken
         }
 
+    use_color = should_use_color(config["color"])
     formatting_failures_on_modified_lines = False
     for path, old, new in sorted(
         format_edited_parts(
@@ -458,13 +461,17 @@ def main(argv: List[str] = None) -> int:
     ):
         formatting_failures_on_modified_lines = True
         if output_mode == OutputMode.DIFF:
-            print_diff(path, old, new, root)
+            print_diff(path, old, new, root, use_color)
         elif output_mode == OutputMode.CONTENT:
-            print_source(new)
+            print_source(new, use_color)
         if write_modified_files:
             modify_file(path, new)
     linter_failures_on_modified_lines = run_linters(
-        args.lint, root, changed_files_to_process, revrange
+        args.lint,
+        root,
+        changed_files_to_process,
+        revrange,
+        use_color,
     )
     return (
         1
