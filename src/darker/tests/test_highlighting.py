@@ -12,132 +12,95 @@ from darker.command_line import parse_command_line
 from darker.highlighting import colorize, lexers, should_use_color
 
 
+@pytest.mark.parametrize("config", ["", "color = false", "color = true"])
+@pytest.mark.parametrize("environ", [{}, {"PY_COLORS": "0"}, {"PY_COLORS": "1"}])
+@pytest.mark.parametrize("cmdline", [[], ["--no-color"], ["--color"]])
+@pytest.mark.parametrize("tty", [False, True])
+def test_should_use_color_no_pygments(tmp_path, config, environ, cmdline, tty):
+    """Color output is never used if `pygments` is not installed"""
+    with (tmp_path / "pyproject.toml").open("w") as pyproject:
+        print(f"[tool.darker]\n{config}\n", file=pyproject)
+    argv = cmdline + [str(tmp_path / "dummy.py")]
+    with patch.dict(os.environ, environ, clear=True):
+        _, config, _ = parse_command_line(argv)
+    mods = sys.modules.copy()
+    del mods["darker.highlighting"]
+    # cause an ImportError for `import pygments`:
+    mods["pygments"] = None  # type: ignore[assignment]
+    isatty = Mock(return_value=tty)
+    with patch.dict(sys.modules, mods, clear=True), patch("sys.stdout.isatty", isatty):
+
+        result = should_use_color(config["color"])
+
+    assert result is False
+
+
 @pytest.mark.parametrize(
-    "params",
+    "params, expect",
     [
-        "                                                         ",
-        "                                            tty          ",
-        "                                 --no-color              ",
-        "                                 --no-color tty          ",
-        "                                    --color              ",
-        "                                    --color tty          ",
-        "                     PY_COLORS=0                         ",
-        "                     PY_COLORS=0            tty          ",
-        "                     PY_COLORS=0 --no-color              ",
-        "                     PY_COLORS=0 --no-color tty          ",
-        "                     PY_COLORS=0    --color              ",
-        "                     PY_COLORS=0    --color tty          ",
-        "                     PY_COLORS=1                         ",
-        "                     PY_COLORS=1            tty          ",
-        "                     PY_COLORS=1 --no-color              ",
-        "                     PY_COLORS=1 --no-color tty          ",
-        "                     PY_COLORS=1    --color              ",
-        "                     PY_COLORS=1    --color tty          ",
-        "         color=false                                     ",
-        "         color=false                        tty          ",
-        "         color=false             --no-color              ",
-        "         color=false             --no-color tty          ",
-        "         color=false                --color              ",
-        "         color=false                --color tty          ",
-        "         color=false PY_COLORS=0                         ",
-        "         color=false PY_COLORS=0            tty          ",
-        "         color=false PY_COLORS=0 --no-color              ",
-        "         color=false PY_COLORS=0 --no-color tty          ",
-        "         color=false PY_COLORS=0    --color              ",
-        "         color=false PY_COLORS=0    --color tty          ",
-        "         color=false PY_COLORS=1                         ",
-        "         color=false PY_COLORS=1            tty          ",
-        "         color=false PY_COLORS=1 --no-color              ",
-        "         color=false PY_COLORS=1 --no-color tty          ",
-        "         color=false PY_COLORS=1    --color              ",
-        "         color=false PY_COLORS=1    --color tty          ",
-        "         color=true                                      ",
-        "         color=true                         tty          ",
-        "         color=true              --no-color              ",
-        "         color=true              --no-color tty          ",
-        "         color=true                 --color              ",
-        "         color=true                 --color tty          ",
-        "         color=true  PY_COLORS=0                         ",
-        "         color=true  PY_COLORS=0            tty          ",
-        "         color=true  PY_COLORS=0 --no-color              ",
-        "         color=true  PY_COLORS=0 --no-color tty          ",
-        "         color=true  PY_COLORS=0    --color              ",
-        "         color=true  PY_COLORS=0    --color tty          ",
-        "         color=true  PY_COLORS=1                         ",
-        "         color=true  PY_COLORS=1            tty          ",
-        "         color=true  PY_COLORS=1 --no-color              ",
-        "         color=true  PY_COLORS=1 --no-color tty          ",
-        "         color=true  PY_COLORS=1    --color              ",
-        "         color=true  PY_COLORS=1    --color tty          ",
-        "pygments                                                 ",
-        "pygments                                    tty USE_COLOR",
-        "pygments                         --no-color              ",
-        "pygments                         --no-color tty          ",
-        "pygments                            --color     USE_COLOR",
-        "pygments                            --color tty USE_COLOR",
-        "pygments             PY_COLORS=0                         ",
-        "pygments             PY_COLORS=0            tty          ",
-        "pygments             PY_COLORS=0 --no-color              ",
-        "pygments             PY_COLORS=0 --no-color tty          ",
-        "pygments             PY_COLORS=0    --color     USE_COLOR",
-        "pygments             PY_COLORS=0    --color tty USE_COLOR",
-        "pygments             PY_COLORS=1                USE_COLOR",
-        "pygments             PY_COLORS=1            tty USE_COLOR",
-        "pygments             PY_COLORS=1 --no-color              ",
-        "pygments             PY_COLORS=1 --no-color tty          ",
-        "pygments             PY_COLORS=1    --color     USE_COLOR",
-        "pygments             PY_COLORS=1    --color tty USE_COLOR",
-        "pygments color=false                                     ",
-        "pygments color=false                        tty          ",
-        "pygments color=false             --no-color              ",
-        "pygments color=false             --no-color tty          ",
-        "pygments color=false                --color     USE_COLOR",
-        "pygments color=false                --color tty USE_COLOR",
-        "pygments color=false PY_COLORS=0                         ",
-        "pygments color=false PY_COLORS=0            tty          ",
-        "pygments color=false PY_COLORS=0 --no-color              ",
-        "pygments color=false PY_COLORS=0 --no-color tty          ",
-        "pygments color=false PY_COLORS=0    --color     USE_COLOR",
-        "pygments color=false PY_COLORS=0    --color tty USE_COLOR",
-        "pygments color=false PY_COLORS=1                USE_COLOR",
-        "pygments color=false PY_COLORS=1            tty USE_COLOR",
-        "pygments color=false PY_COLORS=1 --no-color              ",
-        "pygments color=false PY_COLORS=1 --no-color tty          ",
-        "pygments color=false PY_COLORS=1    --color     USE_COLOR",
-        "pygments color=false PY_COLORS=1    --color tty USE_COLOR",
-        "pygments color=true                             USE_COLOR",
-        "pygments color=true                         tty USE_COLOR",
-        "pygments color=true              --no-color              ",
-        "pygments color=true              --no-color tty          ",
-        "pygments color=true                 --color     USE_COLOR",
-        "pygments color=true                 --color tty USE_COLOR",
-        "pygments color=true  PY_COLORS=0                         ",
-        "pygments color=true  PY_COLORS=0            tty          ",
-        "pygments color=true  PY_COLORS=0 --no-color              ",
-        "pygments color=true  PY_COLORS=0 --no-color tty          ",
-        "pygments color=true  PY_COLORS=0    --color     USE_COLOR",
-        "pygments color=true  PY_COLORS=0    --color tty USE_COLOR",
-        "pygments color=true  PY_COLORS=1                USE_COLOR",
-        "pygments color=true  PY_COLORS=1            tty USE_COLOR",
-        "pygments color=true  PY_COLORS=1 --no-color              ",
-        "pygments color=true  PY_COLORS=1 --no-color tty          ",
-        "pygments color=true  PY_COLORS=1    --color     USE_COLOR",
-        "pygments color=true  PY_COLORS=1    --color tty USE_COLOR",
+        # for the expected value, for readability, strings are used instead of booleans
+        ("                                      ", ""),
+        ("                                   tty", "should_use_color() == True"),
+        ("                        --no-color    ", ""),
+        ("                        --no-color tty", ""),
+        ("                           --color    ", "should_use_color() == True"),
+        ("                           --color tty", "should_use_color() == True"),
+        ("            PY_COLORS=0               ", ""),
+        ("            PY_COLORS=0            tty", ""),
+        ("            PY_COLORS=0 --no-color    ", ""),
+        ("            PY_COLORS=0 --no-color tty", ""),
+        ("            PY_COLORS=0    --color    ", "should_use_color() == True"),
+        ("            PY_COLORS=0    --color tty", "should_use_color() == True"),
+        ("            PY_COLORS=1               ", "should_use_color() == True"),
+        ("            PY_COLORS=1            tty", "should_use_color() == True"),
+        ("            PY_COLORS=1 --no-color    ", ""),
+        ("            PY_COLORS=1 --no-color tty", ""),
+        ("            PY_COLORS=1    --color    ", "should_use_color() == True"),
+        ("            PY_COLORS=1    --color tty", "should_use_color() == True"),
+        ("color=false                           ", ""),
+        ("color=false                        tty", ""),
+        ("color=false             --no-color    ", ""),
+        ("color=false             --no-color tty", ""),
+        ("color=false                --color    ", "should_use_color() == True"),
+        ("color=false                --color tty", "should_use_color() == True"),
+        ("color=false PY_COLORS=0               ", ""),
+        ("color=false PY_COLORS=0            tty", ""),
+        ("color=false PY_COLORS=0 --no-color    ", ""),
+        ("color=false PY_COLORS=0 --no-color tty", ""),
+        ("color=false PY_COLORS=0    --color    ", "should_use_color() == True"),
+        ("color=false PY_COLORS=0    --color tty", "should_use_color() == True"),
+        ("color=false PY_COLORS=1               ", "should_use_color() == True"),
+        ("color=false PY_COLORS=1            tty", "should_use_color() == True"),
+        ("color=false PY_COLORS=1 --no-color    ", ""),
+        ("color=false PY_COLORS=1 --no-color tty", ""),
+        ("color=false PY_COLORS=1    --color    ", "should_use_color() == True"),
+        ("color=false PY_COLORS=1    --color tty", "should_use_color() == True"),
+        ("color=true                            ", "should_use_color() == True"),
+        ("color=true                         tty", "should_use_color() == True"),
+        ("color=true              --no-color    ", ""),
+        ("color=true              --no-color tty", ""),
+        ("color=true                 --color    ", "should_use_color() == True"),
+        ("color=true                 --color tty", "should_use_color() == True"),
+        ("color=true  PY_COLORS=0               ", ""),
+        ("color=true  PY_COLORS=0            tty", ""),
+        ("color=true  PY_COLORS=0 --no-color    ", ""),
+        ("color=true  PY_COLORS=0 --no-color tty", ""),
+        ("color=true  PY_COLORS=0    --color    ", "should_use_color() == True"),
+        ("color=true  PY_COLORS=0    --color tty", "should_use_color() == True"),
+        ("color=true  PY_COLORS=1               ", "should_use_color() == True"),
+        ("color=true  PY_COLORS=1            tty", "should_use_color() == True"),
+        ("color=true  PY_COLORS=1 --no-color    ", ""),
+        ("color=true  PY_COLORS=1 --no-color tty", ""),
+        ("color=true  PY_COLORS=1    --color    ", "should_use_color() == True"),
+        ("color=true  PY_COLORS=1    --color tty", "should_use_color() == True"),
     ],
 )
-def test_should_use_color(tmp_path: Path, params: str) -> None:
+def test_should_use_color_pygments(tmp_path: Path, params: str, expect: bool) -> None:
     """Color output is used only if correct configuration options are in place"""
-    modules = sys.modules.copy()
-    if "pygments " not in params:
-        del modules["darker.highlighting"]
-        # cause an ImportError for `import pygments`:
-        modules["pygments"] = None  # type: ignore[assignment]
     with (tmp_path / "pyproject.toml").open("w") as pyproject:
         print("[tool.darker]", file=pyproject)
-        if " color=true " in params:
-            print("color = true", file=pyproject)
-        if " color=false " in params:
-            print("color = false", file=pyproject)
+        if params.startswith("color="):
+            print(params.split()[0], file=pyproject)
     env = {}
     if " PY_COLORS=0 " in params:
         env["PY_COLORS"] = "0"
@@ -150,14 +113,11 @@ def test_should_use_color(tmp_path: Path, params: str) -> None:
         argv.insert(0, "--no-color")
     with patch.dict(os.environ, env, clear=True):
         _, config, _ = parse_command_line(argv)
-    with patch.dict(sys.modules, modules, clear=True), patch(
-        "sys.stdout.isatty", Mock(return_value=" tty " in params)
-    ):
+    with patch("sys.stdout.isatty", Mock(return_value=params.endswith(" tty"))):
 
         result = should_use_color(config["color"])
 
-    expect = " USE_COLOR" in params
-    assert result == expect
+    assert result == (expect == "should_use_color() == True")
 
 
 def test_colorize_with_no_color():
