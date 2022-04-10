@@ -28,6 +28,7 @@ def should_use_color(config_color: Optional[bool]) -> bool:
         use_color = config_color
     else:
         use_color = sys.stdout.isatty()
+
     if use_color:
         try:
             import pygments  # noqa
