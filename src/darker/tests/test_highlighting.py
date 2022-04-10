@@ -78,46 +78,56 @@ def test_should_use_color_pygments_and_command_line_argument(
     assert result == expect
 
 
+@pytest.mark.parametrize("pyproject", ["", "color = false", "color = true"])
+@pytest.mark.parametrize("env_no_color", [{}, {"NO_COLOR": "foo"}])
+@pytest.mark.kwparametrize(
+    dict(env_py_colors={"PY_COLORS": "0"}, expect=False),
+    dict(env_py_colors={"PY_COLORS": "1"}, expect=True),
+)
+@pytest.mark.parametrize("tty", [False, True])
+def test_should_use_color_pygments_and_py_colors(
+    tmp_path: Path,
+    pyproject: str,
+    env_no_color: Dict[str, str],
+    env_py_colors: Dict[str, str],
+    expect: bool,
+    tty: bool,
+) -> None:
+    """PY_COLORS determines highlighting when `pygments` installed and no cmdline args
+
+    These tests are set up so that it appears as if
+    - ``pygments`` is installed
+    - there is no ``--color`` or `--no-color`` command line option
+
+    """
+    with (tmp_path / "pyproject.toml").open("w") as pyproject_toml:
+        print(f"[tool.darker]\n{pyproject}\n", file=pyproject_toml)
+    environ = {**env_no_color, **env_py_colors}
+    with patch.dict(os.environ, environ, clear=True):
+        _, config, _ = parse_command_line([str(tmp_path / "dummy.py")])
+    with patch("sys.stdout.isatty", Mock(return_value=tty)):
+
+        result = should_use_color(config["color"])
+
+    assert result == expect
+
+
 @pytest.mark.parametrize(
     "params, expect",
     [
         # for the expected value, for readability, strings are used instead of booleans
-        ("                                        ", ""),
-        ("                                     tty", "should_use_color() == True"),
-        ("                         PY_COLORS=0    ", ""),
-        ("                         PY_COLORS=0 tty", ""),
-        ("                         PY_COLORS=1    ", "should_use_color() == True"),
-        ("                         PY_COLORS=1 tty", "should_use_color() == True"),
-        ("color=false                             ", ""),
-        ("color=false                          tty", ""),
-        ("color=false              PY_COLORS=0    ", ""),
-        ("color=false              PY_COLORS=0 tty", ""),
-        ("color=false              PY_COLORS=1    ", "should_use_color() == True"),
-        ("color=false              PY_COLORS=1 tty", "should_use_color() == True"),
-        ("color=true                              ", "should_use_color() == True"),
-        ("color=true                           tty", "should_use_color() == True"),
-        ("color=true               PY_COLORS=0    ", ""),
-        ("color=true               PY_COLORS=0 tty", ""),
-        ("color=true               PY_COLORS=1    ", "should_use_color() == True"),
-        ("color=true               PY_COLORS=1 tty", "should_use_color() == True"),
-        ("            NO_COLOR=foo                ", ""),
-        ("            NO_COLOR=foo             tty", ""),
-        ("            NO_COLOR=foo PY_COLORS=0    ", ""),
-        ("            NO_COLOR=foo PY_COLORS=0 tty", ""),
-        ("            NO_COLOR=foo PY_COLORS=1    ", "should_use_color() == True"),
-        ("            NO_COLOR=foo PY_COLORS=1 tty", "should_use_color() == True"),
-        ("color=false NO_COLOR=foo                ", ""),
-        ("color=false NO_COLOR=foo             tty", ""),
-        ("color=false NO_COLOR=foo PY_COLORS=0    ", ""),
-        ("color=false NO_COLOR=foo PY_COLORS=0 tty", ""),
-        ("color=false NO_COLOR=foo PY_COLORS=1    ", "should_use_color() == True"),
-        ("color=false NO_COLOR=foo PY_COLORS=1 tty", "should_use_color() == True"),
-        ("color=true  NO_COLOR=foo                ", ""),
-        ("color=true  NO_COLOR=foo             tty", ""),
-        ("color=true  NO_COLOR=foo PY_COLORS=0    ", ""),
-        ("color=true  NO_COLOR=foo PY_COLORS=0 tty", ""),
-        ("color=true  NO_COLOR=foo PY_COLORS=1    ", "should_use_color() == True"),
-        ("color=true  NO_COLOR=foo PY_COLORS=1 tty", "should_use_color() == True"),
+        ("                            ", ""),
+        ("                         tty", "should_use_color() == True"),
+        ("color=false                 ", ""),
+        ("color=false              tty", ""),
+        ("color=true                  ", "should_use_color() == True"),
+        ("color=true               tty", "should_use_color() == True"),
+        ("            NO_COLOR=foo    ", ""),
+        ("            NO_COLOR=foo tty", ""),
+        ("color=false NO_COLOR=foo    ", ""),
+        ("color=false NO_COLOR=foo tty", ""),
+        ("color=true  NO_COLOR=foo    ", ""),
+        ("color=true  NO_COLOR=foo tty", ""),
     ],
 )
 def test_should_use_color_pygments(tmp_path: Path, params: str, expect: str) -> None:
@@ -126,6 +136,7 @@ def test_should_use_color_pygments(tmp_path: Path, params: str, expect: str) -> 
     These tests are set up so that it appears as if
     - ``pygments`` is installed
     - there is no ``--color`` or `--no-color`` command line option
+    - the ``PY_COLORS`` environment variable isn't set to ``0`` or ``1``
 
     """
     with (tmp_path / "pyproject.toml").open("w") as pyproject:
@@ -135,10 +146,6 @@ def test_should_use_color_pygments(tmp_path: Path, params: str, expect: str) -> 
     env = {}
     if " NO_COLOR=foo " in params:
         env["NO_COLOR"] = "foo"
-    if " PY_COLORS=0 " in params:
-        env["PY_COLORS"] = "0"
-    if " PY_COLORS=1 " in params:
-        env["PY_COLORS"] = "1"
     with patch.dict(os.environ, env, clear=True):
         _, config, _ = parse_command_line([str(tmp_path / "dummy.py")])
     with patch("sys.stdout.isatty", Mock(return_value=params.endswith(" tty"))):
