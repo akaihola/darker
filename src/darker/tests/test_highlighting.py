@@ -93,7 +93,7 @@ def _parse_environment_variables(definitions: str) -> Dict[str, str]:
     return dict(item.split("=") for item in shlex(definitions, punctuation_chars=" "))
 
 
-@pytest.fixture(params=["", "NO_COLOR=foo"])
+@pytest.fixture(params=["", "NO_COLOR=", "NO_COLOR=foo"])
 def env_no_color(request: SubRequest) -> Generator[Dict[str, str], None, None]:
     """Parametrized fixture for patching ``NO_COLOR``
 
@@ -257,6 +257,12 @@ def test_should_use_color_pygments_and_py_colors(
         ("color = false", "            ", "tty", "                          "),
         ("color = true ", "            ", "   ", "should_use_color() == True"),
         ("color = true ", "            ", "tty", "should_use_color() == True"),
+        ("             ", "NO_COLOR=   ", "   ", "                          "),
+        ("             ", "NO_COLOR=   ", "tty", "                          "),
+        ("color = false", "NO_COLOR=   ", "   ", "                          "),
+        ("color = false", "NO_COLOR=   ", "tty", "                          "),
+        ("color = true ", "NO_COLOR=   ", "   ", "                          "),
+        ("color = true ", "NO_COLOR=   ", "tty", "                          "),
         ("             ", "NO_COLOR=foo", "   ", "                          "),
         ("             ", "NO_COLOR=foo", "tty", "                          "),
         ("color = false", "NO_COLOR=foo", "   ", "                          "),
