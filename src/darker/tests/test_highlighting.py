@@ -49,10 +49,24 @@ def pyproject_toml_color(
     yield request.param
 
 
+@pytest.fixture(params=[False, True])
+def tty(request: SubRequest) -> Generator[None, None, None]:
+    """Parametrized fixture for patching `sys.stdout.isatty`
+
+    Patches `sys.stdout.isatty` to return either `False` or `True`.
+
+    :param request: The Pytest ``request`` object
+    :yield: The patched `False` or `True` return value for `sys.stdout.isatty`
+
+    """
+    with patch("sys.stdout.isatty", Mock(return_value=request.param)):
+
+        yield request.param
+
+
 @pytest.mark.parametrize("env_no_color", [{}, {"NO_COLOR": "foo"}])
 @pytest.mark.parametrize("env_py_colors", [{}, {"PY_COLORS": "0"}, {"PY_COLORS": "1"}])
 @pytest.mark.parametrize("cmdline", [[], ["--no-color"], ["--color"]])
-@pytest.mark.parametrize("tty", [False, True])
 def test_should_use_color_no_pygments(
     tmp_path: Path,
     pyproject_toml_color: str,
@@ -70,8 +84,7 @@ def test_should_use_color_no_pygments(
     del mods["darker.highlighting"]
     # cause an ImportError for `import pygments`:
     mods["pygments"] = None  # type: ignore[assignment]
-    isatty = Mock(return_value=tty)
-    with patch.dict(sys.modules, mods, clear=True), patch("sys.stdout.isatty", isatty):
+    with patch.dict(sys.modules, mods, clear=True):
 
         result = should_use_color(config["color"])
 
@@ -84,7 +97,6 @@ def test_should_use_color_no_pygments(
     dict(cmdline="--no-color", expect=False),
     dict(cmdline="--color", expect=True),
 )
-@pytest.mark.parametrize("tty", [False, True])
 def test_should_use_color_pygments_and_command_line_argument(
     tmp_path: Path,
     pyproject_toml_color: str,
@@ -99,9 +111,8 @@ def test_should_use_color_pygments_and_command_line_argument(
     environ = {**env_no_color, **env_py_colors}
     with patch.dict(os.environ, environ, clear=True):
         _, config, _ = parse_command_line(argv)
-    with patch("sys.stdout.isatty", Mock(return_value=tty)):
 
-        result = should_use_color(config["color"])
+    result = should_use_color(config["color"])
 
     assert result == expect
 
@@ -111,7 +122,6 @@ def test_should_use_color_pygments_and_command_line_argument(
     dict(env_py_colors={"PY_COLORS": "0"}, expect=False),
     dict(env_py_colors={"PY_COLORS": "1"}, expect=True),
 )
-@pytest.mark.parametrize("tty", [False, True])
 def test_should_use_color_pygments_and_py_colors(
     tmp_path: Path,
     pyproject_toml_color: str,
@@ -130,9 +140,8 @@ def test_should_use_color_pygments_and_py_colors(
     environ = {**env_no_color, **env_py_colors}
     with patch.dict(os.environ, environ, clear=True):
         _, config, _ = parse_command_line([str(tmp_path / "dummy.py")])
-    with patch("sys.stdout.isatty", Mock(return_value=tty)):
 
-        result = should_use_color(config["color"])
+    result = should_use_color(config["color"])
 
     assert result == expect
 
