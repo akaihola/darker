@@ -250,9 +250,9 @@ def test_revisionrange_parse_with_common_ancestor(git_repo, revrange, expect):
     dict(path="file.12345.tmp", expect="file.12345.tmp"),
     dict(path="subdir/file.12345.tmp", expect="subdir/file.12345.tmp"),
 )
-def test_get_rev1_path(path, expect):
-    """``get_rev1_path`` drops two suffixes from ``.py.<HASH>.tmp``"""
-    result = git.get_rev1_path(Path(path))
+def test_get_path_in_repo(path, expect):
+    """``get_path_in_repo`` drops two suffixes from ``.py.<HASH>.tmp``"""
+    result = git.get_path_in_repo(Path(path))
 
     assert result == Path(expect)
 

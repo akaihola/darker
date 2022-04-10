@@ -170,7 +170,7 @@ class RevisionRange:
         return cls(rev1 if common_ancestor == rev1_hash else common_ancestor, rev2)
 
 
-def get_rev1_path(path: Path) -> Path:
+def get_path_in_repo(path: Path) -> Path:
     """Return the relative path to the file in the old revision
 
     This is usually the same as the relative path on the command line. But in the
@@ -188,7 +188,7 @@ def get_rev1_path(path: Path) -> Path:
 
 
 def should_reformat_file(path: Path) -> bool:
-    return path.exists() and get_rev1_path(path).suffix == ".py"
+    return path.exists() and get_path_in_repo(path).suffix == ".py"
 
 
 @lru_cache(maxsize=1)

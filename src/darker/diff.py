@@ -177,3 +177,29 @@ def opcodes_to_chunks(
     _validate_opcodes(opcodes)
     for _tag, src_start, src_end, dst_start, dst_end in opcodes:
         yield src_start + 1, src.lines[src_start:src_end], dst.lines[dst_start:dst_end]
+
+
+def diff_chunks(src: TextDocument, dst: TextDocument) -> List[DiffChunk]:
+    """Diff two documents and return the list of chunks in the diff
+
+    Each chunk is a 3-tuple::
+
+        (
+            linenum: int,
+            old_lines: List[str],
+            new_lines: List[str],
+        )
+
+    ``old_lines`` and ``new_lines`` may be
+
+    - identical to indicate a chunk with no changes,
+    - of the same length but different items to indicate some modified lines, or
+    - of different lengths to indicate removed or inserted lines.
+
+    For the return value ``retval``, the following always holds::
+
+        retval[n + 1][0] == retval[n][0] + len(retval[n][old_lines])
+
+    """
+    opcodes = diff_and_get_opcodes(src, dst)
+    return list(opcodes_to_chunks(opcodes, src, dst))
