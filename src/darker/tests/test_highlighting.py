@@ -16,6 +16,22 @@ from darker.command_line import parse_command_line
 from darker.highlighting import colorize, lexers, should_use_color
 
 
+@pytest.fixture(scope="function", autouse=True)
+def clean_environ():
+    """Fixture for clearing unwanted environment varables
+
+    The ``NO_COLOR`` and ``PY_COLORS`` environment variables are tested in this module,
+    so we need to ensure they aren't already set.
+
+    """
+    environ = os.environ.copy()
+    environ.pop("PY_COLORS", None)
+    environ.pop("NO_COLOR", None)
+    with patch.dict("os.environ", environ, clear=True):
+
+        yield
+
+
 @pytest.fixture(params=["", "color = false", "color = true"])
 def pyproject_toml_color(
     request: SubRequest, tmp_path: Path
@@ -94,62 +110,84 @@ def env_py_colors(request: SubRequest) -> Generator[None, None, None]:
         yield request.param
 
 
-@pytest.mark.parametrize("cmdline", [[], ["--no-color"], ["--color"]])
-def test_should_use_color_no_pygments(
-    tmp_path: Path,
-    pyproject_toml_color: str,
-    env_no_color: Dict[str, str],
-    env_py_colors: Dict[str, str],
-    cmdline: List[str],
-    tty: bool,
-) -> None:
-    """Color output is never used if `pygments` is not installed"""
-    argv = cmdline + [str(tmp_path / "dummy.py")]
-    _, config, _ = parse_command_line(argv)
+@pytest.fixture
+def uninstall_pygments() -> Generator[None, None, None]:
+    """Fixture for uninstalling ``pygments`` temporarily"""
     mods = sys.modules.copy()
     del mods["darker.highlighting"]
     # cause an ImportError for `import pygments`:
     mods["pygments"] = None  # type: ignore[assignment]
     with patch.dict(sys.modules, mods, clear=True):
 
-        result = should_use_color(config["color"])
+        yield
+
+
+@pytest.fixture(params=[[], ["--no-color"], ["--color"]])
+def color_argv(request: SubRequest, tmp_path: Path) -> Generator[List[str], None, None]:
+    """Parametrized fixture for the ``--color`` / ``--no-color`` arguments
+
+    Yields command lines with no color argument, with the ``--color`` argument, and with
+    the ``--no--color`` argument, appended with a dummy path to a Python file.
+
+    :param request: The Pytest ``request`` object
+    :param tmp_path: A temporary directory created by Pytest
+    :yield: The list of arguments for the Darker command line
+
+    """
+    yield request.param + [str(tmp_path / "dummy.py")]
+
+
+def test_should_use_color_no_pygments(
+    uninstall_pygments: None,
+    pyproject_toml_color: str,
+    env_no_color: Dict[str, str],
+    env_py_colors: Dict[str, str],
+    color_argv: List[str],
+    tty: bool,
+) -> None:
+    """Color output is never used if `pygments` is not installed"""
+    _, config, _ = parse_command_line(color_argv)
+
+    result = should_use_color(config["color"])
 
     assert result is False
 
 
-@pytest.mark.kwparametrize(
-    dict(cmdline="--no-color", expect=False),
-    dict(cmdline="--color", expect=True),
+@pytest.mark.parametrize(
+    "color_argv, expect",
+    [(["--no-color"], False), (["--color"], True)],
+    indirect=["color_argv"],
 )
 def test_should_use_color_pygments_and_command_line_argument(
     tmp_path: Path,
     pyproject_toml_color: str,
     env_no_color: Dict[str, str],
     env_py_colors: Dict[str, str],
-    cmdline: str,
+    color_argv: List[str],
     expect: bool,
     tty: bool,
 ) -> None:
     """--color / --no-color determines highlighting if `pygments` is installed"""
-    argv = [cmdline, str(tmp_path / "dummy.py")]
-    _, config, _ = parse_command_line(argv)
+    _, config, _ = parse_command_line(color_argv)
 
     result = should_use_color(config["color"])
 
     assert result == expect
 
 
-@pytest.mark.kwparametrize(
-    dict(env_py_colors_={"PY_COLORS": "0"}, expect=False),
-    dict(env_py_colors_={"PY_COLORS": "1"}, expect=True),
+@pytest.mark.parametrize(
+    "env_py_colors, expect",
+    [({"PY_COLORS": "0"}, False), ({"PY_COLORS": "1"}, True)],
+    indirect=["env_py_colors"],
 )
+@pytest.mark.parametrize("color_argv", [[]])
 def test_should_use_color_pygments_and_py_colors(
-    tmp_path: Path,
     pyproject_toml_color: str,
     env_no_color: Dict[str, str],
-    env_py_colors_: Dict[str, str],
-    expect: bool,
+    env_py_colors: Dict[str, str],
+    color_argv: List[str],
     tty: bool,
+    expect: bool,
 ) -> None:
     """PY_COLORS determines highlighting when `pygments` installed and no cmdline args
 
@@ -158,14 +196,14 @@ def test_should_use_color_pygments_and_py_colors(
     - there is no ``--color`` or `--no-color`` command line option
 
     """
-    with patch.dict(os.environ, env_py_colors_, clear=True):
-        _, config, _ = parse_command_line([str(tmp_path / "dummy.py")])
+    _, config, _ = parse_command_line(color_argv)
 
     result = should_use_color(config["color"])
 
     assert result == expect
 
 
+@pytest.mark.parametrize("color_argv", [[]], indirect=True)
 @pytest.mark.parametrize(
     "params, expect",
     [
@@ -184,7 +222,9 @@ def test_should_use_color_pygments_and_py_colors(
         ("color=true  NO_COLOR=foo tty", ""),
     ],
 )
-def test_should_use_color_pygments(tmp_path: Path, params: str, expect: str) -> None:
+def test_should_use_color_pygments(
+    tmp_path: Path, color_argv: List[str], params: str, expect: str
+) -> None:
     """Color output is enabled only if correct configuration options are in place
 
     These tests are set up so that it appears as if
@@ -200,8 +240,8 @@ def test_should_use_color_pygments(tmp_path: Path, params: str, expect: str) -> 
     env = {}
     if " NO_COLOR=foo " in params:
         env["NO_COLOR"] = "foo"
-    with patch.dict(os.environ, env, clear=True):
-        _, config, _ = parse_command_line([str(tmp_path / "dummy.py")])
+    with patch.dict(os.environ, env):
+        _, config, _ = parse_command_line(color_argv)
     with patch("sys.stdout.isatty", Mock(return_value=params.endswith(" tty"))):
 
         result = should_use_color(config["color"])
