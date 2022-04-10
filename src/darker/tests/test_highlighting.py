@@ -1,36 +1,67 @@
 """Unit tests for :mod:`darker.highlighting`"""
 
-# pylint: disable=too-many-arguments
+# pylint: disable=too-many-arguments,redefined-outer-name,unused-argument
 
 import os
 import sys
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, Generator, List
 from unittest.mock import Mock, patch
 
 import pytest
+from _pytest.fixtures import SubRequest
 from pygments.token import Token
 
 from darker.command_line import parse_command_line
 from darker.highlighting import colorize, lexers, should_use_color
 
 
-@pytest.mark.parametrize("pyproject", ["", "color = false", "color = true"])
+@pytest.fixture(params=["", "color = false", "color = true"])
+def pyproject_toml_color(
+    request: SubRequest, tmp_path: Path
+) -> Generator[None, None, None]:
+    """Parametrized fixture for the ``color =`` option in ``pyproject.toml``
+
+    Creates three versions of ``pyproject.toml`` in ``tmp_path`` for a test function:
+
+    Without the ``color =`` option::
+
+        [tool.darker]
+
+    With color turned off::
+
+        [tool.darker]
+        color = false
+
+    With color turned on::
+
+        [tool.darker]
+        color = true
+
+    :param request: The Pytest ``request`` object
+    :param tmp_path: A temporary directory created by Pytest
+    :yield: The ``color =`` option line in ``pyproject.toml``, or an empty string
+
+    """
+    with (tmp_path / "pyproject.toml").open("w") as pyproject_toml:
+        print(f"[tool.darker]\n{request.param}\n", file=pyproject_toml)
+
+    yield request.param
+
+
 @pytest.mark.parametrize("env_no_color", [{}, {"NO_COLOR": "foo"}])
 @pytest.mark.parametrize("env_py_colors", [{}, {"PY_COLORS": "0"}, {"PY_COLORS": "1"}])
 @pytest.mark.parametrize("cmdline", [[], ["--no-color"], ["--color"]])
 @pytest.mark.parametrize("tty", [False, True])
 def test_should_use_color_no_pygments(
     tmp_path: Path,
-    pyproject: str,
+    pyproject_toml_color: str,
     env_no_color: Dict[str, str],
     env_py_colors: Dict[str, str],
     cmdline: List[str],
     tty: bool,
 ) -> None:
     """Color output is never used if `pygments` is not installed"""
-    with (tmp_path / "pyproject.toml").open("w") as pyproject_toml:
-        print(f"[tool.darker]\n{pyproject}\n", file=pyproject_toml)
     argv = cmdline + [str(tmp_path / "dummy.py")]
     environ = {**env_no_color, **env_py_colors}
     with patch.dict(os.environ, environ, clear=True):
@@ -47,7 +78,6 @@ def test_should_use_color_no_pygments(
     assert result is False
 
 
-@pytest.mark.parametrize("pyproject", ["", "color = false", "color = true"])
 @pytest.mark.parametrize("env_no_color", [{}, {"NO_COLOR": "foo"}])
 @pytest.mark.parametrize("env_py_colors", [{}, {"PY_COLORS": "0"}, {"PY_COLORS": "1"}])
 @pytest.mark.kwparametrize(
@@ -57,7 +87,7 @@ def test_should_use_color_no_pygments(
 @pytest.mark.parametrize("tty", [False, True])
 def test_should_use_color_pygments_and_command_line_argument(
     tmp_path: Path,
-    pyproject: str,
+    pyproject_toml_color: str,
     env_no_color: Dict[str, str],
     env_py_colors: Dict[str, str],
     cmdline: str,
@@ -65,8 +95,6 @@ def test_should_use_color_pygments_and_command_line_argument(
     tty: bool,
 ) -> None:
     """--color / --no-color determines highlighting if `pygments` is installed"""
-    with (tmp_path / "pyproject.toml").open("w") as pyproject_toml:
-        print(f"[tool.darker]\n{pyproject}\n", file=pyproject_toml)
     argv = [cmdline, str(tmp_path / "dummy.py")]
     environ = {**env_no_color, **env_py_colors}
     with patch.dict(os.environ, environ, clear=True):
@@ -78,7 +106,6 @@ def test_should_use_color_pygments_and_command_line_argument(
     assert result == expect
 
 
-@pytest.mark.parametrize("pyproject", ["", "color = false", "color = true"])
 @pytest.mark.parametrize("env_no_color", [{}, {"NO_COLOR": "foo"}])
 @pytest.mark.kwparametrize(
     dict(env_py_colors={"PY_COLORS": "0"}, expect=False),
@@ -87,7 +114,7 @@ def test_should_use_color_pygments_and_command_line_argument(
 @pytest.mark.parametrize("tty", [False, True])
 def test_should_use_color_pygments_and_py_colors(
     tmp_path: Path,
-    pyproject: str,
+    pyproject_toml_color: str,
     env_no_color: Dict[str, str],
     env_py_colors: Dict[str, str],
     expect: bool,
@@ -100,8 +127,6 @@ def test_should_use_color_pygments_and_py_colors(
     - there is no ``--color`` or `--no-color`` command line option
 
     """
-    with (tmp_path / "pyproject.toml").open("w") as pyproject_toml:
-        print(f"[tool.darker]\n{pyproject}\n", file=pyproject_toml)
     environ = {**env_no_color, **env_py_colors}
     with patch.dict(os.environ, environ, clear=True):
         _, config, _ = parse_command_line([str(tmp_path / "dummy.py")])
