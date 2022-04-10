@@ -112,6 +112,8 @@ def override_color_with_environment(pyproject_config: DarkerConfig) -> DarkerCon
         config["color"] = py_colors == "1"
     elif os.getenv("NO_COLOR") is not None:
         config["color"] = False
+    elif os.getenv("FORCE_COLOR") is not None:
+        config["color"] = True
     return config
 
 

@@ -1,13 +1,14 @@
 """Unit tests for :mod:`darker.highlighting`"""
 
 # pylint: disable=too-many-arguments,redefined-outer-name,unused-argument
+# pylint: disable=protected-access
 
 import os
 import sys
 from pathlib import Path
 from shlex import shlex
-from typing import Dict, Generator
-from unittest.mock import Mock, patch
+from typing import Dict, Generator, cast
+from unittest.mock import patch
 
 import pytest
 from _pytest.fixtures import SubRequest
@@ -17,29 +18,52 @@ from darker.command_line import parse_command_line
 from darker.highlighting import colorize, lexers, should_use_color
 
 
-@pytest.fixture(scope="function", autouse=True)
+@pytest.fixture(scope="module")
+def module_tmp_path(tmp_path_factory: pytest.TempPathFactory) -> Path:
+    """Fixture for creating a module-scope temporary directory
+
+    :param tmp_path_factory: The temporary path factory fixture from Pytest
+    :return: The created directory path
+
+    """
+    return tmp_path_factory.mktemp("test_highlighting")
+
+
+def unset_our_env_vars():
+    """Unset the environment variables used in this test module"""
+    os.environ.pop("PY_COLORS", None)
+    os.environ.pop("NO_COLOR", None)
+    os.environ.pop("FORCE_COLOR", None)
+
+
+@pytest.fixture(scope="module", autouse=True)
 def clean_environ():
     """Fixture for clearing unwanted environment variables
 
     The ``NO_COLOR`` and ``PY_COLORS`` environment variables are tested in this module,
     so we need to ensure they aren't already set.
 
-    """
-    environ = os.environ.copy()
-    environ.pop("PY_COLORS", None)
-    environ.pop("NO_COLOR", None)
-    with patch.dict("os.environ", environ, clear=True):
+    In all `os.environ` patching, we use our own low-level custom code instead of
+    `unittest.mock.patch.dict` for performance reasons.
 
-        yield
+    """
+    old = os.environ
+    os.environ = cast(os._Environ[str], old.copy())  # noqa: B003
+    unset_our_env_vars()
+
+    yield
+
+    os.environ = old  # noqa: B003
 
 
 @pytest.fixture(params=["", "color = false", "color = true"])
 def pyproject_toml_color(
-    request: SubRequest, tmp_path: Path
+    request: SubRequest, module_tmp_path: Path
 ) -> Generator[None, None, None]:
     """Parametrized fixture for the ``color =`` option in ``pyproject.toml``
 
-    Creates three versions of ``pyproject.toml`` in ``tmp_path`` for a test function:
+    Creates three versions of ``pyproject.toml`` in ``module_tmp_path`` for a test
+    function:
 
     Without the ``color =`` option::
 
@@ -56,14 +80,17 @@ def pyproject_toml_color(
         color = true
 
     :param request: The Pytest ``request`` object
-    :param tmp_path: A temporary directory created by Pytest
+    :param module_tmp_path: A temporary directory created by Pytest
     :yield: The ``color =`` option line in ``pyproject.toml``, or an empty string
 
     """
-    with (tmp_path / "pyproject.toml").open("w") as pyproject_toml:
+    pyproject_toml_path = module_tmp_path / "pyproject.toml"
+    with pyproject_toml_path.open("w") as pyproject_toml:
         print(f"[tool.darker]\n{request.param}\n", file=pyproject_toml)
 
     yield request.param
+
+    pyproject_toml_path.unlink()
 
 
 @pytest.fixture(params=["", "tty"])
@@ -72,15 +99,19 @@ def tty(request: SubRequest) -> Generator[bool, None, None]:
 
     Patches `sys.stdout.isatty` to return either `False` or `True`. The parameter values
     are strings and not booleans in order to improve readability of parametrized tests.
+    Custom patching for performance.
 
     :param request: The Pytest ``request`` object
     :yield: The patched `False` or `True` return value for `sys.stdout.isatty`
 
     """
-    is_a_tty = request.param == "tty"
-    with patch("sys.stdout.isatty", Mock(return_value=is_a_tty)):
+    old_isatty = sys.stdout.isatty
+    is_a_tty: bool = request.param == "tty"
+    sys.stdout.isatty = lambda: is_a_tty  # type: ignore[assignment]
 
-        yield is_a_tty
+    yield is_a_tty
+
+    sys.stdout.isatty = old_isatty  # type: ignore[assignment]
 
 
 def _parse_environment_variables(definitions: str) -> Dict[str, str]:
@@ -108,10 +139,29 @@ def env_no_color(request: SubRequest) -> Generator[Dict[str, str], None, None]:
     :yield: The patched items in the environment
 
     """
-    environ = _parse_environment_variables(request.param)
-    with patch.dict(os.environ, environ):
+    os.environ.update(_parse_environment_variables(request.param))
+    yield request.param
+    unset_our_env_vars()
 
-        yield environ
+
+@pytest.fixture(params=["", "FORCE_COLOR=", "FORCE_COLOR=foo"])
+def env_force_color(request: SubRequest) -> Generator[Dict[str, str], None, None]:
+    """Parametrized fixture for patching ``FORCE_COLOR``
+
+    This fixture must come before `config_from_env_and_argv` in test function
+    signatures.
+
+    Patches the environment with or without the ``FORCE_COLOR`` environment variable.
+    The environment is expressed as a space-separated string to improve readability of
+    parametrized tests.
+
+    :param request: The Pytest ``request`` object
+    :yield: The patched items in the environment
+
+    """
+    os.environ.update(_parse_environment_variables(request.param))
+    yield request.param
+    unset_our_env_vars()
 
 
 @pytest.fixture(params=["", "PY_COLORS=0", "PY_COLORS=1"])
@@ -129,10 +179,9 @@ def env_py_colors(request: SubRequest) -> Generator[Dict[str, str], None, None]:
     :yield: The patched items in the environment
 
     """
-    environ = _parse_environment_variables(request.param)
-    with patch.dict(os.environ, environ):
-
-        yield environ
+    os.environ.update(_parse_environment_variables(request.param))
+    yield request.param
+    unset_our_env_vars()
 
 
 @pytest.fixture
@@ -147,9 +196,12 @@ def uninstall_pygments() -> Generator[None, None, None]:
         yield
 
 
+config_cache = {}
+
+
 @pytest.fixture(params=[[], ["--no-color"], ["--color"]])
 def config_from_env_and_argv(
-    request: SubRequest, tmp_path: Path
+    request: SubRequest, module_tmp_path: Path
 ) -> Generator[bool, None, None]:
     """Parametrized fixture for the ``--color`` / ``--no-color`` arguments
 
@@ -164,20 +216,30 @@ def config_from_env_and_argv(
     signatures (if they are being used).
 
     :param request: The Pytest ``request`` object
-    :param tmp_path: A temporary directory created by Pytest
+    :param module_tmp_path: A temporary directory created by Pytest
     :yield: The list of arguments for the Darker command line
 
     """
-    argv = request.param + [str(tmp_path / "dummy.py")]
-    _, config, _ = parse_command_line(argv)
-    yield config["color"]
+    argv = request.param + [str(module_tmp_path / "dummy.py")]
+    cache_key = (
+        tuple(request.param),
+        os.getenv("NO_COLOR"),
+        os.getenv("FORCE_COLOR"),
+        os.getenv("PY_COLORS"),
+        (module_tmp_path / "pyproject.toml").read_bytes(),
+    )
+    if cache_key not in config_cache:
+        _, config, _ = parse_command_line(argv)
+        config_cache[cache_key] = config["color"]
+    yield config_cache[cache_key]
 
 
 def test_should_use_color_no_pygments(
     uninstall_pygments: None,
     pyproject_toml_color: str,
-    env_no_color: Dict[str, str],
-    env_py_colors: Dict[str, str],
+    env_no_color: str,
+    env_force_color: str,
+    env_py_colors: str,
     config_from_env_and_argv: bool,
     tty: bool,
 ) -> None:
@@ -198,10 +260,10 @@ def test_should_use_color_no_pygments(
     indirect=["config_from_env_and_argv"],
 )
 def test_should_use_color_pygments_and_command_line_argument(
-    tmp_path: Path,
     pyproject_toml_color: str,
-    env_no_color: Dict[str, str],
-    env_py_colors: Dict[str, str],
+    env_no_color: str,
+    env_force_color: str,
+    env_py_colors: str,
     config_from_env_and_argv: bool,
     expect: bool,
     tty: bool,
@@ -225,8 +287,9 @@ def test_should_use_color_pygments_and_command_line_argument(
 @pytest.mark.parametrize("config_from_env_and_argv", [[]], indirect=True)
 def test_should_use_color_pygments_and_py_colors(
     pyproject_toml_color: str,
-    env_no_color: Dict[str, str],
-    env_py_colors: Dict[str, str],
+    env_no_color: str,
+    env_force_color: str,
+    env_py_colors: str,
     config_from_env_and_argv: bool,
     tty: bool,
     expect: bool,
@@ -246,36 +309,59 @@ def test_should_use_color_pygments_and_py_colors(
     assert result == expect
 
 
+@pytest.mark.parametrize(
+    "env_no_color, env_force_color, expect",
+    [
+        ("            ", "FORCE_COLOR=   ", "should_use_color() == True"),
+        ("            ", "FORCE_COLOR=foo", "should_use_color() == True"),
+        ("NO_COLOR=   ", "FORCE_COLOR=   ", "                          "),
+        ("NO_COLOR=   ", "FORCE_COLOR=foo", "                          "),
+        ("NO_COLOR=foo", "FORCE_COLOR=   ", "                          "),
+        ("NO_COLOR=foo", "FORCE_COLOR=foo", "                          "),
+    ],
+    indirect=["env_no_color", "env_force_color"],
+)
+@pytest.mark.parametrize("config_from_env_and_argv", [[]], indirect=True)
+def test_should_use_color_no_color_force_color(
+    pyproject_toml_color: str,
+    env_no_color: str,
+    env_force_color: str,
+    config_from_env_and_argv: bool,
+    tty: bool,
+    expect: str,
+) -> None:
+    """NO_COLOR/FORCE_COLOR determine highlighting in absence of PY_COLORS/cmdline args
+
+    These tests are set up so that it appears as if
+    - ``pygments`` is installed
+    - the ``PY_COLORS`` environment variable is unset
+    - there is no ``--color`` or `--no-color`` command line option
+
+    All combinations of ``pyproject.toml`` options, ``NO_COLOR``, ``FORCE_COLOR`` and
+    `sys.stdout.isatty` are tested.
+
+    """
+    result = should_use_color(config_from_env_and_argv)
+
+    assert result == (expect == "should_use_color() == True")
+
+
 @pytest.mark.parametrize("config_from_env_and_argv", [[]], indirect=True)
 @pytest.mark.parametrize(
-    "pyproject_toml_color, env_no_color, tty, expect",
+    "pyproject_toml_color, tty, expect",
     [
         # for readability, padded strings are used for parameters and the expectation
-        ("             ", "            ", "   ", "                          "),
-        ("             ", "            ", "tty", "should_use_color() == True"),
-        ("color = false", "            ", "   ", "                          "),
-        ("color = false", "            ", "tty", "                          "),
-        ("color = true ", "            ", "   ", "should_use_color() == True"),
-        ("color = true ", "            ", "tty", "should_use_color() == True"),
-        ("             ", "NO_COLOR=   ", "   ", "                          "),
-        ("             ", "NO_COLOR=   ", "tty", "                          "),
-        ("color = false", "NO_COLOR=   ", "   ", "                          "),
-        ("color = false", "NO_COLOR=   ", "tty", "                          "),
-        ("color = true ", "NO_COLOR=   ", "   ", "                          "),
-        ("color = true ", "NO_COLOR=   ", "tty", "                          "),
-        ("             ", "NO_COLOR=foo", "   ", "                          "),
-        ("             ", "NO_COLOR=foo", "tty", "                          "),
-        ("color = false", "NO_COLOR=foo", "   ", "                          "),
-        ("color = false", "NO_COLOR=foo", "tty", "                          "),
-        ("color = true ", "NO_COLOR=foo", "   ", "                          "),
-        ("color = true ", "NO_COLOR=foo", "tty", "                          "),
+        ("             ", "   ", "                          "),
+        ("             ", "tty", "should_use_color() == True"),
+        ("color = false", "   ", "                          "),
+        ("color = false", "tty", "                          "),
+        ("color = true ", "   ", "should_use_color() == True"),
+        ("color = true ", "tty", "should_use_color() == True"),
     ],
-    indirect=["pyproject_toml_color", "env_no_color", "tty"],
+    indirect=["pyproject_toml_color", "tty"],
 )
 def test_should_use_color_pygments(
-    tmp_path: Path,
     pyproject_toml_color: str,
-    env_no_color: Dict[str, str],
     tty: bool,
     config_from_env_and_argv: bool,
     expect: str,
