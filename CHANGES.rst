@@ -14,6 +14,7 @@ Added
   ``pyproject.toml``, the ``PY_COLORS`` and ``NO_COLOR`` environment variables, and the
   ``--color``/``--no-color`` command line options.
 - Syntax highlighting is now enabled by default in the GitHub Action.
+- ``pytest>=6.2.0`` now required for the test suite due to type hinting issues.
 
 Fixed
 -----
