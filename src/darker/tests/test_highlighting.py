@@ -7,7 +7,7 @@ import os
 import sys
 from pathlib import Path
 from shlex import shlex
-from typing import Dict, Generator, cast
+from typing import Dict, Generator
 from unittest.mock import patch
 
 import pytest
@@ -48,7 +48,7 @@ def clean_environ():
 
     """
     old = os.environ
-    os.environ = cast(os._Environ[str], old.copy())  # noqa: B003
+    os.environ = old.copy()  # type: ignore  # noqa: B003
     unset_our_env_vars()
 
     yield
