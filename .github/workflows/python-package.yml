@@ -17,9 +17,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os:
-          - ubuntu-latest
-          - macos-latest
+        include:
+          - os: ubuntu-latest
+            python-version: python310
+          - os: macos-latest
+            python-version: python39
+            # see https://github.com/cachix/install-nix-action/issues/135
     steps:
       - uses: actions/checkout@v3
         with:
@@ -29,7 +32,7 @@ jobs:
           nix_path: nixpkgs=channel:nixos-21.11
       - name: Run tests in nix-shell
         run: |
-          nix-shell --pure --run '
+          nix-shell --pure --argstr pythonVersion ${{ matrix.python-version }} --run '
             python -m venv venv
             source venv/bin/activate
             pip install -e '.[isort,test]'
