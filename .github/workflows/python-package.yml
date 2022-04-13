@@ -32,12 +32,16 @@ jobs:
           nix_path: nixpkgs=channel:nixos-21.11
       - name: Run tests in nix-shell
         run: |
-          nix-shell --pure --argstr pythonVersion ${{ matrix.python-version }} --run '
-            python -m venv venv
-            source venv/bin/activate
-            pip install -e '.[isort,test]'
-            pytest
-          ' ./default.nix
+          nix-shell \
+            --pure \
+            --argstr pythonVersion ${{ matrix.python-version }} \
+            --run '
+              python -m venv venv
+              source venv/bin/activate
+              pip install -e '.[isort,test]'
+              pytest
+            ' \
+            ./default.nix
 
   build:
 
