@@ -21,6 +21,8 @@ Fixed
 - Handle files encoded with an encoding other than UTF-8 without an exception.
 - The GitHub Action now handles missing ``revision:`` correctly.
 - Update ``cachix/install-nix-action`` to ``v17`` to fix macOS build error.
+- Downgrade Python from 3.10 to 3.9 in the macOS NixOS build on GitHub due to a build
+  error with Python 3.10.
 
 
 1.4.2_ - 2022-03-12
