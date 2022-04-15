@@ -1,5 +1,7 @@
-with import <nixpkgs> {};
-stdenv.mkDerivation {
+{ pkgs ? import <nixpkgs> { }, pythonVersion ? "python310" }:
+(
+  pkgs.stdenv.mkDerivation {
     name = "darker-test";
-    buildInputs = [ python310 git ];
-}
+    buildInputs = [ pkgs.${pythonVersion} pkgs.git ];
+  }
+)
