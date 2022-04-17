@@ -5,7 +5,7 @@ import os
 import sys
 from argparse import ArgumentParser, Namespace
 from pathlib import Path
-from typing import Iterable, List, cast
+from typing import Iterable, List, Optional, cast
 
 import toml
 
@@ -114,23 +114,26 @@ def override_color_with_environment(pyproject_config: DarkerConfig) -> DarkerCon
     return config
 
 
-def load_config(srcs: Iterable[str]) -> DarkerConfig:
+def load_config(path: Optional[str], srcs: Iterable[str]) -> DarkerConfig:
     """Find and load Darker configuration from given path or pyproject.toml
 
     :param srcs: File(s) and directory/directories which will be processed. Their paths
                  are used to look for the ``pyproject.toml`` configuration file.
 
     """
-    path = find_project_root(tuple(srcs or ["."])) / "pyproject.toml"
-    if path.is_file():
-        pyproject_toml = toml.load(path)
-        config = cast(
-            DarkerConfig, pyproject_toml.get("tool", {}).get("darker", {}) or {}
-        )
-        replace_log_level_name(config)
-        validate_config_output_mode(config)
-        return config
-    return {}
+    if path:
+        config_path = Path(path)
+        if not config_path.is_file():
+            raise ConfigurationError(f"Configuration file {path} not found")
+    else:
+        config_path = find_project_root(tuple(srcs or ["."])) / "pyproject.toml"
+        if not config_path.is_file():
+            return {}
+    pyproject_toml = toml.load(config_path)
+    config = cast(DarkerConfig, pyproject_toml.get("tool", {}).get("darker", {}) or {})
+    replace_log_level_name(config)
+    validate_config_output_mode(config)
+    return config
 
 
 def get_effective_config(args: Namespace) -> DarkerConfig:

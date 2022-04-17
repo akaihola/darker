@@ -92,6 +92,36 @@ def test_parse_command_line_config_src(
 
 
 @pytest.mark.kwparametrize(
+    dict(argv=["."], expect="pylint"),
+    dict(argv=["./subdir/"], expect="flake8"),
+    dict(argv=["--config", "./pyproject.toml", "."], expect="pylint"),
+    dict(argv=["--config", "./subdir/pyproject.toml", "."], expect="flake8"),
+    dict(argv=["--config", "./pyproject.toml", "subdir/"], expect="pylint"),
+    dict(argv=["--config", "./subdir/pyproject.toml", "subdir/"], expect="flake8"),
+)
+def test_parse_command_line_config_location_specified(
+    tmp_path,
+    monkeypatch,
+    argv,
+    expect,
+):
+    """Darker configuration is read from file pointed to using ``-c``/``--config``"""
+    monkeypatch.chdir(tmp_path)
+    subdir = tmp_path / "subdir"
+    subdir.mkdir()
+    root_config = tmp_path / "pyproject.toml"
+    subdir_config = subdir / "pyproject.toml"
+    root_config.write_text(toml.dumps({"tool": {"darker": {"lint": "pylint"}}}))
+    subdir_config.write_text(toml.dumps({"tool": {"darker": {"lint": "flake8"}}}))
+
+    args, effective_cfg, modified_cfg = parse_command_line(argv)
+
+    assert args.lint == expect
+    assert effective_cfg["lint"] == expect
+    assert modified_cfg["lint"] == expect
+
+
+@pytest.mark.kwparametrize(
     dict(
         argv=["."],
         expect_value=("src", ["."]),
@@ -375,6 +405,7 @@ def test_parse_command_line(
     """``parse_command_line()`` parses options correctly"""
     monkeypatch.chdir(tmp_path)
     (tmp_path / "dummy.py").touch()
+    (tmp_path / "my.cfg").touch()
     with patch.dict(os.environ, environ, clear=True), raises_if_exception(
         expect_value
     ) as expect_exception:
