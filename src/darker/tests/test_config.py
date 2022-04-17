@@ -2,6 +2,8 @@
 
 # pylint: disable=unused-argument
 
+import os
+import re
 from argparse import ArgumentParser, Namespace
 from pathlib import Path
 from textwrap import dedent
@@ -184,88 +186,185 @@ def test_output_mode_from_args(diff, stdout, expect):
         },
     ),
     dict(srcs=["stdout_example/dummy.py"], expect={"stdout": True}),
-    dict(confpath="c/p.toml", expect={"P_TOML": 1}),
-    dict(cwd="lvl1", confpath="../c/p.toml", expect={"P_TOML": 1}),
-    dict(cwd="lvl1/lvl2", confpath="../../c/p.toml", expect={"P_TOML": 1}),
-    dict(cwd="has_git", confpath="../c/p.toml", expect={"P_TOML": 1}),
-    dict(cwd="has_git/lvl1", confpath="../../c/p.toml", expect={"P_TOML": 1}),
-    dict(cwd="has_pyp", confpath="../c/p.toml", expect={"P_TOML": 1}),
-    dict(cwd="has_pyp/lvl1", confpath="../../c/p.toml", expect={"P_TOML": 1}),
-    dict(srcs=["root.py"], confpath="c/p.toml", expect={"P_TOML": 1}),
-    dict(srcs=["../root.py"], cwd="lvl1", confpath="../c/p.toml", expect={"P_TOML": 1}),
+    dict(confpath="c", expect={"PYP_TOML": 1}),
+    dict(confpath="c/pyproject.toml", expect={"PYP_TOML": 1}),
+    dict(cwd="lvl1", confpath="../c", expect={"PYP_TOML": 1}),
+    dict(cwd="lvl1", confpath="../c/pyproject.toml", expect={"PYP_TOML": 1}),
+    dict(cwd="lvl1/lvl2", confpath="../../c", expect={"PYP_TOML": 1}),
+    dict(cwd="lvl1/lvl2", confpath="../../c/pyproject.toml", expect={"PYP_TOML": 1}),
+    dict(cwd="has_git", confpath="../c", expect={"PYP_TOML": 1}),
+    dict(cwd="has_git", confpath="../c/pyproject.toml", expect={"PYP_TOML": 1}),
+    dict(cwd="has_git/lvl1", confpath="../../c", expect={"PYP_TOML": 1}),
+    dict(cwd="has_git/lvl1", confpath="../../c/pyproject.toml", expect={"PYP_TOML": 1}),
+    dict(cwd="has_pyp", confpath="../c", expect={"PYP_TOML": 1}),
+    dict(cwd="has_pyp", confpath="../c/pyproject.toml", expect={"PYP_TOML": 1}),
+    dict(cwd="has_pyp/lvl1", confpath="../../c", expect={"PYP_TOML": 1}),
+    dict(cwd="has_pyp/lvl1", confpath="../../c/pyproject.toml", expect={"PYP_TOML": 1}),
+    dict(srcs=["root.py"], confpath="c", expect={"PYP_TOML": 1}),
+    dict(srcs=["root.py"], confpath="c/pyproject.toml", expect={"PYP_TOML": 1}),
+    dict(srcs=["../root.py"], cwd="lvl1", confpath="../c", expect={"PYP_TOML": 1}),
     dict(
-        srcs=["../root.py"], cwd="has_git", confpath="../c/p.toml", expect={"P_TOML": 1}
+        srcs=["../root.py"],
+        cwd="lvl1",
+        confpath="../c/pyproject.toml",
+        expect={"PYP_TOML": 1},
     ),
+    dict(srcs=["../root.py"], cwd="has_git", confpath="../c", expect={"PYP_TOML": 1}),
     dict(
-        srcs=["../root.py"], cwd="has_pyp", confpath="../c/p.toml", expect={"P_TOML": 1}
+        srcs=["../root.py"],
+        cwd="has_git",
+        confpath="../c/pyproject.toml",
+        expect={"PYP_TOML": 1},
     ),
-    dict(srcs=["root.py", "lvl1/lvl1.py"], confpath="c/p.toml", expect={"P_TOML": 1}),
+    dict(srcs=["../root.py"], cwd="has_pyp", confpath="../c", expect={"PYP_TOML": 1}),
+    dict(
+        srcs=["../root.py"],
+        cwd="has_pyp",
+        confpath="../c/pyproject.toml",
+        expect={"PYP_TOML": 1},
+    ),
+    dict(srcs=["root.py", "lvl1/lvl1.py"], confpath="c", expect={"PYP_TOML": 1}),
+    dict(
+        srcs=["root.py", "lvl1/lvl1.py"],
+        confpath="c/pyproject.toml",
+        expect={"PYP_TOML": 1},
+    ),
     dict(
         srcs=["../root.py", "lvl1.py"],
         cwd="lvl1",
-        confpath="../c/p.toml",
-        expect={"P_TOML": 1},
+        confpath="../c",
+        expect={"PYP_TOML": 1},
+    ),
+    dict(
+        srcs=["../root.py", "lvl1.py"],
+        cwd="lvl1",
+        confpath="../c/pyproject.toml",
+        expect={"PYP_TOML": 1},
     ),
     dict(
         srcs=["../root.py", "../lvl1/lvl1.py"],
         cwd="has_git",
-        confpath="../c/p.toml",
-        expect={"P_TOML": 1},
+        confpath="../c",
+        expect={"PYP_TOML": 1},
+    ),
+    dict(
+        srcs=["../root.py", "../lvl1/lvl1.py"],
+        cwd="has_git",
+        confpath="../c/pyproject.toml",
+        expect={"PYP_TOML": 1},
     ),
     dict(
         srcs=["../root.py", "../lvl1/lvl1.py"],
         cwd="has_pyp",
-        confpath="../c/p.toml",
-        expect={"P_TOML": 1},
+        confpath="../c",
+        expect={"PYP_TOML": 1},
     ),
     dict(
+        srcs=["../root.py", "../lvl1/lvl1.py"],
+        cwd="has_pyp",
+        confpath="../c/pyproject.toml",
+        expect={"PYP_TOML": 1},
+    ),
+    dict(srcs=["has_pyp/pyp.py", "lvl1/lvl1.py"], confpath="c", expect={"PYP_TOML": 1}),
+    dict(
         srcs=["has_pyp/pyp.py", "lvl1/lvl1.py"],
-        confpath="c/p.toml",
-        expect={"P_TOML": 1},
+        confpath="c/pyproject.toml",
+        expect={"PYP_TOML": 1},
     ),
     dict(
         srcs=["../has_pyp/pyp.py", "lvl1.py"],
         cwd="lvl1",
-        confpath="../c/p.toml",
-        expect={"P_TOML": 1},
+        confpath="../c",
+        expect={"PYP_TOML": 1},
+    ),
+    dict(
+        srcs=["../has_pyp/pyp.py", "lvl1.py"],
+        cwd="lvl1",
+        confpath="../c/pyproject.toml",
+        expect={"PYP_TOML": 1},
     ),
     dict(
         srcs=["../has_pyp/pyp.py", "../lvl1/lvl1.py"],
         cwd="has_git",
-        confpath="../c/p.toml",
-        expect={"P_TOML": 1},
+        confpath="../c",
+        expect={"PYP_TOML": 1},
+    ),
+    dict(
+        srcs=["../has_pyp/pyp.py", "../lvl1/lvl1.py"],
+        cwd="has_git",
+        confpath="../c/pyproject.toml",
+        expect={"PYP_TOML": 1},
     ),
     dict(
         srcs=["pyp.py", "../lvl1/lvl1.py"],
         cwd="has_pyp",
-        confpath="../c/p.toml",
-        expect={"P_TOML": 1},
+        confpath="../c",
+        expect={"PYP_TOML": 1},
+    ),
+    dict(
+        srcs=["pyp.py", "../lvl1/lvl1.py"],
+        cwd="has_pyp",
+        confpath="../c/pyproject.toml",
+        expect={"PYP_TOML": 1},
     ),
     dict(
         srcs=["has_pyp/lvl1/l1.py", "has_pyp/lvl1b/l1b.py"],
-        confpath="c/p.toml",
-        expect={"P_TOML": 1},
+        confpath="c",
+        expect={"PYP_TOML": 1},
+    ),
+    dict(
+        srcs=["has_pyp/lvl1/l1.py", "has_pyp/lvl1b/l1b.py"],
+        confpath="c/pyproject.toml",
+        expect={"PYP_TOML": 1},
     ),
     dict(
         srcs=["../has_pyp/lvl1/l1.py", "../has_pyp/lvl1b/l1b.py"],
         cwd="lvl1",
-        confpath="../c/p.toml",
-        expect={"P_TOML": 1},
+        confpath="../c",
+        expect={"PYP_TOML": 1},
+    ),
+    dict(
+        srcs=["../has_pyp/lvl1/l1.py", "../has_pyp/lvl1b/l1b.py"],
+        cwd="lvl1",
+        confpath="../c/pyproject.toml",
+        expect={"PYP_TOML": 1},
     ),
     dict(
         srcs=["../has_pyp/lvl1/l1.py", "../has_pyp/lvl1b/l1b.py"],
         cwd="has_git",
-        confpath="../c/p.toml",
-        expect={"P_TOML": 1},
+        confpath="../c",
+        expect={"PYP_TOML": 1},
+    ),
+    dict(
+        srcs=["../has_pyp/lvl1/l1.py", "../has_pyp/lvl1b/l1b.py"],
+        cwd="has_git",
+        confpath="../c/pyproject.toml",
+        expect={"PYP_TOML": 1},
     ),
     dict(
         srcs=["lvl1/l1.py", "lvl1b/l1b.py"],
         cwd="has_pyp",
-        confpath="../c/p.toml",
-        expect={"P_TOML": 1},
+        confpath="../c",
+        expect={"PYP_TOML": 1},
     ),
-    dict(srcs=["full_example/full.py"], confpath="c/p.toml", expect={"P_TOML": 1}),
-    dict(srcs=["stdout_example/dummy.py"], confpath="c/p.toml", expect={"P_TOML": 1}),
+    dict(
+        srcs=["lvl1/l1.py", "lvl1b/l1b.py"],
+        cwd="has_pyp",
+        confpath="../c/pyproject.toml",
+        expect={"PYP_TOML": 1},
+    ),
+    dict(srcs=["full_example/full.py"], confpath="c", expect={"PYP_TOML": 1}),
+    dict(
+        srcs=["full_example/full.py"],
+        confpath="c/pyproject.toml",
+        expect={"PYP_TOML": 1},
+    ),
+    dict(srcs=["stdout_example/dummy.py"], confpath="c", expect={"PYP_TOML": 1}),
+    dict(
+        srcs=["stdout_example/dummy.py"],
+        confpath="c/pyproject.toml",
+        expect={"PYP_TOML": 1},
+    ),
     srcs=[],
     cwd=".",
     confpath=None,
@@ -310,7 +409,7 @@ def test_load_config(
         "[tool.darker]\nstdout = true\n"
     )
     (tmp_path / "c").mkdir()
-    (tmp_path / "c" / "p.toml").write_text("[tool.darker]\nP_TOML = 1\n")
+    (tmp_path / "c" / "pyproject.toml").write_text("[tool.darker]\nPYP_TOML = 1\n")
     monkeypatch.chdir(tmp_path / cwd)
 
     result = load_config(confpath, srcs)
@@ -318,16 +417,37 @@ def test_load_config(
     assert result == expect
 
 
-@pytest.mark.parametrize(
-    "path",
-    [".", "./foo.toml", "subdir", "subdir/", "subdir/foo.toml", "missing_dir/foo.toml"],
+@pytest.mark.kwparametrize(
+    dict(path=".", expect="Configuration file pyproject.toml not found"),
+    dict(path="./foo.toml", expect="Configuration file ./foo.toml not found"),
+    dict(
+        path="empty", expect=f"Configuration file empty{os.sep}pyproject.toml not found"
+    ),
+    dict(
+        path="empty/",
+        expect=f"Configuration file empty{os.sep}pyproject.toml not found",
+    ),
+    dict(path="subdir/foo.toml", expect="Configuration file subdir/foo.toml not found"),
+    dict(
+        path="missing_dir",
+        expect="Configuration file missing_dir not found",
+    ),
+    dict(
+        path=f"missing_dir{os.sep}",
+        expect=f"Configuration file missing_dir{os.sep}pyproject.toml not found",
+    ),
+    dict(
+        path="missing_dir/foo.toml",
+        expect="Configuration file missing_dir/foo.toml not found",
+    ),
 )
-def test_load_config_explicit_path_errors(tmp_path, monkeypatch, path):
+def test_load_config_explicit_path_errors(tmp_path, monkeypatch, path, expect):
     """``load_config()`` raises an error if given path is not a file"""
     monkeypatch.chdir(tmp_path)
     (tmp_path / "subdir").mkdir()
     (tmp_path / "subdir" / "pyproject.toml").write_text("")
-    with pytest.raises(ConfigurationError, match=r"Configuration file .* not found"):
+    (tmp_path / "empty").mkdir()
+    with pytest.raises(ConfigurationError, match=re.escape(expect)):
 
         _ = load_config(path, ["."])
 

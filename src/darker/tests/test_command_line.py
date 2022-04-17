@@ -243,6 +243,18 @@ def test_parse_command_line_config_location_specified(
         expect_modified=("config", "my.cfg"),
     ),
     dict(
+        argv=["-c", "subdir_with_config", "."],
+        expect_value=("config", "subdir_with_config"),
+        expect_config=("config", "subdir_with_config"),
+        expect_modified=("config", "subdir_with_config"),
+    ),
+    dict(
+        argv=["--config=subdir_with_config", "."],
+        expect_value=("config", "subdir_with_config"),
+        expect_config=("config", "subdir_with_config"),
+        expect_modified=("config", "subdir_with_config"),
+    ),
+    dict(
         argv=["."],
         expect_value=("log_level", 30),
         expect_config=("log_level", "WARNING"),
@@ -406,6 +418,8 @@ def test_parse_command_line(
     monkeypatch.chdir(tmp_path)
     (tmp_path / "dummy.py").touch()
     (tmp_path / "my.cfg").touch()
+    (tmp_path / "subdir_with_config").mkdir()
+    (tmp_path / "subdir_with_config" / "pyproject.toml").touch()
     with patch.dict(os.environ, environ, clear=True), raises_if_exception(
         expect_value
     ) as expect_exception:
