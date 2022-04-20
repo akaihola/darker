@@ -11,9 +11,10 @@ Added
 - Sort imports only if the range of modified lines overlaps with changes resulting from
   sorting the imports.
 - Allow force enabling/disabling of syntax highlighting using the ``color`` option in
-  ``pyproject.toml``, the ``PY_COLORS`` environment variable, and the
+  ``pyproject.toml``, the ``PY_COLORS`` and ``NO_COLOR`` environment variables, and the
   ``--color``/``--no-color`` command line options.
 - Syntax highlighting is now enabled by default in the GitHub Action.
+- ``pytest>=6.2.0`` now required for the test suite due to type hinting issues.
 
 Fixed
 -----
