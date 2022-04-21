@@ -106,8 +106,9 @@ def parse_command_line(argv: List[str]) -> Tuple[Namespace, DarkerConfig, Darker
     parser_for_srcs = make_argument_parser(require_src=False)
     args = parser_for_srcs.parse_args(argv)
 
-    # 2. Locate `pyproject.toml` based on those paths, or in the current directory if no
-    #    paths were given. Load Darker configuration from it.
+    # 2. Locate `pyproject.toml` based on the `-c`/`--config` command line option, or
+    #    if it's not provided, based on the paths to process, or in the current
+    #    directory if no paths were given. Load Darker configuration from it.
     pyproject_config = load_config(args.config, args.src)
     config = override_color_with_environment(pyproject_config)
 

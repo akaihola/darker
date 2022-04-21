@@ -115,10 +115,18 @@ def override_color_with_environment(pyproject_config: DarkerConfig) -> DarkerCon
 
 
 def load_config(path: Optional[str], srcs: Iterable[str]) -> DarkerConfig:
-    """Find and load Darker configuration from given path or pyproject.toml
+    """Find and load Darker configuration from a TOML configuration file
 
-    :param srcs: File(s) and directory/directories which will be processed. Their paths
-                 are used to look for the ``pyproject.toml`` configuration file.
+    Darker determines the location for the configuration file by trying the following:
+    - the file path in the `path` argument, given using the ``-c``/``--config`` command
+      line option
+    - ``pyproject.toml`` inside the directory specified by the `path` argument
+    - ``pyproject.toml`` from a common parent directory to all items in `srcs`
+    - ``pyproject.toml`` in the current working directory if `srcs` is empty
+
+    :param path: The file or directory specified using the ``-c``/``--config`` command
+                 line option, or `None` if the option was omitted.
+    :param srcs: File(s) and directory/directories to be processed by Darker.
 
     """
     if path:
