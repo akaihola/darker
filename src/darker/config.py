@@ -131,8 +131,8 @@ def load_config(path: Optional[str], srcs: Iterable[str]) -> DarkerConfig:
     """
     if path:
         for candidate_path in [Path(path), Path(path) / "pyproject.toml"]:
-            config_path = Path(candidate_path)
-            if config_path.is_file():
+            if candidate_path.is_file():
+                config_path = candidate_path
                 break
         else:
             if Path(path).is_dir() or path.endswith(os.sep):
