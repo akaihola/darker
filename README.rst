@@ -22,9 +22,9 @@
 .. |changelog-badge| image:: https://img.shields.io/badge/-change%20log-purple
    :alt: Change log
 .. _changelog-badge: https://github.com/akaihola/darker/blob/master/CHANGES.rst
-.. |next-milestone| image:: https://img.shields.io/github/milestones/progress/akaihola/darker/13?color=red&label=release%201.5.0
+.. |next-milestone| image:: https://img.shields.io/github/milestones/progress/akaihola/darker/15?color=red&label=release%201.5.1
    :alt: Next milestone
-.. _next-milestone: https://github.com/akaihola/darker/milestone/13
+.. _next-milestone: https://github.com/akaihola/darker/milestone/15
 
 
 What?
@@ -564,18 +564,18 @@ do the following:
 1. Install pre-commit_ in your environment
    (see `pre-commit Installation`_ for details).
 
-1. Create a base pre-commit configuration::
+2. Create a base pre-commit configuration::
 
        pre-commit sample-config >.pre-commit-config.yaml
 
-1. Append to the created ``.pre-commit-config.yaml`` the following lines::
+3. Append to the created ``.pre-commit-config.yaml`` the following lines::
 
        -   repo: https://github.com/akaihola/darker
-           rev: 1.4.2
+           rev: 1.5.0
            hooks:
            -   id: darker
 
-2. install the Git hook scripts::
+4. install the Git hook scripts::
 
        pre-commit install
 
@@ -590,7 +590,7 @@ You can provide arguments, such as enabling isort, by specifying ``args``.
 Note the inclusion of the isort Python package under ``additional_dependencies``::
 
    -   repo: https://github.com/akaihola/darker
-       rev: 1.4.2
+       rev: 1.5.0
        hooks:
        -   id: darker
            args: [--isort]
@@ -631,12 +631,12 @@ Create a file named ``.github/workflows/darker.yml`` inside your repository with
            with:
              fetch-depth: 0 
          - uses: actions/setup-python@v2
-         - uses: akaihola/darker@1.4.2
+         - uses: akaihola/darker@1.5.0
            with:
              options: "--check --diff --color"
              revision: "master..."
              src: "./src"
-             version: "1.4.2"
+             version: "1.5.0"
              lint: "flake8,pylint==2.13.1"
 
 There needs to be a working Python environment, set up using ``actions/setup-python``

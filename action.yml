@@ -14,9 +14,9 @@ inputs:
     required: false
     default: "."
   version:
-    description: 'Python Version specifier (PEP440) - e.g. "1.4.2"'
+    description: 'Python Version specifier (PEP440) - e.g. "1.5.0"'
     required: false
-    default: "1.4.2"
+    default: "1.5.0"
   revision:
     description: >-
       Git revision range to compare when determining modified lines.
@@ -37,7 +37,7 @@ runs:
   steps:
     - name: Commit Range
       id: commit-range
-      uses: akaihola/darker/.github/actions/commit-range@1.4.2
+      uses: akaihola/darker/.github/actions/commit-range@1.5.0
     - name: Run Darker
       run: |
         # Exists since using github.action_path + path to main script doesn't
