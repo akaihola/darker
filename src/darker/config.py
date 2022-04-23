@@ -137,7 +137,7 @@ def load_config(path: Optional[str], srcs: Iterable[str]) -> DarkerConfig:
         else:
             if Path(path).is_dir() or path.endswith(os.sep):
                 raise ConfigurationError(
-                    f"Configuration file {Path(path) / 'pyproject.toml'} not found"
+                    f"Configuration file {Path(path, 'pyproject.toml')} not found"
                 )
             raise ConfigurationError(f"Configuration file {path} not found")
     else:
