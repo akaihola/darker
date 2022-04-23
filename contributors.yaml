@@ -5,8 +5,6 @@ Carreau:
   - {link_type: commits, type: Code}
   - {link_type: commits, type: Documentation}
   - {link_type: pulls-reviewed, type: Reviewed Pull Requests}
-CircleOnCircles:
-  - {link_type: issues, type: Bug reports}
 CorreyL:
   - {link_type: commits, type: Code}
   - {link_type: commits, type: Documentation}
@@ -32,6 +30,8 @@ Pacu2:
   - {link_type: pulls-reviewed, type: Reviewed Pull Requests}
 RishiKumarRay:
   - {link_type: search, type: Bug reports}
+Yajo:
+  - {link_type: search-comments, type: Reviewed Pull Requests}
 agandra:
   - {link_type: issues, type: Bug reports}
 akaihola:
@@ -40,15 +40,20 @@ akaihola:
   - {link_type: commits, type: Documentation}
   - {link_type: pulls-reviewed, type: Reviewed Pull Requests}
   - {link_type: commits, type: Maintenance}
+brtknr:
+  - {link_type: pulls-reviewed, type: Reviewed Pull Requests}
 casio:
   - {link_type: issues, type: Bug reports}
 cclauss:
   - {link_type: pulls-author, type: Code}
+chmouel:
+  - {link_type: pulls-author, type: Code}
+  - {link_type: issues, type: Bug reports}
 chrisdecker1201:
   - {link_type: pulls-author, type: Code}
   - {link_type: issues, type: Bug reports}
 dhrvjha:
-  - {link_type: search-issues, type: Bug reports}
+  - {link_type: search-comments, type: Bug reports}
   - {link_type: pulls-author, type: Code}
 dsmanl:
   - {link_type: issues, type: Bug reports}
@@ -64,6 +69,8 @@ guettli:
   - {link_type: issues, type: Bug reports}
 hauntsaninja:
   - {link_type: issues, type: Bug reports}
+ioggstream:
+  - {link_type: search-comments, type: Bug reports}
 irynahryshanovich:
   - {link_type: issues, type: Bug reports}
 ivanov:
@@ -129,6 +136,8 @@ tkolleh:
   - {link_type: issues, type: Bug reports}
 tobiasdiez: []
 virtuald:
+  - {link_type: issues, type: Bug reports}
+wasdee:
   - {link_type: issues, type: Bug reports}
 wjdp:
   - {link_type: issues, type: Bug reports}

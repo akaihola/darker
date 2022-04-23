@@ -152,9 +152,9 @@ CONTRIBUTION_LINKS = {
     "pulls-reviewed": "akaihola/darker/pulls?q=is%3Apr+reviewed-by%3A{username}",
     "pulls-author": "akaihola/darker/pulls?q=is%3Apr+author%3A{username}",
     "search": "akaihola/darker/search?q={username}",
-    "search-issues": "akaihola/darker/search?q={username}&type=issues",
+    "search-comments": "akaihola/darker/search?q=commenter%3A{username}&type=issues",
     "conda-issues": (
-        "conda-forge/staged-recipes/search" "?q=darker&type=issues&author={username}"
+        "conda-forge/staged-recipes/search?q=darker&type=issues&author={username}"
     ),
 }
 
@@ -196,7 +196,9 @@ class GitHubSession(CachedSession):
             url = f"https://api.github.com{url}"
         response = super().request(method, url, headers=hdrs, **kwargs)
         if response.status_code != 200:
-            raise RuntimeError(f"{response.status_code} {response.text}")
+            raise RuntimeError(
+                f"{response.status_code} {response.text} when requesting {url}"
+            )
         return response
 
 
