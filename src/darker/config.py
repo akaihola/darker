@@ -5,7 +5,7 @@ import os
 import sys
 from argparse import ArgumentParser, Namespace
 from pathlib import Path
-from typing import Iterable, List, cast
+from typing import Iterable, List, Optional, cast
 
 import toml
 
@@ -117,23 +117,41 @@ def override_color_with_environment(pyproject_config: DarkerConfig) -> DarkerCon
     return config
 
 
-def load_config(srcs: Iterable[str]) -> DarkerConfig:
-    """Find and load Darker configuration from given path or pyproject.toml
+def load_config(path: Optional[str], srcs: Iterable[str]) -> DarkerConfig:
+    """Find and load Darker configuration from a TOML configuration file
 
-    :param srcs: File(s) and directory/directories which will be processed. Their paths
-                 are used to look for the ``pyproject.toml`` configuration file.
+    Darker determines the location for the configuration file by trying the following:
+    - the file path in the `path` argument, given using the ``-c``/``--config`` command
+      line option
+    - ``pyproject.toml`` inside the directory specified by the `path` argument
+    - ``pyproject.toml`` from a common parent directory to all items in `srcs`
+    - ``pyproject.toml`` in the current working directory if `srcs` is empty
+
+    :param path: The file or directory specified using the ``-c``/``--config`` command
+                 line option, or `None` if the option was omitted.
+    :param srcs: File(s) and directory/directories to be processed by Darker.
 
     """
-    path = find_project_root(tuple(srcs or ["."])) / "pyproject.toml"
-    if path.is_file():
-        pyproject_toml = toml.load(path)
-        config = cast(
-            DarkerConfig, pyproject_toml.get("tool", {}).get("darker", {}) or {}
-        )
-        replace_log_level_name(config)
-        validate_config_output_mode(config)
-        return config
-    return {}
+    if path:
+        for candidate_path in [Path(path), Path(path, "pyproject.toml")]:
+            if candidate_path.is_file():
+                config_path = candidate_path
+                break
+        else:
+            if Path(path).is_dir() or path.endswith(os.sep):
+                raise ConfigurationError(
+                    f"Configuration file {Path(path, 'pyproject.toml')} not found"
+                )
+            raise ConfigurationError(f"Configuration file {path} not found")
+    else:
+        config_path = find_project_root(tuple(srcs or ["."])) / "pyproject.toml"
+        if not config_path.is_file():
+            return {}
+    pyproject_toml = toml.load(config_path)
+    config = cast(DarkerConfig, pyproject_toml.get("tool", {}).get("darker", {}) or {})
+    replace_log_level_name(config)
+    validate_config_output_mode(config)
+    return config
 
 
 def get_effective_config(args: Namespace) -> DarkerConfig:

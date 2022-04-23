@@ -24,6 +24,9 @@ Fixed
 - Update ``cachix/install-nix-action`` to ``v17`` to fix macOS build error.
 - Downgrade Python from 3.10 to 3.9 in the macOS NixOS build on GitHub due to a build
   error with Python 3.10.
+- Darker now reads its own configuration from the file specified using
+  ``-c``/``--config``, or in case a directory is specified, from ``pyproject.toml``
+  inside that directory.
 
 
 1.4.2_ - 2022-03-12
