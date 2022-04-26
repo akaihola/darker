@@ -631,6 +631,21 @@ def test_main_historical(git_repo):
         darker.__main__.main(["--revision=foo..bar", "."])
 
 
+@pytest.mark.parametrize("arguments", [["--diff"], ["--check"], ["--diff", "--check"]])
+@pytest.mark.parametrize("src", [".", "foo/..", "{git_repo_root}"])
+def test_main_historical_ok(git_repo, arguments, src):
+    """Runs ok for repository root with rev2 specified and ``--diff`` or ``--check``"""
+    git_repo.add({"README": "first"}, commit="Initial commit")
+    initial = git_repo.get_hash()
+    git_repo.add({"README": "second"}, commit="Second commit")
+    second = git_repo.get_hash()
+
+    darker.__main__.main(
+        arguments
+        + [f"--revision={initial}..{second}", src.format(git_repo_root=git_repo.root)]
+    )
+
+
 def test_main_pre_commit_head(git_repo, monkeypatch):
     """Warn if run by pre-commit, rev2=HEAD and no ``--diff`` or ``--check`` provided"""
     git_repo.add({"a.py": "original = 1"}, commit="Add a.py")
