@@ -8,6 +8,8 @@ Added
 
 Fixed
 -----
+- ``darker --revision=a..b .`` now works since the repository root is now always
+  considered to have existed in all historical commits.
 
 
 1.5.0_ - 2022-04-23
