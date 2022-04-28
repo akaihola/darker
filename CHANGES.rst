@@ -5,6 +5,8 @@ These features will be included in the next release:
 
 Added
 -----
+- Add a CI workflow which verifies that the ``darker --help`` output in ``README.rst``
+  is up to date.
 
 Fixed
 -----

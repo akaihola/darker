@@ -1,0 +1,18 @@
+---
+name: help-in-readme
+on: [push]  # yamllint disable-line rule:truthy
+jobs:
+  help-in-readme:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - run: pip install -e '.[isort]'
+      - name: Verify that README contains output of darker --help
+        shell: python
+        run: |
+          from pathlib import Path
+          from subprocess import check_output, STDOUT
+          cmd = ["darker", "--options-for-readme"]
+          usage = check_output(cmd, stderr=STDOUT, encoding="utf-8")
+          readme = Path("README.rst").read_text()
+          assert usage in readme
