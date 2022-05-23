@@ -385,9 +385,9 @@ other tools. For example, VSCode only expects the reformat diff, so
 
 *New in version 1.5.0:* The ``--color`` and ``--no-color`` command line options
 
-.. _Black documentation about pyproject.toml: https://black.readthedocs.io/en/stable/pyproject_toml.html
+.. _Black documentation about pyproject.toml: https://black.readthedocs.io/en/stable/usage_and_configuration/the_basics.html#configuration-via-a-file
 .. _isort documentation about config files: https://timothycrosley.github.io/isort/docs/configuration/config_files/
-.. _command line arguments: https://black.readthedocs.io/en/stable/installation_and_usage.html#command-line-options
+.. _command line arguments: https://black.readthedocs.io/en/stable/usage_and_configuration/the_basics.html#command-line-options
 
 Editor integration
 ==================
