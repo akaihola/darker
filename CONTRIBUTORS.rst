@@ -10,6 +10,7 @@
 - August Masquelier (@levouh)
 - Axel Dahlberg (@AckslD)
 - Bao (@qubidt)
+- Ben Falk (@falkben)
 - Bharat Kunwar (@brtknr)
 - Carsten Kraus (@casio)
 - Chmouel Boudjnah (@chmouel)

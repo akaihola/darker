@@ -59,6 +59,8 @@ dhrvjha:
   - {link_type: pulls-author, type: Code}
 dsmanl:
   - {link_type: issues, type: Bug reports}
+falkben:
+  - {link_type: pulls-author, type: Documentation}
 fizbin:
   - {link_type: issues, type: Bug reports}
 flying-sheep:
