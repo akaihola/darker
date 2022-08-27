@@ -156,6 +156,9 @@ CONTRIBUTION_LINKS = {
     "conda-issues": (
         "conda-forge/staged-recipes/search?q=darker&type=issues&author={username}"
     ),
+    "darker-feedstock-issues": (
+        "conda-forge/darker-feedstock/search?q=darker+author%3A{username}&type=issues"
+    ),
 }
 
 
