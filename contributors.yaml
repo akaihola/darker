@@ -52,6 +52,8 @@ chmouel:
 chrisdecker1201:
   - {link_type: pulls-author, type: Code}
   - {link_type: issues, type: Bug reports}
+deadkex:
+  - {link_type: search-discussions, type: Bug reports}
 dhrvjha:
   - {link_type: search-comments, type: Bug reports}
   - {link_type: pulls-author, type: Code}

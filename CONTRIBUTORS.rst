@@ -20,6 +20,7 @@
 - Daniel Martin (@fizbin)
 - David Dreher (@DavidCDreher)
 - David Sanders (@shangxiao)
+- deadkex (@deadkex)
 - Dhruv Kumar Jha (@dhrvjha)
 - dsmanl (@dsmanl)
 - Dustin Spicuzza (@virtuald)
