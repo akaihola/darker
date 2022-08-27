@@ -99,7 +99,7 @@ Added
 -----
 - Experimental GitHub Actions integration
 - Consecutive lines of linter output are now separated by a blank line.
-- Highligh linter output if Pygments is installed.
+- Highlight linter output if Pygments is installed.
 - Allow running Darker on plain directories in addition to Git repositories.
 
 Fixed
