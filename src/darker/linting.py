@@ -54,7 +54,11 @@ def _parse_linter_line(line: str, root: Path) -> Tuple[Path, int, str, str]:
         logger.debug("Unparsable linter output: %s", line[:-1])
         return Path(), 0, "", ""
     path_from_cwd = Path(path_str).absolute()
-    path_in_repo = path_from_cwd.relative_to(root)
+    try:
+        path_in_repo = path_from_cwd.relative_to(root)
+    except ValueError as exc_info:
+        logger.debug("Unparsable linter output: %s (%s)", line[:-1], exc_info)
+        return Path(), 0, "", ""
     return path_in_repo, linenum, location + ":", description
 
 
