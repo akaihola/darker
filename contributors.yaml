@@ -103,6 +103,8 @@ matclayton:
   - {link_type: issues, type: Bug reports}
 mayk0gan:
   - {link_type: issues, type: Bug reports}
+minrk:
+  - {link_type: darker-feedstock-issues, type: Code}
 muggenhor:
   - {link_type: commits, type: Code}
 njhuffman:

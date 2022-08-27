@@ -44,6 +44,7 @@
 - Matthias Bussonnier (@Carreau)
 - Matthijs van der Burgh (@MatthijsBurgh)
 - mayk0gan (@mayk0gan)
+- Min RK (@minrk)
 - Mystic-Mirage (@Mystic-Mirage)
 - Nathan Huffman (@njhuffman)
 - Nutchanon Ninyawee (@wasdee)
