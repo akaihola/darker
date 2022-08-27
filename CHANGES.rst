@@ -12,6 +12,9 @@ Fixed
 -----
 - ``darker --revision=a..b .`` now works since the repository root is now always
   considered to have existed in all historical commits.
+- Ignore linter lines which refer to files outside the common root of paths on the
+  command line. Fixes a failure when Pylint notifies about obsolete options in
+  ``.pylintrc``.
 
 
 1.5.0_ - 2022-04-23
@@ -96,7 +99,7 @@ Added
 -----
 - Experimental GitHub Actions integration
 - Consecutive lines of linter output are now separated by a blank line.
-- Highligh linter output if Pygments is installed.
+- Highlight linter output if Pygments is installed.
 - Allow running Darker on plain directories in addition to Git repositories.
 
 Fixed
