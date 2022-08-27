@@ -153,6 +153,9 @@ CONTRIBUTION_LINKS = {
     "pulls-author": "akaihola/darker/pulls?q=is%3Apr+author%3A{username}",
     "search": "akaihola/darker/search?q={username}",
     "search-comments": "akaihola/darker/search?q=commenter%3A{username}&type=issues",
+    "search-discussions": (
+        "akaihola/darker/discussions?discussions_q=author%3A{username}"
+    ),
     "conda-issues": (
         "conda-forge/staged-recipes/search?q=darker&type=issues&author={username}"
     ),
