@@ -134,6 +134,8 @@ sherbie:
   - {link_type: pulls-reviewed, type: Reviewed Pull Requests}
 talhajunaidd:
   - {link_type: commits, type: Code}
+tgross35:
+  - {link_type: issues, type: Bug reports}
 tkolleh:
   - {link_type: issues, type: Bug reports}
 tobiasdiez: []
