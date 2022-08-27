@@ -89,8 +89,10 @@ def _check_linter_output(
     :return: The standard output stream of the linter subprocess
 
     """
+    cmdline_and_paths = cmdline.split() + [str(root / path) for path in sorted(paths)]
+    logger.debug("[%s]$ %s", Path.cwd(), " ".join(cmdline_and_paths))
     with Popen(  # nosec
-        cmdline.split() + [str(root / path) for path in sorted(paths)],
+        cmdline_and_paths,
         stdout=PIPE,
         encoding="utf-8",
     ) as linter_process:
