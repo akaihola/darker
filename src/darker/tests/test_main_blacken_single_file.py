@@ -65,7 +65,7 @@ def test_blacken_single_file_common_ancestor(git_repo):
         ),
         rev2_content=worktree,
         rev2_isorted=worktree,
-        enable_isort=False,
+        has_isort_changes=False,
         black_config={},
     )
 
@@ -123,7 +123,7 @@ def test_reformat_single_file_docstring(git_repo):
         ),
         rev2_content=TextDocument.from_str(modified),
         rev2_isorted=TextDocument.from_str(modified),
-        enable_isort=False,
+        has_isort_changes=False,
         black_config={},
     )
 
