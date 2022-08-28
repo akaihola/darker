@@ -20,6 +20,7 @@ Fixed
   ``.pylintrc``.
 - For linting Darker's own code base, require Pylint 2.6.0 or newer. This avoids the
   need to skip the obsolete ``bad-continuation`` check now removed from Pylint.
+- Fix linter output parsing for full Windows paths which include a drive letter.
 
 
 1.5.0_ - 2022-04-23
