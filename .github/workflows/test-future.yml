@@ -9,7 +9,7 @@ on:  # yamllint disable-line rule:truthy
     - cron: "05 20 * * 6"
 
 jobs:
-  build:
+  test-future:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
