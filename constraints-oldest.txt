@@ -13,6 +13,7 @@ flake8-bugbear==22.1.11
 flake8-comprehensions==3.7.0
 mypy==0.940
 Pygments==2.4.0
+pylint==2.6.0
 pytest==6.2.0
 pytest-flake8==1.0.6
 pytest-isort==1.1.0

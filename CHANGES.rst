@@ -15,6 +15,8 @@ Fixed
 - Ignore linter lines which refer to files outside the common root of paths on the
   command line. Fixes a failure when Pylint notifies about obsolete options in
   ``.pylintrc``.
+- For linting Darker's own code base, require Pylint 2.6.0 or newer. This avoids the
+  need to skip the obsolete ``bad-continuation`` check now removed from Pylint.
 
 
 1.5.0_ - 2022-04-23
