@@ -27,7 +27,7 @@ jobs:
             --constraint=constraints-future.txt \
             --upgrade \
             --upgrade-strategy=eager \
-            -e '.[isort,test]'
+            -e '.[test]'
       - name: Test with pytest
         run: |
           pytest

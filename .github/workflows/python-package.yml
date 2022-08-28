@@ -38,7 +38,7 @@ jobs:
             --run '
               python -m venv venv
               source venv/bin/activate
-              pip install -e '.[isort,test]'
+              pip install -e '.[test]'
               pytest
             ' \
             ./default.nix
@@ -59,7 +59,7 @@ jobs:
           - '3.9'
           - '3.10'
         constraints: ['']
-        lint: ['--darker --isort']
+        lint: ['--darker']
         include:
           - os: ubuntu-latest
             python-version: '3.7'
@@ -102,7 +102,7 @@ jobs:
         env:
           pip_options: ${{ matrix.upgrade }} ${{ matrix.constraints }}
         run: pip install ${pip_options}
-                 "dist/darker-${{ env.VERSION }}-py3-none-any.whl[isort,test]"
+                 "dist/darker-${{ env.VERSION }}-py3-none-any.whl[test]"
       - name: Run Pytest without Mypy and Pylint if Python < 3.9
         if: env.RUN_MYPY_AND_PYLINT == 'false'
         run: |
