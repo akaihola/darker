@@ -10,9 +10,14 @@ jobs:
       - name: Verify that README contains output of darker --help
         shell: python
         run: |
+          import sys
           from pathlib import Path
+          from pprint import pprint
           from subprocess import check_output, STDOUT
           cmd = ["darker", "--options-for-readme"]
           usage = check_output(cmd, stderr=STDOUT, encoding="utf-8")
           readme = Path("README.rst").read_text()
-          assert usage in readme
+          if usage in readme:
+              sys.exit(0)
+          pprint(str.splitlines(usage, keepends=True), width=94)
+          sys.exit(1)
