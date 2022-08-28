@@ -422,7 +422,7 @@ def encodings_repo(tmp_path_factory):
     git_repo.add({"file.py": content}, commit="iso-8859-1")
     git_repo.create_tag("iso-8859-1")
     # Commit with a utf-8 encoding cookie
-    content = "# coding: utf-8\npython = 'パイソン'\n".encode("utf-8")
+    content = "# coding: utf-8\npython = 'パイソン'\n".encode()
     git_repo.add({"file.py": content}, commit="utf-8")
     git_repo.create_tag("utf-8")
     # Current worktree content (not committed) with a shitfjs encoding cookie
