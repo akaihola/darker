@@ -59,7 +59,6 @@ jobs:
           - '3.9'
           - '3.10'
         constraints: ['']
-        lint: ['--darker']
         include:
           - os: ubuntu-latest
             python-version: '3.7'
@@ -68,9 +67,6 @@ jobs:
             python-version: '3.10'
             constraints: '--constraint constraints-future.txt'
             upgrade: '--upgrade --upgrade-strategy=eager'
-    env:
-      RUN_PYLINT: >-
-        ${{ matrix.python-version == '3.9' || matrix.python-version == '3.10' }}
     steps:
       - uses: actions/checkout@v3
         with:
@@ -103,23 +99,6 @@ jobs:
           pip_options: ${{ matrix.upgrade }} ${{ matrix.constraints }}
         run: pip install ${pip_options}
                  "dist/darker-${{ env.VERSION }}-py3-none-any.whl[test]"
-      - name: Run Pytest without Pylint if Python < 3.9
-        if: env.RUN_PYLINT == 'false'
+      - name: Run Pytest
         run: |
-          pytest ${{ matrix.lint }}
-      - name: Run Pytest with Pylint if Python >= 3.9
-        if: env.RUN_PYLINT == 'true'
-        shell: python
-        run: |
-          import sys
-          from pathlib import Path
-          from subprocess import run
-          import toml
-
-          data = toml.load("pyproject.toml")
-          data["tool"]["darker"]["lint"] = ["pylint"]
-          Path("pyproject.toml").write_text(toml.dumps(data))
-          pytest_cmd = ["pytest"] + "${{ matrix.lint }}".split()
-          retval = run(pytest_cmd).returncode
-          run(["git", "restore", "pyproject.toml"])
-          sys.exit(retval)
+          pytest --darker

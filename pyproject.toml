@@ -15,6 +15,3 @@ src = [
     "src",
 ]
 revision = "origin/master..."
-# The empty linter list is here so `.github/workflows/python-package.yml` can
-# add Pylint in certain run configurations:
-lint = []
