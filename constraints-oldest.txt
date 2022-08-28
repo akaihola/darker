@@ -5,7 +5,6 @@
 # versions in `setup.cfg`.
 airium==0.2.3
 black==21.8b0
-codespell==2.1.0
 defusedxml==0.7.1
 flake8-2020==1.6.1
 flake8-bugbear==22.1.11

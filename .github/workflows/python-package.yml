@@ -123,8 +123,6 @@ jobs:
           retval = run(pytest_cmd).returncode
           run(["git", "restore", "pyproject.toml"])
           sys.exit(retval)
-      - name: Check English spelling in the code base using codespell
-        run: codespell
       - name: Ensure modern Python style using pyupgrade
         # This script is written in a Linux / macos / windows portable way
         run: |
