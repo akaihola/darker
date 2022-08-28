@@ -123,5 +123,3 @@ jobs:
           retval = run(pytest_cmd).returncode
           run(["git", "restore", "pyproject.toml"])
           sys.exit(retval)
-      - name: Check dependencies for known security vulterabilities using Safety
-        run: safety check

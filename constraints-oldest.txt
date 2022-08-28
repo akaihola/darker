@@ -17,7 +17,6 @@ pytest-kwparametrize==0.0.3
 regex==2021.4.4
 requests_cache==0.7
 ruamel.yaml==0.17.21
-safety==1.10.3
 toml==0.10.0
 twine==2.0.0
 types-toml==0.10.4
