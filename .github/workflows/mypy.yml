@@ -15,5 +15,5 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           mypy: true
-          mypy_args: "src"
+          mypy_args: "--config-file=mypy.ini src"
           continue_on_error: false
