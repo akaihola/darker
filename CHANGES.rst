@@ -7,6 +7,7 @@ Added
 -----
 - Add a CI workflow which verifies that the ``darker --help`` output in ``README.rst``
   is up to date.
+- Only run ``isort`` and ``flake8`` once in the CI build.
 
 Fixed
 -----
