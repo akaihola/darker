@@ -69,7 +69,7 @@ jobs:
             constraints: '--constraint constraints-future.txt'
             upgrade: '--upgrade --upgrade-strategy=eager'
     env:
-      RUN_MYPY_AND_PYLINT: >-
+      RUN_PYLINT: >-
         ${{ matrix.python-version == '3.9' || matrix.python-version == '3.10' }}
     steps:
       - uses: actions/checkout@v3
@@ -103,12 +103,12 @@ jobs:
           pip_options: ${{ matrix.upgrade }} ${{ matrix.constraints }}
         run: pip install ${pip_options}
                  "dist/darker-${{ env.VERSION }}-py3-none-any.whl[test]"
-      - name: Run Pytest without Mypy and Pylint if Python < 3.9
-        if: env.RUN_MYPY_AND_PYLINT == 'false'
+      - name: Run Pytest without Pylint if Python < 3.9
+        if: env.RUN_PYLINT == 'false'
         run: |
           pytest ${{ matrix.lint }}
-      - name: Run Pytest with Mypy and Pylint if Python >= 3.9
-        if: env.RUN_MYPY_AND_PYLINT == 'true'
+      - name: Run Pytest with Pylint if Python >= 3.9
+        if: env.RUN_PYLINT == 'true'
         shell: python
         run: |
           import sys
@@ -117,7 +117,7 @@ jobs:
           import toml
 
           data = toml.load("pyproject.toml")
-          data["tool"]["darker"]["lint"] = ["pylint", "mypy"]
+          data["tool"]["darker"]["lint"] = ["pylint"]
           Path("pyproject.toml").write_text(toml.dumps(data))
           pytest_cmd = ["pytest"] + "${{ matrix.lint }}".split()
           retval = run(pytest_cmd).returncode

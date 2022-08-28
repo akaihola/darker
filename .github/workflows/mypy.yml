@@ -1,0 +1,18 @@
+---
+name: mypy
+
+on: push  # yamllint disable-line rule:truthy
+
+jobs:
+  mypy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v3
+      - run: pip install 'mypy>=0.940'
+      - uses: Gobot1234/lint-action@v.1.8.2
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          mypy: true
+          continue_on_error: false
