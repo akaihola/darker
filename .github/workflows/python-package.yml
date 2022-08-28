@@ -12,6 +12,42 @@ on:  # yamllint disable-line rule:truthy
 
 jobs:
 
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      darker-wheel-path: ${{ steps.get-darker-version.outputs.wheel-path }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v3
+      - name: Upgrade pip, install wheel and twine
+        run: |
+          # strict dependency resolution added in pip 20.3
+          python -m pip install --upgrade 'pip>=20.3' wheel twine
+      - name: Build source distribution
+        run: python setup.py sdist
+      - name: Build wheel distribution
+        run: python setup.py bdist_wheel
+      - name: Validate distributions
+        run: twine check dist/*
+      - name: Upload distributions for test jobs
+        uses: actions/upload-artifact@v3
+        with:
+          name: dist
+          path: dist/
+          if-no-files-found: error
+      - name: Find out Darker version and output it for test jobs
+        id: get-darker-version
+        shell: python
+        run: |
+          from runpy import run_path
+          version = run_path("src/darker/version.py")["__version__"]
+          print(
+              "::set-output name=wheel-path::"
+              f"dist/darker-{version}-py3-none-any.whl"
+          )
+
   test-nixos:
     runs-on: ${{ matrix.os }}
     strategy:
@@ -23,13 +59,15 @@ jobs:
           - os: macos-latest
             python-version: python39
             # see https://github.com/cachix/install-nix-action/issues/135
+    needs:
+      - build
     steps:
       - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
       - uses: cachix/install-nix-action@v17
         with:
           nix_path: nixpkgs=channel:nixos-21.11
+      - name: Download distributions made by the build job
+        uses: actions/download-artifact@v3
       - name: Run tests in nix-shell
         run: |
           nix-shell \
@@ -38,13 +76,12 @@ jobs:
             --run '
               python -m venv venv
               source venv/bin/activate
-              pip install -e '.[test]'
+              pip install "${{needs.build.outputs.darker-wheel-path}}[test]"
               pytest
             ' \
             ./default.nix
 
-  build:
-
+  test:
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -67,38 +104,24 @@ jobs:
             python-version: '3.10'
             constraints: '--constraint constraints-future.txt'
             upgrade: '--upgrade --upgrade-strategy=eager'
+    needs:
+      - build
     steps:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
-
+          # need full history since Pytest runs Darker itself below
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v3
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Upgrade pip, install wheel and twine
-        run: |
-          # strict dependency resolution added in pip 20.3
-          python -m pip install --upgrade 'pip>=20.3' wheel twine
-      - name: Build source distribution
-        run: python setup.py sdist
-      - name: Build wheel distribution
-        run: python setup.py bdist_wheel
-      - name: Validate distributions
-        run: twine check dist/*
-      - name: Get Darker version
-        shell: python
-        run: |
-          from os import environ
-          from pathlib import Path
-          from runpy import run_path
-          version = run_path("src/darker/version.py")["__version__"]
-          Path(environ["GITHUB_ENV"]).write_text(f"VERSION={version}\n")
-      - name: Install Darker and its dependencies
+      - name: Download distributions made by the build job
+        uses: actions/download-artifact@v3
+      - name: Install Darker and its dependencies from the wheel build earlier
         env:
           pip_options: ${{ matrix.upgrade }} ${{ matrix.constraints }}
         run: pip install ${pip_options}
-                 "dist/darker-${{ env.VERSION }}-py3-none-any.whl[test]"
+                 "${{needs.build.outputs.darker-wheel-path}}[test]"
       - name: Run Pytest
         run: |
           pytest --darker
