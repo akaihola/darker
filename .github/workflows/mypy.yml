@@ -10,10 +10,10 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v3
-      - run: pip install 'mypy>=0.940'
+      - run: pip install -U isort mypy pytest types-toml
       - uses: wearerequired/lint-action@v2.0.1
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           mypy: true
-          mypy_args: "--config-file=mypy.ini src"
+          mypy_args: "src"
           continue_on_error: false

@@ -11,7 +11,7 @@ DESCRIPTION_PARTS = [
 try:
     import isort
 except ImportError:
-    isort = None  # type: ignore
+    isort = None  # type: ignore[assignment]
     DESCRIPTION_PARTS.extend(
         ["\n", "\n", f"{ISORT_INSTRUCTION} to enable sorting of import definitions"]
     )
