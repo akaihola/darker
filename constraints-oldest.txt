@@ -14,7 +14,6 @@ Pygments==2.4.0
 pylint==2.13.0
 pytest==6.2.0
 pytest-kwparametrize==0.0.3
-pyupgrade==2.31.0
 regex==2021.4.4
 requests_cache==0.7
 ruamel.yaml==0.17.21
