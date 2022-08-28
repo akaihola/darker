@@ -59,7 +59,7 @@ jobs:
           - '3.9'
           - '3.10'
         constraints: ['']
-        lint: ['--darker --flake8 --isort']
+        lint: ['--darker --isort']
         include:
           - os: ubuntu-latest
             python-version: '3.7'

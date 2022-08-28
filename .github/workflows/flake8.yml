@@ -1,0 +1,17 @@
+---
+name: Flake8
+
+on: push  # yamllint disable-line rule:truthy
+
+jobs:
+  flake8:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: TrueBrain/actions-flake8@v2
+        with:
+          plugins: >
+            flake8-2020>=1.6.1
+            flake8-bugbear>=22.1.11
+            flake8-comprehensions>=3.7.0
