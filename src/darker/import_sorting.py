@@ -33,7 +33,7 @@ try:
             )
 except ImportError:
     # `isort` is an optional dependency. Prevent the `ImportError` if it's missing.
-    isort = None  # type: ignore
+    isort = None  # type: ignore[assignment]
 
     def isort_code(*args: Any, **kwargs: Any) -> str:  # type: ignore[misc]
         """Fake `isort.code()` function to use when `isort` isn't installed"""

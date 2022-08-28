@@ -7,6 +7,7 @@ Added
 -----
 - Add a CI workflow which verifies that the ``darker --help`` output in ``README.rst``
   is up to date.
+- Only run linters, security checks and package builds once in the CI build.
 
 Fixed
 -----

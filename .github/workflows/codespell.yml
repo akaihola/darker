@@ -1,0 +1,12 @@
+---
+name: codespell
+
+on: push  # yamllint disable-line rule:truthy
+
+jobs:
+  codespell:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: codespell-project/actions-codespell@master

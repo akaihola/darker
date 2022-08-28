@@ -9,7 +9,7 @@ on:  # yamllint disable-line rule:truthy
     - cron: "05 20 * * 6"
 
 jobs:
-  build:
+  test-future:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -27,7 +27,7 @@ jobs:
             --constraint=constraints-future.txt \
             --upgrade \
             --upgrade-strategy=eager \
-            -e '.[isort,test]'
+            -e '.[test]'
       - name: Test with pytest
         run: |
           pytest
