@@ -38,6 +38,7 @@
 - Jens Diemer (@jedie)
 - Jens Hedegaard Nielsen (@jenshnielsen)
 - jsuit (@jsuit)
+- Kentaro Wada (@wkentaro)
 - Krischtopp (@Krischtopp)
 - Leo Torres (@leotrs)
 - Magnus N. Malmquist (@magnunm)

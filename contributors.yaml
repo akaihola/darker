@@ -156,6 +156,8 @@ wasdee:
 wjdp:
   - {link_type: issues, type: Bug reports}
   - {link_type: pulls-author, type: Documentation}
+wkentaro:
+  - {link_type: issues, type: Bug reports}
 wnoise:
   - {link_type: issues, type: Bug reports}
 yoursvivek:
