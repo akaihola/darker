@@ -440,7 +440,9 @@ def main(argv: List[str] = None) -> int:
                 path.relative_to(root) for path in files_to_process
             }
         black_exclude = {
-            str(f) for f in changed_files_to_process if root / f not in files_to_blacken
+            str(path)
+            for path in changed_files_to_process
+            if root / path not in files_to_blacken
         }
 
     use_color = should_use_color(config["color"])
