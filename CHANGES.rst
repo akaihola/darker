@@ -8,6 +8,8 @@ Added
 - Add a CI workflow which verifies that the ``darker --help`` output in ``README.rst``
   is up to date.
 - Only run linters, security checks and package builds once in the CI build.
+- Small simplification: It doesn't matter whether ``isort`` was run or not, only
+  whether changes were made.
 
 Fixed
 -----
@@ -18,6 +20,7 @@ Fixed
   ``.pylintrc``.
 - For linting Darker's own code base, require Pylint 2.6.0 or newer. This avoids the
   need to skip the obsolete ``bad-continuation`` check now removed from Pylint.
+- Fix linter output parsing for full Windows paths which include a drive letter.
 
 
 1.5.0_ - 2022-04-23

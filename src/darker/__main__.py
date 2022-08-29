@@ -142,6 +142,7 @@ def _isort_and_blacken_single_file(  # pylint: disable=too-many-arguments
         )
     else:
         rev2_isorted = rev2_content
+    has_isort_changes = rev2_isorted != rev2_content
     if relative_path_in_rev2 not in black_exclude:
         # 9. A re-formatted Python file which produces an identical AST was
         #    created successfully - write an updated file or print the diff if
@@ -153,7 +154,7 @@ def _isort_and_blacken_single_file(  # pylint: disable=too-many-arguments
             edited_linenums_differ,
             rev2_content,
             rev2_isorted,
-            enable_isort,
+            has_isort_changes,
             black_config,
         )
     else:
@@ -169,7 +170,7 @@ def _blacken_single_file(  # pylint: disable=too-many-arguments,too-many-locals
     edited_linenums_differ: EditedLinenumsDiffer,
     rev2_content: TextDocument,
     rev2_isorted: TextDocument,
-    enable_isort: bool,
+    has_isort_changes: bool,
     black_config: BlackConfig,
 ) -> TextDocument:
     """In a Python file, reformat chunks with edits since the last commit using Black
@@ -182,7 +183,7 @@ def _blacken_single_file(  # pylint: disable=too-many-arguments,too-many-locals
     :param edited_linenums_differ: Helper for finding out which lines were edited
     :param rev2_content: Contents of the file at ``revrange.rev2``
     :param rev2_isorted: Contents of the file after optional import sorting
-    :param enable_isort: ``True`` if ``isort`` was already run for the file
+    :param has_isort_changes: ``True`` if ``isort`` was run and modified the file
     :param black_config: Configuration to use for running Black
     :return: Contents of the file after reformatting
     :raise: NotEquivalentError
@@ -226,7 +227,7 @@ def _blacken_single_file(  # pylint: disable=too-many-arguments,too-many-locals
         edited_linenums = edited_linenums_differ.revision_vs_lines(
             relative_path_in_repo, rev2_isorted, context_lines
         )
-        if enable_isort and not edited_linenums and rev2_isorted == rev2_content:
+        if has_isort_changes and not edited_linenums:
             logger.debug("No changes in %s after isort", absolute_path_in_rev2)
             last_successful_reformat = rev2_isorted
             break
