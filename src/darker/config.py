@@ -4,8 +4,9 @@ import logging
 import os
 import sys
 from argparse import ArgumentParser, Namespace
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterable, List, Optional, cast
+from typing import Collection, Iterable, List, Optional, cast
 
 import toml
 
@@ -180,3 +181,23 @@ def dump_config(config: DarkerConfig) -> str:
     """Return the configuration in TOML format"""
     dump = toml.dumps(config, encoder=TomlArrayLinesEncoder())
     return f"[tool.darker]\n{dump}"
+
+
+@dataclass
+class Exclusions:
+    """File exclusions patterns for pre-processing steps
+
+    For each pre-processor, there is a collection of glob patterns. When running Darker,
+    any files matching at least one of the glob patterns is supposed to be skipped when
+    running the corresponding pre-processor. If the collection of glob patterns is
+    empty, the pre-processor is run for all files.
+
+    The pre-processors whose exclusion lists are currently stored in this data
+    structure are
+    - Black
+    - ``isort``
+
+    """
+
+    black: Collection[str]
+    isort: Collection[str]

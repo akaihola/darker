@@ -17,7 +17,7 @@ import darker.help
 from darker import black_diff
 from darker.__main__ import main
 from darker.command_line import make_argument_parser, parse_command_line
-from darker.config import ConfigurationError
+from darker.config import ConfigurationError, Exclusions
 from darker.git import RevisionRange
 from darker.tests.helpers import filter_dict, isort_present, raises_if_exception
 from darker.utils import TextDocument, joinlines
@@ -624,9 +624,8 @@ def test_black_options_skip_magic_trailing_comma(git_repo, config, options, expe
         expect=(
             Path("git_root"),
             {Path("a.py")},
-            set(),
+            Exclusions(black=set(), isort={"**/*"}),
             RevisionRange("HEAD", ":WORKTREE:"),
-            False,
             {},
         ),
     ),
@@ -635,9 +634,8 @@ def test_black_options_skip_magic_trailing_comma(git_repo, config, options, expe
         expect=(
             Path("git_root"),
             {Path("a.py")},
-            set(),
+            Exclusions(black=set(), isort=set()),
             RevisionRange("HEAD", ":WORKTREE:"),
-            True,
             {},
         ),
     ),
@@ -646,9 +644,8 @@ def test_black_options_skip_magic_trailing_comma(git_repo, config, options, expe
         expect=(
             Path("git_root"),
             {Path("a.py")},
-            set(),
+            Exclusions(black=set(), isort={"**/*"}),
             RevisionRange("HEAD", ":WORKTREE:"),
-            False,
             {"config": "my.cfg"},
         ),
     ),
@@ -657,9 +654,8 @@ def test_black_options_skip_magic_trailing_comma(git_repo, config, options, expe
         expect=(
             Path("git_root"),
             {Path("a.py")},
-            set(),
+            Exclusions(black=set(), isort={"**/*"}),
             RevisionRange("HEAD", ":WORKTREE:"),
-            False,
             {"line_length": 90},
         ),
     ),
@@ -668,9 +664,8 @@ def test_black_options_skip_magic_trailing_comma(git_repo, config, options, expe
         expect=(
             Path("git_root"),
             {Path("a.py")},
-            set(),
+            Exclusions(black=set(), isort={"**/*"}),
             RevisionRange("HEAD", ":WORKTREE:"),
-            False,
             {"skip_string_normalization": True},
         ),
     ),
@@ -679,9 +674,8 @@ def test_black_options_skip_magic_trailing_comma(git_repo, config, options, expe
         expect=(
             Path("git_root"),
             {Path("a.py")},
-            set(),
+            Exclusions(black=set(), isort={"**/*"}),
             RevisionRange("HEAD", ":WORKTREE:"),
-            False,
             {},
         ),
     ),
