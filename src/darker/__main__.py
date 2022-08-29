@@ -19,7 +19,7 @@ from darker.black_diff import (
 from darker.chooser import choose_lines
 from darker.command_line import parse_command_line
 from darker.concurrency import get_executor
-from darker.config import OutputMode, dump_config
+from darker.config import Exclusions, OutputMode, dump_config
 from darker.diff import diff_chunks
 from darker.exceptions import DependencyError, MissingPackageError
 from darker.git import (
@@ -37,7 +37,13 @@ from darker.help import ISORT_INSTRUCTION
 from darker.highlighting import colorize, should_use_color
 from darker.import_sorting import apply_isort, isort
 from darker.linting import run_linters
-from darker.utils import GIT_DATEFORMAT, TextDocument, debug_dump, get_common_root
+from darker.utils import (
+    GIT_DATEFORMAT,
+    TextDocument,
+    debug_dump,
+    get_common_root,
+    glob_any,
+)
 from darker.verification import ASTVerifier, BinarySearch, NotEquivalentError
 
 logger = logging.getLogger(__name__)
@@ -48,9 +54,8 @@ ProcessedDocument = Tuple[Path, TextDocument, TextDocument]
 def format_edited_parts(
     root: Path,
     changed_files: Collection[Path],  # pylint: disable=unsubscriptable-object
-    black_exclude: Collection[Path],  # pylint: disable=unsubscriptable-object
+    exclude: Exclusions,
     revrange: RevisionRange,
-    enable_isort: bool,
     black_config: BlackConfig,
     report_unmodified: bool,
     workers: int = 1,
@@ -66,10 +71,8 @@ def format_edited_parts(
     :param root: The common root of all files to reformat
     :param changed_files: Python files and explicitly requested files which have been
                           modified in the repository between the given Git revisions
-    :param black_exclude: Python files to not reformat using Black, according to Black
-                          configuration
+    :param exclude: Files to exclude when running Black, and when running ``isort``
     :param revrange: The Git revisions to compare
-    :param enable_isort: ``True`` to also run ``isort`` first on each changed file
     :param black_config: Configuration to use for running Black
     :param report_unmodified: ``True`` to yield also files which weren't modified
     :param workers: number of cpu processes to use (0 - autodetect)
@@ -87,9 +90,8 @@ def format_edited_parts(
                 root,
                 relative_path_in_rev2,
                 edited_linenums_differ,
-                black_exclude,
+                exclude,
                 revrange,
-                enable_isort,
                 black_config,
             )
             futures.append(future)
@@ -108,19 +110,16 @@ def _isort_and_blacken_single_file(  # pylint: disable=too-many-arguments
     root: Path,
     relative_path_in_rev2: Path,
     edited_linenums_differ: EditedLinenumsDiffer,
-    black_exclude: Collection[Path],  # pylint: disable=unsubscriptable-object
+    exclude: Exclusions,
     revrange: RevisionRange,
-    enable_isort: bool,
     black_config: BlackConfig,
 ) -> ProcessedDocument:
     """Black and/or isort formatting for modified chunks in a single file
 
     :param root: Root directory for the relative path
     :param relative_path_in_rev2: Relative path to a Python source code file
-    :param black_exclude: Python files to not reformat using Black, according to Black
-                          configuration
+    :param exclude: Files to exclude when running Black, and when running ``isort``
     :param revrange: The Git revisions to compare
-    :param enable_isort: ``True`` to run ``isort`` first on the file contents
     :param black_config: Configuration to use for running Black
     :return: Details about changes for the file
 
@@ -132,18 +131,16 @@ def _isort_and_blacken_single_file(  # pylint: disable=too-many-arguments
         relative_path_in_rev2, revrange.rev2, root
     )
     # 1. run isort
-    if enable_isort:
-        rev2_isorted = apply_isort(
-            rev2_content,
-            relative_path_in_rev2,
-            edited_linenums_differ,
-            black_config.get("config"),
-            black_config.get("line_length"),
-        )
-    else:
-        rev2_isorted = rev2_content
+    rev2_isorted = apply_isort(
+        rev2_content,
+        relative_path_in_rev2,
+        exclude.isort,
+        edited_linenums_differ,
+        black_config.get("config"),
+        black_config.get("line_length"),
+    )
     has_isort_changes = rev2_isorted != rev2_content
-    if relative_path_in_rev2 not in black_exclude:
+    if not glob_any(relative_path_in_rev2, exclude.black):
         # 9. A re-formatted Python file which produces an identical AST was
         #    created successfully - write an updated file or print the diff if
         #    there were any changes to the original
@@ -443,7 +440,9 @@ def main(argv: List[str] = None) -> int:
                 path.relative_to(root) for path in files_to_process
             }
         black_exclude = {
-            f for f in changed_files_to_process if root / f not in files_to_blacken
+            str(path)
+            for path in changed_files_to_process
+            if root / path not in files_to_blacken
         }
 
     use_color = should_use_color(config["color"])
@@ -452,9 +451,8 @@ def main(argv: List[str] = None) -> int:
         format_edited_parts(
             root,
             changed_files_to_process,
-            black_exclude,
+            Exclusions(black=black_exclude, isort=set() if args.isort else {"**/*"}),
             revrange,
-            args.isort,
             black_config,
             report_unmodified=output_mode == OutputMode.CONTENT,
             workers=config["workers"],

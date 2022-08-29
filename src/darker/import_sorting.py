@@ -1,13 +1,13 @@
 import logging
 import sys
 from pathlib import Path
-from typing import Any, List, Optional
+from typing import Any, Collection, List, Optional
 
 from darker.black_compat import find_project_root
 from darker.diff import diff_chunks
 from darker.exceptions import IncompatiblePackageError, MissingPackageError
 from darker.git import EditedLinenumsDiffer
-from darker.utils import DiffChunk, TextDocument
+from darker.utils import DiffChunk, TextDocument, glob_any
 
 if sys.version_info >= (3, 8):
     from typing import TypedDict
@@ -57,6 +57,7 @@ class IsortArgs(TypedDict, total=False):
 def apply_isort(
     content: TextDocument,
     src: Path,
+    exclude: Collection[str],
     edited_linenums_differ: EditedLinenumsDiffer,
     config: Optional[str] = None,
     line_length: Optional[int] = None,
@@ -67,11 +68,14 @@ def apply_isort(
     :param src: The relative path to the file. This must be the actual path in the
                 repository, which may differ from the path given on the command line in
                 case of VSCode temporary files.
+    :param exclude: The file path patterns to exclude from import sorting
     :param edited_linenums_differ: Helper for finding out which lines were edited
     :param config: Path to configuration file
     :param line_length: Maximum line length to use
 
     """
+    if glob_any(src, exclude):
+        return content
     edited_linenums = edited_linenums_differ.revision_vs_lines(
         src,
         content,

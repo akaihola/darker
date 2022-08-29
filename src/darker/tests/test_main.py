@@ -15,6 +15,7 @@ import pytest
 import darker.__main__
 import darker.import_sorting
 import darker.linting
+from darker.config import Exclusions
 from darker.exceptions import MissingPackageError
 from darker.git import WORKTREE, EditedLinenumsDiffer, RevisionRange
 from darker.tests.helpers import isort_present
@@ -123,38 +124,33 @@ A_PY_DIFF_BLACK_ISORT = [
 
 @pytest.mark.kwparametrize(
     dict(
-        enable_isort=False,
-        black_config={},
-        black_exclude=set(),
+        isort_exclude={"**/*"},
         expect=[A_PY_BLACK],
     ),
     dict(
-        enable_isort=True,
-        black_config={},
-        black_exclude=set(),
         expect=[A_PY_BLACK_ISORT],
     ),
     dict(
-        enable_isort=False,
         black_config={"skip_string_normalization": True},
-        black_exclude=set(),
+        isort_exclude={"**/*"},
         expect=[A_PY_BLACK_UNNORMALIZE],
     ),
     dict(
-        enable_isort=False,
         black_exclude={Path("a.py")},
+        isort_exclude={"**/*"},
         expect=[],
     ),
     dict(
-        enable_isort=True,
         black_exclude={Path("a.py")},
         expect=[A_PY_ISORT],
     ),
     black_config={},
+    black_exclude=set(),
+    isort_exclude=set(),
 )
 @pytest.mark.parametrize("newline", ["\n", "\r\n"], ids=["unix", "windows"])
 def test_format_edited_parts(
-    git_repo, enable_isort, black_config, black_exclude, newline, expect
+    git_repo, black_config, black_exclude, isort_exclude, newline, expect
 ):
     """Correct reformatting and import sorting changes are produced
 
@@ -170,9 +166,8 @@ def test_format_edited_parts(
     result = darker.__main__.format_edited_parts(
         Path(git_repo.root),
         {Path("a.py")},
-        black_exclude,
+        Exclusions(black=black_exclude, isort=isort_exclude),
         RevisionRange("HEAD", ":WORKTREE:"),
-        enable_isort,
         black_config,
         report_unmodified=False,
     )
@@ -204,9 +199,8 @@ def test_format_edited_parts_all_unchanged(git_repo, monkeypatch):
         darker.__main__.format_edited_parts(
             Path(git_repo.root),
             {Path("a.py"), Path("b.py")},
-            set(),
+            Exclusions(black=set(), isort=set()),
             RevisionRange("HEAD", ":WORKTREE:"),
-            True,
             {},
             report_unmodified=False,
         )
@@ -228,9 +222,8 @@ def test_format_edited_parts_ast_changed(git_repo, caplog):
             darker.__main__.format_edited_parts(
                 git_repo.root,
                 {Path("a.py")},
-                set(),
+                Exclusions(black=set(), isort={"**/*"}),
                 RevisionRange("HEAD", ":WORKTREE:"),
-                enable_isort=False,
                 black_config={},
                 report_unmodified=False,
             )
@@ -273,9 +266,8 @@ def test_format_edited_parts_isort_on_already_formatted(git_repo):
     result = darker.__main__.format_edited_parts(
         git_repo.root,
         {Path("a.py")},
-        set(),
+        Exclusions(black=set(), isort=set()),
         RevisionRange("HEAD", ":WORKTREE:"),
-        enable_isort=True,
         black_config={},
         report_unmodified=False,
     )
@@ -329,9 +321,8 @@ def test_format_edited_parts_historical(git_repo, rev1, rev2, expect):
     result = darker.__main__.format_edited_parts(
         git_repo.root,
         {Path("a.py")},
-        set(),
+        Exclusions(black=set(), isort=set()),
         RevisionRange(rev1, rev2),
-        enable_isort=True,
         black_config={},
         report_unmodified=False,
     )

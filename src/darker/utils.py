@@ -6,7 +6,7 @@ import tokenize
 from datetime import datetime
 from itertools import chain
 from pathlib import Path
-from typing import Iterable, List, Tuple, Union
+from typing import Collection, Iterable, List, Tuple, Union
 
 logger = logging.getLogger(__name__)
 
@@ -246,3 +246,16 @@ class Buf:
             return False
         finally:
             self.seek_line(-1)
+
+
+def glob_any(path: Path, patterns: Collection[str]) -> bool:
+    """Return `True` if path matches any of the patterns
+
+    Return `False` if there are no patterns to match.
+
+    :param path: The file path to match
+    :param patterns: The patterns to match against
+    :return: `True` if at least one pattern matches
+
+    """
+    return any(path.glob(pattern) for pattern in patterns)

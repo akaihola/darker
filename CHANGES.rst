@@ -10,6 +10,7 @@ Added
 - Only run linters, security checks and package builds once in the CI build.
 - Small simplification: It doesn't matter whether ``isort`` was run or not, only
   whether changes were made.
+- Refactor Black and ``isort`` file exclusions into one data structure.
 
 Fixed
 -----

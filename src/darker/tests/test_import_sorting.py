@@ -55,7 +55,43 @@ def test_apply_isort(git_repo, encoding, newline, content, expect):
     src = Path("test1.py")
     content_ = TextDocument.from_lines(content, encoding=encoding, newline=newline)
 
-    result = darker.import_sorting.apply_isort(content_, src, edited_linenums_differ)
+    result = darker.import_sorting.apply_isort(
+        content_, src, exclude=[], edited_linenums_differ=edited_linenums_differ
+    )
+
+    assert result.lines == expect
+    assert result.encoding == encoding
+    assert result.newline == newline
+
+
+@pytest.mark.parametrize("encoding", ["utf-8", "iso-8859-1"])
+@pytest.mark.parametrize("newline", ["\n", "\r\n"])
+@pytest.mark.kwparametrize(
+    dict(content=ORIGINAL_SOURCE, exclude=set(), expect=ORIGINAL_SOURCE),
+    dict(content=ORIGINAL_SOURCE, exclude={"**/*"}, expect=ORIGINAL_SOURCE),
+    dict(
+        content=("import   sys", "import os", "", "print(42)"),
+        exclude=set(),
+        expect=ISORTED_SOURCE,
+    ),
+    dict(
+        content=("import   sys", "import os", "", "print(42)"),
+        exclude={"**/*"},
+        expect=("import   sys", "import os", "", "print(42)"),
+    ),
+)
+def test_apply_isort_exclude(git_repo, encoding, newline, content, exclude, expect):
+    """Import sorting is skipped if file path matches exclusion patterns"""
+    git_repo.add({"test1.py": joinlines(ORIGINAL_SOURCE, newline)}, commit="Initial")
+    edited_linenums_differ = EditedLinenumsDiffer(
+        git_repo.root, RevisionRange("HEAD", ":WORKTREE:")
+    )
+    src = Path("test1.py")
+    content_ = TextDocument.from_lines(content, encoding=encoding, newline=newline)
+
+    result = darker.import_sorting.apply_isort(
+        content_, src, exclude=exclude, edited_linenums_differ=edited_linenums_differ
+    )
 
     assert result.lines == expect
     assert result.encoding == encoding
@@ -121,6 +157,7 @@ def test_isort_config(
     actual = darker.import_sorting.apply_isort(
         TextDocument.from_str(content),
         Path("test1.py"),
+        set(),
         EditedLinenumsDiffer(Path("."), RevisionRange("master", "HEAD")),
         config,
     )
@@ -155,6 +192,7 @@ def test_isort_file_skip_comment():
     actual = darker.import_sorting.apply_isort(
         TextDocument.from_str(content),
         Path("test1.py"),
+        set(),
         EditedLinenumsDiffer(Path("."), RevisionRange("master", "HEAD")),
     )
 
