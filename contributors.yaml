@@ -28,6 +28,8 @@ Mystic-Mirage:
 Pacu2:
   - {link_type: pulls-author, type: Code}
   - {link_type: pulls-reviewed, type: Reviewed Pull Requests}
+PatrickJordanCongenica:
+  - {link_type: search-discussions, type: Bug reports}
 RishiKumarRay:
   - {link_type: search, type: Bug reports}
 Yajo:
@@ -52,11 +54,15 @@ chmouel:
 chrisdecker1201:
   - {link_type: pulls-author, type: Code}
   - {link_type: issues, type: Bug reports}
+deadkex:
+  - {link_type: search-discussions, type: Bug reports}
 dhrvjha:
   - {link_type: search-comments, type: Bug reports}
   - {link_type: pulls-author, type: Code}
 dsmanl:
   - {link_type: issues, type: Bug reports}
+falkben:
+  - {link_type: pulls-author, type: Documentation}
 fizbin:
   - {link_type: issues, type: Bug reports}
 flying-sheep:
@@ -87,6 +93,8 @@ jedie:
   - {link_type: issues, type: Bug reports}
 jenshnielsen:
   - {link_type: search, type: Bug reports}
+jsuit:
+  - {link_type: search-discussions, type: Bug reports}
 leotrs:
   - {link_type: issues, type: Bug reports}
 levouh:
@@ -103,6 +111,8 @@ matclayton:
   - {link_type: issues, type: Bug reports}
 mayk0gan:
   - {link_type: issues, type: Bug reports}
+minrk:
+  - {link_type: darker-feedstock-issues, type: Code}
 muggenhor:
   - {link_type: commits, type: Code}
 njhuffman:
@@ -130,8 +140,12 @@ shangxiao:
   - {link_type: issues, type: Bug reports}
 sherbie:
   - {link_type: pulls-reviewed, type: Reviewed Pull Requests}
+simgunz:
+  - {link_type: search-comments, type: Reviewed Pull Requests}
 talhajunaidd:
   - {link_type: commits, type: Code}
+tgross35:
+  - {link_type: issues, type: Bug reports}
 tkolleh:
   - {link_type: issues, type: Bug reports}
 tobiasdiez: []
@@ -142,6 +156,8 @@ wasdee:
 wjdp:
   - {link_type: issues, type: Bug reports}
   - {link_type: pulls-author, type: Documentation}
+wkentaro:
+  - {link_type: issues, type: Bug reports}
 wnoise:
   - {link_type: issues, type: Bug reports}
 yoursvivek:
