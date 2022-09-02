@@ -3,6 +3,7 @@
 """Unit tests for :mod:`darker.linting`"""
 
 import os
+import sys
 from pathlib import Path
 from textwrap import dedent
 from unittest.mock import call, patch
@@ -12,6 +13,9 @@ import pytest
 from darker import linting
 from darker.git import WORKTREE, RevisionRange
 from darker.tests.helpers import raises_if_exception
+
+SKIP_ON_WINDOWS = [pytest.mark.skip] if sys.platform.startswith("win") else []
+SKIP_ON_UNIX = [] if sys.platform.startswith("win") else [pytest.mark.skip]
 
 
 @pytest.mark.kwparametrize(
@@ -194,7 +198,7 @@ def test_check_linter_output():
         ],
     ),
     dict(
-        _descr="Message for a file outside the common root is ignored with a warning",
+        _descr="Message for file outside common root is ignored with a warning (Unix)",
         paths=["one.py"],
         location="/elsewhere/mod.py:1:",
         expect_output=[],
@@ -202,6 +206,18 @@ def test_check_linter_output():
             "WARNING Linter message for a file /elsewhere/mod.py "
             "outside requested directory {root/}"
         ],
+        marks=SKIP_ON_WINDOWS,
+    ),
+    dict(
+        _descr="Message for file outside common root is ignored with a warning (Win)",
+        paths=["one.py"],
+        location="C:\\elsewhere\\mod.py:1:",
+        expect_output=[],
+        expect_log=[
+            "WARNING Linter message for a file C:\\elsewhere\\mod.py "
+            "outside requested directory {root/}"
+        ],
+        marks=SKIP_ON_UNIX,
     ),
 )
 def test_run_linter(
