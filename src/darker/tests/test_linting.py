@@ -17,16 +17,13 @@ from darker.tests.helpers import raises_if_exception
 
 @pytest.mark.kwparametrize(
     dict(
-        line="module.py:42: Description\n",
-        expect=(Path("module.py"), 42, "module.py:42:", "Description"),
+        line="module.py:42: Just a line number\n",
+        expect=(Path("module.py"), 42, "module.py:42:", "Just a line number"),
     ),
     dict(
-        line="module.py:42:5: Description\n",
-        expect=(Path("module.py"), 42, "module.py:42:5:", "Description"),
+        line="module.py:42:5: With column  \n",
+        expect=(Path("module.py"), 42, "module.py:42:5:", "With column"),
     ),
-    dict(line="no-linenum.py: Description\n", expect=(Path(), 0, "", "")),
-    dict(line="mod.py:invalid-linenum:5: Description\n", expect=(Path(), 0, "", "")),
-    dict(line="invalid linter output\n", expect=(Path(), 0, "", "")),
     dict(
         line="{git_root_absolute}{sep}mod.py:42: Full path\n",
         expect=(
@@ -37,14 +34,39 @@ from darker.tests.helpers import raises_if_exception
         ),
     ),
     dict(
-        line="{git_root_absolute}{sep}mod.py:42:5: Full path\n",
+        line="{git_root_absolute}{sep}mod.py:42:5: Full path with column\n",
         expect=(
             Path("mod.py"),
             42,
             "{git_root_absolute}{sep}mod.py:42:5:",
-            "Full path",
+            "Full path with column",
         ),
     ),
+    dict(
+        line="mod.py:42: 123 digits start the description\n",
+        expect=(Path("mod.py"), 42, "mod.py:42:", "123 digits start the description"),
+    ),
+    dict(
+        line="mod.py:42:    indented description\n",
+        expect=(Path("mod.py"), 42, "mod.py:42:", "   indented description"),
+    ),
+    dict(
+        line="mod.py:42:5:    indented description\n",
+        expect=(Path("mod.py"), 42, "mod.py:42:5:", "   indented description"),
+    ),
+    dict(line="mod.py: No line number\n", expect=(Path(), 0, "", "")),
+    dict(line="mod.py:foo:5: Invalid line number\n", expect=(Path(), 0, "", "")),
+    dict(line="mod.py:42:bar: Invalid column\n", expect=(Path(), 0, "", "")),
+    dict(line="invalid linter output\n", expect=(Path(), 0, "", "")),
+    dict(line=" leading:42: whitespace\n", expect=(Path(), 0, "", "")),
+    dict(line=" leading:42:5 whitespace and column\n", expect=(Path(), 0, "", "")),
+    dict(line="trailing :42: filepath whitespace\n", expect=(Path(), 0, "", "")),
+    dict(line="leading: 42: linenum whitespace\n", expect=(Path(), 0, "", "")),
+    dict(line="trailing:42 : linenum whitespace\n", expect=(Path(), 0, "", "")),
+    dict(line="plus:+42: before linenum\n", expect=(Path(), 0, "", "")),
+    dict(line="minus:-42: before linenum\n", expect=(Path(), 0, "", "")),
+    dict(line="plus:42:+5 before column\n", expect=(Path(), 0, "", "")),
+    dict(line="minus:42:-5 before column\n", expect=(Path(), 0, "", "")),
 )
 def test_parse_linter_line(git_repo, monkeypatch, line, expect):
     """Linter output is parsed correctly"""
