@@ -39,7 +39,13 @@ def _parse_linter_line(line: str, root: Path) -> Tuple[Path, int, str, str]:
     #       description = "error: Foo"
     try:
         location, description = line[:-1].split(": ", 1)
-        path_str, linenum_str, *rest = location.split(":")
+        if location[1:3] == ":\\":
+            # Absolute Windows paths need special handling. Separate out the ``C:`` (or
+            # similar), then split by colons, and finally re-insert the ``C:``.
+            path_in_drive, linenum_str, *rest = location[2:].split(":")
+            path_str = f"{location[:2]}{path_in_drive}"
+        else:
+            path_str, linenum_str, *rest = location.split(":")
         linenum = int(linenum_str)
         if len(rest) > 1:
             raise ValueError("Too many colon-separated tokens")
