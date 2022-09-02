@@ -2,6 +2,7 @@
 
 """Unit tests for :mod:`darker.linting`"""
 
+import os
 import re
 from pathlib import Path
 from textwrap import dedent
@@ -27,25 +28,25 @@ from darker.tests.helpers import raises_if_exception
     dict(line="mod.py:invalid-linenum:5: Description\n", expect=(Path(), 0, "", "")),
     dict(line="invalid linter output\n", expect=(Path(), 0, "", "")),
     dict(
-        line="{git_repo.root}/mod.py:42: Full path\n",
-        expect=(Path("mod.py"), 42, "{git_repo.root}/mod.py:42:", "Full path"),
+        line="{git_repo.root}{sep}mod.py:42: Full path\n",
+        expect=(Path("mod.py"), 42, "{git_repo.root}{sep}mod.py:42:", "Full path"),
     ),
     dict(
-        line="{git_repo.root}/mod.py:42:5: Full path\n",
-        expect=(Path("mod.py"), 42, "{git_repo.root}/mod.py:42:5:", "Full path"),
+        line="{git_repo.root}{sep}mod.py:42:5: Full path\n",
+        expect=(Path("mod.py"), 42, "{git_repo.root}{sep}mod.py:42:5:", "Full path"),
     ),
 )
 def test_parse_linter_line(git_repo, monkeypatch, line, expect):
     """Linter output is parsed correctly"""
     monkeypatch.chdir(git_repo.root)
-    line_expanded = line.format(git_repo=git_repo)
+    line_expanded = line.format(git_repo=git_repo, sep=os.sep)
 
     result = linting._parse_linter_line(line_expanded, git_repo.root)
 
     expect_expanded = (
         expect[0],
         expect[1],
-        expect[2].format(git_repo=git_repo),
+        expect[2].format(git_repo=git_repo, sep=os.sep),
         expect[3],
     )
     assert result == expect_expanded
