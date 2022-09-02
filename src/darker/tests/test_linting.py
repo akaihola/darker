@@ -3,7 +3,6 @@
 """Unit tests for :mod:`darker.linting`"""
 
 import os
-import re
 from pathlib import Path
 from textwrap import dedent
 from unittest.mock import call, patch
@@ -54,9 +53,14 @@ from darker.tests.helpers import raises_if_exception
         line="mod.py:42:5:    indented description\n",
         expect=(Path("mod.py"), 42, "mod.py:42:5:", "   indented description"),
     ),
+    dict(
+        line="nonpython.txt:5: Non-Python file\n",
+        expect=(Path("nonpython.txt"), 5, "nonpython.txt:5:", "Non-Python file"),
+    ),
     dict(line="mod.py: No line number\n", expect=(Path(), 0, "", "")),
     dict(line="mod.py:foo:5: Invalid line number\n", expect=(Path(), 0, "", "")),
     dict(line="mod.py:42:bar: Invalid column\n", expect=(Path(), 0, "", "")),
+    dict(line="/outside/mod.py:5: Outside the repo\n", expect=(Path(), 0, "", "")),
     dict(line="invalid linter output\n", expect=(Path(), 0, "", "")),
     dict(line=" leading:42: whitespace\n", expect=(Path(), 0, "", "")),
     dict(line=" leading:42:5 whitespace and column\n", expect=(Path(), 0, "", "")),
@@ -179,6 +183,26 @@ def test_check_linter_output():
         expect_output=[],
         expect_log=["WARNING Missing file missing.py from echo missing.py:1:"],
     ),
+    dict(
+        _descr="Linter message for a non-Python file is ignored with a warning",
+        paths=["one.py"],
+        location="nonpython.txt:1:",
+        expect_output=[],
+        expect_log=[
+            "WARNING Linter message for a non-Python file: "
+            "nonpython.txt:1: {root/one.py}"
+        ],
+    ),
+    dict(
+        _descr="Message for a file outside the common root is ignored with a warning",
+        paths=["one.py"],
+        location="/elsewhere/mod.py:1:",
+        expect_output=[],
+        expect_log=[
+            "WARNING Linter message for a file /elsewhere/mod.py "
+            "outside requested directory {root/}"
+        ],
+    ),
 )
 def test_run_linter(
     git_repo, capsys, caplog, _descr, paths, location, expect_output, expect_log
@@ -196,7 +220,9 @@ def test_run_linter(
           test.py:1: git-repo-root/one.py git-repo-root/two.py
 
     """
-    src_paths = git_repo.add({"test.py": "1\n2\n"}, commit="Initial commit")
+    src_paths = git_repo.add(
+        {"test.py": "1\n2\n", "nonpython.txt": "hello\n"}, commit="Initial commit"
+    )
     src_paths["test.py"].write_bytes(b"one\n2\n")
     cmdline = f"echo {location}"
     revrange = RevisionRange("HEAD", ":WORKTREE:")
@@ -209,12 +235,9 @@ def test_run_linter(
     # by checking standard output from the our `echo` "linter".
     # The test cases also verify that only linter reports on modified lines are output.
     result = capsys.readouterr().out.splitlines()
-    assert result == [
-        re.sub(r"\{root/(.*?)\}", lambda m: str(git_repo.root / m.group(1)), line)
-        for line in expect_output
-    ]
+    assert result == git_repo.expand_root(expect_output)
     logs = [f"{record.levelname} {record.message}" for record in caplog.records]
-    assert logs == expect_log
+    assert logs == git_repo.expand_root(expect_log)
 
 
 def test_run_linter_non_worktree():

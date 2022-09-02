@@ -106,8 +106,12 @@ def _parse_linter_line(line: str, root: Path) -> Tuple[Path, int, str, str]:
     path_from_cwd = Path(path_str).absolute()
     try:
         path_in_repo = path_from_cwd.relative_to(root)
-    except ValueError as exc_info:
-        logger.debug("Unparsable linter output: %s (%s)", line[:-1], exc_info)
+    except ValueError:
+        logger.warning(
+            "Linter message for a file %s outside requested directory %s",
+            path_from_cwd,
+            root,
+        )
         return Path(), 0, "", ""
     return path_in_repo, linenum, location + ":", description
 
@@ -184,6 +188,13 @@ def run_linter(
                 or path_in_repo in missing_files
                 or linter_error_linenum == 0
             ):
+                continue
+            if path_in_repo.suffix != ".py":
+                logger.warning(
+                    "Linter message for a non-Python file: %s %s",
+                    location,
+                    description,
+                )
                 continue
             try:
                 edited_linenums = edited_linenums_differ.compare_revisions(
