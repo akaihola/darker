@@ -2,7 +2,8 @@
 
 """Unit tests for :mod:`darker.linting`"""
 
-import re
+import os
+import sys
 from pathlib import Path
 from textwrap import dedent
 from unittest.mock import call, patch
@@ -13,27 +14,83 @@ from darker import linting
 from darker.git import WORKTREE, RevisionRange
 from darker.tests.helpers import raises_if_exception
 
+SKIP_ON_WINDOWS = [pytest.mark.skip] if sys.platform.startswith("win") else []
+SKIP_ON_UNIX = [] if sys.platform.startswith("win") else [pytest.mark.skip]
+
 
 @pytest.mark.kwparametrize(
     dict(
-        line="module.py:42: Description\n",
-        expect=(Path("module.py"), 42, "module.py:42:", "Description"),
+        line="module.py:42: Just a line number\n",
+        expect=(Path("module.py"), 42, "module.py:42:", "Just a line number"),
     ),
     dict(
-        line="module.py:42:5: Description\n",
-        expect=(Path("module.py"), 42, "module.py:42:5:", "Description"),
+        line="module.py:42:5: With column  \n",
+        expect=(Path("module.py"), 42, "module.py:42:5:", "With column"),
     ),
-    dict(line="no-linenum.py: Description\n", expect=(Path(), 0, "", "")),
-    dict(line="mod.py:invalid-linenum:5: Description\n", expect=(Path(), 0, "", "")),
+    dict(
+        line="{git_root_absolute}{sep}mod.py:42: Full path\n",
+        expect=(
+            Path("mod.py"),
+            42,
+            "{git_root_absolute}{sep}mod.py:42:",
+            "Full path",
+        ),
+    ),
+    dict(
+        line="{git_root_absolute}{sep}mod.py:42:5: Full path with column\n",
+        expect=(
+            Path("mod.py"),
+            42,
+            "{git_root_absolute}{sep}mod.py:42:5:",
+            "Full path with column",
+        ),
+    ),
+    dict(
+        line="mod.py:42: 123 digits start the description\n",
+        expect=(Path("mod.py"), 42, "mod.py:42:", "123 digits start the description"),
+    ),
+    dict(
+        line="mod.py:42:    indented description\n",
+        expect=(Path("mod.py"), 42, "mod.py:42:", "   indented description"),
+    ),
+    dict(
+        line="mod.py:42:5:    indented description\n",
+        expect=(Path("mod.py"), 42, "mod.py:42:5:", "   indented description"),
+    ),
+    dict(
+        line="nonpython.txt:5: Non-Python file\n",
+        expect=(Path("nonpython.txt"), 5, "nonpython.txt:5:", "Non-Python file"),
+    ),
+    dict(line="mod.py: No line number\n", expect=(Path(), 0, "", "")),
+    dict(line="mod.py:foo:5: Invalid line number\n", expect=(Path(), 0, "", "")),
+    dict(line="mod.py:42:bar: Invalid column\n", expect=(Path(), 0, "", "")),
+    dict(line="/outside/mod.py:5: Outside the repo\n", expect=(Path(), 0, "", "")),
     dict(line="invalid linter output\n", expect=(Path(), 0, "", "")),
+    dict(line=" leading:42: whitespace\n", expect=(Path(), 0, "", "")),
+    dict(line=" leading:42:5 whitespace and column\n", expect=(Path(), 0, "", "")),
+    dict(line="trailing :42: filepath whitespace\n", expect=(Path(), 0, "", "")),
+    dict(line="leading: 42: linenum whitespace\n", expect=(Path(), 0, "", "")),
+    dict(line="trailing:42 : linenum whitespace\n", expect=(Path(), 0, "", "")),
+    dict(line="plus:+42: before linenum\n", expect=(Path(), 0, "", "")),
+    dict(line="minus:-42: before linenum\n", expect=(Path(), 0, "", "")),
+    dict(line="plus:42:+5 before column\n", expect=(Path(), 0, "", "")),
+    dict(line="minus:42:-5 before column\n", expect=(Path(), 0, "", "")),
 )
 def test_parse_linter_line(git_repo, monkeypatch, line, expect):
     """Linter output is parsed correctly"""
     monkeypatch.chdir(git_repo.root)
+    root_abs = git_repo.root.absolute()
+    line_expanded = line.format(git_root_absolute=root_abs, sep=os.sep)
 
-    result = linting._parse_linter_line(line, git_repo.root)
+    result = linting._parse_linter_line(line_expanded, git_repo.root)
 
-    assert result == expect
+    expect_expanded = (
+        expect[0],
+        expect[1],
+        expect[2].format(git_root_absolute=root_abs, sep=os.sep),
+        expect[3],
+    )
+    assert result == expect_expanded
 
 
 @pytest.mark.kwparametrize(
@@ -130,6 +187,38 @@ def test_check_linter_output():
         expect_output=[],
         expect_log=["WARNING Missing file missing.py from echo missing.py:1:"],
     ),
+    dict(
+        _descr="Linter message for a non-Python file is ignored with a warning",
+        paths=["one.py"],
+        location="nonpython.txt:1:",
+        expect_output=[],
+        expect_log=[
+            "WARNING Linter message for a non-Python file: "
+            "nonpython.txt:1: {root/one.py}"
+        ],
+    ),
+    dict(
+        _descr="Message for file outside common root is ignored with a warning (Unix)",
+        paths=["one.py"],
+        location="/elsewhere/mod.py:1:",
+        expect_output=[],
+        expect_log=[
+            "WARNING Linter message for a file /elsewhere/mod.py "
+            "outside requested directory {root/}"
+        ],
+        marks=SKIP_ON_WINDOWS,
+    ),
+    dict(
+        _descr="Message for file outside common root is ignored with a warning (Win)",
+        paths=["one.py"],
+        location="C:\\elsewhere\\mod.py:1:",
+        expect_output=[],
+        expect_log=[
+            "WARNING Linter message for a file C:\\elsewhere\\mod.py "
+            "outside requested directory {root/}"
+        ],
+        marks=SKIP_ON_UNIX,
+    ),
 )
 def test_run_linter(
     git_repo, capsys, caplog, _descr, paths, location, expect_output, expect_log
@@ -147,7 +236,9 @@ def test_run_linter(
           test.py:1: git-repo-root/one.py git-repo-root/two.py
 
     """
-    src_paths = git_repo.add({"test.py": "1\n2\n"}, commit="Initial commit")
+    src_paths = git_repo.add(
+        {"test.py": "1\n2\n", "nonpython.txt": "hello\n"}, commit="Initial commit"
+    )
     src_paths["test.py"].write_bytes(b"one\n2\n")
     cmdline = f"echo {location}"
     revrange = RevisionRange("HEAD", ":WORKTREE:")
@@ -160,12 +251,9 @@ def test_run_linter(
     # by checking standard output from the our `echo` "linter".
     # The test cases also verify that only linter reports on modified lines are output.
     result = capsys.readouterr().out.splitlines()
-    assert result == [
-        re.sub(r"\{root/(.*?)\}", lambda m: str(git_repo.root / m.group(1)), line)
-        for line in expect_output
-    ]
+    assert result == git_repo.expand_root(expect_output)
     logs = [f"{record.levelname} {record.message}" for record in caplog.records]
-    assert logs == expect_log
+    assert logs == git_repo.expand_root(expect_log)
 
 
 def test_run_linter_non_worktree():

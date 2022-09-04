@@ -1,9 +1,10 @@
 """Configuration and fixtures for the Pytest based test suite"""
 
 import os
+import re
 from pathlib import Path
 from subprocess import check_call  # nosec
-from typing import Dict, Union
+from typing import Dict, Iterable, List, Union
 
 import pytest
 from black import find_project_root as black_find_project_root
@@ -83,6 +84,21 @@ class GitRepoFixture:
     def create_branch(self, new_branch: str, start_point: str) -> None:
         """Fixture method to create and check out new branch at given starting point"""
         self._run("checkout", "-b", new_branch, start_point)
+
+    def expand_root(self, lines: Iterable[str]) -> List[str]:
+        """Replace "{root/<path>}" in strings with the path in the temporary Git repo
+
+        This is used to generate expected strings corresponding to locations of files in
+        the temporary Git repository.
+
+        :param lines: The lines of text to process
+        :return: Given lines with paths processed
+
+        """
+        return [
+            re.sub(r"\{root/(.*?)\}", lambda m: str(self.root / str(m.group(1))), line)
+            for line in lines
+        ]
 
 
 @pytest.fixture

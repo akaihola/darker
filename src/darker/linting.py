@@ -31,21 +31,71 @@ from darker.highlighting import colorize
 logger = logging.getLogger(__name__)
 
 
+def _strict_nonneg_int(text: str) -> int:
+    """Strict parsing of strings to non-negative integers
+
+    Allow no leading or trailing whitespace, nor plus or minus signs.
+
+    :param text: The string to convert
+    :raises ValueError: Raises if the string has any non-numeric characters
+    :return: [description]
+    :rtype: [type]
+    """
+    if text.strip("+-\t ") != text:
+        raise ValueError(r"invalid literal for int() with base 10: {text}")
+    return int(text)
+
+
 def _parse_linter_line(line: str, root: Path) -> Tuple[Path, int, str, str]:
-    # Parse an error/note line.
-    # Given: line == "dir/file.py:123: error: Foo\n"
-    # Sets: path = Path("abs/path/to/dir/file.py:123"
-    #       linenum = 123
-    #       description = "error: Foo"
+    """Parse one line of linter output
+
+    Only parses lines with
+    - a file path (without leading-trailing whitespace),
+    - a non-negative line number (without leading/trailing whitespace),
+    - optionally a column number (without leading/trailing whitespace), and
+    - a description.
+
+    Examples of successfully parsed lines::
+
+        path/to/file.py:42: Description
+        path/to/file.py:42:5: Description
+
+    Given a root of ``Path("path/")``, these would be parsed into::
+
+        (Path("to/file.py"), 42, "path/to/file.py:42:", "Description")
+        (Path("to/file.py"), 42, "path/to/file.py:42:5:", "Description")
+
+    For all other lines, a dummy entry is returned: an empty path, zero as the line
+    number, an empty location string and an empty description. Such lines should be
+    simply ignored, since many linters display supplementary information insterspersed
+    with the actual linting notifications.
+
+    :param line: The linter output line to parse. May have a trailing newline.
+    :param root: The root directory to resolve full file paths against
+    :return: A 4-tuple of
+             - a ``root``-relative file path,
+             - the line number,
+             - the path and location string, and
+             - the description.
+
+    """
     try:
-        location, description = line[:-1].split(": ", 1)
-        path_str, linenum_str, *rest = location.split(":")
-        linenum = int(linenum_str)
+        location, description = line.rstrip().split(": ", 1)
+        if location[1:3] == ":\\":
+            # Absolute Windows paths need special handling. Separate out the ``C:`` (or
+            # similar), then split by colons, and finally re-insert the ``C:``.
+            path_in_drive, linenum_str, *rest = location[2:].split(":")
+            path_str = f"{location[:2]}{path_in_drive}"
+        else:
+            path_str, linenum_str, *rest = location.split(":")
+        if path_str.strip() != path_str:
+            raise ValueError(r"Filename {path_str!r} has leading/trailing whitespace")
+        linenum = _strict_nonneg_int(linenum_str)
         if len(rest) > 1:
-            raise ValueError("Too many colon-separated tokens")
+            raise ValueError("Too many colon-separated tokens in {location!r}")
         if len(rest) == 1:
             # Make sure it column looks like an int on "<path>:<linenum>:<column>"
-            _column = int(rest[0])  # noqa: F841
+            _column = _strict_nonneg_int(rest[0])  # noqa: F841
     except ValueError:
         # Encountered a non-parsable line which doesn't express a linting error.
         # For example, on Mypy:
@@ -56,8 +106,12 @@ def _parse_linter_line(line: str, root: Path) -> Tuple[Path, int, str, str]:
     path_from_cwd = Path(path_str).absolute()
     try:
         path_in_repo = path_from_cwd.relative_to(root)
-    except ValueError as exc_info:
-        logger.debug("Unparsable linter output: %s (%s)", line[:-1], exc_info)
+    except ValueError:
+        logger.warning(
+            "Linter message for a file %s outside requested directory %s",
+            path_from_cwd,
+            root,
+        )
         return Path(), 0, "", ""
     return path_in_repo, linenum, location + ":", description
 
@@ -134,6 +188,13 @@ def run_linter(
                 or path_in_repo in missing_files
                 or linter_error_linenum == 0
             ):
+                continue
+            if path_in_repo.suffix != ".py":
+                logger.warning(
+                    "Linter message for a non-Python file: %s %s",
+                    location,
+                    description,
+                )
                 continue
             try:
                 edited_linenums = edited_linenums_differ.compare_revisions(
