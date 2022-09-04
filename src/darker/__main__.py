@@ -10,6 +10,8 @@ from difflib import unified_diff
 from pathlib import Path
 from typing import Collection, Generator, List, Tuple
 
+from black.comments import FMT_SKIP
+
 from darker.black_diff import (
     BlackConfig,
     filter_python_files,
@@ -191,14 +193,62 @@ def _blacken_single_file(  # pylint: disable=too-many-arguments,too-many-locals
     """
     absolute_path_in_rev2 = root / relative_path_in_rev2
 
+    # find the fmt_skip comment that won't conflict with the code
+    fmt_skip = None
+    for comment in FMT_SKIP:
+        if comment not in rev2_isorted.string:
+            fmt_skip = comment
+    if fmt_skip is None:
+        logger.warning(
+            "Detected the mixed styles of `# fmt: skip` comments in "
+            f"{absolute_path_in_rev2}, "
+            "please use one style to get the best result"
+        )
+    # decorate lines with fmt_skip
+    lines = []
+    modified_line_nums = edited_linenums_differ.revision_vs_lines(
+        relative_path_in_repo, rev2_isorted, 0
+    )
+    for i, line in enumerate(rev2_isorted.lines):
+        line_num = i + 1
+        if (
+            fmt_skip is not None
+            and line_num not in modified_line_nums
+            and not any(f in line for f in FMT_SKIP)
+        ):
+            line = f"{line}  {fmt_skip}"
+        lines.append(line)
+    rev2_isorted_decorated = TextDocument.from_lines(
+        lines,
+        encoding=rev2_isorted.encoding,
+        newline=rev2_isorted.newline,
+        mtime=rev2_isorted.mtime,
+    )
+
     # 4. run black
-    formatted = run_black(rev2_isorted, black_config)
+    formatted = run_black(rev2_isorted_decorated, black_config)
     logger.debug(
         "Read %s lines from edited file %s",
-        len(rev2_isorted.lines),
+        len(rev2_isorted_decorated.lines),
         absolute_path_in_rev2,
     )
     logger.debug("Black reformat resulted in %s lines", len(formatted.lines))
+
+    # redecorate lines without fmt_skip
+    lines = []
+    for line in formatted.lines:
+        if fmt_skip is not None:
+            if line.endswith(f"  {fmt_skip}"):
+                line = line[: -len(f"  {fmt_skip}")]
+            elif line == fmt_skip:
+                line = ""
+        lines.append(line)
+    formatted = TextDocument.from_lines(
+        lines,
+        encoding=formatted.encoding,
+        newline=formatted.newline,
+        mtime=formatted.mtime,
+    )
 
     # 5. get the diff between the edited and reformatted file
     # 6. convert the diff into chunks
