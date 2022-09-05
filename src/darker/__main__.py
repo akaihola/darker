@@ -204,7 +204,12 @@ def _blacken_single_file(  # pylint: disable=too-many-arguments,too-many-locals
     )
     for i, line in enumerate(rev2_isorted.lines):
         line_num = i + 1
-        if line_num not in modified_line_nums:
+        if (
+            line_num not in modified_line_nums
+            and not line.endswith("\\")
+            and not line.endswith('"')
+            and not line.endswith("'")
+        ):
             line = f"{line}  {FMT_DARKER_SKIP}"
         lines.append(line)
     rev2_isorted_decorated = TextDocument.from_lines(
