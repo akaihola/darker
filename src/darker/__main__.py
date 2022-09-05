@@ -10,7 +10,11 @@ from difflib import unified_diff
 from pathlib import Path
 from typing import Collection, Generator, List, Tuple
 
-from black.comments import FMT_SKIP
+from black.comments import FMT_SKIP, FMT_PASS
+
+FMT_DARKER_SKIP = "# fmt: darker-skip"
+FMT_SKIP.add(FMT_DARKER_SKIP)
+FMT_PASS.add(FMT_DARKER_SKIP)
 
 from darker.black_diff import (
     BlackConfig,
@@ -193,30 +197,15 @@ def _blacken_single_file(  # pylint: disable=too-many-arguments,too-many-locals
     """
     absolute_path_in_rev2 = root / relative_path_in_rev2
 
-    # find the fmt_skip comment that won't conflict with the code
-    fmt_skip = None
-    for comment in FMT_SKIP:
-        if comment not in rev2_isorted.string:
-            fmt_skip = comment
-    if fmt_skip is None:
-        logger.warning(
-            "Detected the mixed styles of `# fmt: skip` comments in "
-            f"{absolute_path_in_rev2}, "
-            "please use one style to get the best result"
-        )
-    # decorate lines with fmt_skip
+    # decorate lines with FMT_DARKER_SKIP
     lines = []
     modified_line_nums = edited_linenums_differ.revision_vs_lines(
         relative_path_in_repo, rev2_isorted, 0
     )
     for i, line in enumerate(rev2_isorted.lines):
         line_num = i + 1
-        if (
-            fmt_skip is not None
-            and line_num not in modified_line_nums
-            and not any(f in line for f in FMT_SKIP)
-        ):
-            line = f"{line}  {fmt_skip}"
+        if line_num not in modified_line_nums:
+            line = f"{line}  {FMT_DARKER_SKIP}"
         lines.append(line)
     rev2_isorted_decorated = TextDocument.from_lines(
         lines,
@@ -234,14 +223,13 @@ def _blacken_single_file(  # pylint: disable=too-many-arguments,too-many-locals
     )
     logger.debug("Black reformat resulted in %s lines", len(formatted.lines))
 
-    # redecorate lines without fmt_skip
+    # redecorate lines without FMT_DARKER_SKIP
     lines = []
     for line in formatted.lines:
-        if fmt_skip is not None:
-            if line.endswith(f"  {fmt_skip}"):
-                line = line[: -len(f"  {fmt_skip}")]
-            elif line == fmt_skip:
-                line = ""
+        if line.endswith(f"  {FMT_DARKER_SKIP}"):
+            line = line[: -len(f"  {FMT_DARKER_SKIP}")]
+        elif line == FMT_DARKER_SKIP:
+            line = ""
         lines.append(line)
     formatted = TextDocument.from_lines(
         lines,
