@@ -5,6 +5,16 @@ These features will be included in the next release:
 
 Added
 -----
+
+Fixed
+-----
+
+
+1.5.1_ - 2022-09-11
+===================
+
+Added
+-----
 - Add a CI workflow which verifies that the ``darker --help`` output in ``README.rst``
   is up to date.
 - Only run linters, security checks and package builds once in the CI build.
