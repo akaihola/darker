@@ -1,3 +1,5 @@
+"""Unit tests for `darker.diff`"""
+
 from itertools import chain
 from textwrap import dedent
 
@@ -97,13 +99,17 @@ EXPECT_OPCODES = [
 
 
 def test_diff_and_get_opcodes():
+    """``diff_and_get_opcodes()`` produces correct opcodes for the example sources"""
     src = TextDocument.from_str(FUNCTIONS2_PY)
     dst = TextDocument.from_str(FUNCTIONS2_PY_REFORMATTED)
+
     opcodes = diff_and_get_opcodes(src, dst)
+
     assert opcodes == EXPECT_OPCODES
 
 
 def test_opcodes_to_chunks():
+    """``opcode_to_chunks()`` chucks opcodes correctly"""
     src = TextDocument.from_str(FUNCTIONS2_PY)
     dst = TextDocument.from_str(FUNCTIONS2_PY_REFORMATTED)
 
@@ -126,7 +132,10 @@ def test_opcodes_to_chunks():
             ),
             (
                 "            result = CliRunner().invoke(",
-                '                black.main, [str(src1), str(src2), "--diff", "--check"]',  # noqa: E501
+                (
+                    '                black.main, [str(src1), str(src2), "--diff",'
+                    ' "--check"]'
+                ),
             ),
         ),
         (
@@ -251,8 +260,9 @@ def test_opcodes_to_edit_linenums(context_lines, multiline_string_ranges, expect
 
 
 def test_opcodes_to_edit_linenums_empty_opcodes():
+    """``opcodes_to_edit_linenums()`` returns nothing for an empty list of opcodes"""
     result = list(
         opcodes_to_edit_linenums([], context_lines=0, multiline_string_ranges=[])
     )
 
-    assert result == []
+    assert result == []  # pylint: disable=use-implicit-booleaness-not-comparison
