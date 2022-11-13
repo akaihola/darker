@@ -77,7 +77,8 @@ class RegexEquality:
     ),
     config_path=None,
 )
-def test_black_config(tmpdir, config_path, config_lines, expect):
+def test_read_black_config(tmpdir, config_path, config_lines, expect):
+    """``read_black_config()`` reads Black configuration from a TOML file correctly"""
     tmpdir = Path(tmpdir)
     src = tmpdir / "src.py"
     toml = tmpdir / (config_path or "pyproject.toml")
@@ -117,14 +118,14 @@ def test_black_config(tmpdir, config_path, config_lines, expect):
     extend_exclude=None,
     force_exclude=None,
 )
-def test_filter_python_files(
+def test_filter_python_files(  # pylint: disable=too-many-arguments
     tmp_path, monkeypatch, exclude, extend_exclude, force_exclude, expect
 ):
     """``filter_python_files()`` skips excluded files correctly"""
     monkeypatch.chdir(tmp_path)
     names = {
         Path(name)
-        for name in {
+        for name in [
             "none.py",
             "exclude.py",
             "extend.py",
@@ -141,7 +142,7 @@ def test_filter_python_files(
             "exclude+force+explicit.py",
             "extend+force+explicit.py",
             "exclude+extend+force+explicit.py",
-        }
+        ]
     }
     paths = {tmp_path / name for name in names}
     for path in paths:

@@ -12,7 +12,7 @@ jobs:
       - uses: actions/setup-python@v3
       - name: Install dependencies for running Pylint
         run: |
-          pip install -U black pygments pylint pytest>=6.2.0 toml
+          pip install -U black pygments pylint pytest>=6.2.0 regex toml
           pip list
       - uses: wearerequired/lint-action@v2.1.0
         with:
