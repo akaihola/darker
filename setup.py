@@ -1,3 +1,5 @@
+"""Setuptools entry point for Darker"""
+
 import re
 from typing import Pattern
 
@@ -35,8 +37,8 @@ def make_pypi_compliant_readme() -> str:
     :return: The contents of a PyPI compliant ``README.rst``
 
     """
-    with open("README.rst", encoding="utf-8") as fp:
-        original_readme = fp.read()
+    with open("README.rst", encoding="utf-8") as readme_file:
+        original_readme = readme_file.read()
     no_sidebar_readme = replace("sidebar", SIDEBAR_RE, "", original_readme)
     return replace(
         "contributors table",
