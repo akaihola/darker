@@ -33,11 +33,12 @@ jobs:
         id: get-darker-version
         shell: python
         run: |
+          from os import environ
+          from pathlib import Path
           from runpy import run_path
           version = run_path("src/darker/version.py")["__version__"]
-          print(
-              "::set-output name=wheel-path::"
-              f"dist/darker-{version}-py3-none-any.whl"
+          Path(environ["GITHUB_OUTPUT"]).open("a").write(
+              f"wheel-path=dist/darker-{version}-py3-none-any.whl\n"
           )
 
   test-nixos:
