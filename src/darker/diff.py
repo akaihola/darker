@@ -109,7 +109,7 @@ def _validate_opcodes(opcodes: List[Tuple[str, int, int, int, int]]) -> None:
         raise ValueError(f"Unexpected opcodes in {opcodes!r}")
 
 
-def opcodes_to_edit_linenums(
+def opcodes_to_edit_linenums(  # pylint: disable=too-many-locals
     opcodes: List[Tuple[str, int, int, int, int]],
     context_lines: int,
     multiline_string_ranges: Sequence[Tuple[int, int]],
@@ -135,18 +135,18 @@ def opcodes_to_edit_linenums(
 
     # Calculate the last line number beyond which we won't extend with extra context
     # lines
-    _tag, _i1, _i2, _j1, last_opcode_end = opcodes[-1]
+    _tag, _src_start, _src_end, _dst_start, last_opcode_end = opcodes[-1]
     _, last_multiline_string_end = (
         multiline_string_ranges[-1] if multiline_string_ranges else (None, 0)
     )
     lastline = max(last_opcode_end + 1, last_multiline_string_end)
 
     prev_chunk_end = 1
-    for tag, _i1, _i2, j1, j2 in opcodes:
+    for tag, _src_start, _src_end, dst_start, dst_end in opcodes:
         if tag == "equal":
             continue
-        chunk_start = j1 + 1 - context_lines
-        chunk_end = j2 + 1 + context_lines
+        chunk_start = dst_start + 1 - context_lines
+        chunk_end = dst_end + 1 + context_lines
         multiline_string_range = find_overlap(
             chunk_start, chunk_end, multiline_string_ranges
         )
