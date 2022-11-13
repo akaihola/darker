@@ -10,7 +10,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v3
-      - run: pip install -U isort mypy pytest types-toml
+      - run: pip install -U isort mypy>=0.990 pytest types-toml
       - uses: wearerequired/lint-action@v2.0.1
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
