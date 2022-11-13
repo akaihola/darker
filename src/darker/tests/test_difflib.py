@@ -1,3 +1,5 @@
+"""Some tests for `difflib` to ensure and illustrate its logic"""
+
 from difflib import SequenceMatcher
 
 from darker.tests.git_diff_example_output import (
