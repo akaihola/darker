@@ -156,7 +156,7 @@ def _check_linter_output(
         yield linter_process.stdout
 
 
-def run_linter(
+def run_linter(  # pylint: disable=too-many-locals
     cmdline: str, root: Path, paths: Set[Path], revrange: RevisionRange, use_color: bool
 ) -> int:
     """Run the given linter and print linting errors falling on changed lines
