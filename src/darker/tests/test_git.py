@@ -270,6 +270,7 @@ def test_get_path_in_repo(path, expect):
     dict(path="main.js", create=True, expect=False),
 )
 def test_should_reformat_file(tmpdir, path, create, expect):
+    """``should_reformat_file()`` only returns ``True`` for ``.py`` files which exist"""
     if create:
         (tmpdir / path).ensure()
 
