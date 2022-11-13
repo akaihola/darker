@@ -10,7 +10,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v3
-      - run: pip install pylint
+      - run: pip install -U black pygments pylint pytest>=6.2.0 toml
       - uses: wearerequired/lint-action@v2.1.0
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
