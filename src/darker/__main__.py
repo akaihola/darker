@@ -51,7 +51,7 @@ logger = logging.getLogger(__name__)
 ProcessedDocument = Tuple[Path, TextDocument, TextDocument]
 
 
-def format_edited_parts(
+def format_edited_parts(  # pylint: disable=too-many-arguments
     root: Path,
     changed_files: Collection[Path],  # pylint: disable=unsubscriptable-object
     exclude: Exclusions,
@@ -331,7 +331,9 @@ def _import_pygments():  # type: ignore
     return highlight, TerminalFormatter, PythonLexer
 
 
-def main(argv: List[str] = None) -> int:
+def main(  # pylint: disable=too-many-locals,too-many-branches,too-many-statements
+    argv: List[str] = None,
+) -> int:
     """Parse the command line and reformat and optionally lint each source file
 
     1. run isort on each edited file (optional)
