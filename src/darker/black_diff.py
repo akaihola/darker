@@ -135,6 +135,10 @@ def filter_python_files(
     sig = inspect.signature(gen_python_files)
     # those two exist and are required in black>=21.7b1.dev9
     kwargs = dict(verbose=False, quiet=False) if "verbose" in sig.parameters else {}
+    # `gitignore=` was replaced with `gitignore_dict=` in black==22.10.1.dev19+gffaaf48
+    kwargs.update(
+        {param: None for param in sig.parameters if param.startswith("gitignore")}
+    )
     absolute_paths = {p.resolve() for p in paths}
     directories = {p for p in absolute_paths if p.is_dir()}
     files = {p for p in absolute_paths if p not in directories}
@@ -147,7 +151,6 @@ def filter_python_files(
             extend_exclude=black_config.get("extend_exclude"),
             force_exclude=black_config.get("force_exclude"),
             report=Report(),
-            gitignore=None,
             **kwargs,
         )
     )

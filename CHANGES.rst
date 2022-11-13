@@ -8,6 +8,8 @@ Added
 
 Fixed
 -----
+- Fix compatibility with ``black-22.10.1.dev19+gffaaf48`` and later – an argument was
+  replaced in ``black.files.gen_python_files()`.
 
 
 1.5.1_ - 2022-09-11
