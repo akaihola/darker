@@ -18,15 +18,18 @@ from darker.verification import (
     dict(dst_content=["if True:", "    pass"], expect=None),
 )
 def test_verify_ast_unchanged(dst_content, expect):
+    """``verify_ast_unchanged`` detects changes correctly"""
     black_chunks: List[DiffChunk] = [(1, ("black",), ("chunks",))]
     edited_linenums = [1, 2]
     try:
+
         verify_ast_unchanged(
             TextDocument.from_lines(["if True: pass"]),
             TextDocument.from_lines(dst_content),
             black_chunks,
             edited_linenums,
         )
+
     except NotEquivalentError:
         assert expect is AssertionError
     else:
