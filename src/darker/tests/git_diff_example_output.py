@@ -1,3 +1,5 @@
+"""Example content for `darker.tests.test_difflib`"""
+
 from textwrap import dedent
 
 ORIGINAL = dedent(
