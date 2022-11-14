@@ -13,6 +13,7 @@ from darker.git import _git_check_output_lines
 
 
 class GitRepoFixture:
+    """Fixture for managing temporary Git repositories"""
     def __init__(self, root: Path, env: Dict[str, str]):
         self.root = root
         self.env = env

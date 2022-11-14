@@ -51,31 +51,36 @@ from darker.tests.helpers import raises_if_exception
     ),
 )
 def test_toml_array_lines_encoder(list_value, expect):
+    """``TomlArrayLinesEncoder`` formats lists with each item on its own line"""
     result = TomlArrayLinesEncoder().dump_list(list_value)
 
     assert result == expect
 
 
 @pytest.mark.kwparametrize(
-    dict(log_level=0, expect="NOTSET"),
-    dict(log_level=10, expect="DEBUG"),
-    dict(log_level=20, expect="INFO"),
-    dict(log_level=30, expect="WARNING"),
-    dict(log_level=40, expect="ERROR"),
-    dict(log_level=50, expect="CRITICAL"),
-    dict(log_level="DEBUG", expect=10),
-    dict(log_level="INFO", expect=20),
-    dict(log_level="WARNING", expect=30),
-    dict(log_level="WARN", expect=30),
-    dict(log_level="ERROR", expect=40),
-    dict(log_level="CRITICAL", expect=50),
-    dict(log_level="FOOBAR", expect="Level FOOBAR"),
+    dict(log_level=None, expect={}),
+    dict(log_level=0, expect={"log_level": "NOTSET"}),
+    dict(log_level=10, expect={"log_level": "DEBUG"}),
+    dict(log_level=20, expect={"log_level": "INFO"}),
+    dict(log_level=30, expect={"log_level": "WARNING"}),
+    dict(log_level=40, expect={"log_level": "ERROR"}),
+    dict(log_level=50, expect={"log_level": "CRITICAL"}),
+    dict(log_level="DEBUG", expect={"log_level": 10}),
+    dict(log_level="INFO", expect={"log_level": 20}),
+    dict(log_level="WARNING", expect={"log_level": 30}),
+    dict(log_level="WARN", expect={"log_level": 30}),
+    dict(log_level="ERROR", expect={"log_level": 40}),
+    dict(log_level="CRITICAL", expect={"log_level": 50}),
+    dict(log_level="FOOBAR", expect={"log_level": "Level FOOBAR"}),
 )
 def test_replace_log_level_name(log_level, expect):
+    """``replace_log_level_name()`` converts between log level names and numbers"""
     config = DarkerConfig() if log_level is None else DarkerConfig(log_level=log_level)
+
     replace_log_level_name(config)
 
-    assert config["log_level"] == expect
+    result = {k: v for k, v in config.items() if k == "log_level"}
+    assert result == expect
 
 
 @pytest.mark.kwparametrize(
@@ -135,7 +140,7 @@ def test_output_mode_from_args(diff, stdout, expect):
 
 
 @pytest.mark.kwparametrize(
-    dict(),
+    dict(),  # pylint: disable=use-dict-literal
     dict(cwd="lvl1"),
     dict(cwd="lvl1/lvl2"),
     dict(cwd="has_git", expect={}),
@@ -370,9 +375,10 @@ def test_output_mode_from_args(diff, stdout, expect):
     confpath=None,
     expect={"CONFIG_PATH": "."},
 )
-def test_load_config(
+def test_load_config(  # pylint: disable=too-many-arguments
     find_project_root_cache_clear, tmp_path, monkeypatch, srcs, cwd, confpath, expect
 ):
+    """``load_config()`` finds and loads configuration based on source file paths"""
     (tmp_path / ".git").mkdir()
     (tmp_path / "pyproject.toml").write_text('[tool.darker]\nCONFIG_PATH = "."\n')
     (tmp_path / "lvl1/lvl2").mkdir(parents=True)
@@ -486,10 +492,12 @@ def test_get_effective_config(args, expect):
     dict(args=Namespace(names=["foo"], int=42, string="one"), expect={"string": "one"}),
 )
 def test_get_modified_config(args, expect):
+    """``get_modified_config()`` only includes non-default configuration options"""
     parser = ArgumentParser()
     parser.add_argument("names", nargs="*", default=["foo"])
     parser.add_argument("--int", dest="int", default=42)
     parser.add_argument("--string", default="fourty-two")
+
     result = get_modified_config(parser, args)
 
     assert result == expect

@@ -1,3 +1,5 @@
+"""Helpers for invoking ``isort`` and acting on its output"""
+
 import logging
 import sys
 from pathlib import Path
@@ -49,12 +51,13 @@ logger = logging.getLogger(__name__)
 
 
 class IsortArgs(TypedDict, total=False):
+    """Types for command line arguments for ``isort``"""
     line_length: int
     settings_file: str
     settings_path: str
 
 
-def apply_isort(
+def apply_isort(  # pylint: disable=too-many-arguments
     content: TextDocument,
     src: Path,
     exclude: Collection[str],

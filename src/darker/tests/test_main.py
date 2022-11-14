@@ -1,6 +1,8 @@
 """Unit tests for :mod:`darker.__main__`"""
 
 # pylint: disable=unused-argument,too-many-arguments,use-dict-literal,protected-access
+# pylint: disable=redefined-outer-name,use-implicit-booleaness-not-comparison
+# pylint: disable=too-many-locals
 
 import logging
 import re
@@ -67,6 +69,7 @@ def run_isort(git_repo, monkeypatch, caplog, request, find_project_root_cache_cl
 
 
 def test_isort_option_with_isort(run_isort):
+    """Doesn't prompt to install ``isort`` if it's already installed"""
     assert "Please run" not in run_isort.caplog.text
 
 
@@ -76,6 +79,7 @@ def test_isort_option_with_isort(run_isort):
     indirect=["run_isort"],
 )
 def test_isort_option_with_isort_calls_sortimports(tmpdir, run_isort, isort_args):
+    """Relevant config options are passed from command line to ``isort``"""
     run_isort.isort_code.assert_called_once_with(
         code="changed", settings_path=str(tmpdir), **isort_args
     )

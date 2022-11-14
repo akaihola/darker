@@ -6,7 +6,7 @@ import tokenize
 from datetime import datetime
 from itertools import chain
 from pathlib import Path
-from typing import Collection, Iterable, List, Tuple, Union
+from typing import Collection, Iterable, List, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +30,7 @@ class TextDocument:
     DEFAULT_ENCODING = "utf-8"
     DEFAULT_NEWLINE = "\n"
 
-    def __init__(
+    def __init__(  # pylint: disable=too-many-arguments
         self,
         string: str = None,
         lines: Iterable[str] = None,
@@ -203,11 +203,17 @@ def joinlines(lines: Iterable[str], newline: str = "\n") -> str:
 
 
 def get_path_ancestry(path: Path) -> Iterable[Path]:
+    """Return paths to directories leading to the given path
+
+    :param path: The directory or file to get ancestor directories for
+    :return: A list of paths, starting from filesystem root and ending in the given
+             path (if it's a directory) or the parent of the given path (if it's a file)
+
+    """
     reverse_parents = reversed(path.parents)
     if path.is_dir():
         return chain(reverse_parents, [path])
-    else:
-        return reverse_parents
+    return reverse_parents
 
 
 def get_common_root(paths: Iterable[Path]) -> Path:
@@ -218,34 +224,6 @@ def get_common_root(paths: Iterable[Path]) -> Path:
         if all(path == first_path for path in other_paths):
             return first_path
     raise ValueError(f"Paths have no common parent Git root: {resolved_paths}")
-
-
-class Buf:
-    def __init__(self, initial_bytes: bytes):
-        self._buf = io.BytesIO(initial_bytes)
-        self._line_starts: List[int] = []
-
-    def __next__(self) -> str:
-        self._line_starts.append(self._buf.tell())
-        return next(self._buf).rstrip(b"\n").decode("utf-8")
-
-    def __iter__(self) -> "Buf":
-        return self
-
-    def seek_line(self, lines_delta: int) -> None:
-        if lines_delta > 0:
-            raise NotImplementedError("Seeking forwards is not supported")
-        for _ in range(-lines_delta):
-            self._buf.seek(self._line_starts.pop())
-
-    def next_line_startswith(self, prefix: Union[str, TextLines]) -> bool:
-        """Peek at the next line, return ``True`` if it starts with the given prefix"""
-        try:
-            return next(self).startswith(prefix)
-        except StopIteration:
-            return False
-        finally:
-            self.seek_line(-1)
 
 
 def glob_any(path: Path, patterns: Collection[str]) -> bool:

@@ -22,6 +22,7 @@ def _fill_line(line: str, width: int, indent: str) -> str:
 
 
 class NewlinePreservingFormatter(HelpFormatter):
+    """A command line help formatter which preserves newline characters"""
     def _fill_text(self, text: str, width: int, indent: str) -> str:
         if "\n" in text:
             return "\n".join(

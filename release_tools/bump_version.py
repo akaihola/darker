@@ -262,7 +262,8 @@ def get_milestone_numbers() -> Dict[Version, str]:
 
     """
     milestones = requests.get(
-        "https://api.github.com/repos/akaihola/darker/milestones"
+        "https://api.github.com/repos/akaihola/darker/milestones",
+        timeout=10,
     ).json()
     if not isinstance(milestones, list):
         raise TypeError(f"Expected a JSON list from GitHub API, got {milestones}")

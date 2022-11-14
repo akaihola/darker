@@ -188,6 +188,12 @@ def get_path_in_repo(path: Path) -> Path:
 
 
 def should_reformat_file(path: Path) -> bool:
+    """Return ``True`` if the given path is an existing ``*.py`` file
+
+    :param path: The path to inspect
+    :return: ``False`` if the path doesn't exist or is not a ``.py`` file
+
+    """
     return path.exists() and get_path_in_repo(path).suffix == ".py"
 
 

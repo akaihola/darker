@@ -8,7 +8,7 @@ from darker.utils import DiffChunk, TextDocument, debug_dump
 
 
 class NotEquivalentError(Exception):
-    pass
+    """Exception to raise if two ASTs being compared are not equivalent"""
 
 
 class BinarySearch:
@@ -66,7 +66,7 @@ def verify_ast_unchanged(
         assert_equivalent(edited_to_file.string, reformatted.string)
     except AssertionError as exc_info:
         debug_dump(black_chunks, edited_linenums)
-        raise NotEquivalentError(str(exc_info))
+        raise NotEquivalentError() from exc_info
 
 
 class ASTVerifier:  # pylint: disable=too-few-public-methods

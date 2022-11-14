@@ -47,7 +47,10 @@ from black import (
     parse_pyproject_toml,
     re_compile_maybe_verbose,
 )
-from black.const import DEFAULT_EXCLUDES, DEFAULT_INCLUDES
+from black.const import (  # pylint: disable=no-name-in-module
+    DEFAULT_EXCLUDES,
+    DEFAULT_INCLUDES,
+)
 from black.files import gen_python_files
 from black.report import Report
 
@@ -104,14 +107,14 @@ def read_black_config(src: Tuple[str, ...], value: Optional[str]) -> BlackConfig
     raw_config = parse_pyproject_toml(value)
 
     config: BlackConfig = {}
-    for key in {
+    for key in [
         "line_length",
         "skip_magic_trailing_comma",
         "skip_string_normalization",
-    }:
+    ]:
         if key in raw_config:
             config[key] = raw_config[key]  # type: ignore
-    for key in {"exclude", "extend_exclude", "force_exclude"}:
+    for key in ["exclude", "extend_exclude", "force_exclude"]:
         if key in raw_config:
             config[key] = re_compile_maybe_verbose(raw_config[key])  # type: ignore
     return config

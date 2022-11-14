@@ -10,8 +10,22 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v3
-      - run: pip install pylint
-      - uses: wearerequired/lint-action@v2.0.1
+      - name: Install dependencies for running Pylint
+        run: |
+          pip install -U \
+            airium \
+            black \
+            defusedxml \
+            pygments \
+            pylint \
+            pytest>=6.2.0 \
+            regex \
+            requests \
+            requests-cache \
+            ruamel.yaml \
+            toml
+          pip list
+      - uses: wearerequired/lint-action@v2.1.0
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           pylint: true

@@ -1,3 +1,5 @@
+"""Darker GitHub action implementation"""
+
 import os
 import shlex
 import sys

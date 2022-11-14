@@ -87,6 +87,7 @@ def test_debug_dump(caplog, capsys):
 
 
 def test_joinlines():
+    """``joinlines() concatenates and adds a newline after each given string item"""
     result = joinlines(("a", "b", "c"))
     assert result == "a\nb\nc\n"
 
@@ -99,6 +100,7 @@ def test_get_common_root_empty():
 
 
 def test_get_common_root(tmpdir):
+    """``get_common_root()`` traverses backwards correctly"""
     tmpdir = Path(tmpdir)
     path1 = tmpdir / "a" / "b" / "c" / "d"
     path2 = tmpdir / "a" / "e" / ".." / "b" / "f" / "g"
@@ -108,12 +110,14 @@ def test_get_common_root(tmpdir):
 
 
 def test_get_common_root_of_directory(tmpdir):
+    """``get_common_root()`` returns a single directory itself"""
     tmpdir = Path(tmpdir)
     result = get_common_root([tmpdir])
     assert result == tmpdir
 
 
 def test_get_path_ancestry_for_directory(tmpdir):
+    """``get_path_ancestry()`` includes a directory itself as the last item"""
     tmpdir = Path(tmpdir)
     result = list(get_path_ancestry(tmpdir))
     assert result[-1] == tmpdir
@@ -121,6 +125,7 @@ def test_get_path_ancestry_for_directory(tmpdir):
 
 
 def test_get_path_ancestry_for_file(tmpdir):
+    """``get_path_ancestry()`` includes a file's parent directory as the last item"""
     tmpdir = Path(tmpdir)
     dummy = tmpdir / "dummy"
     dummy.write_text("dummy")
@@ -329,7 +334,7 @@ def test_textdocument_detect_newline(textdocument, expect):
 )
 def test_textdocument_eq(doc1, doc2, expect):
     """TextDocument.__eq__()"""
-    result = doc1.__eq__(doc2)
+    result = doc1.__eq__(doc2)  # pylint: disable=unnecessary-dunder-call
 
     assert result == expect
 
@@ -366,7 +371,7 @@ def test_textdocument_eq(doc1, doc2, expect):
 )
 def test_textdocument_repr(document, expect):
     """TextDocument.__repr__()"""
-    result = document.__repr__()
+    result = repr(document)
 
     assert result == expect
 

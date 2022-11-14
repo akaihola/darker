@@ -1,3 +1,7 @@
+"""Unit tests for the ``--revision`` argument in `darker.main`"""
+
+# pylint: disable=too-many-arguments
+
 import pytest
 
 from darker.__main__ import main
@@ -104,6 +108,7 @@ from darker.tests.helpers import raises_if_exception
     dict(revision="HEAD~3", worktree_content=b"USERMOD=1\n", expect=SystemExit),
 )
 def test_revision(git_repo, monkeypatch, capsys, revision, worktree_content, expect):
+    """``--diff`` with ``--revision`` reports correct files as modified"""
     monkeypatch.chdir(git_repo.root)
     # 2: HEAD~2:
     paths = git_repo.add(
