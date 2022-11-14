@@ -18,7 +18,7 @@ jobs:
       wheel-path: ${{ steps.get-darker-version.outputs.wheel-path }}
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-python@v3
+      - uses: actions/setup-python@v4
       - name: Install wheel
         run: python -m pip install wheel
       - name: Build wheel distribution
@@ -105,7 +105,7 @@ jobs:
           fetch-depth: 0
           # need full history since Pytest runs Darker itself below
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v3
+        uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
       - name: Download wheel uploaded by the build-wheel job
@@ -125,7 +125,7 @@ jobs:
       - build-wheel
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-python@v3
+      - uses: actions/setup-python@v4
       - name: Install twine
         run: python -m pip install twine
       - name: Download wheel uploaded by the build-wheel job

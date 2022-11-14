@@ -630,7 +630,7 @@ Create a file named ``.github/workflows/darker.yml`` inside your repository with
          - uses: actions/checkout@v3
            with:
              fetch-depth: 0 
-         - uses: actions/setup-python@v2
+         - uses: actions/setup-python@v4
          - uses: akaihola/darker@1.5.1
            with:
              options: "--check --diff --color"

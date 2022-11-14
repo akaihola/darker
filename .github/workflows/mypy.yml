@@ -9,7 +9,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-python@v3
+      - uses: actions/setup-python@v4
       - run: pip install -U isort mypy>=0.990 pytest types-toml
       - uses: wearerequired/lint-action@v2.1.0
         with:
