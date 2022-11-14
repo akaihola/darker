@@ -11,6 +11,8 @@ Usage::
 
 """
 
+# pylint: disable=too-few-public-methods,abstract-method
+
 import re
 import sys
 import xml.etree.ElementTree as ET  # nosec
