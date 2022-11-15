@@ -73,4 +73,5 @@
 - Vivek Kushwaha (@yoursvivek)
 - Will (@Hainguyen1210)
 - Will Pimblett (@wjdp)
+- Zach Norton (@zachnorton4C)
 - Łukasz Rogalski (@rogalski)
