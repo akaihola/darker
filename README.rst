@@ -419,13 +419,8 @@ PyCharm/IntelliJ IDEA
 
 3. Open External tools in PyCharm/IntelliJ IDEA
 
-   On macOS:
-
-   ``PyCharm -> Preferences -> Tools -> External Tools``
-
-   On Windows / Linux / BSD:
-
-   ``File -> Settings -> Tools -> External Tools``
+   - On macOS: ``PyCharm -> Preferences -> Tools -> External Tools``
+   - On Windows / Linux / BSD: ``File -> Settings -> Tools -> External Tools``
 
 4. Click the ``+`` icon to add a new external tool with the following values:
 
@@ -440,12 +435,13 @@ PyCharm/IntelliJ IDEA
 
        --config /home/myself/black.cfg "$FilePath$"
 
-5. Format the currently opened file by selecting ``Tools -> External Tools -> Darker``.
+5. You can now format the currently opened file by selecting ``Tools -> External Tools -> Darker``
+   or right clicking on a file and selecting ``External Tools -> Darker``
 
-   - Alternatively, you can set a keyboard shortcut by navigating to
+6. Optionally, set up a keyboard shortcut at
      ``Preferences or Settings -> Keymap -> External Tools -> External Tools - Darker``
 
-6. Optionally, run ``darker`` on every file save:
+7. Optionally, run ``darker`` on every file save:
 
    1. Make sure you have the `File Watcher`__ plugin installed.
    2. Go to ``Preferences or Settings -> Tools -> File Watchers`` and click ``+`` to add
