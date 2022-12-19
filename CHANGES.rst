@@ -5,14 +5,15 @@ These features will be included in the next release:
 
 Added
 -----
+- Upgrade to ``setup-python@v4`` in all GitHub workflows. May be required due to
+  deprecation of ``set-output``.
 
 Fixed
 -----
 - Fix compatibility with ``black-22.10.1.dev19+gffaaf48`` and later – an argument was
-  replaced in ``black.files.gen_python_files()`.
-
-- Upgrade to ``setup-python@v4`` in all GitHub workflows. May be required due to
-  deprecation of ``set-output``.
+  replaced in ``black.files.gen_python_files()``.
+- Don't do a development install in the ``help-in-readme.yml`` workflow. Something
+  broke this recently.
 
 
 1.5.1_ - 2022-09-11

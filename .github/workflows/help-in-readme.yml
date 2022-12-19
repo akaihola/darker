@@ -6,7 +6,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - run: pip install -e '.[isort]'
+      - run: pip install '.[isort]'
       - name: Verify that README contains output of darker --help
         shell: python
         run: |
