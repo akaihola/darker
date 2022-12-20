@@ -6,6 +6,7 @@
 
 - Aaron Denney (@wnoise)
 - Aditya Gandra (@agandra)
+- Aljaž Mur Eržen (@aljazerzen)
 - Antti Kaihola (@akaihola)
 - August Masquelier (@levouh)
 - Axel Dahlberg (@AckslD)
@@ -32,6 +33,7 @@
 - Georges Discry (@gdiscry)
 - Giel van Schijndel (@muggenhor)
 - Hugo Dupras (@jabesq)
+- Hugo van Kemenade (@hugovk)
 - Iryna (@irynahryshanovich)
 - Jairo Llopis (@Yajo)
 - Jasleen Kaur (@jasleen19)
@@ -65,6 +67,7 @@
 - Sean Hammond (@sherbie)
 - Shantanu (@hauntsaninja)
 - Simone Gaiarin (@simgunz)
+- Stefaan Lippens (@soxofaan)
 - Talha Juanid (@talhajunaidd)
 - Thomas Güttler (@guettli)
 - TJ Kolleh (@tkolleh)

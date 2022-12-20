@@ -42,6 +42,8 @@ akaihola:
   - {link_type: commits, type: Documentation}
   - {link_type: pulls-reviewed, type: Reviewed Pull Requests}
   - {link_type: commits, type: Maintenance}
+aljazerzen:
+  - {link_type: commits, type: Code}
 brtknr:
   - {link_type: pulls-reviewed, type: Reviewed Pull Requests}
 casio:
@@ -75,6 +77,8 @@ guettli:
   - {link_type: issues, type: Bug reports}
 hauntsaninja:
   - {link_type: issues, type: Bug reports}
+hugovk:
+  - {link_type: pulls-author, type: Code}
 ioggstream:
   - {link_type: search-comments, type: Bug reports}
 irynahryshanovich:
@@ -142,6 +146,8 @@ sherbie:
   - {link_type: pulls-reviewed, type: Reviewed Pull Requests}
 simgunz:
   - {link_type: search-comments, type: Reviewed Pull Requests}
+soxofaan:
+  - {link_type: pulls-author, type: Documentation}
 talhajunaidd:
   - {link_type: commits, type: Code}
 tgross35:
