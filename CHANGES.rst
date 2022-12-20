@@ -7,6 +7,7 @@ Added
 -----
 - Upgrade to ``setup-python@v4`` in all GitHub workflows. May be required due to
   deprecation of ``set-output``.
+- ``bump_version.py`` now accepts an optional GitHub token with the ``--token=`` argument.
 
 Fixed
 -----

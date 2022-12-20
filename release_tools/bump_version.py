@@ -22,7 +22,7 @@ import re
 import sys
 from datetime import date
 from pathlib import Path
-from typing import Dict, Match, Tuple
+from typing import Dict, Match, Optional, Tuple
 
 import click
 import requests
@@ -97,10 +97,15 @@ PATTERNS = {
 @click.option("-n", "--dry-run", is_flag=True, default=False)
 @click.option("-M", "--major", "increment_major", is_flag=True, default=False)
 @click.option("-m", "--minor", "increment_minor", is_flag=True, default=False)
-def bump_version(dry_run: bool, increment_major: bool, increment_minor: bool) -> None:
+@click.option("--token")
+def bump_version(  # pylint: disable=too-many-locals
+    dry_run: bool, increment_major: bool, increment_minor: bool, token: Optional[str]
+) -> None:
     """Bump the version number"""
     (patterns, replacements, new_version) = get_replacements(
-        increment_major, increment_minor
+        increment_major,
+        increment_minor,
+        token,
     )
     for path_str, pattern_templates in PATTERNS.items():
         path = Path(path_str)
@@ -174,7 +179,9 @@ else:
 
 
 def get_replacements(
-    increment_major: bool, increment_minor: bool
+    increment_major: bool,
+    increment_minor: bool,
+    token: Optional[str],
 ) -> Tuple[PatternDict, ReplacementDict, Version]:
     """Return search patterns and replacements for version numbers and milestones
 
@@ -185,12 +192,13 @@ def get_replacements(
 
     :param increment_major: `True` to increment the major version number
     :param increment_minor: `True` to increment the minor version number
+    :param token: The GitHub access token to use, or `None` to use none
     :return: Patterns, replacements and the new version number
 
     """
     old_version = get_current_version()
     new_version = get_next_version(old_version, increment_major, increment_minor)
-    milestone_numbers = get_milestone_numbers()
+    milestone_numbers = get_milestone_numbers(token)
     next_version = get_next_milestone_version(new_version, milestone_numbers)
     patterns: PatternDict = {
         "any_version": r"\d+(?:\.\d+)*",
@@ -254,15 +262,17 @@ def get_next_version(
     return Version(f"{major}.{minor}.{micro + 1}")
 
 
-def get_milestone_numbers() -> Dict[Version, str]:
+def get_milestone_numbers(token: Optional[str]) -> Dict[Version, str]:
     """Fetch milestone names and numbers from the GitHub API
 
+    :param token: The GitHub access token to use, or `None` to use none
     :return: Milestone names as version numbers, and corresponding milestone numbers
     :raises TypeError: Raised on unexpected JSON response
 
     """
     milestones = requests.get(
         "https://api.github.com/repos/akaihola/darker/milestones",
+        headers={"Authorization": f"Bearer {token}"} if token else {},
         timeout=10,
     ).json()
     if not isinstance(milestones, list):
