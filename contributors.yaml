@@ -42,6 +42,8 @@ akaihola:
   - {link_type: commits, type: Documentation}
   - {link_type: pulls-reviewed, type: Reviewed Pull Requests}
   - {link_type: commits, type: Maintenance}
+aljazerzen:
+  - {link_type: commits, type: Code}
 brtknr:
   - {link_type: pulls-reviewed, type: Reviewed Pull Requests}
 casio:

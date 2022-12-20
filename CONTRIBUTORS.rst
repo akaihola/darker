@@ -6,6 +6,7 @@
 
 - Aaron Denney (@wnoise)
 - Aditya Gandra (@agandra)
+- Aljaž Mur Eržen (@aljazerzen)
 - Antti Kaihola (@akaihola)
 - August Masquelier (@levouh)
 - Axel Dahlberg (@AckslD)
