@@ -22,9 +22,9 @@
 .. |changelog-badge| image:: https://img.shields.io/badge/-change%20log-purple
    :alt: Change log
 .. _changelog-badge: https://github.com/akaihola/darker/blob/master/CHANGES.rst
-.. |next-milestone| image:: https://img.shields.io/github/milestones/progress/akaihola/darker/16?color=red&label=release%201.6.0
+.. |next-milestone| image:: https://img.shields.io/github/milestones/progress/akaihola/darker/18?color=red&label=release%201.6.1
    :alt: Next milestone
-.. _next-milestone: https://github.com/akaihola/darker/milestone/16
+.. _next-milestone: https://github.com/akaihola/darker/milestone/18
 
 
 What?
@@ -567,7 +567,7 @@ do the following:
 3. Append to the created ``.pre-commit-config.yaml`` the following lines::
 
        -   repo: https://github.com/akaihola/darker
-           rev: 1.5.1
+           rev: 1.6.0
            hooks:
            -   id: darker
 
@@ -586,7 +586,7 @@ You can provide arguments, such as enabling isort, by specifying ``args``.
 Note the inclusion of the isort Python package under ``additional_dependencies``::
 
    -   repo: https://github.com/akaihola/darker
-       rev: 1.5.1
+       rev: 1.6.0
        hooks:
        -   id: darker
            args: [--isort]
@@ -627,12 +627,12 @@ Create a file named ``.github/workflows/darker.yml`` inside your repository with
            with:
              fetch-depth: 0 
          - uses: actions/setup-python@v4
-         - uses: akaihola/darker@1.5.1
+         - uses: akaihola/darker@1.6.0
            with:
              options: "--check --diff --color"
              revision: "master..."
              src: "./src"
-             version: "1.5.1"
+             version: "1.6.0"
              lint: "flake8,pylint==2.13.1"
 
 There needs to be a working Python environment, set up using ``actions/setup-python``

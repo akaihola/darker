@@ -5,8 +5,18 @@ These features will be included in the next release:
 
 Added
 -----
-- Upgrade to ``setup-python@v4`` in all GitHub workflows. May be required due to
-  deprecation of ``set-output``.
+
+Fixed
+-----
+
+
+1.6.0_ - 2022-12-19
+===================
+
+Added
+-----
+- Upgrade linters in CI and modify code to satisfy their new requirements.
+- Upgrade to ``setup-python@v4`` in all GitHub workflows.
 - ``bump_version.py`` now accepts an optional GitHub token with the ``--token=``
   argument. The ``test-bump-version`` workflow uses that, which should help deal with
   GitHub's API rate limiting.
@@ -15,6 +25,8 @@ Fixed
 -----
 - Fix compatibility with ``black-22.10.1.dev19+gffaaf48`` and later – an argument was
   replaced in ``black.files.gen_python_files()``.
+- Upgrade CI to use environment files instead of the deprecated ``set-output`` method.
+- Fix Safety check in CI.
 - Don't do a development install in the ``help-in-readme.yml`` workflow. Something
   broke this recently.
 
