@@ -439,7 +439,7 @@ PyCharm/IntelliJ IDEA
    or right clicking on a file and selecting ``External Tools -> Darker``
 
 6. Optionally, set up a keyboard shortcut at
-     ``Preferences or Settings -> Keymap -> External Tools -> External Tools - Darker``
+   ``Preferences or Settings -> Keymap -> External Tools -> External Tools - Darker``
 
 7. Optionally, run ``darker`` on every file save:
 
