@@ -75,6 +75,8 @@ guettli:
   - {link_type: issues, type: Bug reports}
 hauntsaninja:
   - {link_type: issues, type: Bug reports}
+hugovk:
+  - {link_type: pulls-author, type: Code}
 ioggstream:
   - {link_type: search-comments, type: Bug reports}
 irynahryshanovich:

@@ -32,6 +32,7 @@
 - Georges Discry (@gdiscry)
 - Giel van Schijndel (@muggenhor)
 - Hugo Dupras (@jabesq)
+- Hugo van Kemenade (@hugovk)
 - Iryna (@irynahryshanovich)
 - Jairo Llopis (@Yajo)
 - Jasleen Kaur (@jasleen19)
