@@ -65,6 +65,7 @@
 - Sean Hammond (@sherbie)
 - Shantanu (@hauntsaninja)
 - Simone Gaiarin (@simgunz)
+- Stefaan Lippens (@soxofaan)
 - Talha Juanid (@talhajunaidd)
 - Thomas Güttler (@guettli)
 - TJ Kolleh (@tkolleh)

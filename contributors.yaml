@@ -142,6 +142,8 @@ sherbie:
   - {link_type: pulls-reviewed, type: Reviewed Pull Requests}
 simgunz:
   - {link_type: search-comments, type: Reviewed Pull Requests}
+soxofaan:
+  - {link_type: pulls-author, type: Documentation}
 talhajunaidd:
   - {link_type: commits, type: Code}
 tgross35:
