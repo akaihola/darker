@@ -384,7 +384,9 @@ Added
 -----
 - Initial implementation
 
-.. _Unreleased: https://github.com/akaihola/darker/compare/1.5.0...HEAD
+.. _Unreleased: https://github.com/akaihola/darker/compare/1.6.0...HEAD
+.. _1.6.0: https://github.com/akaihola/darker/compare/1.5.1...1.6.0
+.. _1.5.1: https://github.com/akaihola/darker/compare/1.5.0...1.5.1
 .. _1.5.0: https://github.com/akaihola/darker/compare/1.4.2...1.5.0
 .. _1.4.2: https://github.com/akaihola/darker/compare/1.4.1...1.4.2
 .. _1.4.1: https://github.com/akaihola/darker/compare/1.4.0...1.4.1
