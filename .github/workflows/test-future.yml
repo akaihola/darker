@@ -31,3 +31,57 @@ jobs:
       - name: Test with pytest
         run: |
           pytest
+      - name: Note a possible Black incompatibility and required actions
+        if: failure()
+        shell: python
+        run: |
+          import json
+          import os
+          import urllib.request
+          from distutils.version import LooseVersion
+          from importlib.metadata import version
+          from textwrap import dedent
+
+          for linenum, line in enumerate(open("setup.cfg"), 1):
+              constraint = line.strip()
+              if constraint.startswith("black>="):
+                  column = line.index("black>=") + 1
+                  end_column = len(line)
+                  break
+          else:
+              raise RuntimeError("black>= line not found in setup.cfg")
+
+          response = urllib.request.urlopen(
+              'https://pypi.org/pypi/black/json'
+          ).read().decode()
+          latest_version = max(
+              LooseVersion(s)
+              for s in json.loads(response)['releases'].keys()
+          )
+
+          print(
+              dedent(
+                  f"""
+                  ### :x: Future Black incompatibility? :x:
+
+                  You could add a maximum version constraint for Black on
+                  `setup.cfg` line {linenum}, e.g.
+                  `{constraint},<={latest_version}`
+
+                  See [#382](/akaihola/darker/issues/382)
+                  for more information
+                  """
+              ),
+              file=open(os.getenv("GITHUB_STEP_SUMMARY"), "a"),
+          )
+
+          print(
+              "::notice "
+              "file=setup.cfg,"
+              f"line={linenum},"
+              f"col={column},"
+              f"endColumn={end_column},"
+              "title=Future Black incompatibility?::"
+              "You could add a maximum version constraint for Black here, "
+              f"e.g. {constraint},<={latest_version}"
+          )
