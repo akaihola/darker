@@ -24,6 +24,8 @@ req = ["darker[color,isort]"]
 if VERSION:
     if VERSION.startswith("@"):
         req[0] = f"git+https://github.com/akaihola/darker{VERSION}#egg={req[0]}"
+    elif VERSION.startswith(("~", "=", "<", ">")):
+        req[1] += VERSION
     else:
         req[0] += f"=={VERSION}"
 linter_options = []
