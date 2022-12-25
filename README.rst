@@ -128,13 +128,33 @@ in Black documentation, or the article
 How?
 ====
 
-To install, use::
+To install or upgrade, use::
 
-  pip install darker
+  pip install --upgrade darker~=1.6.0
 
 Or, if you're using Conda_ for package management::
 
-  conda install -c conda-forge darker isort
+  conda install -c conda-forge darker~=1.6.0 isort
+  conda update -c conda-forge darker
+
+..
+
+    **Note:** It is recommended to use the '``~=``' "`compatible release`_" version
+    specifier for Darker to ensure you have the latest version before the next major
+    release that may cause compatibility issues. If an update to Black introduces an
+    incompatibility with Darker, we will release a first point release for Darker that
+    prevents upgrading Black and a second point release that fixes the incompatibility.
+
+    We test Darker daily against the `Black main branch`_ and strive to proactively
+    fix any potential incompatibilities through this process. If a Black release
+    introduces an incompatibility before the second Darker point release that fixes it,
+    the first Darker point release will downgrade Black to the latest compatible
+    version.
+
+    To be completely safe, you can pin both Darker and Black to known good versions,
+    but this may prevent you from receiving improvements in Black. 
+
+    See issue `#382`_ for more information.
 
 The ``darker <myfile.py>`` or ``darker <directory>`` command
 reads the original file(s),
@@ -159,6 +179,9 @@ You can enable additional features with command line options:
 
 .. _Conda: https://conda.io/
 .. _conda-forge: https://conda-forge.org/
+.. _compatible release: https://peps.python.org/pep-0440/#compatible-release
+.. _Black main branch: https://github.com/psf/black/commits/main
+.. _#382: https://github.com/akaihola/darker/issues/382
 
 
 Example
@@ -571,9 +594,10 @@ do the following:
            hooks:
            -   id: darker
 
-4. install the Git hook scripts::
+4. install the Git hook scripts and update to the newest version::
 
        pre-commit install
+       pre-commit autoupdate
 
 .. _pre-commit: https://pre-commit.com/
 .. _pre-commit Installation: https://pre-commit.com/#installation
@@ -632,7 +656,7 @@ Create a file named ``.github/workflows/darker.yml`` inside your repository with
              options: "--check --diff --color"
              revision: "master..."
              src: "./src"
-             version: "1.6.0"
+             version: "~=1.6.0"
              lint: "flake8,pylint==2.13.1"
 
 There needs to be a working Python environment, set up using ``actions/setup-python``
