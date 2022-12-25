@@ -61,20 +61,26 @@ PATTERNS = {
     VERSION_PY_PATH: {r"^__version__ *= *\"{old_version->new_version}\""},
     "action.yml": {
         (
-            r"^    description: \'Python Version specifier \(PEP440\) - e\.g\."
-            r' "{old_version->new_version}"'
+            r"^    description: \'Version of Darker to use, e\.g\."
+            r' "~={old_version->new_version}"'
         ),
-        r'^    default: "{old_version->new_version}"',
+        (
+            r"^    description: \'Version of Darker to use, e\.g\."
+            r' "~=.*?", "{old_version->new_version}"'
+        ),
+        r'^    default: "~={old_version->new_version}"',
         (
             r"^      uses: akaihola/darker/.github/actions/commit-range"
             r"@{old_version->new_version}"
         ),
     },
     "README.rst": {
+        r"^  pip install --upgrade darker~={old_version->new_version}",
+        r"^  conda install -c conda-forge darker~={old_version->new_version} isort",
         r"^           rev: {old_version->new_version}",
         r"^       rev: {old_version->new_version}",
         r"^         - uses: akaihola/darker@{old_version->new_version}",
-        r'^             version: "{old_version->new_version}"',
+        r'^             version: "~={old_version->new_version}"',
         r"label=release%20{any_version->next_version}",
         (
             r"^\.\. \|next-milestone\| image::"
