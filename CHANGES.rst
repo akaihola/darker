@@ -8,6 +8,8 @@ Added
 
 Fixed
 -----
+- Pin Black to version 22.12.0 in the CI build to ensure consistent formatting of
+  Darker's own code base.
 
 
 1.6.0_ - 2022-12-19
