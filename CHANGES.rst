@@ -13,6 +13,7 @@ Fixed
   Darker's own code base.
 - Fix compatibility with ``black-22.10.1.dev19+gffaaf48`` and later – an argument was
   replaced in ``black.files.gen_python_files()``.
+- Fix tests to work with Git older than version 2.28.x.
 
 
 1.6.0_ - 2022-12-19
