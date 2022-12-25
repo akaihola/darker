@@ -9,7 +9,7 @@ from typing import Dict, Iterable, List, Union
 import pytest
 from black import find_project_root as black_find_project_root
 
-from darker.git import _git_check_output_lines
+from darker.git import _git_check_output_lines, git_get_version
 
 
 class GitRepoFixture:
@@ -27,7 +27,10 @@ class GitRepoFixture:
         env = {"HOME": str(root), "LC_ALL": "C", "PATH": os.environ["PATH"]}
         instance = cls(root, env)
         # pylint: disable=protected-access
-        instance._run("init", "--initial-branch=master")
+        force_master = (
+            ["--initial-branch=master"] if git_get_version() >= (2, 28) else []
+        )
+        instance._run("init", *force_master)
         instance._run("config", "user.email", "ci@example.com")
         instance._run("config", "user.name", "CI system")
         return instance
