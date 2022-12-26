@@ -23,6 +23,7 @@ import sys
 from datetime import date
 from pathlib import Path
 from typing import Dict, Match, Optional, Tuple
+from warnings import warn
 
 import click
 import requests
@@ -112,6 +113,7 @@ def bump_version(  # pylint: disable=too-many-locals
         increment_major,
         increment_minor,
         token,
+        dry_run,
     )
     for path_str, pattern_templates in PATTERNS.items():
         path = Path(path_str)
@@ -188,6 +190,7 @@ def get_replacements(
     increment_major: bool,
     increment_minor: bool,
     token: Optional[str],
+    dry_run: bool,
 ) -> Tuple[PatternDict, ReplacementDict, Version]:
     """Return search patterns and replacements for version numbers and milestones
 
@@ -199,13 +202,16 @@ def get_replacements(
     :param increment_major: `True` to increment the major version number
     :param increment_minor: `True` to increment the minor version number
     :param token: The GitHub access token to use, or `None` to use none
+    :param dry_run: `True` if running in dry-run mode
     :return: Patterns, replacements and the new version number
 
     """
     old_version = get_current_version()
     new_version = get_next_version(old_version, increment_major, increment_minor)
     milestone_numbers = get_milestone_numbers(token)
-    next_version = get_next_milestone_version(new_version, milestone_numbers)
+    next_version = get_next_milestone_version(new_version, milestone_numbers, dry_run)
+    if dry_run:
+        milestone_numbers.setdefault(next_version, "MISSING_MILESTONE")
     patterns: PatternDict = {
         "any_version": r"\d+(?:\.\d+)*",
         "old_version": re.escape(str(old_version)),
@@ -342,12 +348,13 @@ def lookup_patterns(
 
 
 def get_next_milestone_version(
-    version: Version, milestone_numbers: Dict[Version, str]
+    version: Version, milestone_numbers: Dict[Version, str], dry_run: bool
 ) -> Version:
     """Get the next larger version number found among milestone names
 
     :param version: The version number to search a larger one for
     :param milestone_numbers: Milestone names and numbers from the GitHub API
+    :param dry_run: `True` if running in dry-run mode
     :return: The next larger version number found
     :raises RuntimeError: Raised if no larger version number could be found
 
@@ -355,7 +362,11 @@ def get_next_milestone_version(
     for milestone_version in sorted(milestone_numbers):
         if milestone_version > version:
             return milestone_version
-    raise RuntimeError(f"No milestone exists for a version later than {version}")
+    message = f"No milestone exists for a version later than {version}"
+    if not dry_run:
+        raise RuntimeError(message)
+    warn(message)
+    return Version(f"{version.major}.{version.minor}.{version.micro + 1}")
 
 
 def replace_span(span: Tuple[int, int], replacement: str, content: str) -> str:
