@@ -1,0 +1,4 @@
+tasks:
+  - init: pip install .
+image:
+  file: .gitpod.Dockerfile
