@@ -33,7 +33,7 @@ from darker.git import (
     git_get_modified_python_files,
     git_is_repository,
 )
-from darker.help import ISORT_INSTRUCTION
+from darker.help import get_extra_instruction
 from darker.highlighting import colorize, should_use_color
 from darker.import_sorting import apply_isort, isort
 from darker.linting import run_linters
@@ -383,7 +383,9 @@ def main(  # pylint: disable=too-many-locals,too-many-branches,too-many-statemen
         print("\n")
 
     if args.isort and not isort:
-        raise MissingPackageError(f"{ISORT_INSTRUCTION} to use the `--isort` option.")
+        raise MissingPackageError(
+            f"{get_extra_instruction('isort')} to use the `--isort` option."
+        )
 
     black_config = read_black_config(tuple(args.src), args.config)
     if args.config:

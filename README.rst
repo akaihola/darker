@@ -314,6 +314,8 @@ The following `command line arguments`_ can also be used to modify the defaults:
 --check
        Don't write the files back, just return the status. Return code 0 means nothing
        would change. Return code 1 means some files would be reformatted.
+-f, --flynt
+       Also convert string formatting to use f-strings using the ``flynt`` package
 -i, --isort
        Also sort imports using the ``isort`` package
 -L CMD, --lint CMD
