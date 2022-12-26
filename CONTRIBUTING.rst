@@ -34,7 +34,15 @@ To speed up review and increase odds for the PR to be accepted, please
 - verify that mypy static type checking passes
 - document new features or changed behavior in ``README.rst``
 - summarize end-user affecting changes in ``CHANGES.rst``
-- add your information in ``CONTRIBUTORS.rst``
+- add your information in ``contributors.yaml``
+- run
+  ```bash
+  python release_tools/update_contributors.py \
+    generate \
+    --token=ghp_<your GitHub API token> \
+    --modify-readme \
+    --modify-contributors
+  ```
 
 GitHub is configured to use Travis CI on each pull request to
 

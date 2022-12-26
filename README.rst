@@ -883,7 +883,9 @@ Thanks goes to these wonderful people (`emoji key`_):
 
 .. raw:: html
 
-   <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
+   <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section
+        This is automatically generated. Please update `contributors.yaml` and
+        see `CONTRIBUTING.rst` for how to re-generate this table. -->
    <table>
      <tr>
        <td align="center">
