@@ -3,10 +3,12 @@
 from typing import Generator, List
 
 from black import decode_bytes, detect_target_versions, get_future_imports
+# `FileMode as Mode` required to satisfy mypy==0.782. Strange.
+from black import FileMode as Mode
 from black.comments import normalize_fmt_off
 from black.linegen import LineGenerator, transform_line
 from black.lines import EmptyLineTracker, Line
-from black.mode import Feature, Mode, supports_feature
+from black.mode import Feature, supports_feature
 from black.parsing import lib2to3_parse
 
 
