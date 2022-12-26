@@ -75,6 +75,7 @@ def apply_isort(  # pylint: disable=too-many-arguments
     :param edited_linenums_differ: Helper for finding out which lines were edited
     :param config: Path to configuration file
     :param line_length: Maximum line length to use
+    :return: Original Python source file contents with imports sorted
 
     """
     if glob_any(src, exclude):
@@ -83,7 +84,7 @@ def apply_isort(  # pylint: disable=too-many-arguments
         src,
         content,
         context_lines=0,
-    )
+    )  # pylint: disable=duplicate-code
     if not edited_linenums:
         return content
     isort_args = _build_isort_args(src, config, line_length)
