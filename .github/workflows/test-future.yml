@@ -22,7 +22,8 @@ jobs:
       - name: Install dependencies
         run: |
           # strict dependency resolution added in pip 20.3
-          python -m pip install --upgrade 'pip>=20.3'
+          # CVE-2021-3572 fixed in pip 21.1
+          python -m pip install --upgrade 'pip>=21.1'
           pip install \
             --constraint=constraints-future.txt \
             --upgrade \
