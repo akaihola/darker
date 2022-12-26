@@ -1,4 +1,4 @@
 tasks:
-  - init: pip install .
+  - init: pip install '.[isort,test]'
 image:
   file: .gitpod.Dockerfile
