@@ -197,12 +197,12 @@ def test_run_black(encoding, newline):
 def test_run_black_always_uses_unix_newlines(newline):
     """Content is always passed to Black with Unix newlines"""
     src = TextDocument.from_str(f"print ( 'touché' ){newline}")
-    with patch.object(black_diff, "format_str") as format_str:
-        format_str.return_value = 'print("touché")\n'
+    with patch.object(black_diff, "format_str_to_lines") as format_str_to_lines:
+        format_str_to_lines.return_value = ['print("touché")\n']
 
         _ = run_black(src, BlackConfig())
 
-    format_str.assert_called_once_with("print ( 'touché' )\n", mode=ANY)
+    format_str_to_lines.assert_called_once_with("print ( 'touché' )\n", mode=ANY)
 
 
 def test_run_black_ignores_excludes():
