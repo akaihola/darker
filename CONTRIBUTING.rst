@@ -41,3 +41,26 @@ GitHub is configured to use Travis CI on each pull request to
 - run the test suite using Pytest
 - do static type checking using Mypy
 - check code formatting using Black
+
+Setting up a development environment
+====================================
+
+To set up an isolated virtualenv for Darker development, run the test suite and lint
+the code base on a Unix-like system::
+
+    git clone git@github.com:akaihola/darker.git
+    python -m venv .venv-darker
+    source .venv-darker/bin/activate
+    cd darker
+    pip install -e '.[test]' mypy pylint flake8
+    pytest
+    pylint src
+    mypy .
+    flake8 src
+
+Before pushing your commits to a feature branch, it's good to run::
+
+    darker --isort -L mypy -L pylint -L flake8 -r master... .
+
+This will fix formatting on modified lines and list any linting errors your changes may
+have introduced compared to the branching point of your feature branch from ``master``.
