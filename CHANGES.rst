@@ -5,11 +5,14 @@ These features will be included in the next release:
 
 Added
 -----
+- Declare Python 3.11 as supported in package metadata.
 
 Fixed
 -----
 - Pin Black to version 22.12.0 in the CI build to ensure consistent formatting of
   Darker's own code base.
+- Fix compatibility with ``black-22.10.1.dev19+gffaaf48`` and later – an argument was
+  replaced in ``black.files.gen_python_files()``.
 
 
 1.6.0_ - 2022-12-19
@@ -131,7 +134,7 @@ Fixed
 - Consider ``.py.tmp`` as files which should be reformatted.
   This enables VSCode Format On Save.
 - Use the latest release of Darker instead of 1.3.2 in the GitHub Action.
-  
+
 
 1.4.0_ - 2022-02-08
 ===================
