@@ -5,6 +5,7 @@
 # versions in `setup.cfg`.
 black==22.3.0
 darkgraylib==2.2.0
+blue==0.8.0
 defusedxml==0.7.1
 flake8-2020==1.6.1
 flake8-bugbear==22.1.11
