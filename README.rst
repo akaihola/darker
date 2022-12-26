@@ -637,8 +637,7 @@ Create a file named ``.github/workflows/darker.yml`` inside your repository with
          - uses: actions/setup-python@v4
          - uses: akaihola/darker@1.6.0
            with:
-             options: "--check --diff --color"
-             revision: "master..."
+             options: "--check --diff --isort --color"
              src: "./src"
              version: "~=1.6.0"
              lint: "flake8,pylint==2.13.1"
