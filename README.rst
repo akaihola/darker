@@ -128,13 +128,20 @@ in Black documentation, or the article
 How?
 ====
 
-To install, use::
+To install or upgrade, use::
 
-  pip install darker
+  pip install --upgrade darker~=1.6.0
 
 Or, if you're using Conda_ for package management::
 
-  conda install -c conda-forge darker isort
+  conda install -c conda-forge darker~=1.6.0 isort
+  conda update -c conda-forge darker
+
+..
+
+    **Note:** It is recommended to use the '``~=``' "`compatible release`_" version
+    specifier for Darker. See `Guarding against Black compatibility breakage`_ for more
+    information.
 
 The ``darker <myfile.py>`` or ``darker <directory>`` command
 reads the original file(s),
@@ -571,9 +578,10 @@ do the following:
            hooks:
            -   id: darker
 
-4. install the Git hook scripts::
+4. install the Git hook scripts and update to the newest version::
 
        pre-commit install
+       pre-commit autoupdate
 
 .. _pre-commit: https://pre-commit.com/
 .. _pre-commit Installation: https://pre-commit.com/#installation
@@ -632,7 +640,7 @@ Create a file named ``.github/workflows/darker.yml`` inside your repository with
              options: "--check --diff --color"
              revision: "master..."
              src: "./src"
-             version: "1.6.0"
+             version: "~=1.6.0"
              lint: "flake8,pylint==2.13.1"
 
 There needs to be a working Python environment, set up using ``actions/setup-python``
@@ -756,6 +764,58 @@ In the above lists, latter configuration methods override earlier ones, so the c
 line options always take highest precedence.
 
 .. _Pygments: https://pypi.org/project/Pygments/
+
+
+Guarding against Black compatibility breakage
+=============================================
+
+Darker accesses some Black internals which don't belong to its public API. Darker is
+thus subject to becoming incompatible with future versions of Black.
+
+To protect users against such breakage, we test Darker daily against the `Black main
+branch`_ and strive to proactively fix any potential incompatibilities through this
+process. If a commit to Black ``main`` branch introduces an incompatibility with
+Darker, we will release a first patch version for Darker that prevents upgrading Black
+and a second patch version that fixes the incompatibility. A hypothetical example:
+
+1. Darker 9.0.0; Black 35.12.0
+   -> OK
+2. Darker 9.0.0; Black ``main`` (after 35.12.0)
+   -> ERROR on CI test-future_ workflow
+3. Darker 9.0.1 released, with constraint ``Black<=35.12.0``
+   -> OK
+4. Black 36.1.0 released, but Darker 9.0.1 prevents upgrade; Black 35.12.0
+   -> OK
+5. Darker 9.0.2 released with a compatibility fix, constraint removed; Black 36.1.0
+   -> OK
+
+If a Black release introduces an incompatibility before the second Darker patch version
+that fixes it, the first Darker patch version will downgrade Black to the latest
+compatible version:
+
+1. Darker 9.0.0; Black 35.12.0
+   -> OK
+2. Darker 9.0.0; Black 36.1.0
+   -> ERROR
+3. Darker 9.0.1, constraint ``Black<=35.12.0``; downgrades to Black 35.12.0
+   -> OK
+4. Darker 9.0.2 released with a compatibility fix, constraint removed; Black 36.1.0
+   -> OK
+
+To be completely safe, you can pin both Darker and Black to known good versions, but
+this may prevent you from receiving improvements in Black. 
+
+It is recommended to use the '``~=``' "`compatible release`_" version specifier for
+Darker to ensure you have the latest version before the next major release that may
+cause compatibility issues. 
+
+See issue `#382`_ and PR `#430`_ for more information.
+
+.. _compatible release: https://peps.python.org/pep-0440/#compatible-release
+.. _Black main branch: https://github.com/psf/black/commits/main
+.. _test-future: https://github.com/akaihola/darker/blob/master/.github/workflows/test-future.yml
+.. _#382: https://github.com/akaihola/darker/issues/382
+.. _#430: https://github.com/akaihola/darker/issues/430
 
 
 How does it work?

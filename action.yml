@@ -14,9 +14,9 @@ inputs:
     required: false
     default: "."
   version:
-    description: 'Python Version specifier (PEP440) - e.g. "1.6.0"'
+    description: 'Version of Darker to use, e.g. "~=1.6.0", "1.6.0", "@master"'
     required: false
-    default: "1.6.0"
+    default: "~=1.6.0"
   revision:
     description: >-
       Git revision range to compare when determining modified lines.
