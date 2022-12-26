@@ -113,7 +113,7 @@ def read_black_config(src: Tuple[str, ...], value: Optional[str]) -> BlackConfig
         "skip_string_normalization",
     ]:
         if key in raw_config:
-            config[key] = raw_config[key]  # type: ignore
+            config[key] = str(raw_config[key])  # type: ignore
     for key in ["exclude", "extend_exclude", "force_exclude"]:
         if key in raw_config:
             config[key] = re_compile_maybe_verbose(raw_config[key])  # type: ignore

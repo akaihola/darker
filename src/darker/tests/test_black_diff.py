@@ -34,12 +34,14 @@ class RegexEquality:
 
 @pytest.mark.kwparametrize(
     dict(
-        config_path=None, config_lines=["line-length = 79"], expect={"line_length": 79}
+        config_path=None,
+        config_lines=["line-length = 79"],
+        expect={"line_length": "79"},
     ),
     dict(
         config_path="custom.toml",
         config_lines=["line-length = 99"],
-        expect={"line_length": 99},
+        expect={"line_length": "99"},
     ),
     dict(
         config_lines=["skip-string-normalization = true"],
