@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 """Setuptools entry point for Darker"""
 
 import re
@@ -48,4 +50,8 @@ def make_pypi_compliant_readme() -> str:
     )
 
 
-setup(long_description=make_pypi_compliant_readme())
+setup(
+    setup_requires=['pbr'],
+    pbr=True,
+    long_description=make_pypi_compliant_readme(),
+)

@@ -1,3 +1,6 @@
-"""The version number for Darker is governed by this file"""
+__all__ = ('__version__',)
 
-__version__ = "1.6.1"
+from pbr.version import VersionInfo
+
+# Check the PBR version module docs for other options than release_string()
+__version__ = VersionInfo('<my_package>').release_string()
