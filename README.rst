@@ -25,6 +25,9 @@
 .. |next-milestone| image:: https://img.shields.io/github/milestones/progress/akaihola/darker/19?color=red&label=release%201.7.0
    :alt: Next milestone
 .. _next-milestone: https://github.com/akaihola/darker/milestone/19
+.. |gitpod-badge| image:: https://img.shields.io/badge/Gitpod-ready--to--code-blue?logo=gitpod
+   :alt: Gitpod
+.. _gitpod-badge: https://github.com/akaihola/darker
 
 
 What?
