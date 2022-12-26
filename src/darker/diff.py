@@ -201,7 +201,10 @@ def diff_chunks(src: TextDocument, dst: TextDocument) -> List[DiffChunk]:
         retval[n + 1][0] == retval[n][0] + len(retval[n][old_lines])
 
     """
+    # 4. get a diff between the edited to-file and the processed content
     opcodes = diff_and_get_opcodes(src, dst)
+    # 5. convert the diff into chunks, keeping original and reformatted content for each
+    #    chunk
     return list(opcodes_to_chunks(opcodes, src, dst))
 
 

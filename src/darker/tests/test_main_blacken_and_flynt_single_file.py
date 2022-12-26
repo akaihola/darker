@@ -1,17 +1,18 @@
-"""Unit tests for :func:`darker.__main__._blacken_single_file`"""
+"""Unit tests for `darker.__main__._blacken_and_flynt_single_file`"""
 
 # pylint: disable=protected-access
 
 from pathlib import Path
 from textwrap import dedent
 
-import darker.__main__
+from darker.__main__ import _blacken_and_flynt_single_file
+from darker.config import Exclusions
 from darker.git import EditedLinenumsDiffer, RevisionRange
 from darker.utils import TextDocument
 
 
-def test_blacken_single_file_common_ancestor(git_repo):
-    """``_blacken_single_file()`` compares to the common ancestor of ``rev1...rev2``"""
+def test_blacken_and_flynt_single_file_common_ancestor(git_repo):
+    """`_blacken_and_flynt_single_file` diffs to common ancestor of ``rev1...rev2``"""
     a_py_initial = dedent(
         """\
         a=1
@@ -55,10 +56,11 @@ def test_blacken_single_file_common_ancestor(git_repo):
     git_repo.add({"a.py": a_py_feature}, commit="on feature")
     worktree = TextDocument.from_str(a_py_worktree)
 
-    result = darker.__main__._blacken_single_file(
+    result = _blacken_and_flynt_single_file(
         git_repo.root,
         Path("a.py"),
         Path("a.py"),
+        Exclusions(),
         EditedLinenumsDiffer(
             git_repo.root,
             RevisionRange.parse_with_common_ancestor("master...", git_repo.root),
@@ -79,7 +81,7 @@ def test_blacken_single_file_common_ancestor(git_repo):
 
 
 def test_reformat_single_file_docstring(git_repo):
-    """``_reformat_single_file()`` handles docstrings as one contiguous block"""
+    """`_blacken_and_flynt_single_file()` handles docstrings as one contiguous block"""
     initial = dedent(
         '''\
         def docstring_func():
@@ -113,10 +115,11 @@ def test_reformat_single_file_docstring(git_repo):
     paths = git_repo.add({"a.py": initial}, commit="Initial commit")
     paths["a.py"].write_text(modified)
 
-    result = darker.__main__._blacken_single_file(
+    result = _blacken_and_flynt_single_file(
         git_repo.root,
         Path("a.py"),
         Path("a.py"),
+        Exclusions(),
         EditedLinenumsDiffer(
             git_repo.root,
             RevisionRange.parse_with_common_ancestor("HEAD..", git_repo.root),

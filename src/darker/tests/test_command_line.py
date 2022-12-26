@@ -761,7 +761,7 @@ def test_black_config_file_and_options(git_repo, config, options, expect):
         expect=(
             Path("git_root"),
             {Path("a.py")},
-            Exclusions(black=set(), isort={"**/*"}),
+            Exclusions(isort={"**/*"}, flynt={"**/*"}),
             RevisionRange("HEAD", ":WORKTREE:"),
             {},
         ),
@@ -771,7 +771,7 @@ def test_black_config_file_and_options(git_repo, config, options, expect):
         expect=(
             Path("git_root"),
             {Path("a.py")},
-            Exclusions(black=set(), isort=set()),
+            Exclusions(flynt={"**/*"}),
             RevisionRange("HEAD", ":WORKTREE:"),
             {},
         ),
@@ -781,7 +781,7 @@ def test_black_config_file_and_options(git_repo, config, options, expect):
         expect=(
             Path("git_root"),
             {Path("a.py")},
-            Exclusions(black=set(), isort={"**/*"}),
+            Exclusions(isort={"**/*"}, flynt={"**/*"}),
             RevisionRange("HEAD", ":WORKTREE:"),
             {"config": "my.cfg"},
         ),
@@ -791,7 +791,7 @@ def test_black_config_file_and_options(git_repo, config, options, expect):
         expect=(
             Path("git_root"),
             {Path("a.py")},
-            Exclusions(black=set(), isort={"**/*"}),
+            Exclusions(isort={"**/*"}, flynt={"**/*"}),
             RevisionRange("HEAD", ":WORKTREE:"),
             {"line_length": 90},
         ),
@@ -801,7 +801,7 @@ def test_black_config_file_and_options(git_repo, config, options, expect):
         expect=(
             Path("git_root"),
             {Path("a.py")},
-            Exclusions(black=set(), isort={"**/*"}),
+            Exclusions(isort={"**/*"}, flynt={"**/*"}),
             RevisionRange("HEAD", ":WORKTREE:"),
             {"skip_string_normalization": True},
         ),
@@ -811,7 +811,7 @@ def test_black_config_file_and_options(git_repo, config, options, expect):
         expect=(
             Path("git_root"),
             {Path("a.py")},
-            Exclusions(black=set(), isort={"**/*"}),
+            Exclusions(isort={"**/*"}, flynt={"**/*"}),
             RevisionRange("HEAD", ":WORKTREE:"),
             {},
         ),
@@ -821,7 +821,7 @@ def test_black_config_file_and_options(git_repo, config, options, expect):
         expect=(
             Path("git_root"),
             {Path("a.py")},
-            Exclusions(black=set(), isort={"**/*"}),
+            Exclusions(isort={"**/*"}, flynt={"**/*"}),
             RevisionRange("HEAD", ":WORKTREE:"),
             {"target_version": {"py39"}},
         ),

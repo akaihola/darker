@@ -197,8 +197,10 @@ class Exclusions:
     structure are
     - Black
     - ``isort``
+    - ``flynt``
 
     """
 
     black: Set[str] = field(default_factory=set)
     isort: Set[str] = field(default_factory=set)
+    flynt: Set[str] = field(default_factory=set)
