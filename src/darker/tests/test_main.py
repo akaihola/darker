@@ -204,7 +204,7 @@ def test_format_edited_parts_all_unchanged(git_repo, monkeypatch):
         darker.__main__.format_edited_parts(
             Path(git_repo.root),
             {Path("a.py"), Path("b.py")},
-            Exclusions(black=set(), isort=set()),
+            Exclusions(),
             RevisionRange("HEAD", ":WORKTREE:"),
             {},
             report_unmodified=False,
@@ -227,7 +227,7 @@ def test_format_edited_parts_ast_changed(git_repo, caplog):
             darker.__main__.format_edited_parts(
                 git_repo.root,
                 {Path("a.py")},
-                Exclusions(black=set(), isort={"**/*"}),
+                Exclusions(isort={"**/*"}),
                 RevisionRange("HEAD", ":WORKTREE:"),
                 black_config={},
                 report_unmodified=False,
@@ -271,7 +271,7 @@ def test_format_edited_parts_isort_on_already_formatted(git_repo):
     result = darker.__main__.format_edited_parts(
         git_repo.root,
         {Path("a.py")},
-        Exclusions(black=set(), isort=set()),
+        Exclusions(),
         RevisionRange("HEAD", ":WORKTREE:"),
         black_config={},
         report_unmodified=False,
@@ -326,7 +326,7 @@ def test_format_edited_parts_historical(git_repo, rev1, rev2, expect):
     result = darker.__main__.format_edited_parts(
         git_repo.root,
         {Path("a.py")},
-        Exclusions(black=set(), isort=set()),
+        Exclusions(),
         RevisionRange(rev1, rev2),
         black_config={},
         report_unmodified=False,
