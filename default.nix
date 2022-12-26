@@ -1,4 +1,4 @@
-{ pkgs ? import <nixpkgs> { }, pythonVersion ? "python310" }:
+{ pkgs ? import <nixpkgs> { }, pythonVersion ? "python311" }:
 (
   pkgs.stdenv.mkDerivation {
     name = "darker-test";
