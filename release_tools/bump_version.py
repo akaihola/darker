@@ -80,6 +80,7 @@ PATTERNS = {
         r"^  conda install -c conda-forge darker~={old_version->new_version} isort",
         r"^           rev: {old_version->new_version}",
         r"^       rev: {old_version->new_version}",
+        r"^        rev: {old_version->new_version}",
         r"^         - uses: akaihola/darker@{old_version->new_version}",
         r'^             version: "~={old_version->new_version}"',
         r"label=release%20{any_version->next_version}",
