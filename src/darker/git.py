@@ -9,7 +9,18 @@ from datetime import datetime
 from functools import lru_cache
 from pathlib import Path
 from subprocess import DEVNULL, PIPE, CalledProcessError, check_output, run  # nosec
-from typing import Dict, Iterable, List, Optional, Set, Tuple, Union, overload
+from typing import (
+    Dict,
+    Iterable,
+    List,
+    Match,
+    Optional,
+    Set,
+    Tuple,
+    Union,
+    cast,
+    overload,
+)
 
 from darker.diff import diff_and_get_opcodes, opcodes_to_edit_linenums
 from darker.multiline_strings import get_multiline_string_ranges
@@ -31,6 +42,28 @@ COMMIT_RANGE_RE = re.compile(r"(.*?)(\.{2,3})(.*)$")
 #   for determining the revision range
 WORKTREE = ":WORKTREE:"
 PRE_COMMIT_FROM_TO_REFS = ":PRE-COMMIT:"
+
+
+def git_get_version() -> Tuple[int, ...]:
+    """Return the Git version as a tuple of integers
+
+    Ignores any suffixes to the dot-separated parts of the version string.
+
+    :return: The version number of Git installed on the system
+    :raise: ``RuntimeError`` if unable to parse the Git version
+
+    """
+    output_lines = _git_check_output_lines(["--version"], Path("."))
+    version_string = output_lines[0].rsplit(None, 1)[-1]
+    # The version string might be e.g.
+    # - "2.39.0.windows.1"
+    # - "2.36.2"
+    part_matches = [re.match(r"\d+", part) for part in version_string.split(".")][:3]
+    if all(part_matches):
+        return tuple(
+            int(match.group(0)) for match in cast(List[Match[str]], part_matches)
+        )
+    raise RuntimeError(f"Unable to parse Git version: {output_lines!r}")
 
 
 def git_is_repository(path: Path) -> bool:
