@@ -1,22 +1,23 @@
 """Re-implementation of :func:`black.format_str` as a line generator"""
 
-from typing import Generator
-from black import get_future_imports, detect_target_versions, decode_bytes
-from black.lines import Line, EmptyLineTracker
-from black.linegen import transform_line, LineGenerator
+from typing import Generator, List
+
+from black import decode_bytes, detect_target_versions, get_future_imports
 from black.comments import normalize_fmt_off
-from black.mode import Mode
-from black.mode import Feature, supports_feature
+from black.linegen import LineGenerator, transform_line
+from black.lines import EmptyLineTracker, Line
+from black.mode import Feature, Mode, supports_feature
 from black.parsing import lib2to3_parse
 
 
-def format_str_to_lines(
+def format_str_to_chunks(  # pylint: disable=too-many-locals
     src_contents: str, *, mode: Mode
-) -> Generator[str, None, None]:  # pylint: disable=too-many-locals
+) -> Generator[List[str], None, None]:
     """Reformat a string and yield each line of new contents
 
     This is a re-implementation of :func:`black.format_str` modified to be a generator
-    which yields each resulting line instead of concatenating them into a single string.
+    which yields each resulting chunk as a list of lines instead of concatenating them
+    into a single string.
 
     """
     src_node = lib2to3_parse(src_contents.lstrip(), mode.target_versions)
@@ -42,20 +43,22 @@ def format_str_to_lines(
     }
     num_chars = 0
     for current_line in lines.visit(src_node):
-        for _ in range(after):
-            yield empty_line
-        num_chars += after * empty_line_len
+        if after:
+            yield after * [empty_line]
+            num_chars += after * empty_line_len
         before, after = elt.maybe_empty_lines(current_line)
-        for _ in range(before):
-            yield empty_line
-        num_chars += before * empty_line_len
-        for line in transform_line(
-            current_line, mode=mode, features=split_line_features
-        ):
-            line_str = str(line)
-            yield line_str
-            num_chars += len(line_str)
+        if before:
+            yield before * [empty_line]
+            num_chars += before * empty_line_len
+        lines = [
+            str(line)
+            for line in transform_line(
+                current_line, mode=mode, features=split_line_features
+            )
+        ]
+        yield lines
+        num_chars += sum(len(line) for line in lines)
     if not num_chars:
         normalized_content, _, newline = decode_bytes(src_contents.encode("utf-8"))
         if "\n" in normalized_content:
-            yield newline
+            yield [newline]
