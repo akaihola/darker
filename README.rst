@@ -583,6 +583,29 @@ do the following:
        pre-commit install
        pre-commit autoupdate
 
+When auto-updating, care is being taken to protect you from possible incompatibilities
+introduced by Black updates. See `Guarding against Black compatibility breakage`_ for
+more information.
+
+If you'd prefer to not update but keep a stable pre-commit setup, you can pin Black and
+other reformatter/linter tools you use to known compatible versions, for example::
+
+    -   repo: https://github.com/akaihola/darker
+        rev: 1.6.0
+        hooks:
+        -   id: darker
+            args:
+            - --isort
+            - --lint mypy
+            - --lint flake8
+            - --lint pylint
+            additional_dependencies:
+            -   black==22.12.0
+            -   isort==5.11.4
+            -   mypy==0.990
+            -   flake8==5.0.4
+            -   pylint==2.15.5
+
 .. _pre-commit: https://pre-commit.com/
 .. _pre-commit Installation: https://pre-commit.com/#installation
 
