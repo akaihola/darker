@@ -22,10 +22,7 @@ def format_str_to_chunks(  # pylint: disable=too-many-locals
     """
     src_node = lib2to3_parse(src_contents.lstrip(), mode.target_versions)
     future_imports = get_future_imports(src_node)
-    if mode.target_versions:
-        versions = mode.target_versions
-    else:
-        versions = detect_target_versions(src_node)
+    versions = mode.target_versions or detect_target_versions(src_node)
     normalize_fmt_off(src_node)
     lines = LineGenerator(
         mode=mode,
