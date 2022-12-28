@@ -22,9 +22,9 @@
 .. |changelog-badge| image:: https://img.shields.io/badge/-change%20log-purple
    :alt: Change log
 .. _changelog-badge: https://github.com/akaihola/darker/blob/master/CHANGES.rst
-.. |next-milestone| image:: https://img.shields.io/github/milestones/progress/akaihola/darker/18?color=red&label=release%201.6.1
+.. |next-milestone| image:: https://img.shields.io/github/milestones/progress/akaihola/darker/19?color=red&label=release%201.7.0
    :alt: Next milestone
-.. _next-milestone: https://github.com/akaihola/darker/milestone/18
+.. _next-milestone: https://github.com/akaihola/darker/milestone/19
 
 
 What?
@@ -130,11 +130,11 @@ How?
 
 To install or upgrade, use::
 
-  pip install --upgrade darker~=1.6.0
+  pip install --upgrade darker~=1.6.1
 
 Or, if you're using Conda_ for package management::
 
-  conda install -c conda-forge darker~=1.6.0 isort
+  conda install -c conda-forge darker~=1.6.1 isort
   conda update -c conda-forge darker
 
 ..
@@ -576,7 +576,7 @@ do the following:
    .. code-block:: yaml
 
       - repo: https://github.com/akaihola/darker
-        rev: 1.6.0
+        rev: 1.6.1
         hooks:
           - id: darker
 
@@ -595,7 +595,7 @@ other reformatter/linter tools you use to known compatible versions, for example
 .. code-block:: yaml
 
    - repo: https://github.com/akaihola/darker
-     rev: 1.6.0
+     rev: 1.6.1
      hooks:
        - id: darker
          args:
@@ -623,7 +623,7 @@ Note the inclusion of the isort Python package under ``additional_dependencies``
 .. code-block:: yaml
 
    - repo: https://github.com/akaihola/darker
-     rev: 1.6.0
+     rev: 1.6.1
      hooks:
        - id: darker
          args: [--isort]
@@ -664,11 +664,11 @@ Create a file named ``.github/workflows/darker.yml`` inside your repository with
            with:
              fetch-depth: 0 
          - uses: actions/setup-python@v4
-         - uses: akaihola/darker@1.6.0
+         - uses: akaihola/darker@1.6.1
            with:
              options: "--check --diff --isort --color"
              src: "./src"
-             version: "~=1.6.0"
+             version: "~=1.6.1"
              lint: "flake8,pylint==2.13.1"
 
 There needs to be a working Python environment, set up using ``actions/setup-python``
