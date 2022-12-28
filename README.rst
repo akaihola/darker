@@ -571,12 +571,14 @@ do the following:
 
        pre-commit sample-config >.pre-commit-config.yaml
 
-3. Append to the created ``.pre-commit-config.yaml`` the following lines::
+3. Append to the created ``.pre-commit-config.yaml`` the following lines:
 
-       -   repo: https://github.com/akaihola/darker
-           rev: 1.6.0
-           hooks:
-           -   id: darker
+   .. code-block:: yaml
+
+      - repo: https://github.com/akaihola/darker
+        rev: 1.6.0
+        hooks:
+          - id: darker
 
 4. install the Git hook scripts and update to the newest version::
 
@@ -588,23 +590,25 @@ introduced by Black updates. See `Guarding against Black compatibility breakage`
 more information.
 
 If you'd prefer to not update but keep a stable pre-commit setup, you can pin Black and
-other reformatter/linter tools you use to known compatible versions, for example::
+other reformatter/linter tools you use to known compatible versions, for example:
 
-    -   repo: https://github.com/akaihola/darker
-        rev: 1.6.0
-        hooks:
-        -   id: darker
-            args:
-            - --isort
-            - --lint mypy
-            - --lint flake8
-            - --lint pylint
-            additional_dependencies:
-            -   black==22.12.0
-            -   isort==5.11.4
-            -   mypy==0.990
-            -   flake8==5.0.4
-            -   pylint==2.15.5
+.. code-block:: yaml
+
+   - repo: https://github.com/akaihola/darker
+     rev: 1.6.0
+     hooks:
+       - id: darker
+         args:
+           - --isort
+           - --lint mypy
+           - --lint flake8
+           - --lint pylint
+         additional_dependencies:
+           - black==22.12.0
+           - isort==5.11.4
+           - mypy==0.990
+           - flake8==5.0.4
+           - pylint==2.15.5
 
 .. _pre-commit: https://pre-commit.com/
 .. _pre-commit Installation: https://pre-commit.com/#installation
@@ -614,15 +618,17 @@ Using arguments
 ---------------
 
 You can provide arguments, such as enabling isort, by specifying ``args``.
-Note the inclusion of the isort Python package under ``additional_dependencies``::
+Note the inclusion of the isort Python package under ``additional_dependencies``:
 
-   -   repo: https://github.com/akaihola/darker
-       rev: 1.6.0
-       hooks:
-       -   id: darker
-           args: [--isort]
-           additional_dependencies:
-           -   isort~=5.9
+.. code-block:: yaml
+
+   - repo: https://github.com/akaihola/darker
+     rev: 1.6.0
+     hooks:
+       - id: darker
+         args: [--isort]
+         additional_dependencies:
+           - isort~=5.9
 
 
 GitHub Actions integration
