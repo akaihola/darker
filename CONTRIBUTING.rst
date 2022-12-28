@@ -51,6 +51,40 @@ GitHub is configured to use Travis CI on each pull request to
 - do static type checking using Mypy
 - check code formatting using Black
 
+.. _GitHub personal access token:
+
+Creating a GitHub personal access token
+---------------------------------------
+
+Below are the necessary steps to create a GitHub token. You can either go interactively
+step by step, or start straight at step 6. by clicking on the `Generate new token`_
+link. For more information, see `Creating a fine-grained personal access token`_ in
+GitHub Docs.
+
+1. `Verify your email address`_, if it hasn't been verified yet.
+2. In the upper-right corner of any page, click your profile photo, then click Settings_.
+
+   .. image:: https://docs.github.com/assets/cb-34573/images/help/settings/userbar-account-settings.png
+      :width: 150px
+3. In the left sidebar, click `Developer settings`_.
+4. In the left sidebar, under **Personal access tokens**, click `Fine-grained tokens`_.
+5. Click `Generate new token`_.
+6. Under **Token name**, enter "``Update Darker contributors``".
+7. Under **Expiration**, select an expiration for the token.
+8. Under **Description**, type "``Allow darker/release_tools/update_contributors.py to
+   retrieve any user's login, full name and link to avatar picture.``"
+9. Click **Generate token**.
+10. Copy and save the token (you won't be able to see it again), and use it on the
+    ``update_contributors.py`` command line as shown above.
+
+.. _Verify your email address: //docs.github.com/en/github/getting-started-with-github/verifying-your-email-address
+.. _Settings: https://github.com/settings/profile
+.. _Developer settings: https://github.com/settings/apps
+.. _Fine-grained tokens: https://github.com/settings/tokens?type=beta
+.. _Generate new token: https://github.com/settings/personal-access-tokens/new
+.. _Creating a fine-grained personal access token: https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token#creating-a-fine-grained-personal-access-token
+
+
 Setting up a development environment
 ====================================
 
