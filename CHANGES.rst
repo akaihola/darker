@@ -18,6 +18,7 @@ Fixed
 - Fix tests to work with Git older than version 2.28.x.
 - GitHub Action example now omits ``revision:`` since the commit range is obtained
   automatically.
+- ``test-bump-version`` workflow will now succeed also in a release branch.
 
 
 1.6.0_ - 2022-12-19
