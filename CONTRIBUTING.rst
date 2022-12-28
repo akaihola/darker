@@ -45,10 +45,11 @@ To speed up review and increase odds for the PR to be accepted, please
         --modify-readme \
         --modify-contributors
 
-GitHub is configured to use Travis CI on each pull request to
+GitHub is configured to use Github Actions on each pull request to
 
 - run the test suite using Pytest
 - do static type checking using Mypy
+- lint the code using various linters
 - check code formatting using Black
 
 .. _GitHub personal access token:
