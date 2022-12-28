@@ -8,6 +8,7 @@ Added
 - Declare Python 3.11 as supported in package metadata.
 - Document how to set up a development environment, run tests, run linters and update
   contributors list in ``CONTRIBUTING.rst``.
+- Document how to pin reformatter/linter versions in ``pre-commit``.
 
 Fixed
 -----

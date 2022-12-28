@@ -22,7 +22,7 @@ import re
 import sys
 from datetime import date
 from pathlib import Path
-from typing import Dict, Match, Optional, Tuple
+from typing import Dict, List, Match, Optional, Tuple
 from warnings import warn
 
 import click
@@ -78,8 +78,7 @@ PATTERNS = {
     "README.rst": {
         r"^  pip install --upgrade darker~={old_version->new_version}",
         r"^  conda install -c conda-forge darker~={old_version->new_version} isort",
-        r"^           rev: {old_version->new_version}",
-        r"^       rev: {old_version->new_version}",
+        r"^     (?:   )?rev: {old_version->new_version}",
         r"^         - uses: akaihola/darker@{old_version->new_version}",
         r'^             version: "~={old_version->new_version}"',
         r"label=release%20{any_version->next_version}",
@@ -127,8 +126,8 @@ def bump_version(  # pylint: disable=too-many-locals
                 template_match, patterns, replacements
             )
             # example: current_pattern == "14", replacement == "15"
-            pattern = replace_span(
-                template_match.span(), f"({current_pattern})", pattern_template
+            pattern = replace_spans(
+                [template_match.span()], f"({current_pattern})", pattern_template
             )
             # example: pattern = r"darker/(14)"
             content = replace_group_1(pattern, replacement, content, path=path_str)
@@ -369,19 +368,26 @@ def get_next_milestone_version(
     return Version(f"{version.major}.{version.minor}.{version.micro + 1}")
 
 
-def replace_span(span: Tuple[int, int], replacement: str, content: str) -> str:
-    """Replace given span in a string with the desired replacement string
+def replace_spans(spans: List[Tuple[int, int]], replacement: str, content: str) -> str:
+    """Replace given spans in a string with the desired replacement string
 
-    :param span: The span to replace
+    :param spans: The spans to replace
     :param replacement: The string to use as the replacement
     :param content: The content to replace the span in
     :return: The result after the replacement
 
+    >>> replace_spans([(2, 4), (6, 8)], "BAR", "__FU__FU__")
+    '__BAR__BAR__'
+
     """
-    start, end = span
-    before = content[:start]
-    after = content[end:]
-    return f"{before}{replacement}{after}"
+    parts = []
+    for (_, end1), (start2, end2) in zip(
+        [(..., 0)] + spans, spans + [(len(content), ...)]
+    ):
+        parts.append(content[end1:start2])
+        if end2 is not ...:
+            parts.append(replacement)
+    return "".join(parts)
 
 
 def replace_group_1(pattern: str, replacement: str, content: str, path: str) -> str:
@@ -398,10 +404,10 @@ def replace_group_1(pattern: str, replacement: str, content: str, path: str) -> 
     :return: The resulting content after the replacement
 
     """
-    match = re.search(pattern, content, flags=re.MULTILINE)
-    if not match:
+    matches = re.finditer(pattern, content, flags=re.MULTILINE)
+    if not matches:
         raise NoMatch(f"Can't find `{pattern}` in `{path}`")
-    return replace_span(match.span(1), replacement, content)
+    return replace_spans([match.span(1) for match in matches], replacement, content)
 
 
 def patch_changelog(next_version: Version, dry_run: bool) -> None:
