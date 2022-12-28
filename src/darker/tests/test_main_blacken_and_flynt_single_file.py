@@ -1,14 +1,87 @@
 """Unit tests for `darker.__main__._blacken_and_flynt_single_file`"""
 
-# pylint: disable=protected-access
+# pylint: disable=too-many-arguments,use-dict-literal
 
 from pathlib import Path
 from textwrap import dedent
+
+import pytest
 
 from darker.__main__ import _blacken_and_flynt_single_file
 from darker.config import Exclusions
 from darker.git import EditedLinenumsDiffer, RevisionRange
 from darker.utils import TextDocument
+
+
+@pytest.mark.kwparametrize(
+    dict(),
+    dict(relative_path="file.py.12345.tmp"),
+    dict(
+        rev2_content="import  modified\n\nprint( original )\n",
+        rev2_isorted="import  modified\n\nprint( original )\n",
+        expect="import modified\n\nprint( original )\n",
+    ),
+    dict(
+        rev2_content="import  original\n\nprint(modified )\n",
+        rev2_isorted="import  original\n\nprint(modified )\n",
+        expect="import  original\n\nprint(modified)\n",
+    ),
+    dict(
+        rev2_content="import  original\n\nprint('{}'.format(original.foo) )\n",
+        rev2_isorted="import  original\n\nprint('{}'.format(original.foo) )\n",
+        expect='import  original\n\nprint(f"{original.foo}")\n',
+    ),
+    dict(
+        rev2_content="import  original\n\nprint('{}'.format(original.foo) )\n",
+        rev2_isorted="import  original\n\nprint('{}'.format(original.foo) )\n",
+        exclusions=Exclusions(flynt={"file.py"}),
+        expect='import  original\n\nprint("{}".format(original.foo))\n',
+    ),
+    dict(
+        relative_path="file.py.12345.tmp",
+        rev2_content="import  modified\n\nprint( original )\n",
+        rev2_isorted="import  modified\n\nprint( original )\n",
+        expect="import modified\n\nprint( original )\n",
+    ),
+    dict(
+        relative_path="file.py.12345.tmp",
+        rev2_content="import  original\n\nprint(modified )\n",
+        rev2_isorted="import  original\n\nprint(modified )\n",
+        expect="import  original\n\nprint(modified)\n",
+    ),
+    relative_path="file.py",
+    rev2_content="import  original\nprint( original )\n",
+    rev2_isorted="import  original\nprint( original )\n",
+    exclusions=Exclusions(),
+    expect="import  original\nprint( original )\n",
+)
+def test_blacken_and_flynt_single_file(
+    git_repo,
+    relative_path,
+    rev2_content,
+    rev2_isorted,
+    exclusions,
+    expect,
+):
+    """Test for ``_blacken_and_flynt_single_file``"""
+    git_repo.add(
+        {"file.py": "import  original\nprint( original )\n"}, commit="Initial commit"
+    )
+    result = _blacken_and_flynt_single_file(
+        git_repo.root,
+        Path(relative_path),
+        Path("file.py"),
+        exclusions,
+        EditedLinenumsDiffer(
+            git_repo.root, RevisionRange(rev1="HEAD", rev2=":WORKTREE")
+        ),
+        TextDocument(rev2_content),
+        TextDocument(rev2_isorted),
+        has_isort_changes=False,
+        black_config={},
+    )
+
+    assert result.string == expect
 
 
 def test_blacken_and_flynt_single_file_common_ancestor(git_repo):
