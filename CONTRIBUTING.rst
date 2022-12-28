@@ -35,14 +35,15 @@ To speed up review and increase odds for the PR to be accepted, please
 - document new features or changed behavior in ``README.rst``
 - summarize end-user affecting changes in ``CHANGES.rst``
 - add your information in ``contributors.yaml``
-- run
-  ```bash
-  python release_tools/update_contributors.py \
-    generate \
-    --token=ghp_<your GitHub API token> \
-    --modify-readme \
-    --modify-contributors
-  ```
+- contributor information will be updated to ``CONTRIBUTORS.rst`` and ``README.rst`` in
+  the next release; however, if you have a `GitHub personal access token`_ and want to
+  do this yourself, you can run::
+
+      python release_tools/update_contributors.py \
+        generate \
+        --token=<your GitHub personal access token> \
+        --modify-readme \
+        --modify-contributors
 
 GitHub is configured to use Travis CI on each pull request to
 
