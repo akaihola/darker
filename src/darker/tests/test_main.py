@@ -21,6 +21,7 @@ from darker.config import Exclusions
 from darker.exceptions import MissingPackageError
 from darker.git import WORKTREE, EditedLinenumsDiffer, RevisionRange
 from darker.tests.helpers import isort_present
+from darker.tests.test_highlighting import BLUE, CYAN, RESET, WHITE, YELLOW
 from darker.utils import TextDocument, joinlines
 from darker.verification import NotEquivalentError
 
@@ -815,13 +816,12 @@ def test_modify_file(tmp_path, new_content, expect):
         new_content=TextDocument(lines=['print("foo")']),
         use_color=True,
         expect=(
-            '\x1b[36mprint\x1b[39;49;00m(\x1b[33m"\x1b[39;49;00mfoo'
-            + '\x1b[33m"\x1b[39;49;00m)\n',
-            '\x1b[36mprint\x1b[39;49;00m(\x1b[33m"\x1b[39;49;00m\x1b[33mfoo'
-            + '\x1b[39;49;00m\x1b[33m"\x1b[39;49;00m)\n',
-            # Pygments 2.4.x:
-            '\x1b[34mprint\x1b[39;49;00m(\x1b[33m"\x1b[39;49;00mfoo'
-            + '\x1b[33m"\x1b[39;49;00m)\n',
+            f'{CYAN}print{RESET}({YELLOW}"{RESET}foo{YELLOW}"{RESET})\n',
+            f'{CYAN}print{RESET}({YELLOW}"{RESET}{YELLOW}foo{RESET}{YELLOW}"{RESET})\n',
+            # Pygments >=2.4.x, <2.14.0
+            f'{BLUE}print{RESET}({YELLOW}"{RESET}foo{YELLOW}"{RESET})\n',
+            # Pygments 2.14.0, variant 1:
+            f'{CYAN}print{RESET}({YELLOW}"{RESET}foo{YELLOW}"{RESET}){WHITE}{RESET}\n',
         ),
     ),
 )
