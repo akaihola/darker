@@ -17,6 +17,15 @@ from pygments.token import Token
 from darker.command_line import parse_command_line
 from darker.highlighting import colorize, lexers, should_use_color
 
+RESET = "\x1b[39;49;00m"
+RED = "\x1b[31;01m"
+GREEN = "\x1b[32m"
+YELLOW = "\x1b[33m"
+BLUE = "\x1b[34m"
+CYAN = "\x1b[36m"
+WHITE = "\x1b[37m"
+BR_RED = "\x1b[91m"
+
 
 @pytest.fixture(scope="module")
 def module_tmp_path(tmp_path_factory: pytest.TempPathFactory) -> Path:
@@ -397,23 +406,48 @@ def test_colorize_with_no_color():
             "except RuntimeError:",
             "python",
             True,
-            {"\x1b[34mexcept\x1b[39;49;00m \x1b[36mRuntimeError\x1b[39;49;00m:"},
+            {
+                # Pygments <2.14.0:
+                f"{BLUE}except{RESET} {CYAN}RuntimeError{RESET}:",
+                # Pygments 2.14.0:
+                f"{BLUE}except{RESET} {CYAN}RuntimeError{RESET}:{WHITE}{RESET}",
+            },
         ),
         ("except RuntimeError:", "python", False, {"except RuntimeError:"}),
-        ("a = 1", "python", True, {"a = \x1b[34m1\x1b[39;49;00m"}),
-        ("a = 1\n", "python", True, {"a = \x1b[34m1\x1b[39;49;00m\n"}),
+        (
+            "a = 1",
+            "python",
+            True,
+            {
+                # Pygments <2.14.0:
+                f"a = {BLUE}1{RESET}",
+                # Pygments 2.14.0:
+                f"a = {BLUE}1{RESET}{WHITE}{RESET}",
+            },
+        ),
+        (
+            "a = 1\n",
+            "python",
+            True,
+            {
+                # Pygments <2.14.0:
+                f"a = {BLUE}1{RESET}\n",
+                # Pygments 2.14.0:
+                f"a = {BLUE}1{RESET}{WHITE}{RESET}\n",
+            },
+        ),
         (
             "- a\n+ b\n",
             "diff",
             True,
             {
                 # Pygments 2.4.0:
-                "\x1b[31;01m- a\x1b[39;49;00m\n\x1b[32m+ b\x1b[39;49;00m\n",
+                f"{RED}- a{RESET}\n{GREEN}+ b{RESET}\n",
                 # Pygments 2.10.0:
-                "\x1b[91m- a\x1b[39;49;00m\n\x1b[32m+ b\x1b[39;49;00m\n",
+                f"{BR_RED}- a{RESET}\n{GREEN}+ b{RESET}\n",
                 # Pygments 2.11.2:
-                "\x1b[91m- a\x1b[39;49;00m\x1b[37m\x1b[39;49;00m\n"
-                + "\x1b[32m+ b\x1b[39;49;00m\x1b[37m\x1b[39;49;00m\n",
+                f"{BR_RED}- a{RESET}{WHITE}{RESET}\n"
+                f"{GREEN}+ b{RESET}{WHITE}{RESET}\n",
             },
         ),
         (

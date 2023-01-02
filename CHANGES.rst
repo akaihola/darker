@@ -8,6 +8,7 @@ Added
 
 Fixed
 -----
+- Compatibility of highlighting unit tests with Pygments 2.14.0.
 
 
 1.6.1_ - 2022-12-28
