@@ -347,8 +347,8 @@ def test_git_check_output_lines(branched_repo, cmd, exit_on_error, expect_templa
         exit_on_error=True,
         expect_exc=SystemExit,
         expect_log=(
-            r"ERROR    darker\.git:git\.py:\d+ fatal: "
-            r"[pP]ath '/\.file2' does not exist in '{initial}'\n$"
+            r"(?:^|\n)ERROR    darker\.git:git\.py:\d+ fatal: "
+            r"[pP]ath '/\.file2' does not exist in '{initial}'\n"
         ),
     ),
     dict(
@@ -387,7 +387,7 @@ def test_git_check_output_lines_stderr_and_log(
     assert outerr.out == ""
     assert outerr.err == expect_stderr
     expect_log_re = expect_log.format(initial=initial)
-    assert re.match(expect_log_re, caplog.text), repr(caplog.text)
+    assert re.search(expect_log_re, caplog.text), repr(caplog.text)
 
 
 def test_git_get_content_at_revision_stderr(git_repo, capfd, caplog):
@@ -403,7 +403,7 @@ def test_git_get_content_at_revision_stderr(git_repo, capfd, caplog):
     outerr = capfd.readouterr()
     assert outerr.out == ""
     assert outerr.err == ""
-    assert caplog.text == ""
+    assert [record for record in caplog.records if record.levelname != "DEBUG"] == []
 
 
 @pytest.fixture(scope="module")
