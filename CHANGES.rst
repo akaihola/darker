@@ -13,6 +13,8 @@ Added
 Fixed
 -----
 - Compatibility of highlighting unit tests with Pygments 2.14.0.
+- In the CI test workflow, don't use environment variables to add a Black version
+  constraint to the ``pip`` command. This fixes the Windows builds.
 
 
 1.6.1_ - 2022-12-28
