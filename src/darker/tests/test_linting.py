@@ -252,7 +252,11 @@ def test_run_linter(
     # The test cases also verify that only linter reports on modified lines are output.
     result = capsys.readouterr().out.splitlines()
     assert result == git_repo.expand_root(expect_output)
-    logs = [f"{record.levelname} {record.message}" for record in caplog.records]
+    logs = [
+        f"{record.levelname} {record.message}"
+        for record in caplog.records
+        if record.levelname != "DEBUG"
+    ]
     assert logs == git_repo.expand_root(expect_log)
 
 
