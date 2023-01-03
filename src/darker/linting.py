@@ -26,6 +26,7 @@ from collections import defaultdict
 from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
+import shlex
 from subprocess import PIPE, Popen  # nosec
 from tempfile import TemporaryDirectory
 from typing import IO, Callable, Collection, Dict, Generator, Iterable, List, Set, Tuple
@@ -271,7 +272,7 @@ def _check_linter_output(
     :return: The standard output stream of the linter subprocess
 
     """
-    cmdline_and_paths = cmdline.split() + [str(path) for path in sorted(paths)]
+    cmdline_and_paths = shlex.split(cmdline) + [str(path) for path in sorted(paths)]
     logger.debug("[%s]$ %s", root, " ".join(cmdline_and_paths))
     with Popen(  # nosec
         cmdline_and_paths,
@@ -303,7 +304,7 @@ def run_linter(  # pylint: disable=too-many-locals
     """
     missing_files = set()
     result = {}
-    linter = cmdline.split(None, 1)[0]
+    linter = shlex.split(cmdline)[0]
     with _check_linter_output(cmdline, root, paths, env) as linter_stdout:
         for line in linter_stdout:
             (location, message) = _parse_linter_line(linter, line, root)
