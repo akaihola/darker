@@ -6,12 +6,12 @@ import os
 import sys
 from pathlib import Path
 from textwrap import dedent
-from unittest.mock import call, patch
 
 import pytest
 
 from darker import linting
 from darker.git import WORKTREE, RevisionRange
+from darker.linting import LinterMessage, MessageLocation
 from darker.tests.helpers import raises_if_exception
 
 SKIP_ON_WINDOWS = [pytest.mark.skip] if sys.platform.startswith("win") else []
@@ -21,60 +21,59 @@ SKIP_ON_UNIX = [] if sys.platform.startswith("win") else [pytest.mark.skip]
 @pytest.mark.kwparametrize(
     dict(
         line="module.py:42: Just a line number\n",
-        expect=(Path("module.py"), 42, "module.py:42:", "Just a line number"),
+        expect=(Path("module.py"), 42, 0, "Just a line number"),
     ),
     dict(
         line="module.py:42:5: With column  \n",
-        expect=(Path("module.py"), 42, "module.py:42:5:", "With column"),
+        expect=(Path("module.py"), 42, 5, "With column"),
     ),
     dict(
         line="{git_root_absolute}{sep}mod.py:42: Full path\n",
-        expect=(
-            Path("mod.py"),
-            42,
-            "{git_root_absolute}{sep}mod.py:42:",
-            "Full path",
-        ),
+        expect=(Path("mod.py"), 42, 0, "Full path"),
     ),
     dict(
         line="{git_root_absolute}{sep}mod.py:42:5: Full path with column\n",
-        expect=(
-            Path("mod.py"),
-            42,
-            "{git_root_absolute}{sep}mod.py:42:5:",
-            "Full path with column",
-        ),
+        expect=(Path("mod.py"), 42, 5, "Full path with column"),
     ),
     dict(
         line="mod.py:42: 123 digits start the description\n",
-        expect=(Path("mod.py"), 42, "mod.py:42:", "123 digits start the description"),
+        expect=(Path("mod.py"), 42, 0, "123 digits start the description"),
     ),
     dict(
         line="mod.py:42:    indented description\n",
-        expect=(Path("mod.py"), 42, "mod.py:42:", "   indented description"),
+        expect=(Path("mod.py"), 42, 0, "   indented description"),
     ),
     dict(
         line="mod.py:42:5:    indented description\n",
-        expect=(Path("mod.py"), 42, "mod.py:42:5:", "   indented description"),
+        expect=(Path("mod.py"), 42, 5, "   indented description"),
     ),
     dict(
         line="nonpython.txt:5: Non-Python file\n",
-        expect=(Path("nonpython.txt"), 5, "nonpython.txt:5:", "Non-Python file"),
+        expect=(Path("nonpython.txt"), 5, 0, "Non-Python file"),
     ),
-    dict(line="mod.py: No line number\n", expect=(Path(), 0, "", "")),
-    dict(line="mod.py:foo:5: Invalid line number\n", expect=(Path(), 0, "", "")),
-    dict(line="mod.py:42:bar: Invalid column\n", expect=(Path(), 0, "", "")),
-    dict(line="/outside/mod.py:5: Outside the repo\n", expect=(Path(), 0, "", "")),
-    dict(line="invalid linter output\n", expect=(Path(), 0, "", "")),
-    dict(line=" leading:42: whitespace\n", expect=(Path(), 0, "", "")),
-    dict(line=" leading:42:5 whitespace and column\n", expect=(Path(), 0, "", "")),
-    dict(line="trailing :42: filepath whitespace\n", expect=(Path(), 0, "", "")),
-    dict(line="leading: 42: linenum whitespace\n", expect=(Path(), 0, "", "")),
-    dict(line="trailing:42 : linenum whitespace\n", expect=(Path(), 0, "", "")),
-    dict(line="plus:+42: before linenum\n", expect=(Path(), 0, "", "")),
-    dict(line="minus:-42: before linenum\n", expect=(Path(), 0, "", "")),
-    dict(line="plus:42:+5 before column\n", expect=(Path(), 0, "", "")),
-    dict(line="minus:42:-5 before column\n", expect=(Path(), 0, "", "")),
+    dict(line="mod.py: No line number\n", expect=(Path(), 0, 0, "")),
+    dict(line="mod.py:foo:5: Invalid line number\n", expect=(Path(), 0, 0, "")),
+    dict(line="mod.py:42:bar: Invalid column\n", expect=(Path(), 0, 0, "")),
+    dict(
+        line="/outside/mod.py:5: Outside the repo\n",
+        expect=(Path(), 0, 0, ""),
+        marks=SKIP_ON_WINDOWS,
+    ),
+    dict(
+        line="C:\\outside\\mod.py:5: Outside the repo\n",
+        expect=(Path(), 0, 0, ""),
+        marks=SKIP_ON_UNIX,
+    ),
+    dict(line="invalid linter output\n", expect=(Path(), 0, 0, "")),
+    dict(line=" leading:42: whitespace\n", expect=(Path(), 0, 0, "")),
+    dict(line=" leading:42:5 whitespace and column\n", expect=(Path(), 0, 0, "")),
+    dict(line="trailing :42: filepath whitespace\n", expect=(Path(), 0, 0, "")),
+    dict(line="leading: 42: linenum whitespace\n", expect=(Path(), 0, 0, "")),
+    dict(line="trailing:42 : linenum whitespace\n", expect=(Path(), 0, 0, "")),
+    dict(line="plus:+42: before linenum\n", expect=(Path(), 0, 0, "")),
+    dict(line="minus:-42: before linenum\n", expect=(Path(), 0, 0, "")),
+    dict(line="plus:42:+5 before column\n", expect=(Path(), 0, 0, "")),
+    dict(line="minus:42:-5 before column\n", expect=(Path(), 0, 0, "")),
 )
 def test_parse_linter_line(git_repo, monkeypatch, line, expect):
     """Linter output is parsed correctly"""
@@ -82,15 +81,9 @@ def test_parse_linter_line(git_repo, monkeypatch, line, expect):
     root_abs = git_repo.root.absolute()
     line_expanded = line.format(git_root_absolute=root_abs, sep=os.sep)
 
-    result = linting._parse_linter_line(line_expanded, git_repo.root)
+    result = linting._parse_linter_line("linter", line_expanded, git_repo.root)
 
-    expect_expanded = (
-        expect[0],
-        expect[1],
-        expect[2].format(git_root_absolute=root_abs, sep=os.sep),
-        expect[3],
-    )
-    assert result == expect_expanded
+    assert result == (MessageLocation(*expect[:3]), LinterMessage("linter", expect[3]))
 
 
 @pytest.mark.kwparametrize(
@@ -104,124 +97,104 @@ def test_require_rev2_worktree(rev2, expect):
         linting._require_rev2_worktree(rev2)
 
 
-def test_check_linter_output():
+def test_check_linter_output(tmp_path):
     """``_check_linter_output()`` runs linter and returns the stdout stream"""
     with linting._check_linter_output(
-        "echo", Path("root/of/repo"), {Path("first.py"), Path("second.py")}
+        "echo", tmp_path, {Path("first.py"), Path("second.py")}
     ) as stdout:
         lines = list(stdout)
 
-    assert lines == [
-        f"{Path('root/of/repo/first.py')} {Path('root/of/repo/second.py')}\n"
-    ]
+    assert lines == ["first.py second.py\n"]
 
 
 @pytest.mark.kwparametrize(
     dict(
-        _descr="No files to check, no output",
-        paths=[],
-        location="test.py:1:",
-        expect_output=[],
-        expect_log=[],
+        _descr="New message for test.py",
+        messages_after=["test.py:1: new message"],
+        expect_output=["", "test.py:1: new message [cat]"],
     ),
     dict(
-        _descr="Check one file, report on a modified line in test.py",
-        paths=["one.py"],
-        location="test.py:1:",
-        expect_output=["", "test.py:1: {root/one.py}"],
-        expect_log=[],
+        _descr="New message for test.py, including column number",
+        messages_after=["test.py:1:42: new message with column number"],
+        expect_output=["", "test.py:1:42: new message with column number [cat]"],
     ),
     dict(
-        _descr="Check one file, report on a column of a modified line in test.py",
-        paths=["one.py"],
-        location="test.py:1:42:",
-        expect_output=["", "test.py:1:42: {root/one.py}"],
-        expect_log=[],
+        _descr="Identical message on an unmodified unmoved line in test.py",
+        messages_before=["test.py:1:42: same message on same line"],
+        messages_after=["test.py:1:42: same message on same line"],
     ),
     dict(
-        _descr="No output if report is on an unmodified line in test.py",
-        paths=["one.py"],
-        location="test.py:2:42:",
-        expect_output=[],
-        expect_log=[],
+        _descr="Identical message on an unmodified moved line in test.py",
+        messages_before=["test.py:3:42: same message on a moved line"],
+        messages_after=["test.py:4:42: same message on a moved line"],
     ),
     dict(
-        _descr="No output if report is on a column of an unmodified line in test.py",
-        paths=["one.py"],
-        location="test.py:2:42:",
-        expect_output=[],
-        expect_log=[],
+        _descr="Additional message on an unmodified moved line in test.py",
+        messages_before=["test.py:3:42: same message"],
+        messages_after=[
+            "test.py:4:42: same message",
+            "test.py:4:42: additional message",
+        ],
+        expect_output=["", "test.py:4:42: additional message [cat]"],
     ),
     dict(
-        _descr="Check two files, report on a modified line in test.py",
-        paths=["one.py", "two.py"],
-        location="test.py:1:",
-        expect_output=["", "test.py:1: {root/one.py} {root/two.py}"],
-        expect_log=[],
+        _descr="Changed message on an unmodified moved line in test.py",
+        messages_before=["test.py:4:42: old message"],
+        messages_after=["test.py:4:42: new message"],
+        expect_output=["", "test.py:4:42: new message [cat]"],
     ),
     dict(
-        _descr="Check two files, rpeort on a column of a modified line in test.py",
-        paths=["one.py", "two.py"],
-        location="test.py:1:42:",
-        expect_output=["", "test.py:1:42: {root/one.py} {root/two.py}"],
-        expect_log=[],
-    ),
-    dict(
-        _descr="No output if 2-file report is on an unmodified line in test.py",
-        paths=["one.py", "two.py"],
-        location="test.py:2:",
-        expect_output=[],
-        expect_log=[],
-    ),
-    dict(
-        _descr="No output if 2-file report is on a column of an unmodified line",
-        paths=["one.py", "two.py"],
-        location="test.py:2:42:",
-        expect_output=[],
-        expect_log=[],
+        _descr="Identical message but on an inserted line in test.py",
+        messages_before=["test.py:1:42: same message also on an inserted line"],
+        messages_after=[
+            "test.py:1:42: same message also on an inserted line",
+            "test.py:2:42: same message also on an inserted line",
+        ],
+        expect_output=["", "test.py:2:42: same message also on an inserted line [cat]"],
     ),
     dict(
         _descr="Warning for a file missing from the working tree",
-        paths=["missing.py"],
-        location="missing.py:1:",
-        expect_output=[],
-        expect_log=["WARNING Missing file missing.py from echo missing.py:1:"],
+        messages_after=["missing.py:1: a missing Python file"],
+        expect_log=["WARNING Missing file missing.py from cat messages"],
     ),
     dict(
         _descr="Linter message for a non-Python file is ignored with a warning",
-        paths=["one.py"],
-        location="nonpython.txt:1:",
-        expect_output=[],
+        messages_after=["nonpython.txt:1: non-py"],
         expect_log=[
-            "WARNING Linter message for a non-Python file: "
-            "nonpython.txt:1: {root/one.py}"
+            "WARNING Linter message for a non-Python file: nonpython.txt:1: non-py"
         ],
     ),
     dict(
         _descr="Message for file outside common root is ignored with a warning (Unix)",
-        paths=["one.py"],
-        location="/elsewhere/mod.py:1:",
-        expect_output=[],
+        messages_after=["/elsewhere/mod.py:1: elsewhere"],
         expect_log=[
-            "WARNING Linter message for a file /elsewhere/mod.py "
-            "outside requested directory {root/}"
+            "WARNING Linter message for a file /elsewhere/mod.py outside root"
+            " directory {root}"
         ],
         marks=SKIP_ON_WINDOWS,
     ),
     dict(
         _descr="Message for file outside common root is ignored with a warning (Win)",
-        paths=["one.py"],
-        location="C:\\elsewhere\\mod.py:1:",
-        expect_output=[],
+        messages_after=["C:\\elsewhere\\mod.py:1: elsewhere"],
         expect_log=[
-            "WARNING Linter message for a file C:\\elsewhere\\mod.py "
-            "outside requested directory {root/}"
+            "WARNING Linter message for a file C:\\elsewhere\\mod.py outside root"
+            " directory {root}"
         ],
         marks=SKIP_ON_UNIX,
     ),
+    messages_before=[],
+    expect_output=[],
+    expect_log=[],
 )
-def test_run_linter(
-    git_repo, capsys, caplog, _descr, paths, location, expect_output, expect_log
+def test_run_linters(
+    git_repo,
+    capsys,
+    caplog,
+    _descr,
+    messages_before,
+    messages_after,
+    expect_output,
+    expect_log,
 ):
     """Linter gets correct paths on command line and outputs just changed lines
 
@@ -237,14 +210,22 @@ def test_run_linter(
 
     """
     src_paths = git_repo.add(
-        {"test.py": "1\n2\n", "nonpython.txt": "hello\n"}, commit="Initial commit"
+        {
+            "test.py": "1 unmoved\n2 modify\n3 to 4 moved\n",
+            "nonpython.txt": "hello\n",
+            "messages": "\n".join(messages_before),
+        },
+        commit="Initial commit",
     )
-    src_paths["test.py"].write_bytes(b"one\n2\n")
-    cmdline = f"echo {location}"
+    src_paths["test.py"].write_bytes(
+        b"1 unmoved\n2 modified\n3 inserted\n3 to 4 moved\n"
+    )
+    src_paths["messages"].write_text("\n".join(messages_after))
+    cmdlines = ["cat messages"]
     revrange = RevisionRange("HEAD", ":WORKTREE:")
 
-    linting.run_linter(
-        cmdline, git_repo.root, {Path(p) for p in paths}, revrange, use_color=False
+    linting.run_linters(
+        cmdlines, git_repo.root, {Path("dummy path")}, revrange, use_color=False
     )
 
     # We can now verify that the linter received the correct paths on its command line
@@ -260,12 +241,12 @@ def test_run_linter(
     assert logs == git_repo.expand_root(expect_log)
 
 
-def test_run_linter_non_worktree():
-    """``run_linter()`` doesn't support linting commits, only the worktree"""
+def test_run_linters_non_worktree():
+    """``run_linters()`` doesn't support linting commits, only the worktree"""
     with pytest.raises(NotImplementedError):
 
-        linting.run_linter(
-            "dummy-linter",
+        linting.run_linters(
+            ["dummy-linter"],
             Path("/dummy"),
             {Path("dummy.py")},
             RevisionRange.parse_with_common_ancestor("..HEAD", Path("dummy cwd")),
@@ -274,21 +255,21 @@ def test_run_linter_non_worktree():
 
 
 @pytest.mark.parametrize(
-    "location, expect",
+    "message, expect",
     [
         ("", 0),
-        ("test.py:1:", 1),
-        ("test.py:2:", 0),
+        ("test.py:1: message on modified line", 1),
+        ("test.py:2: message on unmodified line", 0),
     ],
 )
-def test_run_linter_return_value(git_repo, location, expect):
-    """``run_linter()`` returns the number of linter errors on modified lines"""
+def test_run_linters_return_value(git_repo, message, expect):
+    """``run_linters()`` returns the number of linter errors on modified lines"""
     src_paths = git_repo.add({"test.py": "1\n2\n"}, commit="Initial commit")
     src_paths["test.py"].write_bytes(b"one\n2\n")
-    cmdline = f"echo {location}"
+    cmdline = f"echo {message}"
 
-    result = linting.run_linter(
-        cmdline,
+    result = linting.run_linters(
+        [cmdline],
         git_repo.root,
         {Path("test.py")},
         RevisionRange("HEAD", ":WORKTREE:"),
@@ -298,72 +279,8 @@ def test_run_linter_return_value(git_repo, location, expect):
     assert result == expect
 
 
-@pytest.mark.kwparametrize(
-    dict(
-        linter_cmdlines=[],
-        linters_return=[],
-        expect_result=0,
-    ),
-    dict(
-        linter_cmdlines=["linter"],
-        linters_return=[0],
-        expect_result=0,
-    ),
-    dict(
-        linter_cmdlines=["linter"],
-        linters_return=[1],
-        expect_result=1,
-    ),
-    dict(
-        linter_cmdlines=["linter"],
-        linters_return=[42],
-        expect_result=42,
-    ),
-    dict(
-        linter_cmdlines=["linter1", "linter2"],
-        linters_return=[0, 0],
-        expect_result=0,
-    ),
-    dict(
-        linter_cmdlines=["linter1", "linter2"],
-        linters_return=[0, 42],
-        expect_result=42,
-    ),
-    dict(
-        linter_cmdlines=["linter1", "linter2 command line"],
-        linters_return=[42, 42],
-        expect_result=84,
-    ),
-)
-def test_run_linters(linter_cmdlines, linters_return, expect_result):
-    """Unit test for ``run_linters()``"""
-    with patch.object(linting, "run_linter") as run_linter:
-        run_linter.side_effect = linters_return
-
-        result = linting.run_linters(
-            linter_cmdlines,
-            Path("dummy root"),
-            {Path("dummy paths")},
-            RevisionRange("dummy rev1", "dummy rev2"),
-            use_color=False,
-        )
-
-        expect_calls = [
-            call(
-                linter_cmdline,
-                Path("dummy root"),
-                {Path("dummy paths")},
-                RevisionRange("dummy rev1", "dummy rev2"),
-                False,
-            )
-            for linter_cmdline in linter_cmdlines
-        ]
-        assert run_linter.call_args_list == expect_calls
-        assert result == expect_result
-
-
-def test_run_linter_on_new_file(git_repo, capsys):
-    """``run_linter()`` considers file missing from history as empty
+def test_run_linters_on_new_file(git_repo, capsys):
+    """``run_linters()`` considers file missing from history as empty
 
     Passes through all linter errors as if the original file was empty.
 
@@ -372,8 +289,8 @@ def test_run_linter_on_new_file(git_repo, capsys):
     git_repo.create_tag("initial")
     (git_repo.root / "file2.py").write_bytes(b"1\n2\n")
 
-    linting.run_linter(
-        "echo file2.py:1:",
+    linting.run_linters(
+        ["echo file2.py:1: message on a file not seen in Git history"],
         Path(git_repo.root),
         {Path("file2.py")},
         RevisionRange("initial", ":WORKTREE:"),
@@ -381,11 +298,14 @@ def test_run_linter_on_new_file(git_repo, capsys):
     )
 
     output = capsys.readouterr().out.splitlines()
-    assert output == ["", f"file2.py:1: {git_repo.root / 'file2.py'}"]
+    assert output == [
+        "",
+        "file2.py:1: message on a file not seen in Git history file2.py [echo]",
+    ]
 
 
-def test_run_linter_line_separation(git_repo, capsys):
-    """``run_linter`` separates contiguous blocks of linter output with empty lines"""
+def test_run_linters_line_separation(git_repo, capsys):
+    """``run_linters`` separates contiguous blocks of linter output with empty lines"""
     paths = git_repo.add({"a.py": "1\n2\n3\n4\n5\n6\n"}, commit="Initial commit")
     paths["a.py"].write_bytes(b"a\nb\nc\nd\ne\nf\n")
     linter_output = git_repo.root / "dummy-linter-output.txt"
@@ -400,9 +320,9 @@ def test_run_linter_line_separation(git_repo, capsys):
         )
     )
 
-    linting.run_linter(
-        f"cat {linter_output}",
-        Path(git_repo.root),
+    linting.run_linters(
+        [f"cat {linter_output}"],
+        git_repo.root,
         {Path(p) for p in paths},
         RevisionRange("HEAD", ":WORKTREE:"),
         use_color=False,
@@ -411,10 +331,10 @@ def test_run_linter_line_separation(git_repo, capsys):
     result = capsys.readouterr().out
     assert result == dedent(
         """
-        a.py:2: first block
-        a.py:3: of linter output
+        a.py:2: first block [cat]
+        a.py:3: of linter output [cat]
 
-        a.py:5: second block
-        a.py:6: of linter output
+        a.py:5: second block [cat]
+        a.py:6: of linter output [cat]
         """
     )
