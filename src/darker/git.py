@@ -440,6 +440,33 @@ def git_clone_local(source_repository: Path, revision: str, destination: Path) -
     return clone_path
 
 
+def git_get_root(path: Path) -> Optional[Path]:
+    """Get the root directory of a local Git repository clone based on a path inside it
+
+    :param path: A file or directory path inside the Git repository clone
+    :return: The root of the clone, or ``None`` if none could be found
+
+    """
+    try:
+        return Path(
+            _git_check_output(
+                ["rev-parse", "--show-toplevel"],
+                cwd=path if path.is_dir() else path.parent,
+                encoding="utf-8",
+                exit_on_error=False,
+            ).rstrip()
+        )
+    except CalledProcessError as exc_info:
+        if exc_info.returncode == 128 and exc_info.stderr.splitlines()[0].startswith(
+            "fatal: not a git repository (or any "
+        ):
+            # The error string differs a bit in different Git versions, but up to the
+            # point above it's identical in recent versions.
+            return None
+        sys.stderr.write(exc_info.stderr)
+        raise
+
+
 def _revision_vs_lines(
     root: Path, path_in_repo: Path, rev1: str, content: TextDocument, context_lines: int
 ) -> List[int]:
