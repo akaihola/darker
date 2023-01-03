@@ -117,7 +117,10 @@ jobs:
                          ${{ matrix.upgrade }} ${{ matrix.constraints }}
       - name: Run Pytest
         run: |
-          pytest --darker
+          # unit tests and Darker with debug level logging:
+          pytest --override-ini=addopts= --log-cli-level=DEBUG --darker
+          # doctests only with warning level logging:
+          pytest --override-ini=python_files=
 
   build-sdist-validate-dists:
     runs-on: ubuntu-latest
