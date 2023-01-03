@@ -100,7 +100,10 @@ def test_require_rev2_worktree(rev2, expect):
 def test_check_linter_output(tmp_path):
     """``_check_linter_output()`` runs linter and returns the stdout stream"""
     with linting._check_linter_output(
-        "echo", tmp_path, {Path("first.py"), Path("second.py")}
+        "echo",
+        tmp_path,
+        {Path("first.py"), Path("second.py")},
+        {},
     ) as stdout:
         lines = list(stdout)
 

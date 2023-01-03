@@ -20,6 +20,7 @@ provided that the ``<linenum>`` falls on a changed line.
 """
 
 import logging
+import os
 from collections import defaultdict
 from contextlib import contextmanager
 from dataclasses import dataclass
@@ -35,6 +36,7 @@ from darker.git import (
     git_clone_local,
     git_get_content_at_revision,
     git_get_root,
+    git_rev_parse,
 )
 from darker.highlighting import colorize
 
@@ -102,6 +104,26 @@ class DiffLineMapping:
             (new_location.path, new_location.line), (Path(""), 0)
         )
         return MessageLocation(old_path, old_line, new_location.column)
+
+
+def make_linter_env(root: Path, revision: str) -> Dict[str, str]:
+    """Populate environment variables for running linters
+
+    [extended_summary]
+
+    :param root: The path to the root of the Git repository
+    :param revision: The commit hash of the Git revision being linted, or ``"WORKTREE"``
+                     if the working tree is being linted
+    :return: The environment variables dictionary to pass to the linter
+
+    """
+    return {
+        **os.environ,
+        "DARKER_LINT_ORIG_REPO": str(root),
+        "DARKER_LINT_REV_COMMIT": (
+            "WORKTREE" if revision == "WORKTREE" else revision[:7]
+        ),
+    }
 
 
 def _strict_nonneg_int(text: str) -> int:
@@ -211,13 +233,17 @@ def _require_rev2_worktree(rev2: str) -> None:
 
 @contextmanager
 def _check_linter_output(
-    cmdline: str, root: Path, paths: Collection[Path]
+    cmdline: str,
+    root: Path,
+    paths: Collection[Path],
+    env: Dict[str, str],
 ) -> Generator[IO[str], None, None]:
     """Run a linter as a subprocess and return its standard output stream
 
     :param cmdline: The command line for running the linter
     :param root: The common root of all files to lint
     :param paths: Paths of files to check, relative to ``root``
+    :param env: Environment variables to pass to the linter
     :return: The standard output stream of the linter subprocess
 
     """
@@ -228,6 +254,7 @@ def _check_linter_output(
         stdout=PIPE,
         encoding="utf-8",
         cwd=root,
+        env=env,
     ) as linter_process:
         # condition needed for MyPy (see https://stackoverflow.com/q/57350490/15770)
         if linter_process.stdout is None:
@@ -239,20 +266,21 @@ def run_linter(  # pylint: disable=too-many-locals
     cmdline: str,
     root: Path,
     paths: Collection[Path],
+    env: Dict[str, str],
 ) -> Dict[MessageLocation, LinterMessage]:
     """Run the given linter and return linting errors falling on changed lines
 
     :param cmdline: The command line for running the linter
     :param root: The common root of all files to lint
     :param paths: Paths of files to check, relative to ``root``
-    :param revrange: The Git revision rango to compare
+    :param env: Environment variables to pass to the linter
     :return: The number of modified lines with linting errors from this linter
 
     """
     missing_files = set()
     result = {}
     linter = cmdline.split(None, 1)[0]
-    with _check_linter_output(cmdline, root, paths) as linter_stdout:
+    with _check_linter_output(cmdline, root, paths, env) as linter_stdout:
         for line in linter_stdout:
             (location, message) = _parse_linter_line(linter, line, root)
             if location is NO_MESSAGE_LOCATION or location.path in missing_files:
@@ -304,13 +332,26 @@ def run_linters(
     git_root = git_get_root(root)
     if not git_root:
         # In a non-Git root, don't use a baseline
-        messages = _get_messages_from_linters(linter_cmdlines, root, paths)
+        messages = _get_messages_from_linters(
+            linter_cmdlines,
+            root,
+            paths,
+            make_linter_env(root, "WORKTREE"),
+        )
         return _print_new_linter_messages({}, messages, DiffLineMapping(), use_color)
     git_paths = {(root / path).relative_to(git_root) for path in paths}
     baseline = _get_messages_from_linters_for_baseline(
-        linter_cmdlines, git_root, git_paths, revrange.rev1
+        linter_cmdlines,
+        git_root,
+        git_paths,
+        revrange.rev1,
     )
-    messages = _get_messages_from_linters(linter_cmdlines, git_root, git_paths)
+    messages = _get_messages_from_linters(
+        linter_cmdlines,
+        git_root,
+        git_paths,
+        make_linter_env(git_root, "WORKTREE"),
+    )
     files_with_messages = {location.path for location in messages}
     diff_line_mapping = _create_line_mapping(git_root, files_with_messages, revrange)
     return _print_new_linter_messages(baseline, messages, diff_line_mapping, use_color)
@@ -320,19 +361,20 @@ def _get_messages_from_linters(
     linter_cmdlines: Iterable[str],
     root: Path,
     paths: Collection[Path],
+    env: Dict[str, str],
 ) -> Dict[MessageLocation, List[LinterMessage]]:
     """Run given linters for the given directory and return linting errors
 
     :param cmdline: The command line for running the linter
     :param root: The common root of all files to lint
     :param paths: Paths of files to check, relative to ``root``
-    :param revrange: The Git revision rango to compare
+    :param env: The environment variables to pass to the linter
     :return: Linter messages
 
     """
     result = defaultdict(list)
     for cmdline in linter_cmdlines:
-        for message_location, message in run_linter(cmdline, root, paths).items():
+        for message_location, message in run_linter(cmdline, root, paths, env).items():
             result[message_location].append(message)
     return result
 
@@ -391,7 +433,13 @@ def _get_messages_from_linters_for_baseline(
     """
     with TemporaryDirectory() as tmp_path:
         clone_root = git_clone_local(root, revision, Path(tmp_path))
-        return _get_messages_from_linters(linter_cmdlines, clone_root, paths)
+        rev1_commit = git_rev_parse(revision, root)
+        return _get_messages_from_linters(
+            linter_cmdlines,
+            clone_root,
+            paths,
+            make_linter_env(root, rev1_commit),
+        )
 
 
 def _create_line_mapping(
