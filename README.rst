@@ -31,8 +31,13 @@ What?
 =====
 
 This utility reformats and checks Python source code files.
-However, when run in a Git repository, it only applies reformatting and reports errors
-in regions which have changed in the Git working tree since the last commit.
+However, when run in a Git repository, it compares an old revision of the source tree
+to a newer revision (or the working tree). It then
+
+- only applies reformatting in regions which have changed in the Git working tree
+  between the two revisions, and
+- only reports those linting messages which appeared after the modifications to the
+  source code files.
 
 The reformatters supported are:
 
@@ -697,7 +702,8 @@ It defaults to ``"--check --diff --color"``.
 You can e.g. add ``"--isort"`` to sort imports, or ``"--verbose"`` for debug logging.
 
 To run linters through Darker, you can provide a comma separated list of linters using
-the ``lint:`` option. Only ``flake8``, ``pylint`` and ``mypy`` are supported.
+the ``lint:`` option. Only ``flake8``, ``pylint`` and ``mypy`` are supported. Other
+linters may or may not work with Darker, depending on their message output format.
 Versions can be constrained using ``pip`` syntax, e.g. ``"flake8>=3.9.2"``.
 
 *New in version 1.1.0:*
@@ -716,7 +722,8 @@ The ``lint:`` option.
 Using linters
 =============
 
-One way to use Darker is to filter linter output to modified lines only.
+One way to use Darker is to filter linter output to only those linter messages
+which appeared after the modifications to source code files.
 Darker supports any linter with output in one of the following formats::
 
     <file>:<linenum>: <description>
@@ -858,7 +865,8 @@ are applied to the edited file.
 Also, in case the ``--isort`` option was specified,
 isort_ is run on each edited file before applying Black_.
 Similarly, each linter requested using the `--lint <command>` option is run,
-and only linting errors/warnings on modified lines are displayed.
+and only those linting messages are displayed which appeared after the modifications to
+the source code files..
 
 
 License
