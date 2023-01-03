@@ -362,7 +362,12 @@ def run_linters(
             paths,
             make_linter_env(root, "WORKTREE"),
         )
-        return _print_new_linter_messages({}, messages, DiffLineMapping(), use_color)
+        return _print_new_linter_messages(
+            baseline={},
+            new_messages=messages,
+            diff_line_mapping=DiffLineMapping(),
+            use_color=use_color,
+        )
     git_paths = {(root / path).relative_to(git_root) for path in paths}
     baseline = _get_messages_from_linters_for_baseline(
         linter_cmdlines,
