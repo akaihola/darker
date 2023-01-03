@@ -66,6 +66,16 @@ def git_get_version() -> Tuple[int, ...]:
     raise RuntimeError(f"Unable to parse Git version: {output_lines!r}")
 
 
+def git_rev_parse(revision: str, cwd: Path) -> str:
+    """Return the commit hash for the given revision
+
+    :param revision: The revision to get the commit hash for
+    :param cwd: The root of the Git repository
+
+    """
+    return _git_check_output_lines(["rev-parse", revision], cwd)[0]
+
+
 def git_is_repository(path: Path) -> bool:
     """Return ``True`` if ``path`` is inside a Git working tree"""
     try:
