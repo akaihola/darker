@@ -19,6 +19,67 @@ SKIP_ON_UNIX = [] if sys.platform.startswith("win") else [pytest.mark.skip]
 
 
 @pytest.mark.kwparametrize(
+    dict(column=0, expect=f"{Path('/path/to/file.py')}:42"),
+    dict(column=5, expect=f"{Path('/path/to/file.py')}:42:5"),
+)
+def test_message_location_str(column, expect):
+    """Null column number is hidden from string representation of message location"""
+    location = MessageLocation(Path("/path/to/file.py"), 42, column)
+
+    result = str(location)
+
+    assert result == expect
+
+
+@pytest.mark.kwparametrize(
+    dict(
+        new_location=("/path/to/new_file.py", 43, 8),
+        old_location=("/path/to/old_file.py", 42, 13),
+        get_location=("/path/to/new_file.py", 43, 21),
+        expect_location=("/path/to/old_file.py", 42, 21),
+    ),
+    dict(
+        new_location=("/path/to/new_file.py", 43, 8),
+        old_location=("/path/to/old_file.py", 42, 13),
+        get_location=("/path/to/a_different_file.py", 43, 21),
+        expect_location=("", 0, 0),
+    ),
+    dict(
+        new_location=("/path/to/file.py", 43, 8),
+        old_location=("/path/to/file.py", 42, 13),
+        get_location=("/path/to/file.py", 42, 21),
+        expect_location=("", 0, 0),
+    ),
+)
+def test_diff_line_mapping_ignores_column(
+    new_location, old_location, get_location, expect_location
+):
+    """Diff location mapping ignores column and attaches column of queried location"""
+    mapping = linting.DiffLineMapping()
+    new_location_ = MessageLocation(Path(new_location[0]), *new_location[1:])
+    old_location = MessageLocation(Path(old_location[0]), *old_location[1:])
+    get_location = MessageLocation(Path(get_location[0]), *get_location[1:])
+    expect = MessageLocation(Path(expect_location[0]), *expect_location[1:])
+
+    mapping[new_location_] = old_location
+    result = mapping.get(get_location)
+
+    assert result == expect
+
+
+def test_normalize_whitespace():
+    """Whitespace runs and leading/trailing whitespace is normalized"""
+    description = "module.py:42:  \t  indented message,    trailing spaces and tabs \t "
+    message = LinterMessage("mylinter", description)
+
+    result = linting.normalize_whitespace(message)
+
+    assert result == LinterMessage(
+        "mylinter", "module.py:42: indented message, trailing spaces and tabs"
+    )
+
+
+@pytest.mark.kwparametrize(
     dict(
         line="module.py:42: Just a line number\n",
         expect=(Path("module.py"), 42, 0, "Just a line number"),
