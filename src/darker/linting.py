@@ -24,7 +24,7 @@ from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
 from subprocess import PIPE, Popen  # nosec
-from typing import IO, Generator, List, Set, Tuple
+from typing import IO, Collection, Dict, Generator, Iterable, List, Set, Tuple
 
 from darker.git import WORKTREE, EditedLinenumsDiffer, RevisionRange
 from darker.highlighting import colorize
@@ -60,6 +60,39 @@ class LinterMessage:
 
     linter: str
     description: str
+
+
+class DiffLineMapping:
+    """A mapping from unmodified lines in new and old versions of files"""
+
+    def __init__(self) -> None:
+        self._mapping: Dict[Tuple[Path, int], Tuple[Path, int]] = {}
+
+    def __setitem__(
+        self, new_location: MessageLocation, old_location: MessageLocation
+    ) -> None:
+        self._mapping[new_location.path, new_location.line] = (
+            old_location.path,
+            old_location.line,
+        )
+
+    def get(self, new_location: MessageLocation) -> MessageLocation:
+        """Get the old location of the message based on the mapping
+
+        The mapping is between line numbers, so the column number of the message in the
+        new file is injected into the corresponding location in the old version of the
+        file.
+
+        :param new_location: The path, line and column number of a linter message in the
+                             new version of a file
+        :return: The path, line and column number of the same message in the old version
+                 of the file
+
+        """
+        (old_path, old_line) = self._mapping.get(
+            (new_location.path, new_location.line), (Path(""), 0)
+        )
+        return MessageLocation(old_path, old_line, new_location.column)
 
 
 def _strict_nonneg_int(text: str) -> int:
