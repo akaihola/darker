@@ -66,7 +66,7 @@ a mixed result with only selected regions reformatted can be reconstructed.
 
 import logging
 from difflib import SequenceMatcher
-from typing import Generator, List, Sequence, Tuple
+from typing import Dict, Generator, List, Sequence, Tuple
 
 from darker.multiline_strings import find_overlap
 from darker.utils import DiffChunk, TextDocument
@@ -203,3 +203,33 @@ def diff_chunks(src: TextDocument, dst: TextDocument) -> List[DiffChunk]:
     """
     opcodes = diff_and_get_opcodes(src, dst)
     return list(opcodes_to_chunks(opcodes, src, dst))
+
+
+def map_unmodified_lines(src: TextDocument, dst: TextDocument) -> Dict[int, int]:
+    """Return a mapping of line numbers of unmodified lines between dst and src docs
+
+    After doing a diff between ``src`` and ``dst``, some identical chunks of lines may
+    be identified. For each such chunk, a mapping from every line number of the chunk in
+    ``dst`` to corresponding line number in ``src`` is added.
+
+    :param src: The original text document
+    :param dst: The modified text document
+    :return: A mapping from ``dst`` lines to corresponding unmodified ``src`` lines.
+             Line numbers are 1-based.
+
+    """
+    opcodes = diff_and_get_opcodes(src, dst)
+    _validate_opcodes(opcodes)
+    result = {}
+    for tag, src_start, src_end, dst_start, dst_end in opcodes:
+        if tag != "equal":
+            continue
+        for line_delta in range(dst_end - dst_start):
+            result[dst_start + line_delta + 1] = src_start + line_delta + 1
+        if line_delta != src_end - src_start - 1:
+            raise RuntimeError(
+                "Something is wrong, 'equal' diff blocks should have the same length."
+                f" src_start={src_start}, src_end={src_end},"
+                f" dst_start={dst_start}, dst_end={dst_end}"
+            )
+    return result
