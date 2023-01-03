@@ -6,12 +6,13 @@ import os
 import sys
 from pathlib import Path
 from textwrap import dedent
+from typing import Dict, Iterable, List, Tuple, Union
 
 import pytest
 
 from darker import linting
 from darker.git import WORKTREE, RevisionRange
-from darker.linting import LinterMessage, MessageLocation
+from darker.linting import DiffLineMapping, LinterMessage, MessageLocation
 from darker.tests.helpers import raises_if_exception
 
 SKIP_ON_WINDOWS = [pytest.mark.skip] if sys.platform.startswith("win") else []
@@ -402,3 +403,110 @@ def test_run_linters_line_separation(git_repo, capsys):
         a.py:6: of linter output [cat]
         """
     )
+
+
+def _build_messages(
+    lines_and_messages: Iterable[Union[Tuple[int, str], Tuple[int, str, str]]],
+) -> Dict[MessageLocation, List[LinterMessage]]:
+    return {
+        MessageLocation(Path("a.py"), line, 0): [
+            LinterMessage(*msg.split(":")) for msg in msgs
+        ]
+        for line, *msgs in lines_and_messages
+    }
+
+
+def test_print_new_linter_messages(capsys):
+    """`linting._print_new_linter_messages()` hides old intact linter messages"""
+    baseline = _build_messages(
+        [
+            (2, "mypy:single message on an unmodified line"),
+            (4, "mypy:single message on a disappearing line"),
+            (6, "mypy:single message on a moved line"),
+            (8, "mypy:single message on a modified line"),
+            (10, "mypy:multiple messages", "pylint:on the same moved line"),
+            (
+                12,
+                "mypy:old message which will be replaced",
+                "pylint:on an unmodified line",
+            ),
+            (14, "mypy:old message on a modified line"),
+        ]
+    )
+    new_messages = _build_messages(
+        [
+            (2, "mypy:single message on an unmodified line"),
+            (5, "mypy:single message on a moved line"),
+            (8, "mypy:single message on a modified line"),
+            (11, "mypy:multiple messages", "pylint:on the same moved line"),
+            (
+                12,
+                "mypy:new message replacing the old one",
+                "pylint:on an unmodified line",
+            ),
+            (14, "mypy:new message on a modified line"),
+            (16, "mypy:multiple messages", "pylint:on the same new line"),
+        ]
+    )
+    diff_line_mapping = DiffLineMapping()
+    for new_line, old_line in {2: 2, 5: 6, 11: 10, 12: 12}.items():
+        diff_line_mapping[MessageLocation(Path("a.py"), new_line)] = MessageLocation(
+            Path("a.py"), old_line
+        )
+
+    linting._print_new_linter_messages(
+        baseline, new_messages, diff_line_mapping, use_color=False
+    )
+
+    result = capsys.readouterr().out.splitlines()
+    assert result == [
+        "",
+        "a.py:8: single message on a modified line [mypy]",
+        "",
+        "a.py:12: new message replacing the old one [mypy]",
+        "",
+        "a.py:14: new message on a modified line [mypy]",
+        "",
+        "a.py:16: multiple messages [mypy]",
+        "a.py:16: on the same new line [pylint]",
+    ]
+
+
+LINT_EMPTY_LINES_CMD = """python -c '
+from pathlib import Path
+for path in Path(".").glob("**/*.py"):
+    for linenum, line in enumerate(path.open(), start=1):
+        if not line.strip():
+            print(f"{path}:{linenum}: EMPTY")
+'"""
+
+LINT_NONEMPTY_LINES_CMD = """python -c '
+from pathlib import Path
+for path in Path(".").glob("**/*.py"):
+    for linenum, line in enumerate(path.open(), start=1):
+        if line.strip():
+            print(f"{path}:{linenum}: {line.strip()}")
+'"""
+
+
+def test_get_messages_from_linters_for_baseline(git_repo):
+    """Test for `linting._get_messages_from_linters_for_baseline`"""
+    git_repo.add({"a.py": "First line\n\nThird line\n"}, commit="Initial commit")
+    initial = git_repo.get_hash()
+    git_repo.add({"a.py": "Just one line\n"}, commit="Second commit")
+    git_repo.create_branch("baseline", initial)
+
+    result = linting._get_messages_from_linters_for_baseline(
+        linter_cmdlines=[LINT_EMPTY_LINES_CMD, LINT_NONEMPTY_LINES_CMD],
+        root=git_repo.root,
+        paths=[Path("a.py"), Path("subdir/b.py")],
+        revision="baseline",
+    )
+
+    a_py = Path("a.py")
+    expect = {
+        MessageLocation(a_py, 1): [LinterMessage("python", "First line")],
+        MessageLocation(a_py, 2): [LinterMessage("python", "EMPTY")],
+        MessageLocation(a_py, 3): [LinterMessage("python", "Third line")],
+    }
+    assert result == expect
