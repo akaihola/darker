@@ -131,8 +131,8 @@ def filter_python_files(
     :param root: A common root directory for all ``paths``
     :param black_config: Black configuration which contains the exclude options read
                          from Black's configuration files
-    :return: Absolute paths of files which should be reformatted according to
-             ``black_config``
+    :return: Paths of files which should be reformatted according to
+             ``black_config``, relative to ``root``.
 
     """
     sig = inspect.signature(gen_python_files)
@@ -157,7 +157,7 @@ def filter_python_files(
             **kwargs,
         )
     )
-    return files_from_directories | files
+    return {p.resolve().relative_to(root) for p in files_from_directories | files}
 
 
 def run_black(src_contents: TextDocument, black_config: BlackConfig) -> TextDocument:
