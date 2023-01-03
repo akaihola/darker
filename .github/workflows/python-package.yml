@@ -113,10 +113,8 @@ jobs:
       - name: Download wheel uploaded by the build-wheel job
         uses: actions/download-artifact@v3
       - name: Install Darker and its dependencies from the wheel build earlier
-        env:
-          pip_options: ${{ matrix.upgrade }} ${{ matrix.constraints }}
-        run: pip install ${pip_options}
-                 "${{needs.build-wheel.outputs.wheel-path}}[test]"
+        run: pip install "${{needs.build-wheel.outputs.wheel-path}}[test]"
+                         ${{ matrix.upgrade }} ${{ matrix.constraints }}
       - name: Run Pytest
         run: |
           pytest --darker
