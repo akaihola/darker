@@ -47,6 +47,7 @@
 - john lee (@leej3)
 - jsuit (@jsuit)
 - Kentaro Wada (@wkentaro)
+- Kevin David (@Asuskf)
 - Krischtopp (@Krischtopp)
 - Leo Torres (@leotrs)
 - Magnus N. Malmquist (@magnunm)

@@ -1,6 +1,8 @@
 ---
 AckslD:
   - {link_type: issues, type: Bug reports}
+Asuskf:
+  - {link_type: search-discussions, type: Bug reports}
 Carreau:
   - {link_type: commits, type: Code}
   - {link_type: commits, type: Documentation}
