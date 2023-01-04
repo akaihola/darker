@@ -32,8 +32,6 @@ PatrickJordanCongenica:
   - {link_type: search-discussions, type: Bug reports}
 RishiKumarRay:
   - {link_type: search, type: Bug reports}
-Yajo:
-  - {link_type: search-comments, type: Reviewed Pull Requests}
 agandra:
   - {link_type: issues, type: Bug reports}
 akaihola:
@@ -176,6 +174,8 @@ wnoise:
   - {link_type: issues, type: Bug reports}
 wpnbos:
   - {link_type: issues, type: Bug reports}
+yajo:
+  - {link_type: search-comments, type: Reviewed Pull Requests}
 yoursvivek:
   - {link_type: issues, type: Bug reports}
   - {link_type: commits, type: Documentation}

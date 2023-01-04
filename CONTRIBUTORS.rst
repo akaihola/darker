@@ -40,7 +40,7 @@
 - Hugo Dupras (@jabesq)
 - Hugo van Kemenade (@hugovk)
 - Iryna (@irynahryshanovich)
-- Jairo Llopis (@Yajo)
+- Jairo Llopis (@yajo)
 - Jasleen Kaur (@jasleen19)
 - Jens Diemer (@jedie)
 - Jens Hedegaard Nielsen (@jenshnielsen)
