@@ -150,6 +150,8 @@ sherbie:
   - {link_type: pulls-reviewed, type: Reviewed Pull Requests}
 simgunz:
   - {link_type: search-comments, type: Reviewed Pull Requests}
+simonf-dev:
+  - {link_type: search-comments, type: Bug reports}
 soxofaan:
   - {link_type: pulls-author, type: Documentation}
 talhajunaidd:

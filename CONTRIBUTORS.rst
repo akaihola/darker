@@ -71,6 +71,7 @@
 - Ross Barnowski (@rossbar)
 - samoylovfp (@samoylovfp)
 - Sean Hammond (@sherbie)
+- sfoucek (@simonf-dev)
 - Shantanu (@hauntsaninja)
 - Simone Gaiarin (@simgunz)
 - Stefaan Lippens (@soxofaan)
