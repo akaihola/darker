@@ -44,6 +44,7 @@
 - Jasleen Kaur (@jasleen19)
 - Jens Diemer (@jedie)
 - Jens Hedegaard Nielsen (@jenshnielsen)
+- john lee (@leej3)
 - jsuit (@jsuit)
 - Kentaro Wada (@wkentaro)
 - Krischtopp (@Krischtopp)

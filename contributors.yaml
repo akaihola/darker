@@ -101,6 +101,8 @@ jsuit:
   - {link_type: search-discussions, type: Bug reports}
 k-dominik:
   - {link_type: search-comments, type: Bug reports}
+leej3:
+  - {link_type: search-comments, type: Bug reports}
 leotrs:
   - {link_type: issues, type: Bug reports}
 levouh:
