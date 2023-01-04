@@ -1,5 +1,7 @@
 """Help and usage instruction texts used for the command line parser"""
 
+from black import TargetVersion
+
 ISORT_INSTRUCTION = "Please run `pip install darker[isort]`"
 
 DESCRIPTION_PARTS = [
@@ -90,9 +92,8 @@ SKIP_MAGIC_TRAILING_COMMA = (
 LINE_LENGTH = "How many characters per line to allow [default: 88]"
 
 TARGET_VERSION = (
-    "[py33|py34|py35|py36|py37|py38|py39|py310|py311]"
-    " Python versions that should be supported by"
-    " Black's output. [default: py311]"
+    f"[{'|'.join(v.name.lower() for v in TargetVersion)}] Python versions that should"
+    " be supported by Black's output. [default: per-file auto-detection]"
 )
 
 WORKERS = "How many parallel workers to allow, or `0` for one per core [default: 1]"
