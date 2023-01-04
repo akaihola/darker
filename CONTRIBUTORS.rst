@@ -78,6 +78,7 @@
 - TJ Kolleh (@tkolleh)
 - Tobias Diez (@tobiasdiez)
 - Trevor Gross (@tgross35)
+- Victor Cui (@victorcui96)
 - Vivek Kushwaha (@yoursvivek)
 - Will (@Hainguyen1210)
 - Will Pimblett (@wjdp)
