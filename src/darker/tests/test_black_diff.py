@@ -57,7 +57,9 @@ class RegexEquality:
         config_lines=["skip-magic-trailing-comma = false"],
         expect={"skip_magic_trailing_comma": False},
     ),
-    dict(config_lines=["target-version = ['py37']"], expect={}),
+    dict(
+        config_lines=["target-version = ['py37']"], expect={"target_version": ["py37"]}
+    ),
     dict(config_lines=[r"include = '\.pyi$'"], expect={}),
     dict(
         config_lines=[r"exclude = '\.pyx$'"],

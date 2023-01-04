@@ -72,10 +72,12 @@ DEFAULT_INCLUDE_RE = re_compile_maybe_verbose(DEFAULT_INCLUDES)
 
 class BlackConfig(TypedDict, total=False):
     """Type definition for Black configuration dictionaries"""
+
     config: str
     exclude: Pattern[str]
     extend_exclude: Pattern[str]
     force_exclude: Pattern[str]
+    target_version: str
     line_length: int
     skip_string_normalization: bool
     skip_magic_trailing_comma: bool
@@ -83,6 +85,7 @@ class BlackConfig(TypedDict, total=False):
 
 class BlackModeAttributes(TypedDict, total=False):
     """Type definition for items accepted by ``black.Mode``"""
+
     target_versions: Set[TargetVersion]
     line_length: int
     string_normalization: bool
@@ -114,6 +117,17 @@ def read_black_config(src: Tuple[str, ...], value: Optional[str]) -> BlackConfig
     ]:
         if key in raw_config:
             config[key] = raw_config[key]  # type: ignore
+    if "target_version" in raw_config:
+        target_version = raw_config["target_version"]
+        if isinstance(target_version, str):
+            config["target_version"] = target_version
+        elif isinstance(target_version, list):
+            # Convert TOML list to a Python set
+            config["target_version"] = set(target_version)
+        else:
+            raise ConfigurationError(
+                f"Invalid target-version = {target_version!r} in {value}"
+            )
     for key in ["exclude", "extend_exclude", "force_exclude"]:
         if key in raw_config:
             config[key] = re_compile_maybe_verbose(raw_config[key])  # type: ignore
@@ -174,6 +188,11 @@ def run_black(src_contents: TextDocument, black_config: BlackConfig) -> TextDocu
     mode = BlackModeAttributes()
     if "line_length" in black_config:
         mode["line_length"] = black_config["line_length"]
+    if "target_version" in black_config:
+        ver_str = black_config["target_version"]
+        ver = next((v for v in TargetVersion if v.name.lower() == ver_str), None)
+        if ver:
+            mode["target_versions"] = {ver}
     if "skip_magic_trailing_comma" in black_config:
         mode["magic_trailing_comma"] = not black_config["skip_magic_trailing_comma"]
     if "skip_string_normalization" in black_config:

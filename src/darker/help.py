@@ -89,4 +89,6 @@ SKIP_MAGIC_TRAILING_COMMA = (
 
 LINE_LENGTH = "How many characters per line to allow [default: 88]"
 
+TARGET_VERSION = "Python versions that should be supported. [default: py37]"
+
 WORKERS = "How many parallel workers to allow, or `0` for one per core [default: 1]"
