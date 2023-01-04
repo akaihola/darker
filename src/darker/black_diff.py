@@ -36,7 +36,7 @@ import inspect
 import logging
 import sys
 from pathlib import Path
-from typing import Collection, Optional, Pattern, Set, Tuple
+from typing import Collection, Optional, Pattern, Set, Tuple, Union
 
 # `FileMode as Mode` required to satisfy mypy==0.782. Strange.
 from black import FileMode as Mode
@@ -54,6 +54,7 @@ from black.const import (  # pylint: disable=no-name-in-module
 from black.files import gen_python_files
 from black.report import Report
 
+from darker.config import ConfigurationError
 from darker.utils import TextDocument
 
 if sys.version_info >= (3, 8):
@@ -77,7 +78,7 @@ class BlackConfig(TypedDict, total=False):
     exclude: Pattern[str]
     extend_exclude: Pattern[str]
     force_exclude: Pattern[str]
-    target_version: str
+    target_version: Union[str, Set[str]]
     line_length: int
     skip_string_normalization: bool
     skip_magic_trailing_comma: bool
@@ -189,10 +190,15 @@ def run_black(src_contents: TextDocument, black_config: BlackConfig) -> TextDocu
     if "line_length" in black_config:
         mode["line_length"] = black_config["line_length"]
     if "target_version" in black_config:
-        ver_str = black_config["target_version"]
-        ver = next((v for v in TargetVersion if v.name.lower() == ver_str), None)
-        if ver:
-            mode["target_versions"] = {ver}
+        if isinstance(black_config["target_version"], set):
+            target_versions_in = black_config["target_version"]
+        else:
+            target_versions_in = {black_config["target_version"]}
+        all_target_versions = {tgt_v.name.lower(): tgt_v for tgt_v in TargetVersion}
+        bad_target_versions = target_versions_in - set(all_target_versions)
+        if bad_target_versions:
+            raise ConfigurationError(f"Invalid target version(s) {bad_target_versions}")
+        mode["target_versions"] = {all_target_versions[n] for n in target_versions_in}
     if "skip_magic_trailing_comma" in black_config:
         mode["magic_trailing_comma"] = not black_config["skip_magic_trailing_comma"]
     if "skip_string_normalization" in black_config:

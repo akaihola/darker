@@ -4,6 +4,7 @@ requires = ["setuptools", "wheel"]  # PEP 508 specifications.
 
 [tool.black]
 skip-string-normalization = false
+target-version = ["py311"]
 
 [tool.isort]
 profile = "black"

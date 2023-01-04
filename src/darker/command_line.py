@@ -85,6 +85,25 @@ def make_argument_parser(require_src: bool) -> ArgumentParser:
         dest="line_length",
         metavar="LENGTH",
     )
+    add_arg(
+        hlp.TARGET_VERSION,
+        "-t",
+        "--target-version",
+        type=str,
+        dest="target_version",
+        metavar="VERSION",
+        choices=[
+            "py33",
+            "py34",
+            "py35",
+            "py36",
+            "py37",
+            "py38",
+            "py39",
+            "py310",
+            "py311",
+        ],
+    )
     add_arg(hlp.WORKERS, "-W", "--workers", type=int, dest="workers", default=1)
     # A hidden option for printing command lines option in a format suitable for
     # `README.rst`:
