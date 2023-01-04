@@ -166,6 +166,8 @@ wkentaro:
   - {link_type: issues, type: Bug reports}
 wnoise:
   - {link_type: issues, type: Bug reports}
+wpnbos:
+  - {link_type: issues, type: Bug reports}
 yoursvivek:
   - {link_type: issues, type: Bug reports}
   - {link_type: commits, type: Documentation}
