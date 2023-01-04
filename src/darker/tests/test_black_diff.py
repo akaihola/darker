@@ -1,12 +1,25 @@
 """Unit tests for `darker.black_diff`"""
 
 import re
+import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 from unittest.mock import ANY, patch
 
 import pytest
 import regex
+
+if sys.version_info >= (3, 11):
+    try:
+        import tomllib
+    except ImportError:
+        # Help users on older alphas
+        if not TYPE_CHECKING:
+            import tomli as tomllib
+else:
+    import tomli as tomllib
+
+from black import Mode, TargetVersion
 
 from darker import black_diff
 from darker.black_diff import (
@@ -15,6 +28,8 @@ from darker.black_diff import (
     read_black_config,
     run_black,
 )
+from darker.config import ConfigurationError
+from darker.tests.helpers import raises_or_matches
 from darker.utils import TextDocument
 
 
@@ -57,8 +72,23 @@ class RegexEquality:
         config_lines=["skip-magic-trailing-comma = false"],
         expect={"skip_magic_trailing_comma": False},
     ),
+    dict(config_lines=["target-version ="], expect=tomllib.TOMLDecodeError()),
+    dict(config_lines=["target-version = false"], expect=ConfigurationError()),
+    dict(config_lines=["target-version = 'py37'"], expect={"target_version": "py37"}),
     dict(
-        config_lines=["target-version = ['py37']"], expect={"target_version": ["py37"]}
+        config_lines=["target-version = ['py37']"], expect={"target_version": {"py37"}}
+    ),
+    dict(
+        config_lines=["target-version = ['py39']"],
+        expect={"target_version": {"py39"}},
+    ),
+    dict(
+        config_lines=["target-version = ['py37', 'py39']"],
+        expect={"target_version": {"py37", "py39"}},
+    ),
+    dict(
+        config_lines=["target-version = ['py39', 'py37']"],
+        expect={"target_version": {"py39", "py37"}},
     ),
     dict(config_lines=[r"include = '\.pyi$'"], expect={}),
     dict(
@@ -85,10 +115,9 @@ def test_read_black_config(tmpdir, config_path, config_lines, expect):
     src = tmpdir / "src.py"
     toml = tmpdir / (config_path or "pyproject.toml")
     toml.write_text("[tool.black]\n{}\n".format("\n".join(config_lines)))
+    with raises_or_matches(expect, []) as check:
 
-    config = read_black_config((str(src),), config_path and str(toml))
-
-    assert config == expect
+        check(read_black_config((str(src),), config_path and str(toml)))
 
 
 @pytest.mark.kwparametrize(
@@ -245,3 +274,87 @@ def test_run_black_all_whitespace_input(src_content, expect):
     result = run_black(src, BlackConfig())
 
     assert result.string == expect
+
+
+@pytest.mark.kwparametrize(
+    dict(black_config={}),
+    dict(
+        black_config={"target_version": "py37"},
+        expect_target_versions={TargetVersion.PY37},
+    ),
+    dict(
+        black_config={"target_version": "py39"},
+        expect_target_versions={TargetVersion.PY39},
+    ),
+    dict(
+        black_config={"target_version": {"py37"}},
+        expect_target_versions={TargetVersion.PY37},
+    ),
+    dict(
+        black_config={"target_version": {"py39"}},
+        expect_target_versions={TargetVersion.PY39},
+    ),
+    dict(
+        black_config={"target_version": {"py37", "py39"}},
+        expect_target_versions={TargetVersion.PY37, TargetVersion.PY39},
+    ),
+    dict(
+        black_config={"target_version": {"py39", "py37"}},
+        expect_target_versions={TargetVersion.PY37, TargetVersion.PY39},
+    ),
+    dict(
+        black_config={"target_version": False},
+        expect=ConfigurationError(),
+    ),
+    dict(
+        black_config={"target_version": {False}},
+        expect=ConfigurationError(),
+    ),
+    dict(black_config={"line_length": 80}, expect_line_length=80),
+    dict(
+        black_config={"skip_string_normalization": False},
+        expect_string_normalization=True,
+    ),
+    dict(
+        black_config={"skip_string_normalization": True},
+        expect_string_normalization=False,
+    ),
+    dict(
+        black_config={"skip_magic_trailing_comma": False},
+        expect_magic_trailing_comma=True,
+    ),
+    dict(
+        black_config={"skip_magic_trailing_comma": True},
+        expect_magic_trailing_comma=False,
+    ),
+    expect=TextDocument.from_str("import os\n"),
+    expect_target_versions=set(),
+    expect_line_length=88,
+    expect_string_normalization=True,
+    expect_magic_trailing_comma=True,
+)
+def test_run_black_configuration(
+    black_config,
+    expect,
+    expect_target_versions,
+    expect_line_length,
+    expect_string_normalization,
+    expect_magic_trailing_comma,
+):
+    """`run_black` passes correct configuration to Black"""
+    src = TextDocument.from_str("import  os\n")
+    with patch.object(black_diff, "format_str") as format_str, raises_or_matches(
+        expect, []
+    ) as check:
+        format_str.return_value = "import os\n"
+
+        check(run_black(src, black_config))
+
+        assert format_str.call_count == 1
+        mode = format_str.call_args[1]["mode"]
+        assert mode == Mode(
+            target_versions=expect_target_versions,
+            line_length=expect_line_length,
+            string_normalization=expect_string_normalization,
+            magic_trailing_comma=expect_magic_trailing_comma,
+        )
