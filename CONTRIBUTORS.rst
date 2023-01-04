@@ -28,6 +28,7 @@
 - David Sanders (@shangxiao)
 - deadkex (@deadkex)
 - Dhruv Kumar Jha (@dhrvjha)
+- Dominik Kutra (@k-dominik)
 - dsmanl (@dsmanl)
 - Dustin Spicuzza (@virtuald)
 - DylanYoung (@DylanYoung)
