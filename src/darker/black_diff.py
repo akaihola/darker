@@ -43,7 +43,6 @@ from black import FileMode as Mode
 from black import (
     TargetVersion,
     find_pyproject_toml,
-    format_str,
     parse_pyproject_toml,
     re_compile_maybe_verbose,
 )
@@ -54,6 +53,7 @@ from black.const import (  # pylint: disable=no-name-in-module
 from black.files import gen_python_files
 from black.report import Report
 
+from darker.linewise_black import format_str_to_chunks
 from darker.utils import TextDocument
 
 if sys.version_info >= (3, 8):
@@ -187,7 +187,8 @@ def run_black(src_contents: TextDocument, black_config: BlackConfig) -> TextDocu
     # https://github.com/psf/black/pull/2484 lands in Black.
     contents_for_black = src_contents.string_with_newline("\n")
     if contents_for_black.strip():
-        dst_contents = format_str(contents_for_black, mode=Mode(**mode))
+        dst_chunks = format_str_to_chunks(contents_for_black, mode=Mode(**mode))
+        dst_contents = "".join(line for chunk in dst_chunks for line in chunk)
     else:
         dst_contents = "\n" if "\n" in src_contents.string else ""
     return TextDocument.from_str(
