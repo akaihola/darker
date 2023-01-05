@@ -290,7 +290,10 @@ def _git_check_output(
         if not exit_on_error:
             raise
         if exc_info.returncode != 128:
-            sys.stderr.write(exc_info.stderr)
+            if encoding:
+                sys.stderr.write(exc_info.stderr)
+            else:
+                sys.stderr.buffer.write(exc_info.stderr)
             raise
 
         # Bad revision or another Git failure. Follow Black's example and return the
