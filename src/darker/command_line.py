@@ -42,6 +42,7 @@ def make_argument_parser(require_src: bool) -> ArgumentParser:
     add_arg(hlp.REVISION, "-r", "--revision", default="HEAD", metavar="REV")
     add_arg(hlp.DIFF, "--diff", action="store_true")
     add_arg(hlp.STDOUT, "-d", "--stdout", action="store_true")
+    add_arg(hlp.STDIN_FILENAME, "--stdin-filename", metavar="PATH")
     add_arg(hlp.CHECK, "--check", action="store_true")
     add_arg(hlp.FLYNT, "-f", "--flynt", action="store_true")
     add_arg(hlp.ISORT, "-i", "--isort", action="store_true")
