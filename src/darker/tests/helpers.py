@@ -20,8 +20,6 @@ def raises_if_exception(expect: Any) -> Union[RaisesContext[Any], ContextManager
     """Return a ``pytest.raises`` context manager only if expecting an exception
 
     If the expected value is not an exception, return a dummy context manager.
-    On Python 3.8+ :class:`contextlib.nullcontext` is returned,
-    while on older Pythons :class:`contextlib.suppress` is used instead.
 
     """
     if (isinstance(expect, type) and issubclass(expect, BaseException)) or (

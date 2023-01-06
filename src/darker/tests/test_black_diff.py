@@ -1,23 +1,16 @@
 """Unit tests for `darker.black_diff`"""
 
+# pylint: disable=too-many-arguments
+
 import re
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import TYPE_CHECKING
 from unittest.mock import ANY, patch
 
 import pytest
 import regex
-
-if sys.version_info >= (3, 11):
-    try:
-        import tomllib
-    except ImportError:
-        # Help users on older alphas
-        if not TYPE_CHECKING:
-            import tomli as tomllib
-else:
-    import tomli as tomllib
 
 from black import Mode, TargetVersion
 
@@ -31,6 +24,16 @@ from darker.black_diff import (
 from darker.config import ConfigurationError
 from darker.tests.helpers import raises_or_matches
 from darker.utils import TextDocument
+
+if sys.version_info >= (3, 11):
+    try:
+        import tomllib
+    except ImportError:
+        # Help users on older alphas
+        if not TYPE_CHECKING:
+            import tomli as tomllib
+else:
+    import tomli as tomllib
 
 
 @dataclass

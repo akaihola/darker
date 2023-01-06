@@ -169,7 +169,7 @@ def filter_python_files(
             extend_exclude=black_config.get("extend_exclude"),
             force_exclude=black_config.get("force_exclude"),
             report=Report(),
-            **kwargs,
+            **kwargs,  # type: ignore[arg-type]
         )
     )
     return files_from_directories | files

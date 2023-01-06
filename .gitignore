@@ -4,3 +4,6 @@ darker.egg-info/
 __pycache__/
 .mypy_cache/
 *.pyc
+/.vscode/
+/build
+/venv
