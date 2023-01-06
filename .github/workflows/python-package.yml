@@ -115,6 +115,10 @@ jobs:
       - name: Install Darker and its dependencies from the wheel build earlier
         run: pip install "${{needs.build-wheel.outputs.wheel-path}}[test]"
                          ${{ matrix.upgrade }} ${{ matrix.constraints }}
+      - name: Downgrade target-version when running oldest supported Black
+        if: matrix.constraints == '--constraint constraints-oldest.txt'
+        run: |
+          sed -i 's/py311/py39/' pyproject.toml
       - name: Run Pytest
         run: |
           pytest --darker

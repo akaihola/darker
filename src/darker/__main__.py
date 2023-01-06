@@ -387,6 +387,8 @@ def main(  # pylint: disable=too-many-locals,too-many-branches,too-many-statemen
         black_config["config"] = args.config
     if args.line_length:
         black_config["line_length"] = args.line_length
+    if args.target_version:
+        black_config["target_version"] = {args.target_version}
     if args.skip_string_normalization is not None:
         black_config["skip_string_normalization"] = args.skip_string_normalization
     if args.skip_magic_trailing_comma is not None:

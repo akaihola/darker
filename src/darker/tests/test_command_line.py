@@ -12,6 +12,7 @@ from unittest.mock import DEFAULT, Mock, call, patch
 
 import pytest
 import toml
+from black import TargetVersion
 
 import darker.help
 from darker import black_diff
@@ -396,6 +397,36 @@ def test_parse_command_line_config_location_specified(
         expect_modified=("line_length", 99),
     ),
     dict(
+        argv=["--target-version", "py37", "."],
+        expect_value=("target_version", "py37"),
+        expect_config=("target_version", "py37"),
+        expect_modified=("target_version", "py37"),
+    ),
+    dict(
+        argv=["--target-version", "py39", "."],
+        expect_value=("target_version", "py39"),
+        expect_config=("target_version", "py39"),
+        expect_modified=("target_version", "py39"),
+    ),
+    dict(
+        argv=["--target-version", "py37", "--target-version", "py39", "."],
+        expect_value=("target_version", "py39"),
+        expect_config=("target_version", "py39"),
+        expect_modified=("target_version", "py39"),
+    ),
+    dict(
+        argv=["--target-version", "py39", "--target-version", "py37", "."],
+        expect_value=("target_version", "py37"),
+        expect_config=("target_version", "py37"),
+        expect_modified=("target_version", "py37"),
+    ),
+    dict(
+        argv=["--target-version", "py39,py37", "."],
+        expect_value=SystemExit,
+        expect_config=None,
+        expect_modified=None,
+    ),
+    dict(
         # this is accepted as a path, but would later fail if a file or directory with
         # that funky name doesn't exist
         argv=["--suspicious path"],
@@ -476,11 +507,19 @@ def test_help_with_isort_package(capsys):
     dict(options=[], expect=call()),
     dict(
         options=["-c", "black.cfg"],
-        expect=call(line_length=81, string_normalization=True),
+        expect=call(
+            line_length=81,
+            string_normalization=True,
+            target_versions={TargetVersion.PY38},
+        ),
     ),
     dict(
         options=["--config", "black.cfg"],
-        expect=call(line_length=81, string_normalization=True),
+        expect=call(
+            line_length=81,
+            string_normalization=True,
+            target_versions={TargetVersion.PY38},
+        ),
     ),
     dict(options=["-S"], expect=call(string_normalization=False)),
     dict(
@@ -490,11 +529,19 @@ def test_help_with_isort_package(capsys):
     dict(options=["--line-length", "90"], expect=call(line_length=90)),
     dict(
         options=["-c", "black.cfg", "-S"],
-        expect=call(line_length=81, string_normalization=False),
+        expect=call(
+            line_length=81,
+            string_normalization=False,
+            target_versions={TargetVersion.PY38},
+        ),
     ),
     dict(
         options=["-c", "black.cfg", "-l", "90"],
-        expect=call(line_length=90, string_normalization=True),
+        expect=call(
+            line_length=90,
+            string_normalization=True,
+            target_versions={TargetVersion.PY38},
+        ),
     ),
     dict(
         options=["-l", "90", "-S"],
@@ -502,7 +549,44 @@ def test_help_with_isort_package(capsys):
     ),
     dict(
         options=["-c", "black.cfg", "-l", "90", "-S"],
-        expect=call(line_length=90, string_normalization=False),
+        expect=call(
+            line_length=90,
+            string_normalization=False,
+            target_versions={TargetVersion.PY38},
+        ),
+    ),
+    dict(options=["-t", "py39"], expect=call(target_versions={TargetVersion.PY39})),
+    dict(
+        options=["--target-version", "py39"],
+        expect=call(target_versions={TargetVersion.PY39}),
+    ),
+    dict(
+        options=["-c", "black.cfg", "-S"],
+        expect=call(
+            line_length=81,
+            string_normalization=False,
+            target_versions={TargetVersion.PY38},
+        ),
+    ),
+    dict(
+        options=["-c", "black.cfg", "-t", "py39"],
+        expect=call(
+            line_length=81,
+            string_normalization=True,
+            target_versions={TargetVersion.PY39},
+        ),
+    ),
+    dict(
+        options=["-t", "py39", "-S"],
+        expect=call(string_normalization=False, target_versions={TargetVersion.PY39}),
+    ),
+    dict(
+        options=["-c", "black.cfg", "-t", "py39", "-S"],
+        expect=call(
+            line_length=81,
+            string_normalization=False,
+            target_versions={TargetVersion.PY39},
+        ),
     ),
 )
 def test_black_options(monkeypatch, tmpdir, git_repo, options, expect):
@@ -515,6 +599,7 @@ def test_black_options(monkeypatch, tmpdir, git_repo, options, expect):
             [tool.black]
             line-length = 81
             skip-string-normalization = false
+            target-version = 'py38'
             """
         )
     )
@@ -572,35 +657,49 @@ def test_black_options(monkeypatch, tmpdir, git_repo, options, expect):
         options=["--no-skip-string-normalization"],
         expect=call(string_normalization=True),
     ),
+    dict(
+        config=[],
+        options=["--skip-magic-trailing-comma"],
+        expect=call(magic_trailing_comma=False),
+    ),
+    dict(
+        config=["skip_magic_trailing_comma = false"],
+        options=[],
+        expect=call(magic_trailing_comma=True),
+    ),
+    dict(
+        config=["skip_magic_trailing_comma = true"],
+        options=[],
+        expect=call(magic_trailing_comma=False),
+    ),
+    dict(
+        config=[],
+        options=["--target-version", "py39"],
+        expect=call(target_versions={TargetVersion.PY39}),
+    ),
+    dict(
+        config=["target-version = 'py39'"],
+        options=[],
+        expect=call(target_versions={TargetVersion.PY39}),
+    ),
+    dict(
+        config=["target_version = ['py39']"],
+        options=[],
+        expect=call(target_versions={TargetVersion.PY39}),
+    ),
+    dict(
+        config=["target-version = 'py38'"],
+        options=["--target-version", "py39"],
+        expect=call(target_versions={TargetVersion.PY39}),
+    ),
+    dict(
+        config=["target-version = ['py38']"],
+        options=["-t", "py39"],
+        expect=call(target_versions={TargetVersion.PY39}),
+    ),
 )
-def test_black_options_skip_string_normalization(git_repo, config, options, expect):
-    """Black string normalization config and cmdline option are combined correctly"""
-    added_files = git_repo.add(
-        {"main.py": "foo", "pyproject.toml": joinlines(["[tool.black]"] + config)},
-        commit="Initial commit",
-    )
-    added_files["main.py"].write_bytes(b"bar")
-    mode_class_mock = Mock(wraps=black_diff.Mode)
-    # Speed up tests by mocking `format_str` to skip running Black
-    format_str = Mock(return_value="bar")
-    with patch.multiple(black_diff, Mode=mode_class_mock, format_str=format_str):
-
-        main(options + [str(path) for path in added_files.values()])
-
-    assert mode_class_mock.call_args_list == [expect]
-
-
-@pytest.mark.parametrize(
-    "config, options, expect",
-    [
-        ([], [], call()),
-        ([], ["--skip-magic-trailing-comma"], call(magic_trailing_comma=False)),
-        (["skip_magic_trailing_comma = false"], [], call(magic_trailing_comma=True)),
-        (["skip_magic_trailing_comma = true"], [], call(magic_trailing_comma=False)),
-    ],
-)
-def test_black_options_skip_magic_trailing_comma(git_repo, config, options, expect):
-    """Black string normalization config and cmdline option are combined correctly"""
+def test_black_config_file_and_options(git_repo, config, options, expect):
+    """Black configuration file and command line options are combined correctly"""
     added_files = git_repo.add(
         {"main.py": "foo", "pyproject.toml": joinlines(["[tool.black]"] + config)},
         commit="Initial commit",
@@ -677,6 +776,16 @@ def test_black_options_skip_magic_trailing_comma(git_repo, config, options, expe
             Exclusions(black=set(), isort={"**/*"}),
             RevisionRange("HEAD", ":WORKTREE:"),
             {},
+        ),
+    ),
+    dict(
+        options=["--target-version", "py39", "a.py"],
+        expect=(
+            Path("git_root"),
+            {Path("a.py")},
+            Exclusions(black=set(), isort={"**/*"}),
+            RevisionRange("HEAD", ":WORKTREE:"),
+            {"target_version": {"py39"}},
         ),
     ),
 )

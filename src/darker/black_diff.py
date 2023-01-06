@@ -36,7 +36,7 @@ import inspect
 import logging
 import sys
 from pathlib import Path
-from typing import Collection, Optional, Pattern, Set, Tuple
+from typing import Collection, Optional, Pattern, Set, Tuple, Union
 
 # `FileMode as Mode` required to satisfy mypy==0.782. Strange.
 from black import FileMode as Mode
@@ -54,6 +54,7 @@ from black.const import (  # pylint: disable=no-name-in-module
 from black.files import gen_python_files
 from black.report import Report
 
+from darker.config import ConfigurationError
 from darker.utils import TextDocument
 
 if sys.version_info >= (3, 8):
@@ -72,10 +73,12 @@ DEFAULT_INCLUDE_RE = re_compile_maybe_verbose(DEFAULT_INCLUDES)
 
 class BlackConfig(TypedDict, total=False):
     """Type definition for Black configuration dictionaries"""
+
     config: str
     exclude: Pattern[str]
     extend_exclude: Pattern[str]
     force_exclude: Pattern[str]
+    target_version: Union[str, Set[str]]
     line_length: int
     skip_string_normalization: bool
     skip_magic_trailing_comma: bool
@@ -83,6 +86,7 @@ class BlackConfig(TypedDict, total=False):
 
 class BlackModeAttributes(TypedDict, total=False):
     """Type definition for items accepted by ``black.Mode``"""
+
     target_versions: Set[TargetVersion]
     line_length: int
     string_normalization: bool
@@ -114,6 +118,17 @@ def read_black_config(src: Tuple[str, ...], value: Optional[str]) -> BlackConfig
     ]:
         if key in raw_config:
             config[key] = raw_config[key]  # type: ignore
+    if "target_version" in raw_config:
+        target_version = raw_config["target_version"]
+        if isinstance(target_version, str):
+            config["target_version"] = target_version
+        elif isinstance(target_version, list):
+            # Convert TOML list to a Python set
+            config["target_version"] = set(target_version)
+        else:
+            raise ConfigurationError(
+                f"Invalid target-version = {target_version!r} in {value}"
+            )
     for key in ["exclude", "extend_exclude", "force_exclude"]:
         if key in raw_config:
             config[key] = re_compile_maybe_verbose(raw_config[key])  # type: ignore
@@ -174,6 +189,16 @@ def run_black(src_contents: TextDocument, black_config: BlackConfig) -> TextDocu
     mode = BlackModeAttributes()
     if "line_length" in black_config:
         mode["line_length"] = black_config["line_length"]
+    if "target_version" in black_config:
+        if isinstance(black_config["target_version"], set):
+            target_versions_in = black_config["target_version"]
+        else:
+            target_versions_in = {black_config["target_version"]}
+        all_target_versions = {tgt_v.name.lower(): tgt_v for tgt_v in TargetVersion}
+        bad_target_versions = target_versions_in - set(all_target_versions)
+        if bad_target_versions:
+            raise ConfigurationError(f"Invalid target version(s) {bad_target_versions}")
+        mode["target_versions"] = {all_target_versions[n] for n in target_versions_in}
     if "skip_magic_trailing_comma" in black_config:
         mode["magic_trailing_comma"] = not black_config["skip_magic_trailing_comma"]
     if "skip_string_normalization" in black_config:

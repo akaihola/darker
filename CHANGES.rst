@@ -8,6 +8,8 @@ Added
 - Make unit tests compatible with ``pytest --log-cli-level==DEBUG``.
   Doctests are still incompatible due to
   `pytest#5908 <https://github.com/pytest-dev/pytest/issues/5908>`_.
+- Black's ``target-version =`` configuration file option and ``-t`` /
+  ``--target-version`` command line option
 
 
 Fixed

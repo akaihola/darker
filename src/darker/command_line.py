@@ -3,6 +3,8 @@
 from argparse import SUPPRESS, ArgumentParser, Namespace
 from typing import Any, List, Optional, Tuple
 
+from black import TargetVersion
+
 from darker import help as hlp
 from darker.argparse_helpers import (
     LogLevelAction,
@@ -84,6 +86,15 @@ def make_argument_parser(require_src: bool) -> ArgumentParser:
         type=int,
         dest="line_length",
         metavar="LENGTH",
+    )
+    add_arg(
+        hlp.TARGET_VERSION,
+        "-t",
+        "--target-version",
+        type=str,
+        dest="target_version",
+        metavar="VERSION",
+        choices=[v.name.lower() for v in TargetVersion],
     )
     add_arg(hlp.WORKERS, "-W", "--workers", type=int, dest="workers", default=1)
     # A hidden option for printing command lines option in a format suitable for

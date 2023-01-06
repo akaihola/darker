@@ -338,12 +338,16 @@ The following `command line arguments`_ can also be used to modify the defaults:
        to override ``skip_magic_trailing_comma = true`` from a configuration file.
 -l LENGTH, --line-length LENGTH
        How many characters per line to allow [default: 88]
+-t VERSION, --target-version VERSION
+       [py33|py34|py35|py36|py37|py38|py39|py310|py311] Python versions that should be
+       supported by Black's output. [default: per-file auto-detection]
 -W WORKERS, --workers WORKERS
        How many parallel workers to allow, or ``0`` for one per core [default: 1]
 
 To change default values for these options for a given project,
-add a ``[tool.darker]`` section to ``pyproject.toml`` in the project's root directory.
-For example:
+add a ``[tool.darker]`` or ``[tool.black]`` section to ``pyproject.toml`` in the
+project's root directory, or to a different TOML file specified using the ``-c`` /
+``--config`` option. For example:
 
 .. code-block:: toml
 
@@ -358,7 +362,26 @@ For example:
    lint = [
        "pylint",
    ]
+   line-length = 80                  # Passed to isort and Black, override their config
    log_level = "INFO"
+
+   [tool.black]
+   line-length = 88                  # Overridden by [tool.darker] above
+   skip-magic-trailing-comma = false
+   skip-string-normalization = false
+   target-version = ['py311']
+   exclude = "test_*\.py"
+   extend_exclude = "/generated/"
+   force_exclude = ".*\.pyi"
+
+   [tool.isort]
+   profile = "black"
+   known_third_party = ["pytest"]
+   line_length = 88                  # Overridden by [tool.darker] above
+
+While isort_ reads all of its options from the configuration file, Black_ only honors
+the ones listed above when called by ``darker``. Other tools are invoked as
+subprocesses and use their configuration mechanisms unmodified.
 
 Be careful to not use options which generate output which is unexpected for
 other tools. For example, VSCode only expects the reformat diff, so
@@ -384,13 +407,13 @@ other tools. For example, VSCode only expects the reformat diff, so
 
 *New in version 1.2.2:* Support for ``-r :PRE-COMMIT:`` / ``--revision=:PRE_COMMIT:``
 
-*New in version 1.3.0:* Support for command line option ``--skip-magic-trailing-comma``
+*New in version 1.3.0:* The ``--skip-magic-trailing-comma`` and ``-d`` / ``--stdout``
+command line options
 
-*New in version 1.3.0:* The ``-d`` / ``--stdout`` command line option
+*New in version 1.5.0:* The ``-W`` / ``--workers``, ``--color`` and ``--no-color``
+command line options
 
-*New in version 1.5.0:* The ``-W`` / ``--workers`` command line option
-
-*New in version 1.5.0:* The ``--color`` and ``--no-color`` command line options
+*New in version 1.7.0:* The ``-t`` / ``--target-version`` command line option
 
 .. _Black documentation about pyproject.toml: https://black.readthedocs.io/en/stable/usage_and_configuration/the_basics.html#configuration-via-a-file
 .. _isort documentation about config files: https://timothycrosley.github.io/isort/docs/configuration/config_files/
