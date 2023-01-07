@@ -20,6 +20,7 @@ provided that the ``<linenum>`` falls on a changed line.
 """
 
 import logging
+import shlex
 from contextlib import contextmanager
 from pathlib import Path
 from subprocess import PIPE, Popen  # nosec
@@ -27,6 +28,7 @@ from typing import IO, Generator, List, Set, Tuple
 
 from darker.git import WORKTREE, EditedLinenumsDiffer, RevisionRange
 from darker.highlighting import colorize
+from darker.utils import WINDOWS
 
 logger = logging.getLogger(__name__)
 
@@ -143,7 +145,9 @@ def _check_linter_output(
     :return: The standard output stream of the linter subprocess
 
     """
-    cmdline_and_paths = cmdline.split() + [str(root / path) for path in sorted(paths)]
+    cmdline_and_paths = shlex.split(cmdline, posix=not WINDOWS) + [
+        str(root / path) for path in sorted(paths)
+    ]
     logger.debug("[%s]$ %s", Path.cwd(), " ".join(cmdline_and_paths))
     with Popen(  # nosec
         cmdline_and_paths,
