@@ -11,13 +11,14 @@ Added
 - Black's ``target-version =`` configuration file option and ``-t`` /
   ``--target-version`` command line option
 
-
 Fixed
 -----
 - Compatibility of highlighting unit tests with Pygments 2.14.0.
 - In the CI test workflow, don't use environment variables to add a Black version
   constraint to the ``pip`` command. This fixes the Windows builds.
 - Pass Git errors to stderr correctly both in raw and encoded subprocess output mode.
+- Add a work-around for cleaning up temporary directories. Needed for Python 3.7 on
+  Windows.
 
 
 1.6.1_ - 2022-12-28
