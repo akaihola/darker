@@ -10,6 +10,7 @@ import pytest
 from black import find_project_root as black_find_project_root
 
 from darker.git import _git_check_output_lines, git_get_version
+from darker.utils import fix_py37_win_tempdir_permissions
 
 
 class GitRepoFixture:
@@ -114,7 +115,10 @@ def git_repo(tmp_path, monkeypatch):
     # variables for any Git commands run by the fixture, let's explicitly remove
     # `GIT_DIR` in case a test should call Git directly:
     monkeypatch.delenv("GIT_DIR", raising=False)
-    return repository
+
+    yield repository
+
+    fix_py37_win_tempdir_permissions(repository.root)
 
 
 @pytest.fixture
