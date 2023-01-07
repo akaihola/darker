@@ -3,7 +3,6 @@
 """Unit tests for :mod:`darker.linting`"""
 
 import os
-import sys
 from pathlib import Path
 from textwrap import dedent
 from unittest.mock import call, patch
@@ -13,9 +12,10 @@ import pytest
 from darker import linting
 from darker.git import WORKTREE, RevisionRange
 from darker.tests.helpers import raises_if_exception
+from darker.utils import WINDOWS
 
-SKIP_ON_WINDOWS = [pytest.mark.skip] if sys.platform.startswith("win") else []
-SKIP_ON_UNIX = [] if sys.platform.startswith("win") else [pytest.mark.skip]
+SKIP_ON_WINDOWS = [pytest.mark.skip] if WINDOWS else []
+SKIP_ON_UNIX = [] if WINDOWS else [pytest.mark.skip]
 
 
 @pytest.mark.kwparametrize(

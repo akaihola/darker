@@ -2,6 +2,7 @@
 
 import io
 import logging
+import sys
 import tokenize
 from datetime import datetime
 from itertools import chain
@@ -13,6 +14,7 @@ logger = logging.getLogger(__name__)
 TextLines = Tuple[str, ...]
 
 
+WINDOWS = sys.platform.startswith("win")
 GIT_DATEFORMAT = "%Y-%m-%d %H:%M:%S.%f +0000"
 
 
