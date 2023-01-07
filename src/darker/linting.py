@@ -26,7 +26,7 @@ from pathlib import Path
 from subprocess import PIPE, Popen  # nosec
 from typing import IO, Generator, List, Set, Tuple
 
-from darker.git import WORKTREE, EditedLinenumsDiffer, RevisionRange
+from darker.git import WORKTREE, EditedLinenumsDiffer, RevisionRange, shlex_join
 from darker.highlighting import colorize
 from darker.utils import WINDOWS
 
@@ -148,7 +148,7 @@ def _check_linter_output(
     cmdline_and_paths = shlex.split(cmdline, posix=not WINDOWS) + [
         str(root / path) for path in sorted(paths)
     ]
-    logger.debug("[%s]$ %s", Path.cwd(), " ".join(cmdline_and_paths))
+    logger.debug("[%s]$ %s", Path.cwd(), shlex_join(cmdline_and_paths))
     with Popen(  # nosec
         cmdline_and_paths,
         stdout=PIPE,
