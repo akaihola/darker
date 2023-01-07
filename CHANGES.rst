@@ -10,6 +10,8 @@ Added
   `pytest#5908 <https://github.com/pytest-dev/pytest/issues/5908>`_.
 - Black's ``target-version =`` configuration file option and ``-t`` /
   ``--target-version`` command line option
+- In ``README.rst``, link to GitHub searches which find public repositories that
+  use Darker.
 
 Fixed
 -----

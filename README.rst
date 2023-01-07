@@ -286,6 +286,7 @@ For more details, see:
 
 - `Black documentation about pyproject.toml`_
 - `isort documentation about config files`_
+- `public GitHub repositories which install and run Darker`_
 
 The following `command line arguments`_ can also be used to modify the defaults:
 
@@ -417,6 +418,7 @@ command line options
 
 .. _Black documentation about pyproject.toml: https://black.readthedocs.io/en/stable/usage_and_configuration/the_basics.html#configuration-via-a-file
 .. _isort documentation about config files: https://timothycrosley.github.io/isort/docs/configuration/config_files/
+.. _public GitHub repositories which install and run Darker: https://github.com/search?q=%2Fpip+install+.*darker%2F+path%3A%2F%5E.github%5C%2Fworkflows%5C%2F.*%2F&type=code
 .. _command line arguments: https://black.readthedocs.io/en/stable/usage_and_configuration/the_basics.html#command-line-options
 
 Editor integration
@@ -667,6 +669,10 @@ Compatibility
 
 This action is known to support all GitHub-hosted runner OSes. In addition, only
 published versions of Darker are supported (i.e. whatever is available on PyPI).
+You can `search workflows in public GitHub repositories`_ to see how Darker is being
+used.
+
+.. _search workflows in public GitHub repositories: https://github.com/search?q=%22uses%3A+akaihola%2Fdarker%22+path%3A%2F%5E.github%5C%2Fworkflows%5C%2F.*%2F&type=code
 
 Usage
 -----
