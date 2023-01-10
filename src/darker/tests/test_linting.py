@@ -73,6 +73,18 @@ def test_diff_line_mapping_ignores_column(
     assert result == expect
 
 
+def test_normalize_whitespace():
+    """Whitespace runs and leading/trailing whitespace is normalized"""
+    description = "module.py:42:  \t  indented message,    trailing spaces and tabs \t "
+    message = LinterMessage("mylinter", description)
+
+    result = linting.normalize_whitespace(message)
+
+    assert result == LinterMessage(
+        "mylinter", "module.py:42: indented message, trailing spaces and tabs"
+    )
+
+
 @pytest.mark.kwparametrize(
     dict(
         line="module.py:42: Just a line number\n",

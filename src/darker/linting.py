@@ -21,6 +21,7 @@ provided that the ``<linenum>`` falls on a changed line.
 
 import logging
 import os
+import re
 import shlex
 from collections import defaultdict
 from contextlib import contextmanager
@@ -28,7 +29,18 @@ from dataclasses import dataclass
 from pathlib import Path
 from subprocess import PIPE, Popen  # nosec
 from tempfile import TemporaryDirectory
-from typing import IO, Collection, Dict, Generator, Iterable, List, Set, Tuple, Union
+from typing import (
+    IO,
+    Callable,
+    Collection,
+    Dict,
+    Generator,
+    Iterable,
+    List,
+    Set,
+    Tuple,
+    Union,
+)
 
 from darker.diff import map_unmodified_lines
 from darker.git import (
@@ -119,6 +131,28 @@ class DiffLineMapping:
             (old_path, old_line) = self._mapping[key]
             return MessageLocation(old_path, old_line, new_location.column)
         return NO_MESSAGE_LOCATION
+
+
+def normalize_whitespace(message: LinterMessage) -> LinterMessage:
+    """Given a line of linter output, shortens runs of whitespace to a single space
+
+    Also removes any leading or trailing whitespace.
+
+    This is done to support comparison of different ``cov_to_lint.py`` runs. To make the
+    output more readable and compact, the tool adjusts whitespace. This is done to both
+    align runs of lines and to remove blocks of extra indentation. For differing sets of
+    coverage messages from ``pytest-cov`` runs of different versions of the code, these
+    whitespace adjustments can differ, so we need to normalize them to compare and match
+    them.
+
+    :param message: The linter message to normalize
+    :return: The normalized linter message with leading and trailing whitespace stripped
+             and runs of whitespace characters collapsed into single spaces
+
+    """
+    return LinterMessage(
+        message.linter, re.sub(r"\s\s+", " ", message.description).strip()
+    )
 
 
 def make_linter_env(root: Path, revision: str) -> Dict[str, str]:
@@ -384,11 +418,22 @@ def run_linters(
     return _print_new_linter_messages(baseline, messages, diff_line_mapping, use_color)
 
 
+def _identity_line_processor(message: LinterMessage) -> LinterMessage:
+    """Return message unmodified in the default line processor
+
+    :param message: The original message
+    :return: The unmodified message
+
+    """
+    return message
+
+
 def _get_messages_from_linters(
     linter_cmdlines: Iterable[Union[str, List[str]]],
     root: Path,
     paths: Collection[Path],
     env: Dict[str, str],
+    line_processor: Callable[[LinterMessage], LinterMessage] = _identity_line_processor,
 ) -> Dict[MessageLocation, List[LinterMessage]]:
     """Run given linters for the given directory and return linting errors
 
@@ -396,13 +441,14 @@ def _get_messages_from_linters(
     :param root: The common root of all files to lint
     :param paths: Paths of files to check, relative to ``root``
     :param env: The environment variables to pass to the linter
+    :param line_processor: Pre-processing callback for linter output lines
     :return: Linter messages
 
     """
     result = defaultdict(list)
     for cmdline in linter_cmdlines:
         for message_location, message in run_linter(cmdline, root, paths, env).items():
-            result[message_location].append(message)
+            result[message_location].append(line_processor(message))
     return result
 
 
@@ -428,7 +474,7 @@ def _print_new_linter_messages(
         is_modified_line = old_location == NO_MESSAGE_LOCATION
         old_messages: List[LinterMessage] = baseline.get(old_location, [])
         for message in messages:
-            if not is_modified_line and message in old_messages:
+            if not is_modified_line and normalize_whitespace(message) in old_messages:
                 # Only hide messages when
                 # - they occurred previously on the corresponding line
                 # - the line hasn't been modified
@@ -469,6 +515,7 @@ def _get_messages_from_linters_for_baseline(
             clone_root,
             paths,
             make_linter_env(root, rev1_commit),
+            normalize_whitespace,
         )
         fix_py37_win_tempdir_permissions(tmp_path)
     return result
