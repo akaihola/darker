@@ -21,6 +21,8 @@ Fixed
 - Pass Git errors to stderr correctly both in raw and encoded subprocess output mode.
 - Add a work-around for cleaning up temporary directories. Needed for Python 3.7 on
   Windows.
+- Split and join command lines using ``shlex`` from the Python standard library. This
+  deals with quoting correctly.
 
 
 1.6.1_ - 2022-12-28
