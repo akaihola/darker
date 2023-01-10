@@ -61,6 +61,14 @@ class MessageLocation:
 NO_MESSAGE_LOCATION = MessageLocation(Path(""), 0, 0)
 
 
+@dataclass
+class LinterMessage:
+    """Information about a linter message"""
+
+    linter: str
+    description: str
+
+
 def _strict_nonneg_int(text: str) -> int:
     """Strict parsing of strings to non-negative integers
 
