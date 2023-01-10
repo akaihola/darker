@@ -434,6 +434,30 @@ def git_get_modified_python_files(
     return {path for path in changed_paths if should_reformat_file(cwd / path)}
 
 
+def git_clone_local(source_repository: Path, revision: str, destination: Path) -> Path:
+    """Clone a local repository and check out the given revision
+
+    :param source_repository: Path to the root of the local repository checkout
+    :param revision: The revision to check out, or ``HEAD``
+    :param destination: Directory to create for the clone
+    :return: Path to the root of the new clone
+
+    """
+    clone_path = destination / source_repository.name
+    _ = _git_check_output(
+        [
+            "clone",
+            "--quiet",
+            str(source_repository),
+            str(clone_path),
+        ],
+        Path("."),
+    )
+    if revision != "HEAD":
+        _ = _git_check_output(["checkout", revision], clone_path)
+    return clone_path
+
+
 def _revision_vs_lines(
     root: Path, path_in_repo: Path, rev1: str, content: TextDocument, context_lines: int
 ) -> List[int]:
