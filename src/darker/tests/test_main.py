@@ -10,7 +10,7 @@ from argparse import ArgumentError
 from pathlib import Path
 from textwrap import dedent
 from types import SimpleNamespace
-from unittest.mock import call, patch
+from unittest.mock import ANY, call, patch
 
 import pytest
 
@@ -422,14 +422,14 @@ def test_blacken_single_file(
     dict(
         arguments=["--check", "--lint", "echo subdir/a.py:1: message"],
         # Windows compatible path assertion using `pathlib.Path()`
-        expect_stdout=["", f"subdir/a.py:1: message {Path('/subdir/a.py')}"],
+        expect_stdout=["", f"{Path('subdir/a.py')}:1: message {Path('subdir')} [echo]"],
         expect_retval=1,
     ),
     dict(
         arguments=["--diff", "--lint", "echo subdir/a.py:1: message"],
         # Windows compatible path assertion using `pathlib.Path()`
         expect_stdout=A_PY_DIFF_BLACK
-        + ["", f"subdir/a.py:1: message {Path('/subdir/a.py')}"],
+        + ["", f"{Path('subdir/a.py')}:1: message {Path('subdir')} [echo]"],
         expect_retval=1,
     ),
     dict(
@@ -559,21 +559,18 @@ def test_main_in_plain_directory(tmp_path, capsys):
     (subdir_a / "non-python file.txt").write_text("not  reformatted\n")
     (subdir_a / "python file.py").write_text("import  sys, os\nprint('ok')")
     (subdir_c / "another python file.py").write_text("a  =5")
-    with patch.object(darker.linting, "run_linter") as run_linter:
+    with patch.object(darker.__main__, "run_linters") as run_linters:
 
         retval = darker.__main__.main(
-            ["--diff", "--check", "--isort", "--lint", "my-linter", str(tmp_path)]
+            ["--diff", "--check", "--isort", "--lint", "echo", str(tmp_path)]
         )
 
     assert retval == 1
-    assert run_linter.call_args_list == [
+    assert run_linters.call_args_list == [
         call(
-            "my-linter",
+            ["echo"],
             tmp_path,
-            {
-                Path("subdir_a/python file.py"),
-                Path("subdir_b/subdir_c/another python file.py"),
-            },
+            {Path(".")},
             RevisionRange(rev1="HEAD", rev2=":WORKTREE:"),
             False,
         )
@@ -707,6 +704,20 @@ def test_main_vscode_tmpfile(git_repo, capsys):
         "-print ( 'reformat me now' ) ",
         '+print("reformat me now")',
     ]
+
+
+def test_main_lint_unchanged(git_repo):
+    """Linters are run on all ``src`` command line options, modified or not"""
+    git_repo.add({"src/a.py": "foo\n", "src/subdir/b.py": "bar\n"}, commit="Initial")
+    with patch.object(darker.__main__, "run_linters") as run_linters:
+        run_linters.return_value = 0
+
+        retval = darker.__main__.main(["--check", "--lint=mylint", "src"])
+
+    run_linters.assert_called_once_with(
+        ["mylint"], Path("src").absolute(), {Path(".")}, ANY, ANY
+    )
+    assert retval == 0
 
 
 def test_print_diff(tmp_path, capsys):

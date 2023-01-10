@@ -201,9 +201,7 @@ def test_filter_python_files(  # pylint: disable=too-many-arguments
 
     result = filter_python_files({Path(".")} | explicit, tmp_path, black_config)
 
-    expect_paths = {tmp_path / f"{path}.py" for path in expect} | {
-        tmp_path / p for p in explicit
-    }
+    expect_paths = {Path(f"{path}.py") for path in expect} | explicit
     assert result == expect_paths
 
 

@@ -1,6 +1,7 @@
 """Unit tests for :mod:`darker.git`"""
 
 # pylint: disable=redefined-outer-name,protected-access,too-many-arguments
+# pylint: disable=too-many-lines
 
 import os
 import re
@@ -9,7 +10,7 @@ from pathlib import Path
 from subprocess import DEVNULL, PIPE, CalledProcessError, check_call  # nosec
 from textwrap import dedent  # nosec
 from typing import List, Union
-from unittest.mock import call, patch
+from unittest.mock import ANY, Mock, call, patch
 
 import pytest
 
@@ -785,6 +786,112 @@ def test_git_get_modified_python_files_revision_range(
     )
 
     assert {path.name for path in result} == expect
+
+
+@pytest.mark.kwparametrize(
+    dict(branch="first", expect="first"),
+    dict(branch="second", expect="second"),
+    dict(branch="third", expect="third"),
+    dict(branch="HEAD", expect="third"),
+)
+def test_git_clone_local_branch(git_repo, tmp_path, branch, expect):
+    """``git_clone_local()`` checks out the specified branch"""
+    git_repo.add({"a.py": "first"}, commit="first")
+    git_repo.create_branch("first", "HEAD")
+    git_repo.create_branch("second", "HEAD")
+    git_repo.add({"a.py": "second"}, commit="second")
+    git_repo.create_branch("third", "HEAD")
+    git_repo.add({"a.py": "third"}, commit="third")
+
+    clone = git.git_clone_local(git_repo.root, branch, tmp_path)
+
+    assert (clone / "a.py").read_text() == expect
+
+
+@pytest.mark.kwparametrize(
+    dict(branch="HEAD", expect_checkout_call=False),
+    dict(branch="mybranch", expect_checkout_call=True),
+)
+def test_git_clone_local_command(git_repo, tmp_path, branch, expect_checkout_call):
+    """``git_clone_local()`` issues the correct Git command and options"""
+    git_repo.add({"a.py": "first"}, commit="first")
+    git_repo.create_branch("mybranch", "HEAD")
+    check_output = Mock(wraps=git.check_output)  # type: ignore[attr-defined]
+    with patch.object(git, "check_output", check_output):
+
+        clone = git.git_clone_local(git_repo.root, branch, tmp_path)
+
+    assert clone == tmp_path / git_repo.root.name
+    expect_calls = [
+        call(
+            ["git", "clone", "--quiet", str(git_repo.root), str(clone)],
+            cwd=".",
+            encoding=None,
+            stderr=PIPE,
+            env=ANY,
+        )
+    ]
+    if expect_checkout_call:
+        expect_calls.append(
+            call(
+                ["git", "checkout", branch],
+                cwd=str(git_repo.root / git_repo.root.name),
+                encoding=None,
+                stderr=PIPE,
+                env=ANY,
+            )
+        )
+    check_output.assert_has_calls(expect_calls)
+
+
+@pytest.mark.parametrize(
+    "path",
+    [
+        ".",
+        "root.py",
+        "subdir",
+        "subdir/sub.py",
+        "subdir/subsubdir",
+        "subdir/subsubdir/subsub.py",
+    ],
+)
+def test_git_get_root(git_repo, path):
+    """``git_get_root()`` returns repository root for any file or directory inside"""
+    git_repo.add(
+        {
+            "root.py": "root",
+            "subdir/sub.py": "sub",
+            "subdir/subsubdir/subsub.py": "subsub",
+        },
+        commit="Initial commit",
+    )
+
+    root = git.git_get_root(git_repo.root / path)
+
+    assert root == git_repo.root
+
+
+@pytest.mark.parametrize(
+    "path",
+    [
+        ".",
+        "root.py",
+        "subdir",
+        "subdir/sub.py",
+        "subdir/subsubdir",
+        "subdir/subsubdir/subsub.py",
+    ],
+)
+def test_git_get_root_not_found(tmp_path, path):
+    """``git_get_root()`` returns ``None`` for any file or directory outside of Git"""
+    (tmp_path / "subdir" / "subsubdir").mkdir(parents=True)
+    (tmp_path / "root.py").touch()
+    (tmp_path / "subdir" / "sub.py").touch()
+    (tmp_path / "subdir" / "subsubdir" / "subsub.py").touch()
+
+    root = git.git_get_root(tmp_path / path)
+
+    assert root is None
 
 
 @pytest.mark.kwparametrize(
