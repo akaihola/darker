@@ -27,7 +27,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from subprocess import PIPE, Popen  # nosec
 from tempfile import TemporaryDirectory
-from typing import IO, Collection, Dict, Generator, Iterable, List, Set, Tuple
+from typing import IO, Collection, Dict, Generator, Iterable, List, Set, Tuple, Union
 
 from darker.diff import map_unmodified_lines
 from darker.git import (
@@ -39,7 +39,7 @@ from darker.git import (
     shlex_join,
 )
 from darker.highlighting import colorize
-from darker.utils import WINDOWS
+from darker.utils import WINDOWS, fix_py37_win_tempdir_permissions
 
 logger = logging.getLogger(__name__)
 
@@ -226,7 +226,9 @@ def _require_rev2_worktree(rev2: str) -> None:
 
 @contextmanager
 def _check_linter_output(
-    cmdline: str, root: Path, paths: Collection[Path]
+    cmdline: Union[str, List[str]],
+    root: Path,
+    paths: Collection[Path],
 ) -> Generator[IO[str], None, None]:
     """Run a linter as a subprocess and return its standard output stream
 
@@ -236,9 +238,11 @@ def _check_linter_output(
     :return: The standard output stream of the linter subprocess
 
     """
-    cmdline_and_paths = shlex.split(cmdline, posix=not WINDOWS) + [
-        str(path) for path in sorted(paths)
-    ]
+    if isinstance(cmdline, str):
+        cmdline_parts = shlex.split(cmdline, posix=not WINDOWS)
+    else:
+        cmdline_parts = cmdline
+    cmdline_and_paths = cmdline_parts + [str(path) for path in sorted(paths)]
     logger.debug("[%s]$ %s", root, shlex_join(cmdline_and_paths))
     with Popen(  # nosec
         cmdline_and_paths,
@@ -253,7 +257,7 @@ def _check_linter_output(
 
 
 def run_linter(  # pylint: disable=too-many-locals
-    cmdline: str,
+    cmdline: Union[str, List[str]],
     root: Path,
     paths: Collection[Path],
 ) -> Dict[MessageLocation, LinterMessage]:
@@ -268,7 +272,12 @@ def run_linter(  # pylint: disable=too-many-locals
     """
     missing_files = set()
     result = {}
-    linter = shlex.split(cmdline, posix=not WINDOWS)[0]
+    if isinstance(cmdline, str):
+        linter = shlex.split(cmdline, posix=not WINDOWS)[0]
+        cmdline_str = cmdline
+    else:
+        linter = cmdline[0]
+        cmdline_str = shlex_join(cmdline)
     with _check_linter_output(cmdline, root, paths) as linter_stdout:
         for line in linter_stdout:
             (location, message) = _parse_linter_line(linter, line, root)
@@ -282,7 +291,7 @@ def run_linter(  # pylint: disable=too-many-locals
                 )
                 continue
             if not location.path.is_file() and not location.path.is_symlink():
-                logger.warning("Missing file %s from %s", location.path, cmdline)
+                logger.warning("Missing file %s from %s", location.path, cmdline_str)
                 missing_files.add(location.path)
                 continue
             result[location] = message
@@ -290,7 +299,7 @@ def run_linter(  # pylint: disable=too-many-locals
 
 
 def run_linters(
-    linter_cmdlines: List[str],
+    linter_cmdlines: List[Union[str, List[str]]],
     root: Path,
     paths: Set[Path],
     revrange: RevisionRange,
@@ -343,13 +352,13 @@ def run_linters(
 
 
 def _get_messages_from_linters(
-    linter_cmdlines: Iterable[str],
+    linter_cmdlines: Iterable[Union[str, List[str]]],
     root: Path,
     paths: Collection[Path],
 ) -> Dict[MessageLocation, List[LinterMessage]]:
     """Run given linters for the given directory and return linting errors
 
-    :param cmdline: The command line for running the linter
+    :param linter_cmdlines: The command lines for running the linters
     :param root: The common root of all files to lint
     :param paths: Paths of files to check, relative to ``root``
     :param revrange: The Git revision rango to compare
@@ -404,7 +413,10 @@ def _print_new_linter_messages(
 
 
 def _get_messages_from_linters_for_baseline(
-    linter_cmdlines: List[str], root: Path, paths: Collection[Path], revision: str
+    linter_cmdlines: List[Union[str, List[str]]],
+    root: Path,
+    paths: Collection[Path],
+    revision: str,
 ) -> Dict[MessageLocation, List[LinterMessage]]:
     """Clone the Git repository at a given revision and run linters against it
 
@@ -417,7 +429,9 @@ def _get_messages_from_linters_for_baseline(
     """
     with TemporaryDirectory() as tmp_path:
         clone_root = git_clone_local(root, revision, Path(tmp_path))
-        return _get_messages_from_linters(linter_cmdlines, clone_root, paths)
+        result = _get_messages_from_linters(linter_cmdlines, clone_root, paths)
+        fix_py37_win_tempdir_permissions(tmp_path)
+    return result
 
 
 def _create_line_mapping(

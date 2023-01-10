@@ -290,7 +290,7 @@ def test_run_linters(
         b"1 unmoved\n2 modified\n3 inserted\n3 to 4 moved\n"
     )
     src_paths["messages"].write_text("\n".join(messages_after))
-    cmdlines = ["cat messages"]
+    cmdlines: List[Union[str, List[str]]] = ["cat messages"]
     revrange = RevisionRange("HEAD", ":WORKTREE:")
 
     linting.run_linters(
@@ -478,21 +478,33 @@ def test_print_new_linter_messages(capsys):
     ]
 
 
-LINT_EMPTY_LINES_CMD = """python -c '
-from pathlib import Path
-for path in Path(".").glob("**/*.py"):
-    for linenum, line in enumerate(path.open(), start=1):
-        if not line.strip():
-            print(f"{path}:{linenum}: EMPTY")
-'"""
+LINT_EMPTY_LINES_CMD = [
+    "python",
+    "-c",
+    dedent(
+        """
+        from pathlib import Path
+        for path in Path(".").glob("**/*.py"):
+            for linenum, line in enumerate(path.open(), start=1):
+                if not line.strip():
+                    print(f"{path}:{linenum}: EMPTY")
+        """
+    ),
+]
 
-LINT_NONEMPTY_LINES_CMD = """python -c '
-from pathlib import Path
-for path in Path(".").glob("**/*.py"):
-    for linenum, line in enumerate(path.open(), start=1):
-        if line.strip():
-            print(f"{path}:{linenum}: {line.strip()}")
-'"""
+LINT_NONEMPTY_LINES_CMD = [
+    "python",
+    "-c",
+    dedent(
+        """
+        from pathlib import Path
+        for path in Path(".").glob("**/*.py"):
+            for linenum, line in enumerate(path.open(), start=1):
+                if line.strip():
+                    print(f"{path}:{linenum}: {line.strip()}")
+        """
+    ),
+]
 
 
 def test_get_messages_from_linters_for_baseline(git_repo):
