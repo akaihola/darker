@@ -362,7 +362,7 @@ def get_missing_at_revision(paths: Iterable[Path], rev2: str, cwd: Path) -> Set[
 
 
 def _git_diff_name_only(
-    rev1: str, rev2: str, relative_paths: Set[Path], cwd: Path
+    rev1: str, rev2: str, relative_paths: Iterable[Path], cwd: Path
 ) -> Set[Path]:
     """Collect names of changed files between commits from Git
 
@@ -389,7 +389,7 @@ def _git_diff_name_only(
     return {Path(line) for line in lines}
 
 
-def _git_ls_files_others(relative_paths: Set[Path], cwd: Path) -> Set[Path]:
+def _git_ls_files_others(relative_paths: Iterable[Path], cwd: Path) -> Set[Path]:
     """Collect names of untracked non-excluded files from Git
 
     This will return those files in ``relative_paths`` which are untracked and not
@@ -419,18 +419,15 @@ def git_get_modified_python_files(
     - ``git diff --name-only --relative <rev> -- <path(s)>``
     - ``git ls-files --others --exclude-standard -- <path(s)>``
 
-    :param paths: Paths to the files to diff
+    :param paths: Relative paths to the files to diff
     :param revrange: Git revision range to compare
     :param cwd: The Git repository root
     :return: File names relative to the Git repository root
 
     """
-    relative_paths = {p.resolve().relative_to(cwd) for p in paths}
-    changed_paths = _git_diff_name_only(
-        revrange.rev1, revrange.rev2, relative_paths, cwd
-    )
+    changed_paths = _git_diff_name_only(revrange.rev1, revrange.rev2, paths, cwd)
     if revrange.rev2 == WORKTREE:
-        changed_paths.update(_git_ls_files_others(relative_paths, cwd))
+        changed_paths.update(_git_ls_files_others(paths, cwd))
     return {path for path in changed_paths if should_reformat_file(cwd / path)}
 
 

@@ -350,11 +350,14 @@ def main(  # pylint: disable=too-many-locals,too-many-branches,too-many-statemen
     8. verify that the resulting reformatted source code parses to an identical AST as
        the original edited to-file
     9. write the reformatted source back to the original file
-    10. run linter subprocesses for all edited files (10.-13. optional)
-    11. diff the given revision and worktree (after isort and Black reformatting) for
-        each file reported by a linter
-    12. extract line numbers in each file reported by a linter for changed lines
-    13. print only linter error lines which fall on changed lines
+    10. run linter subprocesses twice for all modified and unmodified files which are
+        mentioned on the command line: first establish a baseline by running against
+        ``rev1``, then get current linting status by running against the working tree
+        (steps 10.-12. are optional)
+    11. create a mapping from line numbers of unmodified lines in the current versions
+        to corresponding line numbers in ``rev1``
+    12. hide linter messages which appear in the current versions and identically on
+        corresponding lines in ``rev1``, and show all other linter messages
 
     :param argv: The command line arguments to the ``darker`` command
     :return: 1 if the ``--check`` argument was provided and at least one file was (or
@@ -423,38 +426,35 @@ def main(  # pylint: disable=too-many-locals,too-many-branches,too-many-statemen
             f"Error: Path(s) {missing_reprs} do not exist in {rev2_repr}",
         )
 
-    # These are absolute paths:
+    # These paths are relative to `root`:
     files_to_process = filter_python_files(paths, root, {})
     files_to_blacken = filter_python_files(paths, root, black_config)
+    # Now decide which files to reformat (Black & isort). Note that this doesn't apply
+    # to linting.
     if output_mode == OutputMode.CONTENT:
-        # With `-d` / `--stdout`, process the file whether modified or not. Paths have
+        # With `-d` / `--stdout`, reformat the file whether modified or not. Paths have
         # previously been validated to contain exactly one existing file.
-        changed_files_to_process = {
-            p.resolve().relative_to(root) for p in files_to_process
-        }
+        changed_files_to_reformat = files_to_process
         black_exclude = set()
     else:
-        # In other modes, only process files which have been modified.
+        # In other modes, only reformat files which have been modified.
         if git_is_repository(root):
-            changed_files_to_process = git_get_modified_python_files(
+            changed_files_to_reformat = git_get_modified_python_files(
                 files_to_process, revrange, root
             )
         else:
-            changed_files_to_process = {
-                path.relative_to(root) for path in files_to_process
-            }
+            changed_files_to_reformat = files_to_process
         black_exclude = {
             str(path)
-            for path in changed_files_to_process
-            if root / path not in files_to_blacken
+            for path in changed_files_to_reformat
+            if path not in files_to_blacken
         }
-
     use_color = should_use_color(config["color"])
     formatting_failures_on_modified_lines = False
     for path, old, new in sorted(
         format_edited_parts(
             root,
-            changed_files_to_process,
+            changed_files_to_reformat,
             Exclusions(black=black_exclude, isort=set() if args.isort else {"**/*"}),
             revrange,
             black_config,
@@ -472,7 +472,8 @@ def main(  # pylint: disable=too-many-locals,too-many-branches,too-many-statemen
     linter_failures_on_modified_lines = run_linters(
         args.lint,
         root,
-        changed_files_to_process,
+        # paths to lint are not limited to modified files or just Python files:
+        {p.resolve().relative_to(root) for p in paths},
         revrange,
         use_color,
     )
