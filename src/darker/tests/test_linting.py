@@ -388,9 +388,10 @@ def test_run_linters_line_separation(git_repo, capsys):
             """
         )
     )
+    cat_command = "cmd /c type" if WINDOWS else "cat"
 
     linting.run_linters(
-        [f"cat {linter_output}"],
+        [f"{cat_command} {linter_output}"],
         git_repo.root,
         {Path(p) for p in paths},
         RevisionRange("HEAD", ":WORKTREE:"),
@@ -398,13 +399,14 @@ def test_run_linters_line_separation(git_repo, capsys):
     )
 
     result = capsys.readouterr().out
+    cat_cmd = "cmd" if WINDOWS else "cat"
     assert result == dedent(
-        """
-        a.py:2: first block [cat]
-        a.py:3: of linter output [cat]
+        f"""
+        a.py:2: first block [{cat_cmd}]
+        a.py:3: of linter output [{cat_cmd}]
 
-        a.py:5: second block [cat]
-        a.py:6: of linter output [cat]
+        a.py:5: second block [{cat_cmd}]
+        a.py:6: of linter output [{cat_cmd}]
         """
     )
 
