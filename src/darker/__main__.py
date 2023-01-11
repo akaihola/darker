@@ -10,6 +10,12 @@ from difflib import unified_diff
 from pathlib import Path
 from typing import Collection, Generator, List, Tuple
 
+from black.comments import FMT_SKIP, FMT_PASS
+
+FMT_DARKER_SKIP = "# fmt: darker-skip"
+FMT_SKIP.add(FMT_DARKER_SKIP)
+FMT_PASS.add(FMT_DARKER_SKIP)
+
 from darker.black_diff import (
     BlackConfig,
     filter_python_files,
@@ -188,14 +194,51 @@ def _blacken_single_file(  # pylint: disable=too-many-arguments,too-many-locals
     """
     absolute_path_in_rev2 = root / relative_path_in_rev2
 
+    # decorate lines with FMT_DARKER_SKIP
+    lines = []
+    modified_line_nums = edited_linenums_differ.revision_vs_lines(
+        relative_path_in_repo, rev2_isorted, 0
+    )
+    for i, line in enumerate(rev2_isorted.lines):
+        line_num = i + 1
+        if (
+            line_num not in modified_line_nums
+            and not line.endswith("\\")
+            and not line.endswith('"')
+            and not line.endswith("'")
+        ):
+            line = f"{line}  {FMT_DARKER_SKIP}"
+        lines.append(line)
+    rev2_isorted_decorated = TextDocument.from_lines(
+        lines,
+        encoding=rev2_isorted.encoding,
+        newline=rev2_isorted.newline,
+        mtime=rev2_isorted.mtime,
+    )
+
     # 4. run black
-    formatted = run_black(rev2_isorted, black_config)
+    formatted = run_black(rev2_isorted_decorated, black_config)
     logger.debug(
         "Read %s lines from edited file %s",
-        len(rev2_isorted.lines),
+        len(rev2_isorted_decorated.lines),
         absolute_path_in_rev2,
     )
     logger.debug("Black reformat resulted in %s lines", len(formatted.lines))
+
+    # redecorate lines without FMT_DARKER_SKIP
+    lines = []
+    for line in formatted.lines:
+        if line.endswith(f"  {FMT_DARKER_SKIP}"):
+            line = line[: -len(f"  {FMT_DARKER_SKIP}")]
+        elif line == FMT_DARKER_SKIP:
+            line = ""
+        lines.append(line)
+    formatted = TextDocument.from_lines(
+        lines,
+        encoding=formatted.encoding,
+        newline=formatted.newline,
+        mtime=formatted.mtime,
+    )
 
     # 5. get the diff between the edited and reformatted file
     # 6. convert the diff into chunks
