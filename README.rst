@@ -762,12 +762,16 @@ Most notably, the following linters/checkers have been verified to work with Dar
 
 *New in version 1.2.0:* Support for test coverage output using `cov_to_lint.py`_.
 
-To run a linter, use the ``--lint`` / ``-L`` command line option:
+To run a linter, use the ``--lint`` / ``-L`` command line option with the linter
+command or a full command line to pass to a linter. Some examples:
 
-  - ``-L mypy``: do static type checking using Mypy_
-  - ``-L pylint``: analyze code using Pylint_
-  - ``-L flake8``: enforce the Python style guide using Flake8_
-  - ``-L cov_to_lint.py``: read ``.coverage`` and list non-covered modified lines
+- ``-L flake8``: enforce the Python style guide using Flake8_
+- ``-L "mypy --strict"``: do static type checking using Mypy_
+- ``--lint="pylint --ignore='setup.py'""``: analyze code using Pylint_
+- ``-L cov_to_lint.py``: read ``.coverage`` and list non-covered modified lines
+
+**Note:** Full command lines aren't fully tested on Windows. See issue `#456`_ for a
+possible bug.
 
 Darker also groups linter output into blocks of consecutive lines
 separated by blank lines.
@@ -795,6 +799,7 @@ Here's an example of `cov_to_lint.py`_ output::
 .. _Pylint: https://pypi.org/project/pylint
 .. _Flake8: https://pypi.org/project/flake8
 .. _cov_to_lint.py: https://gist.github.com/akaihola/2511fe7d2f29f219cb995649afd3d8d2
+.. _#456: https://github.com/akaihola/darker/issues/456
 
 
 Syntax highlighting

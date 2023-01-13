@@ -104,15 +104,37 @@ def test_require_rev2_worktree(rev2, expect):
         linting._require_rev2_worktree(rev2)
 
 
-def test_check_linter_output():
+@pytest.mark.kwparametrize(
+    dict(cmdline="echo", expect=["first.py the  2nd.py\n"]),
+    dict(cmdline="echo words before", expect=["words before first.py the  2nd.py\n"]),
+    dict(
+        cmdline='echo "two  spaces"',
+        expect=["two  spaces first.py the  2nd.py\n"],
+        marks=[
+            pytest.mark.xfail(
+                reason=(
+                    "Quotes not removed on Windows."
+                    " See https://github.com/akaihola/darker/issues/456"
+                )
+            )
+        ]
+        if WINDOWS
+        else [],
+    ),
+    dict(cmdline="echo eat  spaces", expect=["eat spaces first.py the  2nd.py\n"]),
+)
+def test_check_linter_output(cmdline, expect):
     """``_check_linter_output()`` runs linter and returns the stdout stream"""
     with linting._check_linter_output(
-        "echo", Path("root/of/repo"), {Path("first.py"), Path("second.py")}
+        cmdline, Path("root/of/repo"), {Path("first.py"), Path("the  2nd.py")}
     ) as stdout:
         lines = list(stdout)
 
     assert lines == [
-        f"{Path('root/of/repo/first.py')} {Path('root/of/repo/second.py')}\n"
+        line.replace("first.py", str(Path("root/of/repo/first.py"))).replace(
+            "the  2nd.py", str(Path("root/of/repo/the  2nd.py"))
+        )
+        for line in expect
     ]
 
 
