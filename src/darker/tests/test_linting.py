@@ -107,7 +107,20 @@ def test_require_rev2_worktree(rev2, expect):
 @pytest.mark.kwparametrize(
     dict(cmdline="echo", expect=["first.py the  2nd.py\n"]),
     dict(cmdline="echo words before", expect=["words before first.py the  2nd.py\n"]),
-    dict(cmdline='echo "two  spaces"', expect=["two  spaces first.py the  2nd.py\n"]),
+    dict(
+        cmdline='echo "two  spaces"',
+        expect=["two  spaces first.py the  2nd.py\n"],
+        marks=[
+            pytest.mark.xfail(
+                reason=(
+                    "Quotes not removed on Windows."
+                    " See https://github.com/akaihola/darker/issues/456"
+                )
+            )
+        ]
+        if WINDOWS
+        else [],
+    ),
     dict(cmdline="echo eat  spaces", expect=["eat spaces first.py the  2nd.py\n"]),
 )
 def test_check_linter_output(cmdline, expect):
