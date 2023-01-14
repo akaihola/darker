@@ -101,7 +101,11 @@ class GitRepoFixture:
 
         """
         return [
-            re.sub(r"\{root/(.*?)\}", lambda m: str(self.root / str(m.group(1))), line)
+            re.sub(
+                r"\{root(/.*?)?\}",
+                lambda m: str(self.root / (str(m.group(1)[1:]) if m.group(1) else "")),
+                line,
+            )
             for line in lines
         ]
 

@@ -362,7 +362,7 @@ def get_missing_at_revision(paths: Iterable[Path], rev2: str, cwd: Path) -> Set[
 
 
 def _git_diff_name_only(
-    rev1: str, rev2: str, relative_paths: Set[Path], cwd: Path
+    rev1: str, rev2: str, relative_paths: Iterable[Path], cwd: Path
 ) -> Set[Path]:
     """Collect names of changed files between commits from Git
 
@@ -389,7 +389,7 @@ def _git_diff_name_only(
     return {Path(line) for line in lines}
 
 
-def _git_ls_files_others(relative_paths: Set[Path], cwd: Path) -> Set[Path]:
+def _git_ls_files_others(relative_paths: Iterable[Path], cwd: Path) -> Set[Path]:
     """Collect names of untracked non-excluded files from Git
 
     This will return those files in ``relative_paths`` which are untracked and not
@@ -419,19 +419,67 @@ def git_get_modified_python_files(
     - ``git diff --name-only --relative <rev> -- <path(s)>``
     - ``git ls-files --others --exclude-standard -- <path(s)>``
 
-    :param paths: Paths to the files to diff
+    :param paths: Relative paths to the files to diff
     :param revrange: Git revision range to compare
     :param cwd: The Git repository root
     :return: File names relative to the Git repository root
 
     """
-    relative_paths = {p.resolve().relative_to(cwd) for p in paths}
-    changed_paths = _git_diff_name_only(
-        revrange.rev1, revrange.rev2, relative_paths, cwd
-    )
+    changed_paths = _git_diff_name_only(revrange.rev1, revrange.rev2, paths, cwd)
     if revrange.rev2 == WORKTREE:
-        changed_paths.update(_git_ls_files_others(relative_paths, cwd))
+        changed_paths.update(_git_ls_files_others(paths, cwd))
     return {path for path in changed_paths if should_reformat_file(cwd / path)}
+
+
+def git_clone_local(source_repository: Path, revision: str, destination: Path) -> Path:
+    """Clone a local repository and check out the given revision
+
+    :param source_repository: Path to the root of the local repository checkout
+    :param revision: The revision to check out, or ``HEAD``
+    :param destination: Directory to create for the clone
+    :return: Path to the root of the new clone
+
+    """
+    clone_path = destination / source_repository.name
+    _ = _git_check_output(
+        [
+            "clone",
+            "--quiet",
+            str(source_repository),
+            str(clone_path),
+        ],
+        Path("."),
+    )
+    if revision != "HEAD":
+        _ = _git_check_output(["checkout", revision], clone_path)
+    return clone_path
+
+
+def git_get_root(path: Path) -> Optional[Path]:
+    """Get the root directory of a local Git repository clone based on a path inside it
+
+    :param path: A file or directory path inside the Git repository clone
+    :return: The root of the clone, or ``None`` if none could be found
+
+    """
+    try:
+        return Path(
+            _git_check_output(
+                ["rev-parse", "--show-toplevel"],
+                cwd=path if path.is_dir() else path.parent,
+                encoding="utf-8",
+                exit_on_error=False,
+            ).rstrip()
+        )
+    except CalledProcessError as exc_info:
+        if exc_info.returncode == 128 and exc_info.stderr.splitlines()[0].startswith(
+            "fatal: not a git repository (or any "
+        ):
+            # The error string differs a bit in different Git versions, but up to the
+            # point above it's identical in recent versions.
+            return None
+        sys.stderr.write(exc_info.stderr)
+        raise
 
 
 def _revision_vs_lines(

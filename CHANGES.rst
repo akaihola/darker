@@ -12,6 +12,10 @@ Added
   ``--target-version`` command line option
 - In ``README.rst``, link to GitHub searches which find public repositories that
   use Darker.
+- Linters are now run twice: once for ``rev1`` to get a baseline, and another time for
+  ``rev2`` to get the current situation. Old linter messages which fall on unmodified
+  lines are hidden, so effectively the user gets new linter messages introduced by
+  latest changes, as well as persistent linter messages on modified lines.
 
 Fixed
 -----
