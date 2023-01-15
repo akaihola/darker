@@ -673,7 +673,7 @@ def test_main_historical_pre_commit(git_repo, monkeypatch):
         ArgumentError,
         match=(
             re.escape(
-                f"Can't write reformatted files for revision '{older_commit}'."
+                f"Can't write reformatted files for revision {older_commit!r}."
                 " Either --diff or --check must be used."
             )
         ),
