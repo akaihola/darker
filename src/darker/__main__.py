@@ -413,7 +413,7 @@ def main(  # pylint: disable=too-many-locals,too-many-branches,too-many-statemen
         elif revrange.rev2 != WORKTREE:
             raise ArgumentError(
                 Action(["-r", "--revision"], "revision"),
-                f"Can't write reformatted files for revision '{revrange.rev2}'."
+                f"Can't write reformatted files for revision {revrange.rev2!r}."
                 " Either --diff or --check must be used.",
             )
 

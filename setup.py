@@ -19,7 +19,7 @@ def replace(name: str, regex: Pattern[str], replacement: str, content: str) -> s
     if modified_content != content:
         return modified_content
     raise RuntimeError(
-        f"The {name} wasn't found in README.rst using the pattern '{regex.pattern}'"
+        f"The {name} wasn't found in README.rst using the pattern {regex.pattern!r}"
     )
 
 
