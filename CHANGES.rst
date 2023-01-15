@@ -37,6 +37,7 @@ Fixed
 - Configure ``coverage`` to use relative paths in the Darker repository. This enables
   use of ``cov_to_lint.py``
 - Satisfy Pylint's ``use-dict-literal`` check in Darker's code base.
+- Use ``!r`` to quote values in format strings as suggested by recent Flake8 versions.
 
 
 1.6.1_ - 2022-12-28
