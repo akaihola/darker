@@ -216,6 +216,7 @@ def map_unmodified_lines(src: TextDocument, dst: TextDocument) -> Dict[int, int]
     :param dst: The modified text document
     :return: A mapping from ``dst`` lines to corresponding unmodified ``src`` lines.
              Line numbers are 1-based.
+    :raises RuntimeError: if blocks in opcodes don't make sense
 
     """
     opcodes = diff_and_get_opcodes(src, dst)

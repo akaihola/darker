@@ -16,6 +16,8 @@ Added
   ``rev2`` to get the current situation. Old linter messages which fall on unmodified
   lines are hidden, so effectively the user gets new linter messages introduced by
   latest changes, as well as persistent linter messages on modified lines.
+- Add configuration for ``darglint`` and ``flake8-docstrings``, preparing for enabling
+  those linters in CI builds.
 
 Fixed
 -----
