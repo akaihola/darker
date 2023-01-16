@@ -29,6 +29,8 @@ Fixed
   Windows.
 - Split and join command lines using ``shlex`` from the Python standard library. This
   deals with quoting correctly.
+- Configure ``coverage`` to use relative paths in the Darker repository. This enables
+  use of ``cov_to_lint.py``
 
 
 1.6.1_ - 2022-12-28
