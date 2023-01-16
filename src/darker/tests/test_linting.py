@@ -11,7 +11,12 @@ import pytest
 
 from darker import linting
 from darker.git import WORKTREE, RevisionRange
-from darker.linting import DiffLineMapping, LinterMessage, MessageLocation
+from darker.linting import (
+    DiffLineMapping,
+    LinterMessage,
+    MessageLocation,
+    make_linter_env,
+)
 from darker.tests.helpers import raises_if_exception
 from darker.utils import WINDOWS
 
@@ -66,6 +71,18 @@ def test_diff_line_mapping_ignores_column(
     result = mapping.get(get_location)
 
     assert result == expect
+
+
+def test_normalize_whitespace():
+    """Whitespace runs and leading/trailing whitespace is normalized"""
+    description = "module.py:42:  \t  indented message,    trailing spaces and tabs \t "
+    message = LinterMessage("mylinter", description)
+
+    result = linting.normalize_whitespace(message)
+
+    assert result == LinterMessage(
+        "mylinter", "module.py:42: indented message, trailing spaces and tabs"
+    )
 
 
 @pytest.mark.kwparametrize(
@@ -169,7 +186,10 @@ def test_require_rev2_worktree(rev2, expect):
 def test_check_linter_output(tmp_path, cmdline, expect):
     """``_check_linter_output()`` runs linter and returns the stdout stream"""
     with linting._check_linter_output(
-        cmdline, tmp_path, {Path("first.py"), Path("the  2nd.py")}
+        cmdline,
+        tmp_path,
+        {Path("first.py"), Path("the  2nd.py")},
+        make_linter_env(tmp_path, "WORKTREE"),
     ) as stdout:
         lines = list(stdout)
 
