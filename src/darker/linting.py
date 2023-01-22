@@ -336,6 +336,9 @@ def run_linter(  # pylint: disable=too-many-locals
     else:
         linter = cmdline[0]
         cmdline_str = shlex_join(cmdline)
+    # 10. run a linter subprocess for files mentioned on the command line which may be
+    #     modified or unmodified, to get current linting status in the working tree
+    #     (steps 10.-12. are optional)
     with _check_linter_output(cmdline, root, paths, env) as linter_stdout:
         for line in linter_stdout:
             (location, message) = _parse_linter_line(linter, line, root)
@@ -401,6 +404,9 @@ def run_linters(
             use_color=use_color,
         )
     git_paths = {(root / path).relative_to(git_root) for path in paths}
+    # 10. first do a temporary checkout at `rev1` and run linter subprocesses once for
+    #     all files which are mentioned on the command line to establish a baseline
+    #     (steps 10.-12. are optional)
     baseline = _get_messages_from_linters_for_baseline(
         linter_cmdlines,
         git_root,
@@ -414,7 +420,11 @@ def run_linters(
         make_linter_env(git_root, "WORKTREE"),
     )
     files_with_messages = {location.path for location in messages}
+    # 11. create a mapping from line numbers of unmodified lines in the current versions
+    #     to corresponding line numbers in ``rev1``
     diff_line_mapping = _create_line_mapping(git_root, files_with_messages, revrange)
+    # 12. hide linter messages which appear in the current versions and identically on
+    #     corresponding lines in ``rev1``, and show all other linter messages
     return _print_new_linter_messages(baseline, messages, diff_line_mapping, use_color)
 
 

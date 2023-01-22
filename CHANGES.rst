@@ -5,6 +5,8 @@ These features will be included in the next release:
 
 Added
 -----
+- ``-f`` / ``--flynt`` option for converting old-style format strings to f-strings as
+  supported in Python 3.6+.
 - Make unit tests compatible with ``pytest --log-cli-level==DEBUG``.
   Doctests are still incompatible due to
   `pytest#5908 <https://github.com/pytest-dev/pytest/issues/5908>`_.

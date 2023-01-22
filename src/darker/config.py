@@ -4,9 +4,9 @@ import logging
 import os
 import sys
 from argparse import ArgumentParser, Namespace
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Collection, Iterable, List, Optional, cast
+from typing import Iterable, List, Optional, Set, cast
 
 import toml
 
@@ -197,8 +197,10 @@ class Exclusions:
     structure are
     - Black
     - ``isort``
+    - ``flynt``
 
     """
 
-    black: Collection[str]
-    isort: Collection[str]
+    black: Set[str] = field(default_factory=set)
+    isort: Set[str] = field(default_factory=set)
+    flynt: Set[str] = field(default_factory=set)

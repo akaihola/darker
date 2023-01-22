@@ -2,20 +2,47 @@
 
 from black import TargetVersion
 
-ISORT_INSTRUCTION = "Please run `pip install darker[isort]`"
+
+def get_extra_instruction(dependency: str) -> str:
+    """Generate the instructions to install Darker with particular extras
+
+    :param dependency: Name of the extra package to install
+    :return: Instructions for installing Darker with the extra package
+
+    """
+    return f"Please run `pip install darker[{dependency}]`"
+
 
 DESCRIPTION_PARTS = [
     "Re-format Python source files by using\n",
+    "- `flynt` to convert format strings to use f-strings\n",
     "- `isort` to sort Python import definitions alphabetically within logical"
     " sections\n",
     "- `black` to re-format code changed since the last Git commit",
 ]
+
+try:
+    import flynt
+except ImportError:
+    flynt = None
+    DESCRIPTION_PARTS.extend(
+        [
+            "\n\n",
+            get_extra_instruction("flynt"),
+            " to enable converting old literal string formatting to f-strings",
+        ]
+    )
+
 try:
     import isort
 except ImportError:
     isort = None  # type: ignore[assignment]
     DESCRIPTION_PARTS.extend(
-        ["\n", "\n", f"{ISORT_INSTRUCTION} to enable sorting of import definitions"]
+        [
+            "\n",
+            "\n",
+            f"{get_extra_instruction('isort')} to enable sorting of import definitions",
+        ]
     )
 DESCRIPTION = "".join(DESCRIPTION_PARTS)
 
@@ -50,9 +77,20 @@ STDOUT = (
     " `pygments` package is available, or if enabled by configuration."
 )
 
+FLYNT_PARTS = [
+    "Also convert string formatting to use f-strings using the `flynt` package"
+]
+if not flynt:
+    FLYNT_PARTS.append(
+        f". {get_extra_instruction('flynt')} to enable usage of this option."
+    )
+FLYNT = "".join(FLYNT_PARTS)
+
 ISORT_PARTS = ["Also sort imports using the `isort` package"]
 if not isort:
-    ISORT_PARTS.append(f". {ISORT_INSTRUCTION} to enable usage of this option.")
+    ISORT_PARTS.append(
+        f". {get_extra_instruction('isort')} to enable usage of this option."
+    )
 ISORT = "".join(ISORT_PARTS)
 
 LINT = (

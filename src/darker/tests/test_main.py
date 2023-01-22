@@ -1,8 +1,7 @@
 """Unit tests for :mod:`darker.__main__`"""
 
-# pylint: disable=unused-argument,too-many-arguments,use-dict-literal,protected-access
-# pylint: disable=redefined-outer-name,use-implicit-booleaness-not-comparison
-# pylint: disable=too-many-locals
+# pylint: disable=too-many-locals,use-implicit-booleaness-not-comparison,unused-argument
+# pylint: disable=protected-access,redefined-outer-name,too-many-arguments
 
 import logging
 import re
@@ -21,6 +20,7 @@ from darker.config import Exclusions
 from darker.exceptions import MissingPackageError
 from darker.git import WORKTREE, EditedLinenumsDiffer, RevisionRange
 from darker.tests.helpers import isort_present
+from darker.tests.test_fstring import FLYNTED_SOURCE, MODIFIED_SOURCE, ORIGINAL_SOURCE
 from darker.tests.test_highlighting import BLUE, CYAN, RESET, WHITE, YELLOW
 from darker.utils import TextDocument, joinlines
 from darker.verification import NotEquivalentError
@@ -86,11 +86,13 @@ def test_isort_option_with_isort_calls_sortimports(tmpdir, run_isort, isort_args
     )
 
 
-A_PY = ["import sys", "import os", "print( '42')", ""]
-A_PY_ISORT = ["import os", "import sys", "", "print( '42')", ""]
-A_PY_BLACK = ["import sys", "import os", "", 'print("42")', ""]
-A_PY_BLACK_UNNORMALIZE = ("import sys", "import os", "", "print('42')", "")
-A_PY_BLACK_ISORT = ["import os", "import sys", "", 'print("42")', ""]
+A_PY = ["import sys", "import os", "print( '{}'.format('42'))", ""]
+A_PY_ISORT = ["import os", "import sys", "", "print( '{}'.format('42'))", ""]
+A_PY_BLACK = ["import sys", "import os", "", 'print("{}".format("42"))', ""]
+A_PY_BLACK_UNNORMALIZE = ("import sys", "import os", "", "print('{}'.format('42'))", "")
+A_PY_BLACK_ISORT = ["import os", "import sys", "", 'print("{}".format("42"))', ""]
+A_PY_BLACK_FLYNT = ["import sys", "import os", "", 'print("42")', ""]
+A_PY_BLACK_ISORT_FLYNT = ["import os", "import sys", "", 'print("42")', ""]
 
 A_PY_DIFF_BLACK = [
     "--- a.py",
@@ -98,9 +100,9 @@ A_PY_DIFF_BLACK = [
     "@@ -1,3 +1,4 @@",
     " import sys",
     " import os",
-    "-print( '42')",
+    "-print( '{}'.format('42'))",
     "+",
-    '+print("42")',
+    '+print("{}".format("42"))',
 ]
 
 A_PY_DIFF_BLACK_NO_STR_NORMALIZE = [
@@ -109,9 +111,9 @@ A_PY_DIFF_BLACK_NO_STR_NORMALIZE = [
     "@@ -1,3 +1,4 @@",
     " import sys",
     " import os",
-    "-print( '42')",
+    "-print( '{}'.format('42'))",
     "+",
-    "+print('42')",
+    "+print('{}'.format('42'))",
 ]
 
 A_PY_DIFF_BLACK_ISORT = [
@@ -121,7 +123,18 @@ A_PY_DIFF_BLACK_ISORT = [
     "+import os",
     " import sys",
     "-import os",
-    "-print( '42')",
+    "-print( '{}'.format('42'))",
+    "+",
+    '+print("{}".format("42"))',
+]
+
+A_PY_DIFF_BLACK_FLYNT = [
+    "--- a.py",
+    "+++ a.py",
+    "@@ -1,3 +1,4 @@",
+    " import sys",
+    " import os",
+    "-print( '{}'.format('42'))",
     "+",
     '+print("42")',
 ]
@@ -129,33 +142,47 @@ A_PY_DIFF_BLACK_ISORT = [
 
 @pytest.mark.kwparametrize(
     dict(
-        isort_exclude={"**/*"},
+        black_exclude=set(),
         expect=[A_PY_BLACK],
     ),
     dict(
+        black_exclude=set(),
+        isort_exclude=set(),
         expect=[A_PY_BLACK_ISORT],
     ),
     dict(
+        black_exclude=set(),
+        flynt_exclude=set(),
+        expect=[A_PY_BLACK_FLYNT],
+    ),
+    dict(
+        black_exclude=set(),
+        isort_exclude=set(),
+        flynt_exclude=set(),
+        expect=[A_PY_BLACK_ISORT_FLYNT],
+    ),
+    dict(
         black_config={"skip_string_normalization": True},
-        isort_exclude={"**/*"},
+        black_exclude=set(),
         expect=[A_PY_BLACK_UNNORMALIZE],
     ),
     dict(
         black_exclude={Path("a.py")},
-        isort_exclude={"**/*"},
         expect=[],
     ),
     dict(
         black_exclude={Path("a.py")},
+        isort_exclude=set(),
         expect=[A_PY_ISORT],
     ),
     black_config={},
-    black_exclude=set(),
-    isort_exclude=set(),
+    black_exclude={"**/*"},
+    isort_exclude={"**/*"},
+    flynt_exclude={"**/*"},
 )
 @pytest.mark.parametrize("newline", ["\n", "\r\n"], ids=["unix", "windows"])
 def test_format_edited_parts(
-    git_repo, black_config, black_exclude, isort_exclude, newline, expect
+    git_repo, black_config, black_exclude, isort_exclude, flynt_exclude, newline, expect
 ):
     """Correct reformatting and import sorting changes are produced
 
@@ -171,7 +198,7 @@ def test_format_edited_parts(
     result = darker.__main__.format_edited_parts(
         Path(git_repo.root),
         {Path("a.py")},
-        Exclusions(black=black_exclude, isort=isort_exclude),
+        Exclusions(black=black_exclude, isort=isort_exclude, flynt=flynt_exclude),
         RevisionRange("HEAD", ":WORKTREE:"),
         black_config,
         report_unmodified=False,
@@ -204,7 +231,7 @@ def test_format_edited_parts_all_unchanged(git_repo, monkeypatch):
         darker.__main__.format_edited_parts(
             Path(git_repo.root),
             {Path("a.py"), Path("b.py")},
-            Exclusions(black=set(), isort=set()),
+            Exclusions(),
             RevisionRange("HEAD", ":WORKTREE:"),
             {},
             report_unmodified=False,
@@ -227,7 +254,7 @@ def test_format_edited_parts_ast_changed(git_repo, caplog):
             darker.__main__.format_edited_parts(
                 git_repo.root,
                 {Path("a.py")},
-                Exclusions(black=set(), isort={"**/*"}),
+                Exclusions(isort={"**/*"}),
                 RevisionRange("HEAD", ":WORKTREE:"),
                 black_config={},
                 report_unmodified=False,
@@ -271,7 +298,7 @@ def test_format_edited_parts_isort_on_already_formatted(git_repo):
     result = darker.__main__.format_edited_parts(
         git_repo.root,
         {Path("a.py")},
-        Exclusions(black=set(), isort=set()),
+        Exclusions(),
         RevisionRange("HEAD", ":WORKTREE:"),
         black_config={},
         report_unmodified=False,
@@ -326,7 +353,7 @@ def test_format_edited_parts_historical(git_repo, rev1, rev2, expect):
     result = darker.__main__.format_edited_parts(
         git_repo.root,
         {Path("a.py")},
-        Exclusions(black=set(), isort=set()),
+        Exclusions(),
         RevisionRange(rev1, rev2),
         black_config={},
         report_unmodified=False,
@@ -336,77 +363,16 @@ def test_format_edited_parts_historical(git_repo, rev1, rev2, expect):
 
 
 @pytest.mark.kwparametrize(
-    dict(),
-    dict(relative_path="file.py.12345.tmp"),
-    dict(
-        rev2_content="import  modified\n\nprint( original )\n",
-        rev2_isorted="import  modified\n\nprint( original )\n",
-        expect="import modified\n\nprint( original )\n",
-    ),
-    dict(
-        rev2_content="import  original\n\nprint(modified )\n",
-        rev2_isorted="import  original\n\nprint(modified )\n",
-        expect="import  original\n\nprint(modified)\n",
-    ),
-    dict(
-        relative_path="file.py.12345.tmp",
-        rev2_content="import  modified\n\nprint( original )\n",
-        rev2_isorted="import  modified\n\nprint( original )\n",
-        expect="import modified\n\nprint( original )\n",
-    ),
-    dict(
-        relative_path="file.py.12345.tmp",
-        rev2_content="import  original\n\nprint(modified )\n",
-        rev2_isorted="import  original\n\nprint(modified )\n",
-        expect="import  original\n\nprint(modified)\n",
-    ),
-    relative_path="file.py",
-    rev1="HEAD",
-    rev2=":WORKTREE",
-    rev2_content="import  original\nprint( original )\n",
-    rev2_isorted="import  original\nprint( original )\n",
-    enable_isort=False,
-    black_config={},
-    expect="import  original\nprint( original )\n",
-)
-def test_blacken_single_file(
-    git_repo,
-    relative_path,
-    rev1,
-    rev2,
-    rev2_content,
-    rev2_isorted,
-    enable_isort,
-    black_config,
-    expect,
-):
-    """Test for ``_blacken_single_file``"""
-    git_repo.add(
-        {"file.py": "import  original\nprint( original )\n"}, commit="Initial commit"
-    )
-    result = darker.__main__._blacken_single_file(
-        git_repo.root,
-        Path(relative_path),
-        Path("file.py"),
-        EditedLinenumsDiffer(git_repo.root, RevisionRange(rev1, rev2)),
-        TextDocument(rev2_content),
-        TextDocument(rev2_isorted),
-        enable_isort,
-        black_config,
-    )
-
-    assert result.string == expect
-
-
-@pytest.mark.kwparametrize(
     dict(arguments=["--diff"], expect_stdout=A_PY_DIFF_BLACK),
     dict(arguments=["--isort"], expect_a_py=A_PY_BLACK_ISORT),
+    dict(arguments=["--flynt"], expect_a_py=A_PY_BLACK_FLYNT),
     dict(
         arguments=["--skip-string-normalization", "--diff"],
         expect_stdout=A_PY_DIFF_BLACK_NO_STR_NORMALIZE,
     ),
     dict(arguments=[], expect_a_py=A_PY_BLACK, expect_retval=0),
     dict(arguments=["--isort", "--diff"], expect_stdout=A_PY_DIFF_BLACK_ISORT),
+    dict(arguments=["--flynt", "--diff"], expect_stdout=A_PY_DIFF_BLACK_FLYNT),
     dict(arguments=["--check"], expect_a_py=A_PY, expect_retval=1),
     dict(
         arguments=["--check", "--diff"],
@@ -414,9 +380,15 @@ def test_blacken_single_file(
         expect_retval=1,
     ),
     dict(arguments=["--check", "--isort"], expect_retval=1),
+    dict(arguments=["--check", "--flynt"], expect_retval=1),
     dict(
         arguments=["--check", "--diff", "--isort"],
         expect_stdout=A_PY_DIFF_BLACK_ISORT,
+        expect_retval=1,
+    ),
+    dict(
+        arguments=["--check", "--diff", "--flynt"],
+        expect_stdout=A_PY_DIFF_BLACK_FLYNT,
         expect_retval=1,
     ),
     dict(
@@ -788,6 +760,32 @@ def test_print_diff(tmp_path, capsys):
         "-changed",
         "+Changed",
     ]
+
+
+@pytest.mark.parametrize("encoding", ["utf-8", "iso-8859-1"])
+@pytest.mark.parametrize("newline", ["\n", "\r\n"])
+@pytest.mark.kwparametrize(
+    dict(exclude=set(), expect=FLYNTED_SOURCE),
+    dict(exclude={"**/*"}, expect=MODIFIED_SOURCE),
+)
+def test_maybe_flynt_single_file(git_repo, encoding, newline, exclude, expect):
+    """Flynt skipped if path matches exclusion patterns, encoding and newline intact"""
+    git_repo.add({"test1.py": joinlines(ORIGINAL_SOURCE, newline)}, commit="Initial")
+    edited_linenums_differ = EditedLinenumsDiffer(
+        git_repo.root, RevisionRange("HEAD", ":WORKTREE:")
+    )  # pylint: disable=duplicate-code
+    src = Path("test1.py")
+    content_ = TextDocument.from_lines(
+        MODIFIED_SOURCE, encoding=encoding, newline=newline
+    )
+
+    result = darker.__main__._maybe_flynt_single_file(
+        src, exclude, edited_linenums_differ, content_
+    )
+
+    assert result.lines == expect
+    assert result.encoding == encoding
+    assert result.newline == newline
 
 
 @pytest.mark.kwparametrize(

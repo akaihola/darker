@@ -517,8 +517,10 @@ def _revision_vs_lines(
 
     """
     old = git_get_content_at_revision(path_in_repo, rev1, root)
+    # 2. diff the given revisions for the file
     edited_opcodes = diff_and_get_opcodes(old, content)
     multiline_string_ranges = get_multiline_string_ranges(content)
+    # 3. extract line numbers in each edited to-file for changed lines
     return list(
         opcodes_to_edit_linenums(edited_opcodes, context_lines, multiline_string_ranges)
     )

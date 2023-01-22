@@ -20,7 +20,12 @@ from darker.__main__ import main
 from darker.command_line import make_argument_parser, parse_command_line
 from darker.config import ConfigurationError, Exclusions
 from darker.git import RevisionRange
-from darker.tests.helpers import filter_dict, isort_present, raises_if_exception
+from darker.tests.helpers import (
+    filter_dict,
+    flynt_present,
+    isort_present,
+    raises_if_exception,
+)
 from darker.utils import TextDocument, joinlines
 
 pytestmark = pytest.mark.usefixtures("find_project_root_cache_clear")
@@ -500,7 +505,40 @@ def test_help_with_isort_package(capsys):
     """``darker --help`` omits ``isort`` installation instructions if it is installed"""
     with isort_present(True):
 
-        assert "Please run" not in get_darker_help_output(capsys)
+        assert (
+            "Please run `pip install darker[isort]` to enable "
+            not in get_darker_help_output(capsys)
+        )
+
+
+def test_help_description_without_flynt_package(capsys):
+    """``darker --help`` description shows how to add ``flynt`` if it's not present"""
+    with flynt_present(False):
+
+        assert (
+            "Please run `pip install darker[flynt]` to enable converting old literal "
+            "string formatting to f-strings" in get_darker_help_output(capsys)
+        )
+
+
+def test_help_flynt_option_without_flynt_package(capsys):
+    """``--flynt`` option help text shows how to install `flynt`` if it's not present"""
+    with flynt_present(False):
+
+        assert (
+            "Please run `pip install darker[flynt]` to enable usage of this option."
+            in get_darker_help_output(capsys)
+        )
+
+
+def test_help_with_flynt_package(capsys):
+    """``darker --help`` omits ``flynt`` installation instructions if it is installed"""
+    with flynt_present(True):
+
+        assert (
+            "Please run `pip install darker[flynt]` to enable "
+            not in get_darker_help_output(capsys)
+        )
 
 
 @pytest.mark.kwparametrize(
@@ -723,7 +761,7 @@ def test_black_config_file_and_options(git_repo, config, options, expect):
         expect=(
             Path("git_root"),
             {Path("a.py")},
-            Exclusions(black=set(), isort={"**/*"}),
+            Exclusions(isort={"**/*"}, flynt={"**/*"}),
             RevisionRange("HEAD", ":WORKTREE:"),
             {},
         ),
@@ -733,7 +771,7 @@ def test_black_config_file_and_options(git_repo, config, options, expect):
         expect=(
             Path("git_root"),
             {Path("a.py")},
-            Exclusions(black=set(), isort=set()),
+            Exclusions(flynt={"**/*"}),
             RevisionRange("HEAD", ":WORKTREE:"),
             {},
         ),
@@ -743,7 +781,7 @@ def test_black_config_file_and_options(git_repo, config, options, expect):
         expect=(
             Path("git_root"),
             {Path("a.py")},
-            Exclusions(black=set(), isort={"**/*"}),
+            Exclusions(isort={"**/*"}, flynt={"**/*"}),
             RevisionRange("HEAD", ":WORKTREE:"),
             {"config": "my.cfg"},
         ),
@@ -753,7 +791,7 @@ def test_black_config_file_and_options(git_repo, config, options, expect):
         expect=(
             Path("git_root"),
             {Path("a.py")},
-            Exclusions(black=set(), isort={"**/*"}),
+            Exclusions(isort={"**/*"}, flynt={"**/*"}),
             RevisionRange("HEAD", ":WORKTREE:"),
             {"line_length": 90},
         ),
@@ -763,7 +801,7 @@ def test_black_config_file_and_options(git_repo, config, options, expect):
         expect=(
             Path("git_root"),
             {Path("a.py")},
-            Exclusions(black=set(), isort={"**/*"}),
+            Exclusions(isort={"**/*"}, flynt={"**/*"}),
             RevisionRange("HEAD", ":WORKTREE:"),
             {"skip_string_normalization": True},
         ),
@@ -773,7 +811,7 @@ def test_black_config_file_and_options(git_repo, config, options, expect):
         expect=(
             Path("git_root"),
             {Path("a.py")},
-            Exclusions(black=set(), isort={"**/*"}),
+            Exclusions(isort={"**/*"}, flynt={"**/*"}),
             RevisionRange("HEAD", ":WORKTREE:"),
             {},
         ),
@@ -783,7 +821,7 @@ def test_black_config_file_and_options(git_repo, config, options, expect):
         expect=(
             Path("git_root"),
             {Path("a.py")},
-            Exclusions(black=set(), isort={"**/*"}),
+            Exclusions(isort={"**/*"}, flynt={"**/*"}),
             RevisionRange("HEAD", ":WORKTREE:"),
             {"target_version": {"py39"}},
         ),

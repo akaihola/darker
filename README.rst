@@ -43,6 +43,7 @@ The reformatters supported are:
 
 - Black_ for code reformatting
 - isort_ for sorting imports
+- flynt_ for turning old-style format strings to f-strings
 
 See `Using linters`_ below for the list of supported linters.
 
@@ -53,6 +54,7 @@ see the relevant sections below in this document.
 
 .. _Black: https://github.com/python/black
 .. _isort: https://github.com/timothycrosley/isort
+.. _flynt: https://github.com/ikamensh/flynt
 .. _Pytest: https://docs.pytest.org/
 .. _pytest-darker: https://pypi.org/project/pytest-darker/
 
@@ -164,10 +166,13 @@ You can enable additional features with command line options:
 - ``-i`` / ``--isort``: Reorder imports using isort_. Note that isort_ must be
   run in the same Python environment as the packages to process, as it imports
   your modules to determine whether they are first or third party modules.
+- ``-f`` / ``--flynt``: Also convert string formatting to use f-strings using the
+  ``flynt`` package
 - ``-L <linter>`` / ``--lint <linter>``: Run a supported linter (see `Using linters`_)
 
 *New in version 1.1.0:* The ``-L`` / ``--lint`` option.
 *New in version 1.2.2:* Package available in conda-forge_.
+*New in version 1.7.0:* The ``-f`` / ``--flynt`` option
 
 .. _Conda: https://conda.io/
 .. _conda-forge: https://conda-forge.org/
@@ -314,6 +319,8 @@ The following `command line arguments`_ can also be used to modify the defaults:
 --check
        Don't write the files back, just return the status. Return code 0 means nothing
        would change. Return code 1 means some files would be reformatted.
+-f, --flynt
+       Also convert string formatting to use f-strings using the ``flynt`` package
 -i, --isort
        Also sort imports using the ``isort`` package
 -L CMD, --lint CMD
@@ -365,6 +372,7 @@ project's root directory, or to a different TOML file specified using the ``-c``
    diff = true
    check = true
    isort = true
+   flynt = true
    lint = [
        "pylint",
    ]
@@ -420,6 +428,8 @@ command line options
 command line options
 
 *New in version 1.7.0:* The ``-t`` / ``--target-version`` command line option
+
+*New in version 1.7.0:* The ``-f`` / ``--flynt`` command line option
 
 .. _Black documentation about pyproject.toml: https://black.readthedocs.io/en/stable/usage_and_configuration/the_basics.html#configuration-via-a-file
 .. _isort documentation about config files: https://timothycrosley.github.io/isort/docs/configuration/config_files/
