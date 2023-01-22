@@ -23,6 +23,7 @@ jobs:
             pygments \
             'pylint<=3.2.7' \
             pytest>=6.2.0 \
+            pyupgrade>=2.31.0 \
             regex \
             requests \
             requests-cache \
