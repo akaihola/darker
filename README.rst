@@ -343,7 +343,8 @@ The following `command line arguments`_ can also be used to modify the defaults:
        terminal and the ``pygments`` package is available, or if enabled by
        configuration.
 -c PATH, --config PATH
-       Ask ``black`` and ``isort`` to read configuration from ``PATH``.
+       Ask ``black`` and ``isort`` to read configuration from ``PATH``. Note that other
+       tools like flynt, Mypy, Pylint and Flake8 won't use this configuration file.
 -v, --verbose
        Show steps taken and summarize modifications
 -q, --quiet
