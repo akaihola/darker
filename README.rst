@@ -280,12 +280,25 @@ instead of the last commit:
    $ darker --revision master .
 
 
-Customizing ``darker``, Black and isort behavior
-================================================
+Customizing ``darker``, Black_, isort_, flynt_ and linter behavior
+==================================================================
 
-Project-specific default options for ``darker``, Black_ and isort_
-are read from the project's ``pyproject.toml`` file in the repository root.
-isort_ also looks for a few other places for configuration.
+``darker`` invokes Black_ and isort_ internals directly instead of running their
+binaries, so it needs to read and pass configuration options to them explicitly.
+Project-specific default options for ``darker`` itself, Black_ and isort_ are read from
+the project's ``pyproject.toml`` file in the repository root. isort_ does also look for
+a few other places for configuration.
+
+Mypy_, Pylint_, Flake8_ and other compatible linters are invoked as
+subprocesses by ``darker``, so normal configuration mechanisms apply for each of those
+tools. Linters can also be configured on the command line, for example::
+
+    darker -L "mypy --strict" .
+    darker --lint "pylint --errors-only" .
+  
+flynt_ (option ``-f`` / ``--flynt``) is also invoked as a subprocess, but passing
+command line options to it is currently not supported. Configuration files need to be
+used instead.
 
 Darker does honor exclusion options in Black configuration files when recursing
 directories, but the exclusions are only applied to Black reformatting. Isort and
@@ -297,6 +310,7 @@ For more details, see:
 - `Black documentation about pyproject.toml`_
 - `isort documentation about config files`_
 - `public GitHub repositories which install and run Darker`_
+- `flynt documentation about configuration files`_
 
 The following `command line arguments`_ can also be used to modify the defaults:
 
@@ -324,12 +338,14 @@ The following `command line arguments`_ can also be used to modify the defaults:
 -i, --isort
        Also sort imports using the ``isort`` package
 -L CMD, --lint CMD
-       Also run a linter on changed files. ``CMD`` can be a name of path of the linter
-       binary, or a full quoted command line. Highlight linter output syntax if on a
-       terminal and the ``pygments`` package is available, or if enabled by
-       configuration.
+       Also run a linter on changed files. ``CMD`` can be a name or path of the linter
+       binary, or a full quoted command line with the command and options. Linters read
+       their configuration as normally, and aren't affected by ``-c`` / ``--config``.
+       Linter output is syntax highlighted when the ``pygments`` package is available if
+       run on a terminal and or enabled by explicitly (see ``--color``).
 -c PATH, --config PATH
-       Ask ``black`` and ``isort`` to read configuration from ``PATH``.
+       Ask ``black`` and ``isort`` to read configuration from ``PATH``. Note that other
+       tools like flynt, Mypy, Pylint and Flake8 won't use this configuration file.
 -v, --verbose
        Show steps taken and summarize modifications
 -q, --quiet
@@ -434,6 +450,7 @@ command line options
 .. _Black documentation about pyproject.toml: https://black.readthedocs.io/en/stable/usage_and_configuration/the_basics.html#configuration-via-a-file
 .. _isort documentation about config files: https://timothycrosley.github.io/isort/docs/configuration/config_files/
 .. _public GitHub repositories which install and run Darker: https://github.com/search?q=%2Fpip+install+.*darker%2F+path%3A%2F%5E.github%5C%2Fworkflows%5C%2F.*%2F&type=code
+.. _flynt documentation about configuration files: https://github.com/ikamensh/flynt#configuration-files
 .. _command line arguments: https://black.readthedocs.io/en/stable/usage_and_configuration/the_basics.html#command-line-options
 
 Editor integration

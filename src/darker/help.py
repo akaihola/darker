@@ -94,13 +94,17 @@ if not isort:
 ISORT = "".join(ISORT_PARTS)
 
 LINT = (
-    "Also run a linter on changed files. `CMD` can be a name of path of the"
-    " linter binary, or a full quoted command line. Highlight linter output syntax if"
-    " on a terminal and the `pygments` package is available, or if enabled by"
-    " configuration."
+    "Also run a linter on changed files. `CMD` can be a name or path of the linter"
+    " binary, or a full quoted command line with the command and options. Linters read"
+    " their configuration as normally, and aren't affected by `-c` / `--config`. Linter"
+    " output is syntax highlighted when the `pygments` package is available if run on"
+    " a terminal and or enabled by explicitly (see `--color`)."
 )
 
-CONFIG = "Ask `black` and `isort` to read configuration from `PATH`."
+CONFIG = (
+    "Ask `black` and `isort` to read configuration from `PATH`. Note that other tools"
+    " like flynt, Mypy, Pylint and Flake8 won't use this configuration file."
+)
 
 VERBOSE = "Show steps taken and summarize modifications"
 QUIET = "Reduce amount of output"
