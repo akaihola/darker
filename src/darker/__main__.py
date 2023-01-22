@@ -370,6 +370,24 @@ def _drop_changes_on_unedited_lines(
     return last_successful_reformat
 
 
+def pyup(content: TextDocument) -> TextDocument:
+    """Upgrade syntax to newer version of Python using `pyupgrade`
+
+    :param content: The Python source code to upgrade
+    :return: The upgraded Python source code
+
+    """
+
+    from pyupgrade._main import _fix_plugins, _fix_tokens, _fix_py36_plus, Settings
+
+    min_version = (3, 6)
+    result = _fix_plugins(content.string, Settings(min_version=min_version))
+    result = _fix_tokens(result, min_version)
+    result = _fix_py36_plus(result, min_version=min_version)
+
+    return TextDocument(result)
+
+
 def modify_file(path: Path, new_content: TextDocument) -> None:
     """Write new content to a file and inform the user by logging"""
     logger.info("Writing %s bytes into %s", len(new_content.string), path)
