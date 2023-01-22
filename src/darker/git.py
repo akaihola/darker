@@ -56,6 +56,7 @@ COMMIT_RANGE_RE = re.compile(r"(.*?)(\.{2,3})(.*)$")
 # - referring to the `PRE_COMMIT_FROM_REF` and `PRE_COMMIT_TO_REF` environment variables
 #   for determining the revision range
 WORKTREE = ":WORKTREE:"
+STDIN = ":STDIN:"
 PRE_COMMIT_FROM_TO_REFS = ":PRE-COMMIT:"
 
 
@@ -175,34 +176,55 @@ class RevisionRange:
 
     @classmethod
     def parse_with_common_ancestor(
-        cls, revision_range: str, cwd: Path
+        cls, revision_range: str, cwd: Path, stdin_mode: bool
     ) -> "RevisionRange":
         """Convert a range expression to a ``RevisionRange`` object
 
         If the expression contains triple dots (e.g. ``master...HEAD``), finds the
         common ancestor of the two revisions and uses that as the first revision.
 
+        :param revision_range: The revision range as a string to parse
+        :param cwd: The working directory to use if invoking Git
+        :param stdin_mode: If `True`, the default for ``rev2`` is ``:STDIN:``
+        :return: The range parsed into a `RevisionRange` object
+
         """
-        rev1, rev2, use_common_ancestor = cls._parse(revision_range)
+        rev1, rev2, use_common_ancestor = cls._parse(revision_range, stdin_mode)
         if use_common_ancestor:
             return cls._with_common_ancestor(rev1, rev2, cwd)
         return cls(rev1, rev2)
 
     @staticmethod
-    def _parse(revision_range: str) -> Tuple[str, str, bool]:
+    def _parse(revision_range: str, stdin_mode: bool) -> Tuple[str, str, bool]:
         """Convert a range expression to revisions, using common ancestor if appropriate
 
-        >>> RevisionRange._parse("a..b")
+        A `ValueError` is raised if ``--stdin-filename`` is used by the revision range
+        is ``:PRE-COMMIT:`` or the end of the range is not ``:STDIN:``.
+
+        :param revision_range: The revision range as a string to parse
+        :param stdin_mode: If `True`, the default for ``rev2`` is ``:STDIN:``
+        :raises ValueError: for an invalid revision when ``--stdin-filename`` is used
+        :return: The range parsed into a `RevisionRange` object
+
+        >>> RevisionRange._parse("a..b", stdin_mode=False)
         ('a', 'b', False)
-        >>> RevisionRange._parse("a...b")
+        >>> RevisionRange._parse("a...b", stdin_mode=False)
         ('a', 'b', True)
-        >>> RevisionRange._parse("a..")
+        >>> RevisionRange._parse("a..", stdin_mode=False)
         ('a', ':WORKTREE:', False)
-        >>> RevisionRange._parse("a...")
+        >>> RevisionRange._parse("a...", stdin_mode=False)
         ('a', ':WORKTREE:', True)
+        >>> RevisionRange._parse("a..", stdin_mode=True)
+        ('a', ':STDIN:', False)
+        >>> RevisionRange._parse("a...", stdin_mode=True)
+        ('a', ':STDIN:', True)
 
         """
         if revision_range == PRE_COMMIT_FROM_TO_REFS:
+            if stdin_mode:
+                raise ValueError(
+                    f"With --stdin-filename, revision {revision_range!r} is not allowed"
+                )
             try:
                 return (
                     os.environ["PRE_COMMIT_FROM_REF"],
@@ -213,16 +235,27 @@ class RevisionRange:
                 # Fallback to running against HEAD
                 revision_range = "HEAD"
         match = COMMIT_RANGE_RE.match(revision_range)
+        default_rev2 = STDIN if stdin_mode else WORKTREE
         if match:
             rev1, range_dots, rev2 = match.groups()
             use_common_ancestor = range_dots == "..."
-            return (rev1 or "HEAD", rev2 or WORKTREE, use_common_ancestor)
-        return (revision_range or "HEAD", WORKTREE, revision_range not in ["", "HEAD"])
+            effective_rev2 = rev2 or default_rev2
+            if stdin_mode and effective_rev2 != STDIN:
+                raise ValueError(
+                    f"With --stdin-filename, rev2 in {revision_range} must be"
+                    f" {STDIN!r}, not {effective_rev2!r}"
+                )
+            return (rev1 or "HEAD", rev2 or default_rev2, use_common_ancestor)
+        return (
+            revision_range or "HEAD",
+            default_rev2,
+            revision_range not in ["", "HEAD"],
+        )
 
     @classmethod
     def _with_common_ancestor(cls, rev1: str, rev2: str, cwd: Path) -> "RevisionRange":
         """Find common ancestor for revisions and return a ``RevisionRange`` object"""
-        rev2_for_merge_base = "HEAD" if rev2 == WORKTREE else rev2
+        rev2_for_merge_base = "HEAD" if rev2 in [WORKTREE, STDIN] else rev2
         merge_base_cmd = ["merge-base", rev1, rev2_for_merge_base]
         common_ancestor = _git_check_output_lines(merge_base_cmd, cwd)[0]
         rev1_hash = _git_check_output_lines(["show", "-s", "--pretty=%H", rev1], cwd)[0]

@@ -338,7 +338,9 @@ def test_run_linters_non_worktree():
             ["dummy-linter"],
             Path("/dummy"),
             {Path("dummy.py")},
-            RevisionRange.parse_with_common_ancestor("..HEAD", Path("dummy cwd")),
+            RevisionRange.parse_with_common_ancestor(
+                "..HEAD", Path("dummy cwd"), stdin_mode=False
+            ),
             use_color=False,
         )
 

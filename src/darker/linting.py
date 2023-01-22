@@ -44,6 +44,7 @@ from typing import (
 
 from darker.diff import map_unmodified_lines
 from darker.git import (
+    STDIN,
     WORKTREE,
     RevisionRange,
     git_clone_local,
@@ -382,11 +383,16 @@ def run_linters(
     :param paths: The files and directories to check, relative to ``root``
     :param revrange: The Git revisions to compare
     :param use_color: ``True`` to use syntax highlighting for linter output
+    :raises NotImplementedError: if ``--stdin-filename`` is used
     :return: Total number of linting errors found on modified lines
 
     """
     if not linter_cmdlines:
         return 0
+    if revrange.rev2 == STDIN:
+        raise NotImplementedError(
+            "The -l/--lint option isn't yet available with --stdin-filename"
+        )
     _require_rev2_worktree(revrange.rev2)
     git_root = git_get_root(root)
     if not git_root:

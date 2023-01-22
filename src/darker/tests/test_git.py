@@ -1,6 +1,6 @@
 """Unit tests for :mod:`darker.git`"""
 
-# pylint: disable=redefined-outer-name,protected-access,too-many-arguments
+# pylint: disable=protected-access,redefined-outer-name,too-many-arguments
 # pylint: disable=too-many-lines,use-dict-literal
 
 import os
@@ -16,7 +16,7 @@ import pytest
 
 from darker import git
 from darker.tests.conftest import GitRepoFixture
-from darker.tests.helpers import raises_or_matches
+from darker.tests.helpers import raises_if_exception, raises_or_matches
 from darker.utils import GIT_DATEFORMAT, TextDocument
 
 
@@ -118,27 +118,71 @@ def test_git_get_content_at_revision(git_repo, revision, expect_lines, expect_mt
     assert result.encoding == "utf-8"
 
 
-@pytest.mark.parametrize(
-    "revision_range, expect",
-    [
-        ("", ("HEAD", ":WORKTREE:", False)),
-        ("HEAD", ("HEAD", ":WORKTREE:", False)),
-        ("a", ("a", ":WORKTREE:", True)),
-        ("a..", ("a", ":WORKTREE:", False)),
-        ("a...", ("a", ":WORKTREE:", True)),
-        ("..HEAD", ("HEAD", "HEAD", False)),
-        ("...HEAD", ("HEAD", "HEAD", True)),
-        ("a..HEAD", ("a", "HEAD", False)),
-        ("a...HEAD", ("a", "HEAD", True)),
-        ("a..b", ("a", "b", False)),
-        ("a...b", ("a", "b", True)),
-    ],
+@pytest.mark.kwparametrize(
+    dict(revision_range="", stdin_mode=False, expect=("HEAD", ":WORKTREE:", False)),
+    dict(revision_range="HEAD", stdin_mode=False, expect=("HEAD", ":WORKTREE:", False)),
+    dict(revision_range="a", stdin_mode=False, expect=("a", ":WORKTREE:", True)),
+    dict(revision_range="a..", stdin_mode=False, expect=("a", ":WORKTREE:", False)),
+    dict(revision_range="a...", stdin_mode=False, expect=("a", ":WORKTREE:", True)),
+    dict(revision_range="..HEAD", stdin_mode=False, expect=("HEAD", "HEAD", False)),
+    dict(revision_range="...HEAD", stdin_mode=False, expect=("HEAD", "HEAD", True)),
+    dict(revision_range="a..HEAD", stdin_mode=False, expect=("a", "HEAD", False)),
+    dict(revision_range="a...HEAD", stdin_mode=False, expect=("a", "HEAD", True)),
+    dict(revision_range="a..b", stdin_mode=False, expect=("a", "b", False)),
+    dict(revision_range="a...b", stdin_mode=False, expect=("a", "b", True)),
+    dict(revision_range="", stdin_mode=True, expect=("HEAD", ":STDIN:", False)),
+    dict(revision_range="HEAD", stdin_mode=True, expect=("HEAD", ":STDIN:", False)),
+    dict(revision_range="a", stdin_mode=True, expect=("a", ":STDIN:", True)),
+    dict(revision_range="a..", stdin_mode=True, expect=("a", ":STDIN:", False)),
+    dict(revision_range="a...", stdin_mode=True, expect=("a", ":STDIN:", True)),
+    dict(
+        revision_range="..HEAD",
+        stdin_mode=True,
+        expect=ValueError(
+            "With --stdin-filename, rev2 in ..HEAD must be ':STDIN:', not 'HEAD'"
+        ),
+    ),
+    dict(
+        revision_range="...HEAD",
+        stdin_mode=True,
+        expect=ValueError(
+            "With --stdin-filename, rev2 in ...HEAD must be ':STDIN:', not 'HEAD'"
+        ),
+    ),
+    dict(
+        revision_range="a..HEAD",
+        stdin_mode=True,
+        expect=ValueError(
+            "With --stdin-filename, rev2 in a..HEAD must be ':STDIN:', not 'HEAD'"
+        ),
+    ),
+    dict(
+        revision_range="a...HEAD",
+        stdin_mode=True,
+        expect=ValueError(
+            "With --stdin-filename, rev2 in a...HEAD must be ':STDIN:', not 'HEAD'"
+        ),
+    ),
+    dict(
+        revision_range="a..b",
+        stdin_mode=True,
+        expect=ValueError(
+            "With --stdin-filename, rev2 in a..b must be ':STDIN:', not 'b'"
+        ),
+    ),
+    dict(
+        revision_range="a...b",
+        stdin_mode=True,
+        expect=ValueError(
+            "With --stdin-filename, rev2 in a...b must be ':STDIN:', not 'b'"
+        ),
+    ),
 )
-def test_revisionrange_parse(revision_range, expect):
+def test_revisionrange_parse(revision_range, stdin_mode, expect):
     """Test for :meth:`RevisionRange.parse`"""
-    result = git.RevisionRange._parse(revision_range)
+    with raises_or_matches(expect, ["args"]) as check:
 
-    assert result == expect
+        check(git.RevisionRange._parse(revision_range, stdin_mode))
 
 
 def git_call(cmd, encoding=None):
@@ -207,23 +251,40 @@ def test_git_get_content_at_revision_obtain_file_content(
 
 
 @pytest.mark.kwparametrize(
-    dict(revrange="HEAD", expect="HEAD..:WORKTREE:"),
-    dict(revrange="{initial}", expect="{initial}..:WORKTREE:"),
-    dict(revrange="{initial}..", expect="{initial}..:WORKTREE:"),
-    dict(revrange="{initial}..HEAD", expect="{initial}..HEAD"),
-    dict(revrange="{initial}..feature", expect="{initial}..feature"),
-    dict(revrange="{initial}...", expect="{initial}..:WORKTREE:"),
-    dict(revrange="{initial}...HEAD", expect="{initial}..HEAD"),
-    dict(revrange="{initial}...feature", expect="{initial}..feature"),
-    dict(revrange="master", expect="{initial}..:WORKTREE:"),
-    dict(revrange="master..", expect="master..:WORKTREE:"),
-    dict(revrange="master..HEAD", expect="master..HEAD"),
-    dict(revrange="master..feature", expect="master..feature"),
-    dict(revrange="master...", expect="{initial}..:WORKTREE:"),
-    dict(revrange="master...HEAD", expect="{initial}..HEAD"),
-    dict(revrange="master...feature", expect="{initial}..feature"),
+    dict(revrange="HEAD", stdin_mode=False, expect="HEAD..:WORKTREE:"),
+    dict(revrange="{initial}", stdin_mode=False, expect="{initial}..:WORKTREE:"),
+    dict(revrange="{initial}..", stdin_mode=False, expect="{initial}..:WORKTREE:"),
+    dict(revrange="{initial}..HEAD", stdin_mode=False, expect="{initial}..HEAD"),
+    dict(revrange="{initial}..feature", stdin_mode=False, expect="{initial}..feature"),
+    dict(revrange="{initial}...", stdin_mode=False, expect="{initial}..:WORKTREE:"),
+    dict(revrange="{initial}...HEAD", stdin_mode=False, expect="{initial}..HEAD"),
+    dict(revrange="{initial}...feature", stdin_mode=False, expect="{initial}..feature"),
+    dict(revrange="master", stdin_mode=False, expect="{initial}..:WORKTREE:"),
+    dict(revrange="master..", stdin_mode=False, expect="master..:WORKTREE:"),
+    dict(revrange="master..HEAD", stdin_mode=False, expect="master..HEAD"),
+    dict(revrange="master..feature", stdin_mode=False, expect="master..feature"),
+    dict(revrange="master...", stdin_mode=False, expect="{initial}..:WORKTREE:"),
+    dict(revrange="master...HEAD", stdin_mode=False, expect="{initial}..HEAD"),
+    dict(revrange="master...feature", stdin_mode=False, expect="{initial}..feature"),
+    dict(revrange="HEAD", stdin_mode=True, expect="HEAD..:STDIN:"),
+    dict(revrange="{initial}", stdin_mode=True, expect="{initial}..:STDIN:"),
+    dict(revrange="{initial}..", stdin_mode=True, expect="{initial}..:STDIN:"),
+    dict(revrange="{initial}..HEAD", stdin_mode=True, expect=ValueError),
+    dict(revrange="{initial}..feature", stdin_mode=True, expect=ValueError),
+    dict(revrange="{initial}...", stdin_mode=True, expect="{initial}..:STDIN:"),
+    dict(revrange="{initial}...HEAD", stdin_mode=True, expect=ValueError),
+    dict(revrange="{initial}...feature", stdin_mode=True, expect=ValueError),
+    dict(revrange="master", stdin_mode=True, expect="{initial}..:STDIN:"),
+    dict(revrange="master..", stdin_mode=True, expect="master..:STDIN:"),
+    dict(revrange="master..HEAD", stdin_mode=True, expect=ValueError),
+    dict(revrange="master..feature", stdin_mode=True, expect=ValueError),
+    dict(revrange="master...", stdin_mode=True, expect="{initial}..:STDIN:"),
+    dict(revrange="master...HEAD", stdin_mode=True, expect=ValueError),
+    dict(revrange="master...feature", stdin_mode=True, expect=ValueError),
 )
-def test_revisionrange_parse_with_common_ancestor(git_repo, revrange, expect):
+def test_revisionrange_parse_with_common_ancestor(
+    git_repo, revrange, stdin_mode, expect
+):
     """``_git_get_old_revision()`` gets common ancestor using Git when necessary"""
     git_repo.add({"a": "i"}, commit="Initial commit")
     initial = git_repo.get_hash()
@@ -231,14 +292,15 @@ def test_revisionrange_parse_with_common_ancestor(git_repo, revrange, expect):
     master = git_repo.get_hash()
     git_repo.create_branch("feature", initial)
     git_repo.add({"a": "f"}, commit="in feature")
+    with raises_if_exception(expect):
 
-    result = git.RevisionRange.parse_with_common_ancestor(
-        revrange.format(initial=initial), git_repo.root
-    )
+        result = git.RevisionRange.parse_with_common_ancestor(
+            revrange.format(initial=initial), git_repo.root, stdin_mode
+        )
 
-    rev1, rev2 = expect.format(initial=initial, master=master).split("..")
-    assert result.rev1 == rev1
-    assert result.rev2 == rev2
+        rev1, rev2 = expect.format(initial=initial, master=master).split("..")
+        assert result.rev1 == rev1
+        assert result.rev2 == rev2
 
 
 @pytest.mark.kwparametrize(
@@ -781,7 +843,9 @@ def test_git_get_modified_python_files_revision_range(
     """Test for :func:`darker.git.git_get_modified_python_files` with revision range"""
     result = git.git_get_modified_python_files(
         [Path(branched_repo.root)],
-        git.RevisionRange.parse_with_common_ancestor(revrange, branched_repo.root),
+        git.RevisionRange.parse_with_common_ancestor(
+            revrange, branched_repo.root, stdin_mode=False
+        ),
         Path(branched_repo.root),
     )
 
@@ -896,22 +960,18 @@ def test_git_get_root_not_found(tmp_path, path):
 
 @pytest.mark.kwparametrize(
     dict(
-        environ={},
         expect_rev1="HEAD",
         expect_rev2=":WORKTREE:",
-        expect_use_common_ancestor=False,
     ),
     dict(
         environ={"PRE_COMMIT_FROM_REF": "old"},
         expect_rev1="HEAD",
         expect_rev2=":WORKTREE:",
-        expect_use_common_ancestor=False,
     ),
     dict(
         environ={"PRE_COMMIT_TO_REF": "new"},
         expect_rev1="HEAD",
         expect_rev2=":WORKTREE:",
-        expect_use_common_ancestor=False,
     ),
     dict(
         environ={"PRE_COMMIT_FROM_REF": "old", "PRE_COMMIT_TO_REF": "new"},
@@ -919,14 +979,45 @@ def test_git_get_root_not_found(tmp_path, path):
         expect_rev2="new",
         expect_use_common_ancestor=True,
     ),
+    dict(
+        stdin_mode=True,
+        expect_rev1=ValueError(
+            "With --stdin-filename, revision ':PRE-COMMIT:' is not allowed"
+        ),
+    ),
+    dict(
+        environ={"PRE_COMMIT_FROM_REF": "old"},
+        stdin_mode=True,
+        expect_rev1=ValueError(
+            "With --stdin-filename, revision ':PRE-COMMIT:' is not allowed"
+        ),
+    ),
+    dict(
+        environ={"PRE_COMMIT_TO_REF": "new"},
+        stdin_mode=True,
+        expect_rev1=ValueError(
+            "With --stdin-filename, revision ':PRE-COMMIT:' is not allowed"
+        ),
+    ),
+    dict(
+        environ={"PRE_COMMIT_FROM_REF": "old", "PRE_COMMIT_TO_REF": "new"},
+        stdin_mode=True,
+        expect_rev1=ValueError(
+            "With --stdin-filename, revision ':PRE-COMMIT:' is not allowed"
+        ),
+    ),
+    environ={},
+    stdin_mode=False,
+    expect_rev2=None,
+    expect_use_common_ancestor=False,
 )
 def test_revisionrange_parse_pre_commit(
-    environ, expect_rev1, expect_rev2, expect_use_common_ancestor
+    environ, stdin_mode, expect_rev1, expect_rev2, expect_use_common_ancestor
 ):
     """RevisionRange._parse(':PRE-COMMIT:') gets the range from environment variables"""
-    with patch.dict(os.environ, environ):
+    with patch.dict(os.environ, environ), raises_if_exception(expect_rev1):
 
-        result = git.RevisionRange._parse(":PRE-COMMIT:")
+        result = git.RevisionRange._parse(":PRE-COMMIT:", stdin_mode)
 
         assert result == (expect_rev1, expect_rev2, expect_use_common_ancestor)
 
