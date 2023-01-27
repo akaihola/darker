@@ -18,6 +18,9 @@ Added
   ``rev2`` to get the current situation. Old linter messages which fall on unmodified
   lines are hidden, so effectively the user gets new linter messages introduced by
   latest changes, as well as persistent linter messages on modified lines.
+- ``--stdin-filename=PATH`` now allows reading contents of a single file from standard
+  input. This also makes ``:STDIN:``, a new magic value, the default ``rev2`` for
+  ``--revision``.
 - Add configuration for ``darglint`` and ``flake8-docstrings``, preparing for enabling
   those linters in CI builds.
 
