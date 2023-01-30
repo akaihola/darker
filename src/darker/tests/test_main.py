@@ -37,6 +37,8 @@ def randomword(length: int) -> str:
     letters = string.ascii_lowercase
     return "".join(random.choice(letters) for _i in range(length))  # nosec
 
+pytestmark = pytest.mark.usefixtures("find_project_root_cache_clear")
+
 
 def _replace_diff_timestamps(text, replacement="<timestamp>"):
     return re.sub(r"\d{4}-\d\d-\d\d \d\d:\d\d:\d\d\.\d\d\d\d\d\d", replacement, text)
