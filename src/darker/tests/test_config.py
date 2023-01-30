@@ -103,13 +103,23 @@ def test_output_mode_validate_diff_stdout(diff, stdout, expect):
     dict(stdout=False, src=["missing.py"]),
     dict(stdout=False, src=["missing.py", "another_missing.py"]),
     dict(stdout=False, src=["directory"]),
-    dict(stdout=True, expect=ConfigurationError),
+    dict(stdout=True, expect=ConfigurationError),  # input file missing
     dict(stdout=True, src=["first.py"]),
-    dict(stdout=True, src=["first.py", "second.py"], expect=ConfigurationError),
-    dict(stdout=True, src=["first.py", "missing.py"], expect=ConfigurationError),
-    dict(stdout=True, src=["missing.py"], expect=ConfigurationError),
-    dict(stdout=True, src=["missing.py", "another.py"], expect=ConfigurationError),
-    dict(stdout=True, src=["directory"], expect=ConfigurationError),
+    dict(  # too many input files
+        stdout=True, src=["first.py", "second.py"], expect=ConfigurationError
+    ),
+    dict(  # too many input files (even if all but one missing)
+        stdout=True, src=["first.py", "missing.py"], expect=ConfigurationError
+    ),
+    dict(  # input file doesn't exist
+        stdout=True, src=["missing.py"], expect=ConfigurationError
+    ),
+    dict(  # too many input files (even if all but one missing)
+        stdout=True, src=["missing.py", "another.py"], expect=ConfigurationError
+    ),
+    dict(  # input file required, not a directory
+        stdout=True, src=["directory"], expect=ConfigurationError
+    ),
     dict(stdout=False, stdin_filename="path.py"),
     dict(stdout=False, src=["first.py"], stdin_filename="path.py"),
     dict(stdout=False, src=["first.py", "second.py"], stdin_filename="path.py"),
@@ -120,37 +130,37 @@ def test_output_mode_validate_diff_stdout(diff, stdout, expect):
     ),
     dict(stdout=False, src=["directory"], stdin_filename="path.py"),
     dict(stdout=True, stdin_filename="path.py"),
-    dict(
+    dict(  # too many input files, here from two different command line arguments
         stdout=True,
         src=["first.py"],
         stdin_filename="path.py",
         expect=ConfigurationError,
     ),
-    dict(
+    dict(  # too many input files, here from two different command line arguments
         stdout=True,
         src=["first.py", "second.py"],
         stdin_filename="path.py",
         expect=ConfigurationError,
     ),
-    dict(
+    dict(  # too many input files, here from two different command line arguments
         stdout=True,
         src=["first.py", "missing.py"],
         stdin_filename="path.py",
         expect=ConfigurationError,
     ),
-    dict(
+    dict(  # too many input files (even if positional file is missing)
         stdout=True,
         src=["missing.py"],
         stdin_filename="path.py",
         expect=ConfigurationError,
     ),
-    dict(
+    dict(  # too many input files, here from two different command line arguments
         stdout=True,
         src=["missing.py", "another.py"],
         stdin_filename="path.py",
         expect=ConfigurationError,
     ),
-    dict(
+    dict(  # too many input files, here from two different command line arguments
         stdout=True,
         src=["directory"],
         stdin_filename="path.py",
