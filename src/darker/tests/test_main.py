@@ -30,6 +30,8 @@ from darkgraylib.git import RevisionRange
 from darkgraylib.testtools.highlighting_helpers import BLUE, CYAN, RESET, WHITE, YELLOW
 from darkgraylib.utils import TextDocument
 
+pytestmark = pytest.mark.usefixtures("find_project_root_cache_clear")
+
 
 def randomword(length: int) -> str:
     """Create a random string of lowercase letters of a given length."""
@@ -56,7 +58,7 @@ def test_isort_option_without_isort(git_repo, caplog):
 
 
 @pytest.fixture
-def run_isort(git_repo, monkeypatch, caplog, request, find_project_root_cache_clear):
+def run_isort(git_repo, monkeypatch, caplog, request):
     """Fixture for running Darker with requested arguments and a patched `isort`
 
     Provides an `run_isort.isort_code` mock object which allows checking whether and how
@@ -559,7 +561,6 @@ def test_main(
     git_repo,
     monkeypatch,
     capsys,
-    find_project_root_cache_clear,
     arguments,
     newline,
     pyproject_toml,
@@ -662,9 +663,7 @@ def test_main_in_plain_directory(tmp_path, capsys):
     "encoding, text", [(b"utf-8", b"touch\xc3\xa9"), (b"iso-8859-1", b"touch\xe9")]
 )
 @pytest.mark.parametrize("newline", [b"\n", b"\r\n"])
-def test_main_encoding(
-    git_repo, find_project_root_cache_clear, encoding, text, newline
-):
+def test_main_encoding(git_repo, encoding, text, newline):
     """Encoding and newline of the file is kept unchanged after reformatting"""
     paths = git_repo.add({"a.py": newline.decode("ascii")}, commit="Initial commit")
     edited = [b"# coding: ", encoding, newline, b's="', text, b'"', newline]

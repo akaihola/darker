@@ -18,6 +18,8 @@ from darkgraylib.utils import TextDocument
 ORIGINAL_SOURCE = ("import sys", "import os", "", "print(42)")
 ISORTED_SOURCE = ("import os", "import sys", "", "print(42)")
 
+pytestmark = pytest.mark.usefixtures("find_project_root_cache_clear")
+
 
 @pytest.mark.parametrize("present", [True, False])
 def test_import_sorting_importable_with_and_without_isort(present):
@@ -134,14 +136,7 @@ def test_apply_isort_exclude(git_repo, encoding, newline, content, exclude, expe
         ),
     ),
 )
-def test_isort_config(
-    monkeypatch,
-    tmpdir,
-    find_project_root_cache_clear,
-    line_length,
-    settings_file,
-    expect,
-):
+def test_isort_config(monkeypatch, tmpdir, line_length, settings_file, expect):
     """``apply_isort()`` parses ``pyproject.toml``correctly"""
     monkeypatch.chdir(tmpdir)
     (tmpdir / "pyproject.toml").write(
