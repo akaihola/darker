@@ -1,5 +1,7 @@
 """Tests for the GitHub Action ``main.py`` module"""
 
+# pylint: disable=use-dict-literal
+
 import re
 import sys
 from contextlib import contextmanager

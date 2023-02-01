@@ -2,6 +2,7 @@
 
 # pylint: disable=too-many-locals,use-implicit-booleaness-not-comparison,unused-argument
 # pylint: disable=protected-access,redefined-outer-name,too-many-arguments
+# pylint: disable=use-dict-literal
 
 import logging
 import re

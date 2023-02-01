@@ -1,5 +1,7 @@
 """Tests for `darker.concurrency`"""
 
+# pylint: disable=use-dict-literal
+
 from concurrent.futures import Future, ProcessPoolExecutor
 from unittest.mock import Mock
 

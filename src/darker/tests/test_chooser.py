@@ -1,5 +1,7 @@
 """Unit tests for `darker.chooser`"""
 
+# pylint: disable=use-dict-literal
+
 import pytest
 
 from darker.chooser import choose_lines

@@ -1,5 +1,7 @@
 """Tests for `darker.multiline_strings`"""
 
+# pylint: disable=use-dict-literal
+
 import pytest
 
 from darker import multiline_strings

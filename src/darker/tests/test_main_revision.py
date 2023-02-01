@@ -1,6 +1,6 @@
 """Unit tests for the ``--revision`` argument in `darker.main`"""
 
-# pylint: disable=too-many-arguments
+# pylint: disable=too-many-arguments,use-dict-literal
 
 import pytest
 

@@ -1,7 +1,7 @@
 """Unit tests for :mod:`darker.git`"""
 
 # pylint: disable=redefined-outer-name,protected-access,too-many-arguments
-# pylint: disable=too-many-lines
+# pylint: disable=too-many-lines,use-dict-literal
 
 import os
 import re

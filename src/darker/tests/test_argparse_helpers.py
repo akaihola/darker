@@ -1,5 +1,7 @@
 """Tests for the ``darker.argparse_helpers`` module"""
 
+# pylint: disable=use-dict-literal
+
 from argparse import ArgumentParser, Namespace
 from logging import CRITICAL, DEBUG, ERROR, INFO, NOTSET, WARNING
 

@@ -1,5 +1,7 @@
 """Unit tests for :mod:`darker.verification`"""
 
+# pylint: disable=use-dict-literal
+
 from typing import List
 
 import pytest
