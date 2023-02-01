@@ -433,6 +433,23 @@ def test_run_linters_line_separation(git_repo, capsys):
     )
 
 
+def test_run_linters_stdin():
+    """`linting.run_linters` raises a `NotImplementeError` on ``--stdin-filename``"""
+    with pytest.raises(
+        NotImplementedError,
+        match=r"^The -l/--lint option isn't yet available with --stdin-filename$",
+    ):
+        # end of test setup
+
+        _ = linting.run_linters(
+            ["dummy-linter-command"],
+            Path("/dummy-dir"),
+            {Path("dummy.py")},
+            RevisionRange("HEAD", ":STDIN:"),
+            use_color=False,
+        )
+
+
 def _build_messages(
     lines_and_messages: Iterable[Union[Tuple[int, str], Tuple[int, str, str]]],
 ) -> Dict[MessageLocation, List[LinterMessage]]:
