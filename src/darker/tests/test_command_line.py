@@ -1,4 +1,4 @@
-# pylint: disable=too-many-arguments,too-many-locals
+# pylint: disable=too-many-arguments,too-many-locals,use-dict-literal
 
 """Unit tests for :mod:`darker.command_line` and :mod:`darker.__main__`"""
 

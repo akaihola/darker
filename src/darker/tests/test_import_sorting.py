@@ -1,6 +1,6 @@
 """Tests for :mod:`darker.import_sorting`"""
 
-# pylint: disable=unused-argument,protected-access,too-many-arguments
+# pylint: disable=unused-argument,protected-access,too-many-arguments,use-dict-literal
 
 from importlib import reload
 from pathlib import Path

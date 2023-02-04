@@ -1,4 +1,4 @@
-# pylint: disable=protected-access,too-many-arguments
+# pylint: disable=protected-access,too-many-arguments,use-dict-literal
 
 """Unit tests for :mod:`darker.linting`"""
 

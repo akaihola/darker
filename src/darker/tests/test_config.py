@@ -1,6 +1,6 @@
 """Tests for `darker.config`"""
 
-# pylint: disable=unused-argument,too-many-arguments
+# pylint: disable=unused-argument,too-many-arguments,use-dict-literal
 
 import os
 import re

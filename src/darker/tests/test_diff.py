@@ -1,5 +1,7 @@
 """Unit tests for `darker.diff`"""
 
+# pylint: disable=use-dict-literal
+
 from itertools import chain
 from textwrap import dedent
 

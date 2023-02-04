@@ -1,6 +1,6 @@
 """Unit tests for `darker.black_diff`"""
 
-# pylint: disable=too-many-arguments
+# pylint: disable=too-many-arguments,use-dict-literal
 
 import re
 import sys

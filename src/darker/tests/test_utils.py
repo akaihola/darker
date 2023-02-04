@@ -1,6 +1,6 @@
 """Unit tests for :mod:`darker.utils`"""
 
-# pylint: disable=redefined-outer-name, comparison-with-callable
+# pylint: disable=comparison-with-callable,redefined-outer-name,use-dict-literal
 
 import logging
 import os
