@@ -126,6 +126,8 @@ muggenhor:
 njhuffman:
   - {link_type: issues, type: Bug reports}
   - {link_type: commits, type: Code}
+okuuva:
+  - {link_type: search-comments, type: Bug reports}
 overratedpro:
   - {link_type: issues, type: Bug reports}
 philipgian:
