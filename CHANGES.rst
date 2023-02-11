@@ -5,6 +5,16 @@ These features will be included in the next release:
 
 Added
 -----
+
+Fixed
+-----
+
+
+1.7.0_ - 2023-02-11
+===================
+
+Added
+-----
 - ``-f`` / ``--flynt`` option for converting old-style format strings to f-strings as
   supported in Python 3.6+.
 - Make unit tests compatible with ``pytest --log-cli-level==DEBUG``.
