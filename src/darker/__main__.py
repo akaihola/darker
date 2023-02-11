@@ -25,6 +25,7 @@ from darker.exceptions import DependencyError, MissingPackageError
 from darker.fstring import apply_flynt, flynt
 from darker.git import (
     PRE_COMMIT_FROM_TO_REFS,
+    STDIN,
     WORKTREE,
     EditedLinenumsDiffer,
     RevisionRange,
@@ -129,9 +130,12 @@ def _modify_and_reformat_single_file(  # pylint: disable=too-many-arguments
     # With VSCode, `relative_path_in_rev2` may be a `.py.<HASH>.tmp` file in the
     # working tree instead of a `.py` file.
     absolute_path_in_rev2 = root / relative_path_in_rev2
-    rev2_content = git_get_content_at_revision(
-        relative_path_in_rev2, revrange.rev2, root
-    )
+    if revrange.rev2 == STDIN:
+        rev2_content = TextDocument.from_bytes(sys.stdin.buffer.read())
+    else:
+        rev2_content = git_get_content_at_revision(
+            relative_path_in_rev2, revrange.rev2, root
+        )
     # 1. run isort on each edited file (optional).
     rev2_isorted = apply_isort(
         rev2_content,
@@ -515,10 +519,16 @@ def main(  # pylint: disable=too-many-locals,too-many-branches,too-many-statemen
     if args.skip_magic_trailing_comma is not None:
         black_config["skip_magic_trailing_comma"] = args.skip_magic_trailing_comma
 
-    paths = {Path(p) for p in args.src}
+    stdin_mode = args.stdin_filename is not None
+    if stdin_mode:
+        paths = {Path(args.stdin_filename)}
+        # `parse_command_line` guarantees that `args.src` is empty
+    else:
+        paths = {Path(p) for p in args.src}
+        # `parse_command_line` guarantees that `args.stdin_filename` is `None`
     root = get_common_root(paths)
 
-    revrange = RevisionRange.parse_with_common_ancestor(args.revision, root)
+    revrange = RevisionRange.parse_with_common_ancestor(args.revision, root, stdin_mode)
     output_mode = OutputMode.from_args(args)
     write_modified_files = not args.check and output_mode == OutputMode.NOTHING
     if write_modified_files:
@@ -528,30 +538,34 @@ def main(  # pylint: disable=too-many-locals,too-many-branches,too-many-statemen
                 " As an experimental feature, allowing overwriting of files."
                 " See https://github.com/akaihola/darker/issues/180 for details."
             )
-        elif revrange.rev2 != WORKTREE:
+        elif revrange.rev2 not in {STDIN, WORKTREE}:
             raise ArgumentError(
                 Action(["-r", "--revision"], "revision"),
                 f"Can't write reformatted files for revision {revrange.rev2!r}."
                 " Either --diff or --check must be used.",
             )
 
-    missing = get_missing_at_revision(paths, revrange.rev2, root)
-    if missing:
-        missing_reprs = " ".join(repr(str(path)) for path in missing)
-        rev2_repr = "the working tree" if revrange.rev2 == WORKTREE else revrange.rev2
-        raise ArgumentError(
-            Action(["PATH"], "path"),
-            f"Error: Path(s) {missing_reprs} do not exist in {rev2_repr}",
-        )
+    if revrange.rev2 != STDIN:
+        missing = get_missing_at_revision(paths, revrange.rev2, root)
+        if missing:
+            missing_reprs = " ".join(repr(str(path)) for path in missing)
+            rev2_repr = (
+                "the working tree" if revrange.rev2 == WORKTREE else revrange.rev2
+            )
+            raise ArgumentError(
+                Action(["PATH"], "path"),
+                f"Error: Path(s) {missing_reprs} do not exist in {rev2_repr}",
+            )
 
     # These paths are relative to `root`:
     files_to_process = filter_python_files(paths, root, {})
     files_to_blacken = filter_python_files(paths, root, black_config)
     # Now decide which files to reformat (Black & isort). Note that this doesn't apply
     # to linting.
-    if output_mode == OutputMode.CONTENT:
-        # With `-d` / `--stdout`, reformat the file whether modified or not. Paths have
-        # previously been validated to contain exactly one existing file.
+    if output_mode == OutputMode.CONTENT or revrange.rev2 == STDIN:
+        # With `-d` / `--stdout` and `--stdin-filename`, process the file whether
+        # modified or not. Paths have previously been validated to contain exactly one
+        # existing file.
         changed_files_to_reformat = files_to_process
         black_exclude = set()
     else:

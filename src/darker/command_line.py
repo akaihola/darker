@@ -18,6 +18,7 @@ from darker.config import (
     get_modified_config,
     load_config,
     override_color_with_environment,
+    validate_stdin_src,
 )
 from darker.version import __version__
 
@@ -42,6 +43,7 @@ def make_argument_parser(require_src: bool) -> ArgumentParser:
     add_arg(hlp.REVISION, "-r", "--revision", default="HEAD", metavar="REV")
     add_arg(hlp.DIFF, "--diff", action="store_true")
     add_arg(hlp.STDOUT, "-d", "--stdout", action="store_true")
+    add_arg(hlp.STDIN_FILENAME, "--stdin-filename", metavar="PATH")
     add_arg(hlp.CHECK, "--check", action="store_true")
     add_arg(hlp.FLYNT, "-f", "--flynt", action="store_true")
     add_arg(hlp.ISORT, "-i", "--isort", action="store_true")
@@ -114,7 +116,8 @@ def parse_command_line(argv: List[str]) -> Tuple[Namespace, DarkerConfig, Darker
     Finally, also return the set of configuration options which differ from defaults.
 
     """
-    # 1. Parse the paths of files/directories to process into `args.src`.
+    # 1. Parse the paths of files/directories to process into `args.src`, and the config
+    #    file path into `args.config`.
     parser_for_srcs = make_argument_parser(require_src=False)
     args = parser_for_srcs.parse_args(argv)
 
@@ -122,23 +125,36 @@ def parse_command_line(argv: List[str]) -> Tuple[Namespace, DarkerConfig, Darker
     #    if it's not provided, based on the paths to process, or in the current
     #    directory if no paths were given. Load Darker configuration from it.
     pyproject_config = load_config(args.config, args.src)
+
+    # 3. The PY_COLORS, NO_COLOR and FORCE_COLOR environment variables override the
+    #    `--color` command line option.
     config = override_color_with_environment(pyproject_config)
 
-    # 3. Use configuration as defaults for re-parsing command line arguments, and don't
-    #    require file/directory paths if they are specified in configuration.
-    parser = make_argument_parser(require_src=not config.get("src"))
-    parser.set_defaults(**config)
-    args = parser.parse_args(argv)
+    # 4. Re-run the parser with configuration defaults. This way we get combined values
+    #    based on the configuration file and the command line options for all options
+    #    except `src` (the list of files to process).
+    parser_for_srcs.set_defaults(**config)
+    args = parser_for_srcs.parse_args(argv)
 
-    # 4. Make sure there aren't invalid option combinations after merging configuration
+    # 5. Make sure an error for missing file/directory paths is thrown if we're not
+    #    running in stdin mode and no file/directory is configured in `pyproject.toml`.
+    if args.stdin_filename is None and not config.get("src"):
+        parser = make_argument_parser(require_src=True)
+        parser.set_defaults(**config)
+        args = parser.parse_args(argv)
+
+    # 6. Make sure there aren't invalid option combinations after merging configuration
     #    and command line options.
     OutputMode.validate_diff_stdout(args.diff, args.stdout)
-    OutputMode.validate_stdout_src(args.stdout, args.src)
+    OutputMode.validate_stdout_src(args.stdout, args.src, args.stdin_filename)
+    validate_stdin_src(args.stdin_filename, args.src)
 
-    # 5. Also create a parser which uses the original default configuration values.
+    # 7. Also create a parser which uses the original default configuration values.
     #    This is used to find out differences between the effective configuration and
     #    default configuration values, and print them out in verbose mode.
-    parser_with_original_defaults = make_argument_parser(require_src=True)
+    parser_with_original_defaults = make_argument_parser(
+        require_src=args.stdin_filename is None
+    )
     return (
         args,
         get_effective_config(args),

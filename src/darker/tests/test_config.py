@@ -96,29 +96,90 @@ def test_output_mode_validate_diff_stdout(diff, stdout, expect):
 
 
 @pytest.mark.kwparametrize(
-    dict(stdout=False, src=[], expect=None),
-    dict(stdout=False, src=["first.py"], expect=None),
-    dict(stdout=False, src=["first.py", "second.py"], expect=None),
-    dict(stdout=False, src=["first.py", "missing.py"], expect=None),
-    dict(stdout=False, src=["missing.py"], expect=None),
-    dict(stdout=False, src=["missing.py", "another_missing.py"], expect=None),
-    dict(stdout=False, src=["directory"], expect=None),
-    dict(stdout=True, src=[], expect=ConfigurationError),
-    dict(stdout=True, src=["first.py"], expect=None),
-    dict(stdout=True, src=["first.py", "second.py"], expect=ConfigurationError),
-    dict(stdout=True, src=["first.py", "missing.py"], expect=ConfigurationError),
-    dict(stdout=True, src=["missing.py"], expect=ConfigurationError),
-    dict(stdout=True, src=["missing.py", "another.py"], expect=ConfigurationError),
-    dict(stdout=True, src=["directory"], expect=ConfigurationError),
+    dict(stdout=False),
+    dict(stdout=False, src=["first.py"]),
+    dict(stdout=False, src=["first.py", "second.py"]),
+    dict(stdout=False, src=["first.py", "missing.py"]),
+    dict(stdout=False, src=["missing.py"]),
+    dict(stdout=False, src=["missing.py", "another_missing.py"]),
+    dict(stdout=False, src=["directory"]),
+    dict(stdout=True, expect=ConfigurationError),  # input file missing
+    dict(stdout=True, src=["first.py"]),
+    dict(  # too many input files
+        stdout=True, src=["first.py", "second.py"], expect=ConfigurationError
+    ),
+    dict(  # too many input files (even if all but one missing)
+        stdout=True, src=["first.py", "missing.py"], expect=ConfigurationError
+    ),
+    dict(  # input file doesn't exist
+        stdout=True, src=["missing.py"], expect=ConfigurationError
+    ),
+    dict(  # too many input files (even if all but one missing)
+        stdout=True, src=["missing.py", "another.py"], expect=ConfigurationError
+    ),
+    dict(  # input file required, not a directory
+        stdout=True, src=["directory"], expect=ConfigurationError
+    ),
+    dict(stdout=False, stdin_filename="path.py"),
+    dict(stdout=False, src=["first.py"], stdin_filename="path.py"),
+    dict(stdout=False, src=["first.py", "second.py"], stdin_filename="path.py"),
+    dict(stdout=False, src=["first.py", "missing.py"], stdin_filename="path.py"),
+    dict(stdout=False, src=["missing.py"], stdin_filename="path.py"),
+    dict(
+        stdout=False, src=["missing.py", "another_missing.py"], stdin_filename="path.py"
+    ),
+    dict(stdout=False, src=["directory"], stdin_filename="path.py"),
+    dict(stdout=True, stdin_filename="path.py"),
+    dict(  # too many input files, here from two different command line arguments
+        stdout=True,
+        src=["first.py"],
+        stdin_filename="path.py",
+        expect=ConfigurationError,
+    ),
+    dict(  # too many input files, here from two different command line arguments
+        stdout=True,
+        src=["first.py", "second.py"],
+        stdin_filename="path.py",
+        expect=ConfigurationError,
+    ),
+    dict(  # too many input files, here from two different command line arguments
+        stdout=True,
+        src=["first.py", "missing.py"],
+        stdin_filename="path.py",
+        expect=ConfigurationError,
+    ),
+    dict(  # too many input files (even if positional file is missing)
+        stdout=True,
+        src=["missing.py"],
+        stdin_filename="path.py",
+        expect=ConfigurationError,
+    ),
+    dict(  # too many input files, here from two different command line arguments
+        stdout=True,
+        src=["missing.py", "another.py"],
+        stdin_filename="path.py",
+        expect=ConfigurationError,
+    ),
+    dict(  # too many input files, here from two different command line arguments
+        stdout=True,
+        src=["directory"],
+        stdin_filename="path.py",
+        expect=ConfigurationError,
+    ),
+    src=[],
+    stdin_filename=None,
+    expect=None,
 )
-def test_output_mode_validate_stdout_src(tmp_path, monkeypatch, stdout, expect, src):
+def test_output_mode_validate_stdout_src(
+    tmp_path, monkeypatch, stdout, src, stdin_filename, expect
+):
     """Validation fails only if exactly one file isn't provided for ``--stdout``"""
     monkeypatch.chdir(tmp_path)
     Path("first.py").touch()
     Path("second.py").touch()
     with raises_if_exception(expect):
 
-        OutputMode.validate_stdout_src(stdout, src)
+        OutputMode.validate_stdout_src(stdout, src, stdin_filename)
 
 
 @pytest.mark.kwparametrize(

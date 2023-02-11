@@ -338,7 +338,9 @@ def test_run_linters_non_worktree():
             ["dummy-linter"],
             Path("/dummy"),
             {Path("dummy.py")},
-            RevisionRange.parse_with_common_ancestor("..HEAD", Path("dummy cwd")),
+            RevisionRange.parse_with_common_ancestor(
+                "..HEAD", Path("dummy cwd"), stdin_mode=False
+            ),
             use_color=False,
         )
 
@@ -429,6 +431,23 @@ def test_run_linters_line_separation(git_repo, capsys):
         a.py:6: of linter output [{cat_cmd}]
         """
     )
+
+
+def test_run_linters_stdin():
+    """`linting.run_linters` raises a `NotImplementeError` on ``--stdin-filename``"""
+    with pytest.raises(
+        NotImplementedError,
+        match=r"^The -l/--lint option isn't yet available with --stdin-filename$",
+    ):
+        # end of test setup
+
+        _ = linting.run_linters(
+            ["dummy-linter-command"],
+            Path("/dummy-dir"),
+            {Path("dummy.py")},
+            RevisionRange("HEAD", ":STDIN:"),
+            use_color=False,
+        )
 
 
 def _build_messages(

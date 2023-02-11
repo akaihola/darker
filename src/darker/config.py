@@ -72,15 +72,19 @@ class OutputMode:
             )
 
     @staticmethod
-    def validate_stdout_src(stdout: bool, src: List[str]) -> None:
-        """Raise an exception in ``stdout`` mode if not exactly one path is provided"""
+    def validate_stdout_src(
+        stdout: bool, src: List[str], stdin_filename: Optional[str]
+    ) -> None:
+        """Raise an exception in ``stdout`` mode if not exactly one input is provided"""
         if not stdout:
             return
-        if len(src) == 1 and Path(src[0]).is_file():
+        if stdin_filename is None and len(src) == 1 and Path(src[0]).is_file():
+            return
+        if stdin_filename is not None and len(src) == 0:
             return
         raise ConfigurationError(
-            "Exactly one Python source file which exists on disk must be provided when"
-            " using the `stdout` option"
+            "Either --stdin-filename=<path> or exactly one Python source file which"
+            " exists on disk must be provided when using the `stdout` option"
         )
 
 
@@ -98,6 +102,17 @@ def validate_config_output_mode(config: DarkerConfig) -> None:
     """Make sure both ``diff`` and ``stdout`` aren't enabled in configuration"""
     OutputMode.validate_diff_stdout(
         config.get("diff", False), config.get("stdout", False)
+    )
+
+
+def validate_stdin_src(stdin_filename: Optional[str], src: List[str]) -> None:
+    """Make sure both ``stdin`` mode and paths/directories are specified"""
+    if stdin_filename is None:
+        return
+    if len(src) == 0:
+        return
+    raise ConfigurationError(
+        "No Python source files are allowed when using the `stdin-filename` option"
     )
 
 

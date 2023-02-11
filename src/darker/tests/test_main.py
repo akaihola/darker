@@ -7,10 +7,11 @@
 import logging
 import re
 from argparse import ArgumentError
+from io import BytesIO
 from pathlib import Path
 from textwrap import dedent
 from types import SimpleNamespace
-from unittest.mock import ANY, call, patch
+from unittest.mock import ANY, Mock, call, patch
 
 import pytest
 
@@ -219,6 +220,84 @@ def test_format_edited_parts(
         for expect_lines in expect
     ]
     assert changes == expect_changes
+
+
+@pytest.mark.kwparametrize(
+    dict(
+        rev1="HEAD",
+        rev2=":STDIN:",
+        expect=[
+            (
+                "a.py",
+                ("print('a.py HEAD' )", "#", "print( 'a.py STDIN')"),
+                ("print('a.py HEAD' )", "#", 'print("a.py STDIN")'),
+            )
+        ],
+    ),
+    dict(
+        rev1=":WORKTREE:",
+        rev2=":STDIN:",
+        expect=[
+            (
+                "a.py",
+                ("print('a.py :WORKTREE:' )", "#", "print( 'a.py STDIN')"),
+                ("print('a.py :WORKTREE:' )", "#", 'print("a.py STDIN")'),
+            )
+        ],
+    ),
+    dict(
+        rev1="HEAD",
+        rev2=":WORKTREE:",
+        expect=[
+            (
+                "a.py",
+                ("print('a.py :WORKTREE:' )", "#", "print( 'a.py HEAD')"),
+                ('print("a.py :WORKTREE:")', "#", "print( 'a.py HEAD')"),
+            )
+        ],
+    ),
+)
+@pytest.mark.parametrize("newline", ["\n", "\r\n"], ids=["unix", "windows"])
+def test_format_edited_parts_stdin(git_repo, newline, rev1, rev2, expect):
+    """`format_edited_parts` with ``--stdin-filename``"""
+    n = newline  # pylint: disable=invalid-name
+    paths = git_repo.add(
+        {
+            "a.py": f"print('a.py HEAD' ){n}#{n}print( 'a.py HEAD'){n}",
+            "b.py": f"print('b.py HEAD' ){n}#{n}print( 'b.py HEAD'){n}",
+        },
+        commit="Initial commit",
+    )
+    paths["a.py"].write_bytes(
+        f"print('a.py :WORKTREE:' ){n}#{n}print( 'a.py HEAD'){n}".encode("ascii")
+    )
+    paths["b.py"].write_bytes(
+        f"print('b.py HEAD' ){n}#{n}print( 'b.py WORKTREE'){n}".encode("ascii")
+    )
+    stdin = f"print('a.py {rev1}' ){n}#{n}print( 'a.py STDIN'){n}".encode("ascii")
+    with patch.object(
+        darker.__main__.sys,  # type: ignore[attr-defined]
+        "stdin",
+        Mock(buffer=BytesIO(stdin)),
+    ):
+        # end of test setup
+
+        result = list(
+            darker.__main__.format_edited_parts(
+                Path(git_repo.root),
+                {Path("a.py")},
+                Exclusions(black=set(), isort=set()),
+                RevisionRange(rev1, rev2),
+                {},
+                report_unmodified=False,
+            )
+        )
+
+    expect = [
+        (paths[path], TextDocument.from_lines(before), TextDocument.from_lines(after))
+        for path, before, after in expect
+    ]
+    assert result == expect
 
 
 def test_format_edited_parts_all_unchanged(git_repo, monkeypatch):

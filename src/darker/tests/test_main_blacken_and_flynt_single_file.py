@@ -128,16 +128,16 @@ def test_blacken_and_flynt_single_file_common_ancestor(git_repo):
     git_repo.create_branch("feature", initial)
     git_repo.add({"a.py": a_py_feature}, commit="on feature")
     worktree = TextDocument.from_str(a_py_worktree)
+    revrange = RevisionRange.parse_with_common_ancestor(
+        "master...", git_repo.root, stdin_mode=False
+    )
 
     result = _blacken_and_flynt_single_file(
         git_repo.root,
         Path("a.py"),
         Path("a.py"),
         Exclusions(),
-        EditedLinenumsDiffer(
-            git_repo.root,
-            RevisionRange.parse_with_common_ancestor("master...", git_repo.root),
-        ),
+        EditedLinenumsDiffer(git_repo.root, revrange),
         rev2_content=worktree,
         rev2_isorted=worktree,
         has_isort_changes=False,
@@ -187,16 +187,16 @@ def test_reformat_single_file_docstring(git_repo):
     )
     paths = git_repo.add({"a.py": initial}, commit="Initial commit")
     paths["a.py"].write_text(modified)
+    revrange = RevisionRange.parse_with_common_ancestor(
+        "HEAD..", git_repo.root, stdin_mode=False
+    )
 
     result = _blacken_and_flynt_single_file(
         git_repo.root,
         Path("a.py"),
         Path("a.py"),
         Exclusions(),
-        EditedLinenumsDiffer(
-            git_repo.root,
-            RevisionRange.parse_with_common_ancestor("HEAD..", git_repo.root),
-        ),
+        EditedLinenumsDiffer(git_repo.root, revrange),
         rev2_content=TextDocument.from_str(modified),
         rev2_isorted=TextDocument.from_str(modified),
         has_isort_changes=False,

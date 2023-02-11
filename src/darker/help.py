@@ -50,13 +50,14 @@ DESCRIPTION = "".join(DESCRIPTION_PARTS)
 SRC = "Path(s) to the Python source file(s) to reformat"
 
 REVISION = (
-    "Git revision against which to compare the working tree. Tags, branch names, commit"
-    " hashes, and other expressions like `HEAD~5` work here. Also a range like"
-    " `master...HEAD` or `master...` can be used to compare the best common ancestor."
-    " With the magic value `:PRE-COMMIT:`, Darker works in pre-commit compatible mode."
-    " Darker expects the revision range from the `PRE_COMMIT_FROM_REF` and"
-    " `PRE_COMMIT_TO_REF` environment variables. If those are not found, Darker works"
-    " against `HEAD`."
+    "Revisions to compare. The default is `HEAD..:WORKTREE:` which compares the latest"
+    " commit to the working tree. Tags, branch names, commit hashes, and other"
+    " expressions like `HEAD~5` work here. Also a range like `main...HEAD` or `main...`"
+    " can be used to compare the best common ancestor. With the magic value"
+    " `:PRE-COMMIT:`, Darker works in pre-commit compatible mode. Darker expects the"
+    " revision range from the `PRE_COMMIT_FROM_REF` and `PRE_COMMIT_TO_REF` environment"
+    " variables. If those are not found, Darker works against `HEAD`. Also see"
+    " `--stdin-filename=` for the `:STDIN:` special value."
 )
 
 DIFF = (
@@ -75,6 +76,12 @@ STDOUT = (
     "Force complete reformatted output to stdout, instead of in-place. Only valid if"
     " there's just one file to reformat. Highlight syntax if on a terminal and the"
     " `pygments` package is available, or if enabled by configuration."
+)
+
+STDIN_FILENAME = (
+    "The path to the file when passing it through stdin. Useful so Darker can find the"
+    " previous version from Git. Only valid with `--revision=<rev1>..:STDIN:`"
+    " (`HEAD..:STDIN:` being the default if `--stdin-filename` is enabled)."
 )
 
 FLYNT_PARTS = [
