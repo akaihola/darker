@@ -18,9 +18,9 @@ from darker.black_diff import (
     run_black,
 )
 from darker.chooser import choose_lines
-from darker.command_line import parse_command_line
+from darker.command_line import make_argument_parser
 from darker.concurrency import get_executor
-from darker.config import Exclusions, OutputMode, dump_config
+from darker.config import Exclusions, OutputMode, dump_config, validate_config_output_mode
 from darker.diff import diff_chunks
 from darker.exceptions import DependencyError, MissingPackageError
 from darker.fstring import apply_flynt, flynt
@@ -39,7 +39,6 @@ from darker.git import (
 from darker.help import get_extra_instruction
 from darker.highlighting import colorize, should_use_color
 from darker.import_sorting import apply_isort, isort
-from darker.linting import run_linters
 from darker.utils import (
     GIT_DATEFORMAT,
     DiffChunk,
@@ -49,6 +48,11 @@ from darker.utils import (
     glob_any,
 )
 from darker.verification import ASTVerifier, BinarySearch, NotEquivalentError
+from darkgraylib.command_line import parse_command_line
+from darkgraylib.config import show_config_if_debug
+from darkgraylib.log import setup_logging
+from darkgraylib.main import resolve_paths
+from graylint.linting import run_linters
 
 logger = logging.getLogger(__name__)
 
@@ -480,23 +484,19 @@ def main(  # pylint: disable=too-many-locals,too-many-branches,too-many-statemen
              should be) reformatted; 0 otherwise.
 
     """
-    if argv is None:
-        argv = sys.argv[1:]
-    args, config, config_nondefault = parse_command_line(argv)
-    logging.basicConfig(level=args.log_level)
-    if args.log_level == logging.INFO:
-        formatter = logging.Formatter("%(levelname)s: %(message)s")
-        logging.getLogger().handlers[0].setFormatter(formatter)
+    args, config, config_nondefault = parse_command_line(make_argument_parser, argv)
 
+    # Make sure there aren't invalid option combinations after merging configuration and
+    # command line options.
+    OutputMode.validate_diff_stdout(args.diff, args.stdout)
+    OutputMode.validate_stdout_src(args.stdout, args.src, args.stdin_filename)
+    validate_config_output_mode(config)
+
+    setup_logging(args.log_level)
     # Make sure we don't get excessive debug log output from Black
     logging.getLogger("blib2to3.pgen2.driver").setLevel(logging.WARNING)
 
-    if args.log_level <= logging.DEBUG:
-        print("\n# Effective configuration:\n")
-        print(dump_config(config))
-        print("\n# Configuration options which differ from defaults:\n")
-        print(dump_config(config_nondefault))
-        print("\n")
+    show_config_if_debug(config, config_nondefault, args.log_level)
 
     if args.isort and not isort:
         raise MissingPackageError(
@@ -520,16 +520,11 @@ def main(  # pylint: disable=too-many-locals,too-many-branches,too-many-statemen
     if args.skip_magic_trailing_comma is not None:
         black_config["skip_magic_trailing_comma"] = args.skip_magic_trailing_comma
 
-    stdin_mode = args.stdin_filename is not None
-    if stdin_mode:
-        paths = {Path(args.stdin_filename)}
-        # `parse_command_line` guarantees that `args.src` is empty
-    else:
-        paths = {Path(p) for p in args.src}
-        # `parse_command_line` guarantees that `args.stdin_filename` is `None`
-    root = get_common_root(paths)
+    paths, root = resolve_paths(args.stdin_filename, args.src)
 
-    revrange = RevisionRange.parse_with_common_ancestor(args.revision, root, stdin_mode)
+    revrange = RevisionRange.parse_with_common_ancestor(
+        args.revision, root, args.stdin_filename is not None
+    )
     output_mode = OutputMode.from_args(args)
     write_modified_files = not args.check and output_mode == OutputMode.NOTHING
     if write_modified_files:
