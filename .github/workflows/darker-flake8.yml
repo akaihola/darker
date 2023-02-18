@@ -12,7 +12,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: Run Darker
-        uses: akaihola/darker@1.6.1
+        uses: akaihola/darker@1.7.0
         with:
           options: --check --diff --color --isort --config pyproject.toml
           revision: origin/master...
