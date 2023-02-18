@@ -1,0 +1,21 @@
+---
+name: Test linting using the Darker GitHub Action
+
+on: push  # yamllint disable-line rule:truthy
+
+jobs:
+  darker-github-action-linting-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Run Darker's own GitHub action straight from the repository
+        uses: ./
+        with:
+          options: --check --diff --color --isort --config pyproject.toml
+          src: src/darker
+          revision: origin/master...
+          lint: flake8
+          version: "@${{ github.ref_name }}"
