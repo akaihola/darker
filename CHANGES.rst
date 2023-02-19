@@ -8,6 +8,7 @@ Added
 
 Fixed
 -----
+- Use ``stacklevel=2`` in ``warnings.warn()`` calls as suggested by Flake8.
 
 
 1.7.0_ - 2023-02-11

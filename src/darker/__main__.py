@@ -536,7 +536,8 @@ def main(  # pylint: disable=too-many-locals,too-many-branches,too-many-statemen
             warnings.warn(
                 "Darker was called by pre-commit, comparing HEAD to an older commit."
                 " As an experimental feature, allowing overwriting of files."
-                " See https://github.com/akaihola/darker/issues/180 for details."
+                " See https://github.com/akaihola/darker/issues/180 for details.",
+                stacklevel=2,
             )
         elif revrange.rev2 not in {STDIN, WORKTREE}:
             raise ArgumentError(
