@@ -15,5 +15,6 @@ jobs:
         uses: ./
         with:
           options: -vvv --check --diff --color --isort --config pyproject.toml
+          src: src/darker
           revision: origin/master...
           lint: flake8
