@@ -18,3 +18,4 @@ jobs:
           src: src/darker
           revision: origin/master...
           lint: flake8
+          version: "@${{ github.ref_name }}"
