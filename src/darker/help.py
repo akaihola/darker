@@ -108,11 +108,6 @@ LINT = (
     " a terminal and or enabled by explicitly (see `--color`)."
 )
 
-CONFIG = (
-    "Ask `black` and `isort` to read configuration from `PATH`. Note that other tools"
-    " like flynt, Mypy, Pylint and Flake8 won't use this configuration file."
-)
-
 VERBOSE = "Show steps taken and summarize modifications"
 QUIET = "Reduce amount of output"
 COLOR = (

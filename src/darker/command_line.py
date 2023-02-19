@@ -1,12 +1,14 @@
 """Command line parsing for the ``darker`` binary"""
 
 from argparse import ArgumentParser
-from typing import Any, Optional
+from functools import partial
 
-import darkgraylib.command_line
 from black import TargetVersion
 
+import darkgraylib.command_line
 from darker import help as hlp
+from darkgraylib.command_line import add_parser_argument
+from graylint.command_line import add_lint_arg
 
 
 def make_argument_parser(require_src: bool) -> ArgumentParser:
@@ -16,18 +18,23 @@ def make_argument_parser(require_src: bool) -> ArgumentParser:
                         on the command line. ``False`` to not require on.
 
     """
-    parser = darkgraylib.command_line.make_argument_parser(require_src, hlp.DESCRIPTION)
+    parser = darkgraylib.command_line.make_argument_parser(
+        require_src,
+        "Darker",
+        hlp.DESCRIPTION,
+        "Make `darker`, `black` and `isort` read configuration from `PATH`. Note that"
+        " other tools like `flynt`, `mypy`, `pylint` or `flake8` won't use this"
+        " configuration file.",
+    )
 
-    def add_arg(help_text: Optional[str], *name_or_flags: str, **kwargs: Any) -> None:
-        kwargs["help"] = help_text
-        parser.add_argument(*name_or_flags, **kwargs)
+    add_arg = partial(add_parser_argument, parser)
 
     add_arg(hlp.DIFF, "--diff", action="store_true")
     add_arg(hlp.STDOUT, "-d", "--stdout", action="store_true")
     add_arg(hlp.CHECK, "--check", action="store_true")
     add_arg(hlp.FLYNT, "-f", "--flynt", action="store_true")
     add_arg(hlp.ISORT, "-i", "--isort", action="store_true")
-    add_arg(hlp.LINT, "-L", "--lint", action="append", metavar="CMD", default=[])
+    add_lint_arg(parser)
     add_arg(
         hlp.SKIP_STRING_NORMALIZATION,
         "-S",
