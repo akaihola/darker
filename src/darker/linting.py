@@ -523,8 +523,9 @@ def _get_messages_from_linters_for_baseline(
     :return: Linter messages
 
     """
-    with TemporaryDirectory() as tmp_path:
-        clone_root = git_clone_local(root, revision, Path(tmp_path))
+    with TemporaryDirectory() as tmp_path, git_clone_local(
+        root, revision, Path(tmp_path)
+    ) as clone_root:
         rev1_commit = git_rev_parse(revision, root)
         result = _get_messages_from_linters(
             linter_cmdlines,
