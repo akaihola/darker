@@ -523,17 +523,18 @@ def _get_messages_from_linters_for_baseline(
     :return: Linter messages
 
     """
-    with TemporaryDirectory() as tmp_path:
-        clone_root = git_clone_local(root, revision, Path(tmp_path))
-        rev1_commit = git_rev_parse(revision, root)
-        result = _get_messages_from_linters(
-            linter_cmdlines,
-            clone_root,
-            paths,
-            make_linter_env(root, rev1_commit),
-            normalize_whitespace,
-        )
-        fix_py37_win_tempdir_permissions(tmp_path)
+    with TemporaryDirectory() as tmpdir:
+        tmp_path = Path(tmpdir) / "baseline-revision"
+        with git_clone_local(root, revision, tmp_path) as clone_root:
+            rev1_commit = git_rev_parse(revision, root)
+            result = _get_messages_from_linters(
+                linter_cmdlines,
+                clone_root,
+                paths,
+                make_linter_env(root, rev1_commit),
+                normalize_whitespace,
+            )
+            fix_py37_win_tempdir_permissions(tmpdir)
     return result
 
 

@@ -867,45 +867,41 @@ def test_git_clone_local_branch(git_repo, tmp_path, branch, expect):
     git_repo.create_branch("third", "HEAD")
     git_repo.add({"a.py": "third"}, commit="third")
 
-    clone = git.git_clone_local(git_repo.root, branch, tmp_path)
+    with git.git_clone_local(git_repo.root, branch, tmp_path / "clone") as clone:
 
-    assert (clone / "a.py").read_text() == expect
+        assert (clone / "a.py").read_text() == expect
 
 
 @pytest.mark.kwparametrize(
-    dict(branch="HEAD", expect_checkout_call=False),
-    dict(branch="mybranch", expect_checkout_call=True),
+    dict(branch="HEAD"),
+    dict(branch="mybranch"),
 )
-def test_git_clone_local_command(git_repo, tmp_path, branch, expect_checkout_call):
+def test_git_clone_local_command(git_repo, tmp_path, branch):
     """``git_clone_local()`` issues the correct Git command and options"""
     git_repo.add({"a.py": "first"}, commit="first")
     git_repo.create_branch("mybranch", "HEAD")
     check_output = Mock(wraps=git.check_output)  # type: ignore[attr-defined]
+    clone = tmp_path / "clone"
+    check_output_opts = dict(
+        cwd=str(git_repo.root), encoding=None, stderr=PIPE, env=ANY
+    )
+    pre_call = call(
+        ["git", "worktree", "add", "--quiet", "--force", "--force", str(clone), branch],
+        **check_output_opts,
+    )
+    post_call = call(
+        ["git", "worktree", "remove", "--force", "--force", str(clone)],
+        **check_output_opts,
+    )
     with patch.object(git, "check_output", check_output):
 
-        clone = git.git_clone_local(git_repo.root, branch, tmp_path)
+        with git.git_clone_local(git_repo.root, branch, clone) as result:
 
-    assert clone == tmp_path / git_repo.root.name
-    expect_calls = [
-        call(
-            ["git", "clone", "--quiet", str(git_repo.root), str(clone)],
-            cwd=".",
-            encoding=None,
-            stderr=PIPE,
-            env=ANY,
-        )
-    ]
-    if expect_checkout_call:
-        expect_calls.append(
-            call(
-                ["git", "checkout", branch],
-                cwd=str(git_repo.root / git_repo.root.name),
-                encoding=None,
-                stderr=PIPE,
-                env=ANY,
-            )
-        )
-    check_output.assert_has_calls(expect_calls)
+            assert result == clone
+
+            check_output.assert_has_calls([pre_call])
+            check_output.reset_mock()
+    check_output.assert_has_calls([post_call])
 
 
 @pytest.mark.parametrize(

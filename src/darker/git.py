@@ -5,6 +5,7 @@ import os
 import re
 import shlex
 import sys
+from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import datetime
 from functools import lru_cache
@@ -13,6 +14,7 @@ from subprocess import DEVNULL, PIPE, CalledProcessError, check_output, run  # n
 from typing import (
     Dict,
     Iterable,
+    Iterator,
     List,
     Match,
     Optional,
@@ -475,28 +477,37 @@ def git_get_modified_python_files(
     return {path for path in changed_paths if should_reformat_file(cwd / path)}
 
 
-def git_clone_local(source_repository: Path, revision: str, destination: Path) -> Path:
+@contextmanager
+def git_clone_local(
+    source_repository: Path, revision: str, destination: Path
+) -> Iterator[Path]:
     """Clone a local repository and check out the given revision
 
     :param source_repository: Path to the root of the local repository checkout
     :param revision: The revision to check out, or ``HEAD``
     :param destination: Directory to create for the clone
-    :return: Path to the root of the new clone
+    :return: A context manager which yields the path to the clone
 
     """
-    clone_path = destination / source_repository.name
+    opts = [
+        # By default, `add` refuses to create a new worktree when `<commit-ish>` is
+        # a branch name and is already checked out by another worktree, or if
+        # `<path>` is already assigned to some worktree but is missing (for
+        # instance, if `<path>` was deleted manually). This option overrides these
+        # safeguards. To add a missing but locked worktree path, specify `--force`
+        # twice.
+        # `remove` refuses to remove an unclean worktree unless `--force` is used.
+        # To remove a locked worktree, specify `--force` twice.
+        # https://git-scm.com/docs/git-worktree#_options
+        "--force",
+        "--force",
+        str(destination),
+    ]
     _ = _git_check_output(
-        [
-            "clone",
-            "--quiet",
-            str(source_repository),
-            str(clone_path),
-        ],
-        Path("."),
+        ["worktree", "add", "--quiet", *opts, revision], cwd=source_repository
     )
-    if revision != "HEAD":
-        _ = _git_check_output(["checkout", revision], clone_path)
-    return clone_path
+    yield destination
+    _ = _git_check_output(["worktree", "remove", *opts], cwd=source_repository)
 
 
 def git_get_root(path: Path) -> Optional[Path]:
