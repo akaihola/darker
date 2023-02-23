@@ -19,7 +19,6 @@ import pytest
 
 import darker.__main__
 import darker.import_sorting
-import darker.linting
 from darker.config import Exclusions
 from darker.exceptions import MissingPackageError
 from darker.git import WORKTREE, EditedLinenumsDiffer, RevisionRange
