@@ -19,7 +19,6 @@ from darker import black_diff
 from darker.__main__ import main
 from darker.command_line import make_argument_parser, parse_command_line
 from darker.config import ConfigurationError, Exclusions
-from darker.git import RevisionRange
 from darker.tests.helpers import (
     filter_dict,
     flynt_present,
@@ -27,6 +26,7 @@ from darker.tests.helpers import (
     raises_if_exception,
 )
 from darker.utils import TextDocument, joinlines
+from darkgraylib.git import RevisionRange
 
 pytestmark = pytest.mark.usefixtures("find_project_root_cache_clear")
 

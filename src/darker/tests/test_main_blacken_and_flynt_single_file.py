@@ -9,8 +9,9 @@ import pytest
 
 from darker.__main__ import _blacken_and_flynt_single_file
 from darker.config import Exclusions
-from darker.git import EditedLinenumsDiffer, RevisionRange
+from darker.git import EditedLinenumsDiffer
 from darker.utils import TextDocument
+from darkgraylib.git import RevisionRange
 
 
 @pytest.mark.kwparametrize(

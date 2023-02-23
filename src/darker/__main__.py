@@ -29,7 +29,6 @@ from darker.git import (
     STDIN,
     WORKTREE,
     EditedLinenumsDiffer,
-    RevisionRange,
     get_missing_at_revision,
     get_path_in_repo,
     git_get_content_at_revision,
@@ -50,6 +49,7 @@ from darker.utils import (
 from darker.verification import ASTVerifier, BinarySearch, NotEquivalentError
 from darkgraylib.command_line import parse_command_line
 from darkgraylib.config import show_config_if_debug
+from darkgraylib.git import RevisionRange
 from darkgraylib.log import setup_logging
 from darkgraylib.main import resolve_paths
 from graylint.linting import run_linters
