@@ -5,11 +5,12 @@ import os
 from argparse import ArgumentParser, Namespace
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, Iterable, List, Optional, Set, TypedDict, Union, cast
+from typing import Dict, Iterable, List, Optional, Set, Union, cast
 
 import toml
 
 from darker.black_compat import find_project_root
+from darkgraylib.config import BaseConfig
 
 
 class TomlArrayLinesEncoder(toml.TomlEncoder):  # type: ignore
@@ -23,24 +24,17 @@ class TomlArrayLinesEncoder(toml.TomlEncoder):  # type: ignore
 UnvalidatedConfig = Dict[str, Union[List[str], str, bool, int]]
 
 
-class DarkerConfig(TypedDict, total=False):
+class DarkerConfig(BaseConfig, total=False):
     """Dictionary representing ``[tool.darker]`` from ``pyproject.toml``"""
 
-    src: List[str]
-    revision: str
     diff: bool
-    stdout: bool
     check: bool
     isort: bool
     lint: List[str]
-    config: str
-    log_level: int
-    color: bool
     skip_string_normalization: bool
     skip_magic_trailing_comma: bool
     line_length: int
     target_version: str
-    workers: int
 
 
 class OutputMode:
