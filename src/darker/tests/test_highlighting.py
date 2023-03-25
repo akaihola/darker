@@ -116,11 +116,11 @@ def tty(request: SubRequest) -> Generator[bool, None, None]:
     """
     old_isatty = sys.stdout.isatty
     is_a_tty: bool = request.param == "tty"
-    sys.stdout.isatty = lambda: is_a_tty  # type: ignore[assignment]
+    sys.stdout.isatty = lambda: is_a_tty  # type: ignore[method-assign]
 
     yield is_a_tty
 
-    sys.stdout.isatty = old_isatty  # type: ignore[assignment]
+    sys.stdout.isatty = old_isatty  # type: ignore[method-assign]
 
 
 def _parse_environment_variables(definitions: str) -> Dict[str, str]:
