@@ -487,8 +487,9 @@ def main(  # pylint: disable=too-many-locals,too-many-branches,too-many-statemen
         formatter = logging.Formatter("%(levelname)s: %(message)s")
         logging.getLogger().handlers[0].setFormatter(formatter)
 
-    # Make sure we don't get excessive debug log output from Black
+    # Make sure we don't get excessive debug log output from Black and Flynt
     logging.getLogger("blib2to3.pgen2.driver").setLevel(logging.WARNING)
+    logging.getLogger("flynt.transform.transform").setLevel(logging.CRITICAL)
 
     if args.log_level <= logging.DEBUG:
         print("\n# Effective configuration:\n")
