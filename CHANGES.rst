@@ -9,6 +9,7 @@ Added
 Fixed
 -----
 - Use ``stacklevel=2`` in ``warnings.warn()`` calls as suggested by Flake8.
+- Disallow Flynt version 0.78 and newer to avoid an internal API incompatibility.
 
 
 1.7.0_ - 2023-02-11
