@@ -18,9 +18,9 @@ from darker.black_diff import (
     run_black,
 )
 from darker.chooser import choose_lines
-from darker.command_line import make_argument_parser
+from darker.command_line import parse_command_line
 from darker.concurrency import get_executor
-from darker.config import Exclusions, OutputMode, dump_config, validate_config_output_mode
+from darker.config import Exclusions, OutputMode, validate_config_output_mode
 from darker.diff import diff_chunks
 from darker.exceptions import DependencyError, MissingPackageError
 from darker.fstring import apply_flynt, flynt
@@ -38,16 +38,8 @@ from darker.git import (
 from darker.help import get_extra_instruction
 from darker.highlighting import colorize, should_use_color
 from darker.import_sorting import apply_isort, isort
-from darker.utils import (
-    GIT_DATEFORMAT,
-    DiffChunk,
-    TextDocument,
-    debug_dump,
-    get_common_root,
-    glob_any,
-)
+from darker.utils import GIT_DATEFORMAT, DiffChunk, TextDocument, debug_dump, glob_any
 from darker.verification import ASTVerifier, BinarySearch, NotEquivalentError
-from darkgraylib.command_line import parse_command_line
 from darkgraylib.config import show_config_if_debug
 from darkgraylib.git import RevisionRange
 from darkgraylib.log import setup_logging
@@ -484,7 +476,7 @@ def main(  # pylint: disable=too-many-locals,too-many-branches,too-many-statemen
              should be) reformatted; 0 otherwise.
 
     """
-    args, config, config_nondefault = parse_command_line(make_argument_parser, argv)
+    args, config, config_nondefault = parse_command_line(argv)
 
     # Make sure there aren't invalid option combinations after merging configuration and
     # command line options.

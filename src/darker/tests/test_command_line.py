@@ -11,7 +11,6 @@ from textwrap import dedent
 from unittest.mock import DEFAULT, Mock, call, patch
 
 import pytest
-import toml
 from black import TargetVersion
 
 import darker.help
@@ -19,12 +18,7 @@ from darker import black_diff
 from darker.__main__ import main
 from darker.command_line import make_argument_parser, parse_command_line
 from darker.config import ConfigurationError, Exclusions
-from darker.tests.helpers import (
-    filter_dict,
-    flynt_present,
-    isort_present,
-    raises_if_exception,
-)
+from darker.tests.helpers import flynt_present, isort_present, raises_if_exception
 from darker.utils import TextDocument, joinlines
 from darkgraylib.git import RevisionRange
 
@@ -55,103 +49,6 @@ def get_darker_help_output(capsys):
 
 
 @pytest.mark.kwparametrize(
-    dict(config=None, argv=[], expect=SystemExit),
-    dict(
-        config=None,
-        argv=["file.py"],
-        expect={"src": ["file.py"]},
-    ),
-    dict(
-        config={"src": ["file.py"]},
-        argv=[],
-        expect={"src": ["file.py"]},
-    ),
-    dict(
-        config={"src": ["file.py"]},
-        argv=["file.py"],
-        expect={"src": ["file.py"]},
-    ),
-    dict(
-        config={"src": ["file1.py"]},
-        argv=["file2.py"],
-        expect={"src": ["file2.py"]},
-    ),
-)
-def test_parse_command_line_config_src(
-    tmpdir,
-    monkeypatch,
-    config,
-    argv,
-    expect,
-):
-    """The ``src`` positional argument from config and cmdline is handled correctly"""
-    monkeypatch.chdir(tmpdir)
-    if config is not None:
-        toml.dump({"tool": {"darker": config}}, tmpdir / "pyproject.toml")
-    with raises_if_exception(expect):
-
-        args, effective_cfg, modified_cfg = parse_command_line(argv)
-
-        assert filter_dict(args.__dict__, "src") == expect
-        assert filter_dict(dict(effective_cfg), "src") == expect
-        assert filter_dict(dict(modified_cfg), "src") == expect
-
-
-@pytest.mark.kwparametrize(
-    dict(argv=["."], expect="pylint"),
-    dict(argv=["./subdir/"], expect="flake8"),
-    dict(argv=["--config", "./pyproject.toml", "."], expect="pylint"),
-    dict(argv=["--config", "./subdir/pyproject.toml", "."], expect="flake8"),
-    dict(argv=["--config", "./pyproject.toml", "subdir/"], expect="pylint"),
-    dict(argv=["--config", "./subdir/pyproject.toml", "subdir/"], expect="flake8"),
-)
-def test_parse_command_line_config_location_specified(
-    tmp_path,
-    monkeypatch,
-    argv,
-    expect,
-):
-    """Darker configuration is read from file pointed to using ``-c``/``--config``"""
-    monkeypatch.chdir(tmp_path)
-    subdir = tmp_path / "subdir"
-    subdir.mkdir()
-    root_config = tmp_path / "pyproject.toml"
-    subdir_config = subdir / "pyproject.toml"
-    root_config.write_text(toml.dumps({"tool": {"darker": {"lint": "pylint"}}}))
-    subdir_config.write_text(toml.dumps({"tool": {"darker": {"lint": "flake8"}}}))
-
-    args, effective_cfg, modified_cfg = parse_command_line(argv)
-
-    assert args.lint == expect
-    assert effective_cfg["lint"] == expect
-    assert modified_cfg["lint"] == expect
-
-
-@pytest.mark.kwparametrize(
-    dict(
-        argv=["."],
-        expect_value=("src", ["."]),
-        expect_config=("src", ["."]),
-        expect_modified=("src", ["."]),
-    ),
-    dict(
-        argv=["."],
-        expect_value=("revision", "HEAD"),
-        expect_config=("revision", "HEAD"),
-        expect_modified=("revision", ...),
-    ),
-    dict(
-        argv=["-rmaster", "."],
-        expect_value=("revision", "master"),
-        expect_config=("revision", "master"),
-        expect_modified=("revision", "master"),
-    ),
-    dict(
-        argv=["--revision", "HEAD", "."],
-        expect_value=("revision", "HEAD"),
-        expect_config=("revision", "HEAD"),
-        expect_modified=("revision", ...),
-    ),
     dict(
         argv=["."],
         expect_value=("diff", False),
@@ -232,129 +129,6 @@ def test_parse_command_line_config_location_specified(
     ),
     dict(
         argv=["."],
-        expect_value=("config", None),
-        expect_config=("config", None),
-        expect_modified=("config", ...),
-    ),
-    dict(
-        argv=["-c", "my.cfg", "."],
-        expect_value=("config", "my.cfg"),
-        expect_config=("config", "my.cfg"),
-        expect_modified=("config", "my.cfg"),
-    ),
-    dict(
-        argv=["--config=my.cfg", "."],
-        expect_value=("config", "my.cfg"),
-        expect_config=("config", "my.cfg"),
-        expect_modified=("config", "my.cfg"),
-    ),
-    dict(
-        argv=["-c", "subdir_with_config", "."],
-        expect_value=("config", "subdir_with_config"),
-        expect_config=("config", "subdir_with_config"),
-        expect_modified=("config", "subdir_with_config"),
-    ),
-    dict(
-        argv=["--config=subdir_with_config", "."],
-        expect_value=("config", "subdir_with_config"),
-        expect_config=("config", "subdir_with_config"),
-        expect_modified=("config", "subdir_with_config"),
-    ),
-    dict(
-        argv=["."],
-        expect_value=("log_level", 30),
-        expect_config=("log_level", "WARNING"),
-        expect_modified=("log_level", ...),
-    ),
-    dict(
-        argv=["-v", "."],
-        expect_value=("log_level", 20),
-        expect_config=("log_level", "INFO"),
-        expect_modified=("log_level", "INFO"),
-    ),
-    dict(
-        argv=["--verbose", "-v", "."],
-        expect_value=("log_level", 10),
-        expect_config=("log_level", "DEBUG"),
-        expect_modified=("log_level", "DEBUG"),
-    ),
-    dict(
-        argv=["-q", "."],
-        expect_value=("log_level", 40),
-        expect_config=("log_level", "ERROR"),
-        expect_modified=("log_level", "ERROR"),
-    ),
-    dict(
-        argv=["--quiet", "-q", "."],
-        expect_value=("log_level", 50),
-        expect_config=("log_level", "CRITICAL"),
-        expect_modified=("log_level", "CRITICAL"),
-    ),
-    dict(
-        argv=["."],
-        environ={},
-        expect_value=("color", None),
-        expect_config=("color", None),
-        expect_modified=("color", ...),
-    ),
-    dict(
-        argv=["."],
-        environ={"PY_COLORS": "0"},
-        expect_value=("color", False),
-        expect_config=("color", False),
-        expect_modified=("color", False),
-    ),
-    dict(
-        argv=["."],
-        environ={"PY_COLORS": "1"},
-        expect_value=("color", True),
-        expect_config=("color", True),
-        expect_modified=("color", True),
-    ),
-    dict(
-        argv=["--color", "."],
-        environ={},
-        expect_value=("color", True),
-        expect_config=("color", True),
-        expect_modified=("color", True),
-    ),
-    dict(
-        argv=["--color", "."],
-        environ={"PY_COLORS": "0"},
-        expect_value=("color", True),
-        expect_config=("color", True),
-        expect_modified=("color", True),
-    ),
-    dict(
-        argv=["--color", "."],
-        environ={"PY_COLORS": "1"},
-        expect_value=("color", True),
-        expect_config=("color", True),
-        expect_modified=("color", True),
-    ),
-    dict(
-        argv=["--no-color", "."],
-        environ={},
-        expect_value=("color", False),
-        expect_config=("color", False),
-        expect_modified=("color", False),
-    ),
-    dict(
-        argv=["--no-color", "."],
-        environ={"PY_COLORS": "0"},
-        expect_value=("color", False),
-        expect_config=("color", False),
-        expect_modified=("color", False),
-    ),
-    dict(
-        argv=["--no-color", "."],
-        environ={"PY_COLORS": "1"},
-        expect_value=("color", False),
-        expect_config=("color", False),
-        expect_modified=("color", False),
-    ),
-    dict(
-        argv=["."],
         expect_value=("skip_string_normalization", None),
         expect_config=("skip_string_normalization", None),
         expect_modified=("skip_string_normalization", ...),
@@ -430,20 +204,6 @@ def test_parse_command_line_config_location_specified(
         expect_value=SystemExit,
         expect_config=None,
         expect_modified=None,
-    ),
-    dict(
-        # this is accepted as a path, but would later fail if a file or directory with
-        # that funky name doesn't exist
-        argv=["--suspicious path"],
-        expect_value=("src", ["--suspicious path"]),
-        expect_config=("src", ["--suspicious path"]),
-        expect_modified=("src", ["--suspicious path"]),
-    ),
-    dict(
-        argv=["valid/path", "another/valid/path"],
-        expect_value=("src", ["valid/path", "another/valid/path"]),
-        expect_config=("src", ["valid/path", "another/valid/path"]),
-        expect_modified=("src", ["valid/path", "another/valid/path"]),
     ),
     environ={},
 )

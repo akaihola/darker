@@ -1,12 +1,14 @@
 """Command line parsing for the ``darker`` binary"""
 
-from argparse import ArgumentParser
+from argparse import ArgumentParser, Namespace
 from functools import partial
+from typing import List, Optional, Tuple
 
 from black import TargetVersion
 
 import darkgraylib.command_line
 from darker import help as hlp
+from darker.config import DarkerConfig, OutputMode
 from darkgraylib.command_line import add_parser_argument
 from graylint.command_line import add_lint_arg
 
@@ -74,3 +76,28 @@ def make_argument_parser(require_src: bool) -> ArgumentParser:
         choices=[v.name.lower() for v in TargetVersion],
     )
     return parser
+
+
+def parse_command_line(
+    argv: Optional[List[str]],
+) -> Tuple[Namespace, DarkerConfig, DarkerConfig]:
+    """Return the parsed command line, using defaults from a configuration file
+
+    Also return the effective configuration which combines defaults, the configuration
+    read from ``pyproject.toml`` (or the path given in ``--config``), environment
+    variables, and command line arguments.
+
+    Finally, also return the set of configuration options which differ from defaults.
+
+    :param argv: Command line arguments to parse (excluding the path of the script). If
+                 ``None``, use ``sys.argv``.
+    :return: A tuple of the parsed command line, the effective configuration, and the
+             set of modified configuration options from the defaults.
+
+    """
+    args, effective_cfg, modified_cfg = darkgraylib.command_line.parse_command_line(
+        make_argument_parser, argv, "darker", DarkerConfig
+    )
+    OutputMode.validate_diff_stdout(args.diff, args.stdout)
+    OutputMode.validate_stdout_src(args.stdout, args.src, args.stdin_filename)
+    return args, effective_cfg, modified_cfg

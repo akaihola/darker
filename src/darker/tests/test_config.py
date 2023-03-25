@@ -12,14 +12,12 @@ import pytest
 
 from darker.config import (
     ConfigurationError,
-    DarkerConfig,
     OutputMode,
     TomlArrayLinesEncoder,
     dump_config,
     get_effective_config,
     get_modified_config,
     load_config,
-    replace_log_level_name,
 )
 from darker.tests.helpers import raises_if_exception
 
@@ -54,32 +52,6 @@ def test_toml_array_lines_encoder(list_value, expect):
     """``TomlArrayLinesEncoder`` formats lists with each item on its own line"""
     result = TomlArrayLinesEncoder().dump_list(list_value)
 
-    assert result == expect
-
-
-@pytest.mark.kwparametrize(
-    dict(log_level=None, expect={}),
-    dict(log_level=0, expect={"log_level": "NOTSET"}),
-    dict(log_level=10, expect={"log_level": "DEBUG"}),
-    dict(log_level=20, expect={"log_level": "INFO"}),
-    dict(log_level=30, expect={"log_level": "WARNING"}),
-    dict(log_level=40, expect={"log_level": "ERROR"}),
-    dict(log_level=50, expect={"log_level": "CRITICAL"}),
-    dict(log_level="DEBUG", expect={"log_level": 10}),
-    dict(log_level="INFO", expect={"log_level": 20}),
-    dict(log_level="WARNING", expect={"log_level": 30}),
-    dict(log_level="WARN", expect={"log_level": 30}),
-    dict(log_level="ERROR", expect={"log_level": 40}),
-    dict(log_level="CRITICAL", expect={"log_level": 50}),
-    dict(log_level="FOOBAR", expect={"log_level": "Level FOOBAR"}),
-)
-def test_replace_log_level_name(log_level, expect):
-    """``replace_log_level_name()`` converts between log level names and numbers"""
-    config = DarkerConfig() if log_level is None else DarkerConfig(log_level=log_level)
-
-    replace_log_level_name(config)
-
-    result = {k: v for k, v in config.items() if k == "log_level"}
     assert result == expect
 
 
