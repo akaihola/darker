@@ -17,6 +17,7 @@
 - Bao (@qubidt)
 - Ben Falk (@falkben)
 - Bharat Kunwar (@brtknr)
+- Brandon Perkins (@bdperkin)
 - Carsten Kraus (@casio)
 - Chmouel Boudjnah (@chmouel)
 - Christian Clauss (@cclauss)
