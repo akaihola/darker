@@ -8,8 +8,26 @@ Added
 
 Fixed
 -----
-- Use ``stacklevel=2`` in ``warnings.warn()`` calls as suggested by Flake8.
+
+
+1.7.1_ - 2023-03-26
+===================
+
+Added
+-----
+- Prefix GitHub milestones with ``Darker`` for clarity since we'll have two additional
+  related repositories soon in the same project.
+
+Fixed
+-----
+- Use ``git worktree`` to create a repository checkout for baseline linting. This avoids
+  issues with the previous ``git clone`` and ``git checkout`` based approach.
 - Disallow Flynt version 0.78 and newer to avoid an internal API incompatibility.
+- In CI builds, run the ``commit-range`` action from the current checkout instead of
+  pointing to a release tag. This fixes workflows when in a release branch.
+- Linting fixes: Use ``stacklevel=2`` in ``warnings.warn()`` calls as suggested by
+  Flake8; skip Bandit check for virtualenv creation in the GitHub Action;
+  use ``ignore[method-assign]`` as suggested by Mypy.
 
 
 1.7.0_ - 2023-02-11
@@ -449,7 +467,10 @@ Added
 -----
 - Initial implementation
 
-.. _Unreleased: https://github.com/akaihola/darker/compare/1.6.0...HEAD
+.. _Unreleased: https://github.com/akaihola/darker/compare/1.7.1...HEAD
+.. _1.7.1: https://github.com/akaihola/darker/compare/1.7.0...1.7.1
+.. _1.7.0: https://github.com/akaihola/darker/compare/1.6.1...1.7.0
+.. _1.6.1: https://github.com/akaihola/darker/compare/1.6.0...1.6.1
 .. _1.6.0: https://github.com/akaihola/darker/compare/1.5.1...1.6.0
 .. _1.5.1: https://github.com/akaihola/darker/compare/1.5.0...1.5.1
 .. _1.5.0: https://github.com/akaihola/darker/compare/1.4.2...1.5.0
