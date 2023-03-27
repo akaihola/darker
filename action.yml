@@ -37,7 +37,7 @@ runs:
   steps:
     - name: Commit Range
       id: commit-range
-      uses: akaihola/darker/.github/actions/commit-range@1.7.0
+      uses: akaihola/darker/.github/actions/commit-range@1.7.1
     - name: Run Darker
       run: |
         # Exists since using github.action_path + path to main script doesn't
