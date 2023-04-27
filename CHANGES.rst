@@ -8,6 +8,8 @@ Added
 
 Fixed
 -----
+- Revert running ``commit-range`` from the repository itself. This broke the GitHub
+  action.
 
 
 1.7.1_ - 2023-03-26
