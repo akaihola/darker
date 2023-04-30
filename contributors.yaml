@@ -158,6 +158,8 @@ simonf-dev:
   - {link_type: search-comments, type: Bug reports}
 soxofaan:
   - {link_type: pulls-author, type: Documentation}
+strzonnek:
+  - {link_type: issues, type: Bug reports}
 talhajunaidd:
   - {link_type: commits, type: Code}
 tgross35:
