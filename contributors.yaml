@@ -44,6 +44,8 @@ akaihola:
   - {link_type: commits, type: Maintenance}
 aljazerzen:
   - {link_type: commits, type: Code}
+bdperkin:
+  - {link_type: issues, type: Bug reports}
 brtknr:
   - {link_type: pulls-reviewed, type: Reviewed Pull Requests}
 casio:
@@ -73,6 +75,8 @@ foxwhite25:
   - {link_type: search, type: Bug reports}
 gdiscry:
   - {link_type: pulls-author, type: Code}
+gesslerpd:
+  - {link_type: issues, type: Bug reports}
 guettli:
   - {link_type: issues, type: Bug reports}
 hauntsaninja:
@@ -156,6 +160,8 @@ simonf-dev:
   - {link_type: search-comments, type: Bug reports}
 soxofaan:
   - {link_type: pulls-author, type: Documentation}
+strzonnek:
+  - {link_type: issues, type: Bug reports}
 talhajunaidd:
   - {link_type: commits, type: Code}
 tgross35:
