@@ -75,6 +75,8 @@ foxwhite25:
   - {link_type: search, type: Bug reports}
 gdiscry:
   - {link_type: pulls-author, type: Code}
+gesslerpd:
+  - {link_type: issues, type: Bug reports}
 guettli:
   - {link_type: issues, type: Bug reports}
 hauntsaninja:

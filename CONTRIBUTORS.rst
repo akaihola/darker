@@ -67,6 +67,7 @@
 - Pacu2 (@Pacu2)
 - Patrick Jordan (@PatrickJordanCongenica)
 - Paul Ivanov (@ivanov)
+- Peter Gessler (@gesslerpd)
 - Philipp A. (@flying-sheep)
 - Rishi Kumar Ray (@RishiKumarRay)
 - Roberto Polli (@ioggstream)
