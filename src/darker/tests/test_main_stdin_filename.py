@@ -110,6 +110,13 @@ pytestmark = pytest.mark.usefixtures("find_project_root_cache_clear")
     dict(
         stdin_filename="a.py", revision="..:STDIN:", expect_a_py='modified = "stdin"\n'
     ),
+    dict(src=["-"], stdin_filename="a.py", expect_a_py='modified = "stdin"\n'),
+    dict(
+        src=["-"],
+        stdin_filename="a.py",
+        revision="..:STDIN:",
+        expect_a_py='modified = "stdin"\n',
+    ),
     dict(
         stdin_filename="a.py",
         revision="..:WORKTREE:",
