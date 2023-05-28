@@ -109,7 +109,7 @@ def validate_stdin_src(stdin_filename: Optional[str], src: List[str]) -> None:
     """Make sure both ``stdin`` mode and paths/directories are specified"""
     if stdin_filename is None:
         return
-    if len(src) == 0:
+    if len(src) == 0 or src == ["-"]:
         return
     raise ConfigurationError(
         "No Python source files are allowed when using the `stdin-filename` option"
