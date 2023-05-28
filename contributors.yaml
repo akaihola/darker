@@ -127,6 +127,8 @@ minrk:
   - {link_type: darker-feedstock-issues, type: Code}
 muggenhor:
   - {link_type: commits, type: Code}
+my-tien:
+  - {link_type: issues, type: Bug reports}
 njhuffman:
   - {link_type: issues, type: Bug reports}
   - {link_type: commits, type: Code}

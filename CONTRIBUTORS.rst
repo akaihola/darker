@@ -59,6 +59,7 @@
 - Matthijs van der Burgh (@MatthijsBurgh)
 - mayk0gan (@mayk0gan)
 - Min RK (@minrk)
+- My-Tien Nguyen (@my-tien)
 - Mystic-Mirage (@Mystic-Mirage)
 - Nathan Huffman (@njhuffman)
 - Nutchanon Ninyawee (@wasdee)
