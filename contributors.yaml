@@ -166,6 +166,8 @@ strzonnek:
   - {link_type: issues, type: Bug reports}
 talhajunaidd:
   - {link_type: commits, type: Code}
+tapted:
+  - {link_type: issues, type: Bug reports}
 tgross35:
   - {link_type: issues, type: Bug reports}
 tkolleh:

@@ -85,6 +85,7 @@
 - Thomas Güttler (@guettli)
 - TJ Kolleh (@tkolleh)
 - Tobias Diez (@tobiasdiez)
+- Trent Apted (@tapted)
 - Trevor Gross (@tgross35)
 - Victor Cui (@victorcui96)
 - Vivek Kushwaha (@yoursvivek)
