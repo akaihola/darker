@@ -10,6 +10,7 @@ Fixed
 -----
 - Revert running ``commit-range`` from the repository itself. This broke the GitHub
   action.
+- Python 3.12 compatibility in multi-line string scanning.
 
 
 1.7.1_ - 2023-03-26

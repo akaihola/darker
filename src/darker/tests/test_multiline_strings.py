@@ -71,7 +71,7 @@ def test_get_multiline_string_ranges():
         ]
     )
 
-    result = multiline_strings.get_multiline_string_ranges(content)
+    result = list(multiline_strings.get_multiline_string_ranges(content))
 
     assert result == [
         # 1-based, end-exclusive
