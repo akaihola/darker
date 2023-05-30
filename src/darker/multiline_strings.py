@@ -1,27 +1,40 @@
 """Helper functions for dealing with reformatting multi-line strings"""
-
+import sys
 from tokenize import STRING, tokenize
-from typing import List, Optional, Sequence, Tuple
+from typing import Generator, Optional, Sequence, Tuple
 
 from darker.utils import TextDocument
 
+if sys.version_info >= (3, 12):
+    from tokenize import FSTRING_END, FSTRING_START
+else:
+    FSTRING_START = FSTRING_END = -1
 
-def get_multiline_string_ranges(content: TextDocument) -> List[Tuple[int, int]]:
-    """Return the line ranges of multi-line strings found in the given Python source
 
-    The returned data is 1-based, end-exclusive. In other words, each item is a 1-based
+MAX_LINES_IN_FILE = 2**64  # make it very unlikely to hit this limit
+
+
+def get_multiline_string_ranges(
+    content: TextDocument,
+) -> Generator[Tuple[int, int], None, None]:
+    """Generate the line ranges of multi-line strings found in the given Python source
+
+    The yielded data is 1-based, end-exclusive. In other words, each item is a 1-based
     ``(start, end)`` tuple, ``end`` being the line number following the last line of the
     multi-line string.
 
-    :return: Line number ranges of multi-line strings
+    :param content: The Python source code to scan for multi-line strings
+    :return: Generates the line ranges of multi-line strings
 
     """
     readline = (f"{line}\n".encode(content.encoding) for line in content.lines).__next__
-    return [
-        (t.start[0], t.end[0] + 1)
-        for t in tokenize(readline)
-        if t.type == STRING and t.end[0] > t.start[0]
-    ]
+    token_start_line = MAX_LINES_IN_FILE
+    for token in tokenize(readline):
+        if token.type in {STRING, FSTRING_START}:
+            token_start_line = token.start[0]
+        if token.type in {STRING, FSTRING_END} and token.end[0] > token_start_line:
+            yield token_start_line, token.end[0] + 1
+            token_start_line = MAX_LINES_IN_FILE
 
 
 def find_overlap(
