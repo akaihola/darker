@@ -16,6 +16,7 @@ jobs:
             airium \
             black \
             defusedxml \
+            pip-requirements-parser \
             pygments \
             pylint \
             pytest>=6.2.0 \
