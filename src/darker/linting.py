@@ -524,7 +524,7 @@ def _get_messages_from_linters_for_baseline(
 
     """
     with TemporaryDirectory() as tmpdir:
-        tmp_path = Path(tmpdir) / "baseline-revision"
+        tmp_path = Path(tmpdir) / "baseline-revision" / root.name
         with git_clone_local(root, revision, tmp_path) as clone_root:
             rev1_commit = git_rev_parse(revision, root)
             result = _get_messages_from_linters(

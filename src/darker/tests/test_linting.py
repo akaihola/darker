@@ -4,8 +4,10 @@
 
 import os
 from pathlib import Path
+from subprocess import PIPE, Popen  # nosec
 from textwrap import dedent
-from typing import Dict, Iterable, List, Tuple, Union
+from typing import Any, Dict, Iterable, List, Tuple, Union
+from unittest.mock import patch
 
 import pytest
 
@@ -567,3 +569,35 @@ def test_get_messages_from_linters_for_baseline(git_repo):
         MessageLocation(a_py, 3): [LinterMessage("python", "Third line")],
     }
     assert result == expect
+
+
+class AssertEmptyStderrPopen(
+    Popen  # type: ignore[type-arg]
+):  # pylint: disable=too-few-public-methods
+    # When support for Python 3.8 is dropped, inherit `Popen[str]` instead and remove
+    # the `type-arg` ignore above.
+    """A Popen to use for the following test; asserts that its stderr is empty"""
+
+    def __init__(self, args: List[str], **kwargs: Any):  # type: ignore[misc]
+        super().__init__(args, stderr=PIPE, **kwargs)
+        assert self.stderr is not None
+        assert self.stderr.read() == ""
+
+
+def test_get_messages_from_linters_for_baseline_no_mypy_errors(git_repo):
+    """Ensure Mypy does not fail early when ``__init__.py`` is at the repository root
+
+    Regression test for #498
+
+    """
+    git_repo.add({"__init__.py": ""}, commit="Initial commit")
+    initial = git_repo.get_hash()
+    with patch.object(linting, "Popen", AssertEmptyStderrPopen):
+        # end of test setup
+
+        _ = linting._get_messages_from_linters_for_baseline(
+            linter_cmdlines=["mypy"],
+            root=git_repo.root,
+            paths=[Path("__init__.py")],
+            revision=initial,
+        )
