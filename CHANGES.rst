@@ -5,6 +5,8 @@ These features will be included in the next release:
 
 Added
 -----
+- Allow ``-`` as the single source filename when using the ``--stdin-filename`` option.
+  This makes the option compatible with Black.
 
 Fixed
 -----
