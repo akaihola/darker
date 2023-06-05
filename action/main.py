@@ -6,7 +6,7 @@ import sys
 from pathlib import Path
 from subprocess import PIPE, STDOUT, run  # nosec
 
-from pkg_resources import parse_requirements
+from pip_requirements_parser import parse_reqparts_from_string
 
 LINTER_WHITELIST = {"flake8", "pylint", "mypy"}
 ACTION_PATH = Path(os.environ["GITHUB_ACTION_PATH"])
@@ -29,7 +29,10 @@ if VERSION:
     else:
         req[0] += f"=={VERSION}"
 linter_options = []
-for linter_requirement in parse_requirements(LINT.replace(",", "\n")):
+for requirement_string in LINT.split(","):
+    if not requirement_string.strip():
+        continue
+    linter_requirement = parse_reqparts_from_string(requirement_string).requirement
     linter = linter_requirement.name
     if linter not in LINTER_WHITELIST:
         raise RuntimeError(

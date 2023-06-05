@@ -56,6 +56,7 @@ runs:
         sys.exit(proc.returncode)
         "
 
+        pip install pip-requirements-parser
         if [ "$RUNNER_OS" == "Windows" ]; then
           echo $entrypoint | python
         else
