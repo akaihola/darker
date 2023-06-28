@@ -53,6 +53,7 @@
 - Leo Torres (@leotrs)
 - Magnus N. Malmquist (@magnunm)
 - Mark Davidoff (@markddavidoff)
+- Martin Häcker (@dwt)
 - martinRenou (@martinRenou)
 - Mat Clayton (@matclayton)
 - Matthias Bussonnier (@Carreau)
