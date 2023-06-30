@@ -236,7 +236,9 @@ def get_modified_config(parser: ArgumentParser, args: Namespace) -> DarkerConfig
 
 def dump_config(config: DarkerConfig) -> str:
     """Return the configuration in TOML format"""
-    dump = toml.dumps(config, encoder=TomlArrayLinesEncoder())
+    dump = toml.dumps(
+        convert_underscores_to_hyphens(config), encoder=TomlArrayLinesEncoder()
+    )
     return f"[tool.darker]\n{dump}"
 
 
