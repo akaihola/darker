@@ -202,7 +202,11 @@ def load_config(path: Optional[str], srcs: Iterable[str]) -> DarkerConfig:
         if not config_path.is_file():
             return {}
     pyproject_toml = toml.load(config_path)
-    config = cast(DarkerConfig, pyproject_toml.get("tool", {}).get("darker", {}) or {})
+    tool_darker_config = convert_hyphens_to_underscores(
+        pyproject_toml.get("tool", {}).get("darker", {}) or {}
+    )
+    validate_config_keys(tool_darker_config)
+    config = cast(DarkerConfig, tool_darker_config)
     replace_log_level_name(config)
     validate_config_output_mode(config)
     return config
