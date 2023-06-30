@@ -6,7 +6,7 @@ import sys
 from argparse import ArgumentParser, Namespace
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Iterable, List, Optional, Set, cast
+from typing import Dict, Iterable, List, Optional, Set, Union, cast
 
 import toml
 
@@ -24,6 +24,9 @@ class TomlArrayLinesEncoder(toml.TomlEncoder):  # type: ignore
     def dump_list(self, v: Iterable[object]) -> str:
         """Format a list value"""
         return "[{}\n]".format("".join(f"\n    {self.dump_value(item)}," for item in v))
+
+
+UnvalidatedConfig = Dict[str, Union[List[str], str, bool, int]]
 
 
 class DarkerConfig(TypedDict, total=False):
