@@ -95,6 +95,40 @@ class ConfigurationError(Exception):
     """Exception class for invalid configuration values"""
 
 
+def convert_config_characters(
+    config: UnvalidatedConfig, pattern: str, replacement: str
+) -> UnvalidatedConfig:
+    """Convert a character in config keys to a different character"""
+    return {key.replace(pattern, replacement): value for key, value in config.items()}
+
+
+def convert_hyphens_to_underscores(config: UnvalidatedConfig) -> UnvalidatedConfig:
+    """Convert hyphenated config keys to underscored keys"""
+    return convert_config_characters(config, "-", "_")
+
+
+def convert_underscores_to_hyphens(config: DarkerConfig) -> UnvalidatedConfig:
+    """Convert underscores in config keys to hyphens"""
+    return convert_config_characters(cast(UnvalidatedConfig, config), "_", "-")
+
+
+def validate_config_keys(config: UnvalidatedConfig) -> None:
+    """Raise an exception if any keys in the configuration are invalid.
+
+    :param config: The configuration read from ``pyproject.toml``
+    :raises ConfigurationError: Raised if unknown options are present
+
+    """
+    if set(config).issubset(DarkerConfig.__annotations__):
+        return
+    unknown_keys = ", ".join(
+        sorted(set(config).difference(DarkerConfig.__annotations__))
+    )
+    raise ConfigurationError(
+        f"Invalid [tool.darker] keys in pyproject.toml: {unknown_keys}"
+    )
+
+
 def replace_log_level_name(config: DarkerConfig) -> None:
     """Replace numeric log level in configuration with the name of the log level"""
     if "log_level" in config:
