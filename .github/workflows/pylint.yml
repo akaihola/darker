@@ -15,7 +15,9 @@ jobs:
           pip install -U \
             airium \
             black \
+            git+https://github.com/akaihola/darkgraylib.git@main \
             defusedxml \
+            git+https://github.com/akaihola/graylint.git@main \
             pip-requirements-parser \
             pygments \
             pylint \
