@@ -8,6 +8,7 @@ target-version = ["py311"]
 
 [tool.isort]
 profile = "black"
+known_first_party = ["darkgraylib", "graylint"]
 known_third_party = ["pytest"]
 
 [tool.darker]
