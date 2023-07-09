@@ -7,6 +7,7 @@ Added
 -----
 - Allow ``-`` as the single source filename when using the ``--stdin-filename`` option.
   This makes the option compatible with Black.
+- Upgrade NixOS tests to use Python 3.11 on both Linux and macOS.
 
 Fixed
 -----
