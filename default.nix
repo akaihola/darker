@@ -2,6 +2,6 @@
 (
   pkgs.stdenv.mkDerivation {
     name = "darker-test";
-    buildInputs = [ pkgs.python310 pkgs.git ];
+    buildInputs = [ pkgs.python311 pkgs.git ];
   }
 )
