@@ -56,7 +56,7 @@ jobs:
       - build-wheel
     steps:
       - uses: actions/checkout@v3
-      - uses: cachix/install-nix-action@v18
+      - uses: cachix/install-nix-action@v22
         with:
           nix_path: nixpkgs=channel:nixos-21.11
       - name: Download wheel uploaded by the build-wheel job
