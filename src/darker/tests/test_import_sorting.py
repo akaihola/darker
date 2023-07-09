@@ -11,8 +11,9 @@ import pytest
 import darker.import_sorting
 from darker.git import EditedLinenumsDiffer
 from darker.tests.helpers import isort_present
-from darker.utils import TextDocument, joinlines
+from darker.utils import joinlines
 from darkgraylib.git import RevisionRange
+from darkgraylib.utils import TextDocument
 
 ORIGINAL_SOURCE = ("import sys", "import os", "", "print(42)")
 ISORTED_SOURCE = ("import os", "import sys", "", "print(42)")

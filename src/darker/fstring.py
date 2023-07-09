@@ -6,7 +6,7 @@ from typing import Any
 
 from darker.exceptions import MissingPackageError
 from darker.git import EditedLinenumsDiffer
-from darker.utils import TextDocument
+from darkgraylib.utils import TextDocument
 
 try:
     import flynt

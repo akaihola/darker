@@ -54,7 +54,7 @@ from black.files import gen_python_files
 from black.report import Report
 
 from darker.config import ConfigurationError
-from darker.utils import TextDocument
+from darkgraylib.utils import TextDocument
 
 __all__ = ["BlackConfig", "Mode", "run_black"]
 

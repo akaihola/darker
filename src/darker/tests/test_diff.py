@@ -13,7 +13,7 @@ from darker.diff import (
     opcodes_to_chunks,
     opcodes_to_edit_linenums,
 )
-from darker.utils import TextDocument
+from darkgraylib.utils import TextDocument
 
 FUNCTIONS2_PY = dedent(
     """\

@@ -10,13 +10,13 @@ from textwrap import dedent
 import pytest
 
 from darker.utils import (
-    TextDocument,
     debug_dump,
     detect_newline,
     get_common_root,
     get_path_ancestry,
     joinlines,
 )
+from darkgraylib.utils import TextDocument
 
 
 @pytest.fixture(params=[TextDocument.from_file, TextDocument.from_bytes])

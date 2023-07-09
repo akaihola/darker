@@ -27,8 +27,9 @@ from typing import (
 
 from darker.diff import diff_and_get_opcodes, opcodes_to_edit_linenums
 from darker.multiline_strings import get_multiline_string_ranges
-from darker.utils import GIT_DATEFORMAT, TextDocument
+from darker.utils import GIT_DATEFORMAT
 from darkgraylib.git import RevisionRange
+from darkgraylib.utils import TextDocument
 
 logger = logging.getLogger(__name__)
 

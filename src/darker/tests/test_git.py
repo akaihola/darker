@@ -17,8 +17,9 @@ import pytest
 from darker import git
 from darker.tests.conftest import GitRepoFixture
 from darker.tests.helpers import raises_or_matches
-from darker.utils import GIT_DATEFORMAT, TextDocument
+from darker.utils import GIT_DATEFORMAT
 from darkgraylib.git import RevisionRange
+from darkgraylib.utils import TextDocument
 
 
 def test_tmp_path_sanity(tmp_path):

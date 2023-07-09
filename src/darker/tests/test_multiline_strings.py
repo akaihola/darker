@@ -5,7 +5,7 @@
 import pytest
 
 from darker import multiline_strings
-from darker.utils import TextDocument
+from darkgraylib.utils import TextDocument
 
 
 def test_get_multiline_string_ranges():
