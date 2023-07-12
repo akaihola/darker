@@ -69,6 +69,9 @@ Fixed
 - Upgrade ``install-nix-action`` to version 22 in CI to fix an issue with macOS.
 - Allow ``--target-version=py312`` since newest Black_ supports it.
 - Allow a comment in milestone titles in the ``bump_version`` script.
+- In CI, check import order only using ``isort``, and not with Pylint. Pylint doesn't
+  support custom first-party packages which will be needed when splitting Darker into
+  multiple repositories.
 
 
 1.7.1_ - 2023-03-26
