@@ -316,6 +316,23 @@ class Contributor:
         return self.name or self.login
 
 
+RTL_OVERRIDE = "\u202e"
+
+
+def _normalize_rtl_override(text: str) -> str:
+    """Normalize text surrounded by right-to-left override characters
+
+    :param text: Text to normalize
+    :return: Normalized text
+
+    """
+    if not text:
+        return text
+    if text[0] != RTL_OVERRIDE or text[-1] != RTL_OVERRIDE:
+        return text
+    return text[-2:0:-1]
+
+
 def join_github_users_with_contributions(
     users_and_contributions: Dict[str, List[Contribution]],
     session: GitHubSession,
@@ -330,9 +347,10 @@ def join_github_users_with_contributions(
     users: List[Contributor] = []
     for username, contributions in users_and_contributions.items():
         gh_user = cast(GitHubUser, session.get(f"/users/{username}").json())
+        name = _normalize_rtl_override(gh_user["name"])
         try:
             contributor = Contributor(
-                gh_user["id"], gh_user["name"], gh_user["login"], contributions
+                gh_user["id"], name, gh_user["login"], contributions
             )
         except KeyError:
             click.echo(gh_user, err=True)

@@ -65,6 +65,8 @@ dhrvjha:
   - {link_type: pulls-author, type: Code}
 dsmanl:
   - {link_type: issues, type: Bug reports}
+dwt:
+  - {link_type: issues, type: Bug reports}
 falkben:
   - {link_type: pulls-author, type: Documentation}
 fizbin:
@@ -127,6 +129,8 @@ minrk:
   - {link_type: darker-feedstock-issues, type: Code}
 muggenhor:
   - {link_type: commits, type: Code}
+my-tien:
+  - {link_type: issues, type: Bug reports}
 njhuffman:
   - {link_type: issues, type: Bug reports}
   - {link_type: commits, type: Code}
@@ -164,6 +168,8 @@ strzonnek:
   - {link_type: issues, type: Bug reports}
 talhajunaidd:
   - {link_type: commits, type: Code}
+tapted:
+  - {link_type: issues, type: Bug reports}
 tgross35:
   - {link_type: issues, type: Bug reports}
 tkolleh:
