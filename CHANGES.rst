@@ -57,6 +57,10 @@ Added
 - Move ``git_repo`` fixture to ``darkgraylib``.
 - In CI builds, show a diff of changed ``--help`` output if ``README.rst`` is outdated.
 
+Updated
+-------
+- Update CI ``lint-action`` to version 2.3.0.
+
 Fixed
 -----
 - Revert running ``commit-range`` from the repository itself. This broke the GitHub
