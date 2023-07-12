@@ -10,9 +10,9 @@ import pytest
 import toml
 
 import darker.__main__
-from darker.tests.conftest import GitRepoFixture
 from darker.tests.helpers import raises_if_exception
 from darkgraylib.config import ConfigurationError
+from darkgraylib.testtools.git_repo_plugin import GitRepoFixture
 
 pytestmark = pytest.mark.usefixtures("find_project_root_cache_clear")
 
