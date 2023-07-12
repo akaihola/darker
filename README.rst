@@ -373,8 +373,8 @@ The following `command line arguments`_ can also be used to modify the defaults:
 -l LENGTH, --line-length LENGTH
        How many characters per line to allow [default: 88]
 -t VERSION, --target-version VERSION
-       [py33|py34|py35|py36|py37|py38|py39|py310|py311] Python versions that should be
-       supported by Black's output. [default: per-file auto-detection]
+       [py33|py34|py35|py36|py37|py38|py39|py310|py311|py312] Python versions that
+       should be supported by Black's output. [default: per-file auto-detection]
 -W WORKERS, --workers WORKERS
        How many parallel workers to allow, or ``0`` for one per core [default: 1]
 

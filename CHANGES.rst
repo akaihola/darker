@@ -19,6 +19,7 @@ Fixed
   directory for getting the linter baseline. This avoids issues with Mypy when there's
   an ``__init__.py`` in the repository root.
 - Upgrade ``install-nix-action`` to version 22 in CI to fix an issue with macOS.
+- Allow ``--target-version=py312`` since newest Black supports it.
 
 
 1.7.1_ - 2023-03-26
