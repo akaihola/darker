@@ -5,6 +5,17 @@ These features will be included in the next release:
 
 Added
 -----
+
+Fixed
+-----
+
+
+1.7.2_ - 2023-07-12
+===================
+
+Added
+-----
+- Add a ``News`` link on the PyPI page.
 - Allow ``-`` as the single source filename when using the ``--stdin-filename`` option.
   This makes the option compatible with Black.
 - Upgrade NixOS tests to use Python 3.11 on both Linux and macOS.
@@ -20,6 +31,7 @@ Fixed
   an ``__init__.py`` in the repository root.
 - Upgrade ``install-nix-action`` to version 22 in CI to fix an issue with macOS.
 - Allow ``--target-version=py312`` since newest Black supports it.
+- Allow a comment in milestone titles in the ``bump_version`` script.
 
 
 1.7.1_ - 2023-03-26
@@ -479,7 +491,8 @@ Added
 -----
 - Initial implementation
 
-.. _Unreleased: https://github.com/akaihola/darker/compare/1.7.1...HEAD
+.. _Unreleased: https://github.com/akaihola/darker/compare/1.7.2...HEAD
+.. _1.7.2: https://github.com/akaihola/darker/compare/1.7.1...1.7.2
 .. _1.7.1: https://github.com/akaihola/darker/compare/1.7.0...1.7.1
 .. _1.7.0: https://github.com/akaihola/darker/compare/1.6.1...1.7.0
 .. _1.6.1: https://github.com/akaihola/darker/compare/1.6.0...1.6.1
