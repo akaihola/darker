@@ -89,6 +89,7 @@ def flynt_present(present: bool) -> Generator[None, None, None]:
     with _package_present("flynt", present) as fake_flynt_module:
         if present:
             # dummy module and function required by `fstring`:
-            fake_flynt_module.process = ModuleType("process")  # type: ignore
-            fake_flynt_module.process.fstringify_code_by_line = None  # type: ignore
+            fake_flynt_module.__version__ = "1.0.0"  # type: ignore
+            fake_flynt_module.code_editor = ModuleType("process")  # type: ignore
+            fake_flynt_module.code_editor.fstringify_code_by_line = None  # type: ignore
         yield

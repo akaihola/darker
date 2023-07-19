@@ -7,24 +7,30 @@ from typing import Any, Optional
 from darker.exceptions import MissingPackageError
 from darker.git import EditedLinenumsDiffer
 from darker.utils import TextDocument
-from flynt.pyproject_finder import find_pyproject_toml, parse_pyproject_toml
 
 try:
     import flynt
 
-    flynt_fstringify_code_by_line = flynt.process.fstringify_code_by_line
-    if hasattr(flynt.state, "State"):
-        State = flynt.state.State
+    flynt_version = tuple(map(int, flynt.__version__.split(".")))
+    if flynt_version >= (0, 78):
+        from flynt.state import State
     else:
         State = None
+    if flynt_version < (1, 0, 0):
+        from flynt.process import fstringify_code_by_line
+        from flynt.pyproject_finder import find_pyproject_toml, parse_pyproject_toml
+    else:
+        from flynt.code_editor import fstringify_code_by_line
+        from flynt.utils.pyproject_finder import (
+            find_pyproject_toml,
+            parse_pyproject_toml,
+        )
 except ImportError:
     # `flynt` is an optional dependency. Prevent the `ImportError` if it's missing.
     flynt = None
     State = None
 
-    def flynt_fstringify_code_by_line(  # type: ignore[misc]
-        *args: Any, **kwargs: Any
-    ) -> str:
+    def fstringify_code_by_line(*args: Any, **kwargs: Any) -> str:  # type: ignore[misc]
         """Fake `flynt.fstringify_code_by_line()` to use when `flynt` isn't installed"""
         raise MissingPackageError(
             "No module named 'flynt'. Please install the 'flynt' package before using"
@@ -66,7 +72,7 @@ def apply_flynt(
     return _call_flynt_fstringify(content, state)
 
 
-def _get_flynt_configuration(src: Path) -> Optional[State]:
+def _get_flynt_configuration(src: Path) -> Optional[State]:  # type: ignore[no-any-unimported]
     """Read ``pyproject.toml`` Flynt configuration for the given Python file
 
     :param src: The absolute path to the Python file to run Flynt on. This must be the
@@ -102,19 +108,19 @@ def _get_flynt_configuration(src: Path) -> Optional[State]:
     return state
 
 
-def _call_flynt_fstringify(
+def _call_flynt_fstringify(  # type: ignore[no-any-unimported]
     content: TextDocument, state: Optional[State]
 ) -> TextDocument:
-    """Call ``flynt.process.fstringify_code_by_line()``, return result `TextDocument`
+    """Call ``flynt.code_editor.fstringify_code_by_line()``, return result `TextDocument`
 
     :param content: The contents of the Python source code file to fstringify
     :param state: The ``flynt`` configuration to use, or ``None`` for ``flynt<0.78``
     :return: Original Python source code contents with modifications from ``flynt``
 
     """
-    logger.debug("flynt.process.fstringify_code_by_line(code=...)")
+    logger.debug("flynt.code_editor.fstringify_code_by_line(code=...)")
     args = () if state is None else (state,)  # `()` for flynt<0.78, (state,) for >=0.78
-    result, _ = flynt_fstringify_code_by_line(content.string, *args)
+    result, _ = fstringify_code_by_line(content.string, *args)
     return TextDocument.from_str(
         result,
         encoding=content.encoding,
