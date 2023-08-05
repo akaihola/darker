@@ -15,7 +15,7 @@ try:
     if flynt_version >= (0, 78):
         from flynt.state import State
     else:
-        State = None
+        State = None  # pylint: disable=invalid-name
     if flynt_version < (1, 0, 0):
         from flynt.process import fstringify_code_by_line
         from flynt.pyproject_finder import find_pyproject_toml, parse_pyproject_toml
@@ -72,7 +72,9 @@ def apply_flynt(
     return _call_flynt_fstringify(content, state)
 
 
-def _get_flynt_configuration(src: Path) -> Optional[State]:  # type: ignore[no-any-unimported]
+def _get_flynt_configuration(  # type: ignore[no-any-unimported]
+    src: Path,
+) -> Optional[State]:
     """Read ``pyproject.toml`` Flynt configuration for the given Python file
 
     :param src: The absolute path to the Python file to run Flynt on. This must be the
@@ -111,7 +113,7 @@ def _get_flynt_configuration(src: Path) -> Optional[State]:  # type: ignore[no-a
 def _call_flynt_fstringify(  # type: ignore[no-any-unimported]
     content: TextDocument, state: Optional[State]
 ) -> TextDocument:
-    """Call ``flynt.code_editor.fstringify_code_by_line()``, return result `TextDocument`
+    """Call ``flynt.code_editor.fstringify_code_by_line()``, return ``TextDocument``
 
     :param content: The contents of the Python source code file to fstringify
     :param state: The ``flynt`` configuration to use, or ``None`` for ``flynt<0.78``
