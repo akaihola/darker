@@ -6,7 +6,7 @@ import sys
 from argparse import ArgumentParser, Namespace
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Iterable, List, Optional, Set, cast
+from typing import Dict, Iterable, List, Optional, Set, Union, cast
 
 import toml
 
@@ -24,6 +24,9 @@ class TomlArrayLinesEncoder(toml.TomlEncoder):  # type: ignore
     def dump_list(self, v: Iterable[object]) -> str:
         """Format a list value"""
         return "[{}\n]".format("".join(f"\n    {self.dump_value(item)}," for item in v))
+
+
+UnvalidatedConfig = Dict[str, Union[List[str], str, bool, int]]
 
 
 class DarkerConfig(TypedDict, total=False):
@@ -90,6 +93,40 @@ class OutputMode:
 
 class ConfigurationError(Exception):
     """Exception class for invalid configuration values"""
+
+
+def convert_config_characters(
+    config: UnvalidatedConfig, pattern: str, replacement: str
+) -> UnvalidatedConfig:
+    """Convert a character in config keys to a different character"""
+    return {key.replace(pattern, replacement): value for key, value in config.items()}
+
+
+def convert_hyphens_to_underscores(config: UnvalidatedConfig) -> UnvalidatedConfig:
+    """Convert hyphenated config keys to underscored keys"""
+    return convert_config_characters(config, "-", "_")
+
+
+def convert_underscores_to_hyphens(config: DarkerConfig) -> UnvalidatedConfig:
+    """Convert underscores in config keys to hyphens"""
+    return convert_config_characters(cast(UnvalidatedConfig, config), "_", "-")
+
+
+def validate_config_keys(config: UnvalidatedConfig) -> None:
+    """Raise an exception if any keys in the configuration are invalid.
+
+    :param config: The configuration read from ``pyproject.toml``
+    :raises ConfigurationError: Raised if unknown options are present
+
+    """
+    if set(config).issubset(DarkerConfig.__annotations__):
+        return
+    unknown_keys = ", ".join(
+        sorted(set(config).difference(DarkerConfig.__annotations__))
+    )
+    raise ConfigurationError(
+        f"Invalid [tool.darker] keys in pyproject.toml: {unknown_keys}"
+    )
 
 
 def replace_log_level_name(config: DarkerConfig) -> None:
@@ -165,7 +202,11 @@ def load_config(path: Optional[str], srcs: Iterable[str]) -> DarkerConfig:
         if not config_path.is_file():
             return {}
     pyproject_toml = toml.load(config_path)
-    config = cast(DarkerConfig, pyproject_toml.get("tool", {}).get("darker", {}) or {})
+    tool_darker_config = convert_hyphens_to_underscores(
+        pyproject_toml.get("tool", {}).get("darker", {}) or {}
+    )
+    validate_config_keys(tool_darker_config)
+    config = cast(DarkerConfig, tool_darker_config)
     replace_log_level_name(config)
     validate_config_output_mode(config)
     return config
@@ -195,7 +236,9 @@ def get_modified_config(parser: ArgumentParser, args: Namespace) -> DarkerConfig
 
 def dump_config(config: DarkerConfig) -> str:
     """Return the configuration in TOML format"""
-    dump = toml.dumps(config, encoder=TomlArrayLinesEncoder())
+    dump = toml.dumps(
+        convert_underscores_to_hyphens(config), encoder=TomlArrayLinesEncoder()
+    )
     return f"[tool.darker]\n{dump}"
 
 

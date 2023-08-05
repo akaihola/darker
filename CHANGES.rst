@@ -52,6 +52,10 @@ Fixed
 - Linting fixes: Use ``stacklevel=2`` in ``warnings.warn()`` calls as suggested by
   Flake8; skip Bandit check for virtualenv creation in the GitHub Action;
   use ``ignore[method-assign]`` as suggested by Mypy.
+- Configuration options spelled with hyphens in ``pyproject.toml``
+  (e.g. ``line-length = 88``) are now supported.
+- In debug log output mode, configuration options are now always spelled with hyphens
+  instead of underscores.
 
 
 1.7.0_ - 2023-02-11
