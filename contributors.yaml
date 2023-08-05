@@ -44,6 +44,8 @@ akaihola:
   - {link_type: commits, type: Maintenance}
 aljazerzen:
   - {link_type: commits, type: Code}
+baod-rate:
+  - {link_type: pulls-author, type: Code}
 bdperkin:
   - {link_type: issues, type: Bug reports}
 brtknr:
