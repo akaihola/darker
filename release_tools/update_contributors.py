@@ -167,6 +167,10 @@ CONTRIBUTION_LINKS = {
 }
 
 
+class NotFoundError(Exception):
+    pass
+
+
 class GitHubSession(CachedSession):
     """Caching HTTP request session with useful defaults
 
@@ -203,6 +207,8 @@ class GitHubSession(CachedSession):
         if url.startswith("/"):
             url = f"https://api.github.com{url}"
         response = super().request(method, url, headers=hdrs, **kwargs)
+        if response.status_code == 404 and response.json()["message"] == "Not Found":
+            raise NotFoundError()
         if response.status_code != 200:
             raise RuntimeError(
                 f"{response.status_code} {response.text} when requesting {url}"
@@ -333,6 +339,11 @@ def _normalize_rtl_override(text: str) -> str:
     return text[-2:0:-1]
 
 
+DELETED_USERS = {
+    "qubidt": {"id": 6306455, "name": "Bao", "login": "qubidt"},
+}
+
+
 def join_github_users_with_contributions(
     users_and_contributions: Dict[str, List[Contribution]],
     session: GitHubSession,
@@ -346,7 +357,10 @@ def join_github_users_with_contributions(
     """
     users: List[Contributor] = []
     for username, contributions in users_and_contributions.items():
-        gh_user = cast(GitHubUser, session.get(f"/users/{username}").json())
+        try:
+            gh_user = cast(GitHubUser, session.get(f"/users/{username}").json())
+        except NotFoundError:
+            gh_user = DELETED_USERS[username]
         name = _normalize_rtl_override(gh_user["name"])
         try:
             contributor = Contributor(
