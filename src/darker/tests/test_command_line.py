@@ -17,9 +17,10 @@ import darker.help
 from darker import black_diff
 from darker.__main__ import main
 from darker.command_line import make_argument_parser, parse_command_line
-from darker.config import ConfigurationError, Exclusions
+from darker.config import Exclusions
 from darker.tests.helpers import flynt_present, isort_present, raises_if_exception
 from darker.utils import joinlines
+from darkgraylib.config import ConfigurationError
 from darkgraylib.git import RevisionRange
 from darkgraylib.utils import TextDocument
 

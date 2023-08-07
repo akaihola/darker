@@ -22,8 +22,8 @@ from darker.black_diff import (
     read_black_config,
     run_black,
 )
-from darker.config import ConfigurationError
 from darker.tests.helpers import raises_or_matches
+from darkgraylib.config import ConfigurationError
 from darkgraylib.utils import TextDocument
 
 if sys.version_info >= (3, 11):
