@@ -36,12 +36,12 @@ from darker.git import (
     git_is_repository,
 )
 from darker.help import get_extra_instruction
-from darker.highlighting import colorize, should_use_color
 from darker.import_sorting import apply_isort, isort
 from darker.utils import GIT_DATEFORMAT, DiffChunk, debug_dump, glob_any
 from darker.verification import ASTVerifier, BinarySearch, NotEquivalentError
 from darkgraylib.config import show_config_if_debug
 from darkgraylib.git import RevisionRange
+from darkgraylib.highlighting import colorize, should_use_color
 from darkgraylib.log import setup_logging
 from darkgraylib.main import resolve_paths
 from darkgraylib.utils import TextDocument

@@ -24,10 +24,10 @@ from darker.exceptions import MissingPackageError
 from darker.git import WORKTREE, EditedLinenumsDiffer
 from darker.tests.helpers import isort_present
 from darker.tests.test_fstring import FLYNTED_SOURCE, MODIFIED_SOURCE, ORIGINAL_SOURCE
-from darker.tests.test_highlighting import BLUE, CYAN, RESET, WHITE, YELLOW
 from darker.utils import joinlines
 from darker.verification import NotEquivalentError
 from darkgraylib.git import RevisionRange
+from darkgraylib.tests.test_highlighting import BLUE, CYAN, RESET, WHITE, YELLOW
 from darkgraylib.utils import TextDocument
 
 
