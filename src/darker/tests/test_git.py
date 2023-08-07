@@ -18,7 +18,7 @@ from darker import git
 from darker.tests.helpers import raises_or_matches
 from darker.utils import GIT_DATEFORMAT
 from darkgraylib.git import RevisionRange
-from darkgraylib.teststools.git_repo_plugin import GitRepoFixture
+from darkgraylib.testtools.git_repo_plugin import GitRepoFixture
 from darkgraylib.utils import TextDocument
 
 
