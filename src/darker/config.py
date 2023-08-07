@@ -1,25 +1,11 @@
 """Load and save configuration in TOML format"""
 
-import logging
-import os
-from argparse import ArgumentParser, Namespace
+from argparse import Namespace
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, Iterable, List, Optional, Set, Union, cast
+from typing import Dict, List, Optional, Set, Union
 
-import toml
-
-from darker.black_compat import find_project_root
-from darkgraylib.config import BaseConfig
-
-
-class TomlArrayLinesEncoder(toml.TomlEncoder):  # type: ignore
-    """Format TOML so list items are each on their own line"""
-
-    def dump_list(self, v: Iterable[object]) -> str:
-        """Format a list value"""
-        return "[{}\n]".format("".join(f"\n    {self.dump_value(item)}," for item in v))
-
+from darkgraylib.config import BaseConfig, ConfigurationError
 
 UnvalidatedConfig = Dict[str, Union[List[str], str, bool, int]]
 
@@ -79,155 +65,11 @@ class OutputMode:
         )
 
 
-class ConfigurationError(Exception):
-    """Exception class for invalid configuration values"""
-
-
-def convert_config_characters(
-    config: UnvalidatedConfig, pattern: str, replacement: str
-) -> UnvalidatedConfig:
-    """Convert a character in config keys to a different character"""
-    return {key.replace(pattern, replacement): value for key, value in config.items()}
-
-
-def convert_hyphens_to_underscores(config: UnvalidatedConfig) -> UnvalidatedConfig:
-    """Convert hyphenated config keys to underscored keys"""
-    return convert_config_characters(config, "-", "_")
-
-
-def convert_underscores_to_hyphens(config: DarkerConfig) -> UnvalidatedConfig:
-    """Convert underscores in config keys to hyphens"""
-    return convert_config_characters(cast(UnvalidatedConfig, config), "_", "-")
-
-
-def validate_config_keys(config: UnvalidatedConfig) -> None:
-    """Raise an exception if any keys in the configuration are invalid.
-
-    :param config: The configuration read from ``pyproject.toml``
-    :raises ConfigurationError: Raised if unknown options are present
-
-    """
-    if set(config).issubset(DarkerConfig.__annotations__):
-        return
-    unknown_keys = ", ".join(
-        sorted(set(config).difference(DarkerConfig.__annotations__))
-    )
-    raise ConfigurationError(
-        f"Invalid [tool.darker] keys in pyproject.toml: {unknown_keys}"
-    )
-
-
-def replace_log_level_name(config: DarkerConfig) -> None:
-    """Replace numeric log level in configuration with the name of the log level"""
-    if "log_level" in config:
-        config["log_level"] = logging.getLevelName(config["log_level"])
-
-
 def validate_config_output_mode(config: DarkerConfig) -> None:
     """Make sure both ``diff`` and ``stdout`` aren't enabled in configuration"""
     OutputMode.validate_diff_stdout(
         config.get("diff", False), config.get("stdout", False)
     )
-
-
-def validate_stdin_src(stdin_filename: Optional[str], src: List[str]) -> None:
-    """Make sure both ``stdin`` mode and paths/directories are specified"""
-    if stdin_filename is None:
-        return
-    if len(src) == 0 or src == ["-"]:
-        return
-    raise ConfigurationError(
-        "No Python source files are allowed when using the `stdin-filename` option"
-    )
-
-
-def override_color_with_environment(pyproject_config: DarkerConfig) -> DarkerConfig:
-    """Override ``color`` if the ``PY_COLORS`` environment variable is '0' or '1'
-
-    :param config: The configuration read from ``pyproject.toml``
-    :return: The modified configuration
-
-    """
-    config = pyproject_config.copy()
-    py_colors = os.getenv("PY_COLORS")
-    if py_colors in {"0", "1"}:
-        config["color"] = py_colors == "1"
-    elif os.getenv("NO_COLOR") is not None:
-        config["color"] = False
-    elif os.getenv("FORCE_COLOR") is not None:
-        config["color"] = True
-    return config
-
-
-def load_config(path: Optional[str], srcs: Iterable[str]) -> DarkerConfig:
-    """Find and load Darker configuration from a TOML configuration file
-
-    Darker determines the location for the configuration file by trying the following:
-    - the file path in the `path` argument, given using the ``-c``/``--config`` command
-      line option
-    - ``pyproject.toml`` inside the directory specified by the `path` argument
-    - ``pyproject.toml`` from a common parent directory to all items in `srcs`
-    - ``pyproject.toml`` in the current working directory if `srcs` is empty
-
-    :param path: The file or directory specified using the ``-c``/``--config`` command
-                 line option, or `None` if the option was omitted.
-    :param srcs: File(s) and directory/directories to be processed by Darker.
-
-    """
-    if path:
-        for candidate_path in [Path(path), Path(path, "pyproject.toml")]:
-            if candidate_path.is_file():
-                config_path = candidate_path
-                break
-        else:
-            if Path(path).is_dir() or path.endswith(os.sep):
-                raise ConfigurationError(
-                    f"Configuration file {Path(path, 'pyproject.toml')} not found"
-                )
-            raise ConfigurationError(f"Configuration file {path} not found")
-    else:
-        config_path = find_project_root(tuple(srcs or ["."])) / "pyproject.toml"
-        if not config_path.is_file():
-            return {}
-    pyproject_toml = toml.load(config_path)
-    tool_darker_config = convert_hyphens_to_underscores(
-        pyproject_toml.get("tool", {}).get("darker", {}) or {}
-    )
-    validate_config_keys(tool_darker_config)
-    config = cast(DarkerConfig, tool_darker_config)
-    replace_log_level_name(config)
-    validate_config_output_mode(config)
-    return config
-
-
-def get_effective_config(args: Namespace) -> DarkerConfig:
-    """Return all configuration options"""
-    config = cast(DarkerConfig, vars(args).copy())
-    replace_log_level_name(config)
-    validate_config_output_mode(config)
-    return config
-
-
-def get_modified_config(parser: ArgumentParser, args: Namespace) -> DarkerConfig:
-    """Return configuration options which are set to non-default values"""
-    not_default = cast(
-        DarkerConfig,
-        {
-            argument: value
-            for argument, value in vars(args).items()
-            if value != parser.get_default(argument)
-        },
-    )
-    replace_log_level_name(not_default)
-    return not_default
-
-
-def dump_config(config: DarkerConfig) -> str:
-    """Return the configuration in TOML format"""
-    dump = toml.dumps(
-        convert_underscores_to_hyphens(config), encoder=TomlArrayLinesEncoder()
-    )
-    return f"[tool.darker]\n{dump}"
 
 
 @dataclass
