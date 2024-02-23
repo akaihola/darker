@@ -78,6 +78,7 @@
 - Ronie Martinez (@roniemartinez)
 - Ross Barnowski (@rossbar)
 - samoylovfp (@samoylovfp)
+- Samuel Gaist (@sgaist)
 - Sean Hammond (@sherbie)
 - sfoucek (@simonf-dev)
 - Shantanu (@hauntsaninja)

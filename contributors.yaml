@@ -157,6 +157,8 @@ rossbar:
   - {link_type: issues, type: Bug reports}
 samoylovfp:
   - {link_type: pulls-reviewed, type: Reviewed Pull Requests}
+sgaist:
+  - {link_type: pulls-author, type: Code}
 shangxiao:
   - {link_type: pulls-author, type: Code}
   - {link_type: issues, type: Bug reports}
