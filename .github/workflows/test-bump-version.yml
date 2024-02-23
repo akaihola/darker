@@ -9,7 +9,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
 
       - name: Make sure that `bump_version.py` still finds all version strings
               and that there's a future milestone on GitHub Issues.

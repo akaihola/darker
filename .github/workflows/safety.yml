@@ -9,7 +9,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
       - run: pip install -U pip-tools
       - run: pip-compile setup.cfg
       - run: pip install -U safety
