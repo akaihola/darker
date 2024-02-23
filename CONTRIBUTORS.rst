@@ -41,6 +41,7 @@
 - Dustin Spicuzza (@virtuald)
 - DylanYoung (@DylanYoung)
 - Eric Riddoch (@phitoduck)
+- Eyob Kibret (@Eyobkibret15)
 - Filippos Giannakos (@philipgian)
 - Fox_white (@foxwhite25)
 - Georges Discry (@gdiscry)
