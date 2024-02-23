@@ -81,6 +81,8 @@ foxwhite25:
   - {link_type: search, type: Bug reports}
 gdiscry:
   - {link_type: pulls-author, type: Code}
+gergelypolonkai:
+  - {link_type: issues, type: Bug reports}
 gesslerpd:
   - {link_type: issues, type: Bug reports}
 guettli:
