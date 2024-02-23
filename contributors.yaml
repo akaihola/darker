@@ -62,6 +62,8 @@ chmouel:
 chrisdecker1201:
   - {link_type: pulls-author, type: Code}
   - {link_type: issues, type: Bug reports}
+clintonsteiner:
+  - {link_type: issues, type: Bug reports}
 deadkex:
   - {link_type: search-discussions, type: Bug reports}
 dhrvjha:
@@ -141,6 +143,8 @@ mayk0gan:
   - {link_type: issues, type: Bug reports}
 minrk:
   - {link_type: darker-feedstock-issues, type: Code}
+mrfroggg:
+  - {link_type: search-comments, type: Bug reports}
 muggenhor:
   - {link_type: commits, type: Code}
 my-tien:
