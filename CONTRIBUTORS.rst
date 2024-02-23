@@ -30,6 +30,7 @@
 - David Sanders (@shangxiao)
 - deadkex (@deadkex)
 - Dhruv Kumar Jha (@dhrvjha)
+- Dmitry Shemetov (@dshemetov)
 - Dominik Kutra (@k-dominik)
 - dsmanl (@dsmanl)
 - Dustin Spicuzza (@virtuald)

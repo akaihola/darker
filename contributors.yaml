@@ -65,6 +65,8 @@ deadkex:
 dhrvjha:
   - {link_type: search-comments, type: Bug reports}
   - {link_type: pulls-author, type: Code}
+dshemetov:
+  - {link_type: issues, type: Bug reports}
 dsmanl:
   - {link_type: issues, type: Bug reports}
 dwt:
