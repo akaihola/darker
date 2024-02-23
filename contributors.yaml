@@ -1,6 +1,8 @@
 ---
 AckslD:
   - {link_type: issues, type: Bug reports}
+Ashblaze:
+  - {link_type: search-discussions, type: Bug reports}
 Asuskf:
   - {link_type: search-discussions, type: Bug reports}
 Carreau:
@@ -75,6 +77,7 @@ dwt:
   - {link_type: issues, type: Bug reports}
 falkben:
   - {link_type: pulls-author, type: Documentation}
+  - {link_type: search-discussions, type: Bug reports}
 fizbin:
   - {link_type: issues, type: Bug reports}
 flying-sheep:
@@ -115,6 +118,9 @@ jsuit:
   - {link_type: search-discussions, type: Bug reports}
 k-dominik:
   - {link_type: search-comments, type: Bug reports}
+kedhammar:
+  - {link_type: search-discussions, type: Bug reports}
+  - {link_type: issues, type: Bug reports}
 leej3:
   - {link_type: search-comments, type: Bug reports}
 leotrs:

@@ -10,8 +10,10 @@
 
 - Aaron Denney (@wnoise)
 - Aditya Gandra (@agandra)
+- Alfred Kedhammar (@kedhammar)
 - Aljaž Mur Eržen (@aljazerzen)
 - Antti Kaihola (@akaihola)
+- Ashblaze (@Ashblaze)
 - August Masquelier (@levouh)
 - Axel Dahlberg (@AckslD)
 - Bao (@baod-rate)
