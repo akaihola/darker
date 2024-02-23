@@ -46,7 +46,7 @@ class DummyExecutor(Executor):
         future = cast(FutureType[T], Future())
         try:
             result = fn(*args, **kwargs)
-        except BaseException as exc_info:
+        except BaseException as exc_info:  # noqa: B036
             future.set_exception(exc_info)
         else:
             future.set_result(result)
