@@ -65,6 +65,8 @@ deadkex:
 dhrvjha:
   - {link_type: search-comments, type: Bug reports}
   - {link_type: pulls-author, type: Code}
+dkeraudren:
+  - {link_type: search-comments, type: Bug reports}
 dshemetov:
   - {link_type: issues, type: Bug reports}
 dsmanl:
@@ -159,6 +161,8 @@ rossbar:
   - {link_type: issues, type: Bug reports}
 samoylovfp:
   - {link_type: pulls-reviewed, type: Reviewed Pull Requests}
+seweissman:
+  - {link_type: issues, type: Bug reports}
 sgaist:
   - {link_type: pulls-author, type: Code}
 shangxiao:
