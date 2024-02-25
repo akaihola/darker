@@ -9,7 +9,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
       - run: pip install pyupgrade
       - name: Ensure modern Python style using pyupgrade
         # This script is written in a Linux / macos / windows portable way
