@@ -6,13 +6,14 @@ import re
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import TYPE_CHECKING
-from unittest.mock import ANY, patch
+from typing import Dict, Iterable, Iterator, Optional, Pattern, TYPE_CHECKING
+from unittest.mock import ANY, Mock, call, patch
 
 import pytest
 import regex
 
-from black import Mode, TargetVersion
+from black import Mode, Report, TargetVersion
+from pathspec import PathSpec
 
 from darker import black_diff
 from darker.black_diff import (
@@ -203,6 +204,126 @@ def test_filter_python_files(  # pylint: disable=too-many-arguments
 
     expect_paths = {Path(f"{path}.py") for path in expect} | explicit
     assert result == expect_paths
+
+
+def make_mock_gen_python_files_black_21_7b1_dev8():
+    """Create `gen_python_files` mock for Black 21.7b1.dev8+ge76adbe
+
+    Also record the call made to the mock function for test verification.
+
+    This revision didn't yet have the `verbose` and `quiet` parameters.
+
+    """
+    calls = Mock()
+
+    def gen_python_files(
+        paths: Iterable[Path],
+        root: Path,
+        include: Pattern[str],
+        exclude: Pattern[str],
+        extend_exclude: Optional[Pattern[str]],
+        force_exclude: Optional[Pattern[str]],
+        report: Report,
+        gitignore: Optional[PathSpec],
+    ) -> Iterator[Path]:
+        calls.gen_python_files = call(gitignore=gitignore)
+        for _ in []:
+            yield Path()
+
+    return gen_python_files, calls
+
+
+def make_mock_gen_python_files_black_21_7b1_dev9():
+    """Create `gen_python_files` mock for Black 21.7b1.dev9+gb1d0601
+
+    Also record the call made to the mock function for test verification.
+
+    This revision added `verbose` and `quiet` parameters to `gen_python_files`.
+
+    """
+    calls = Mock()
+
+    def gen_python_files(
+        paths: Iterable[Path],
+        root: Path,
+        include: Pattern[str],
+        exclude: Pattern[str],
+        extend_exclude: Optional[Pattern[str]],
+        force_exclude: Optional[Pattern[str]],
+        report: Report,
+        gitignore: Optional[PathSpec],
+        *,
+        verbose: bool,
+        quiet: bool,
+    ) -> Iterator[Path]:
+        calls.gen_python_files = call(
+            gitignore=gitignore,
+            verbose=verbose,
+            quiet=quiet,
+        )
+        for _ in []:
+            yield Path()
+
+    return gen_python_files, calls
+
+
+def make_mock_gen_python_files_black_22_10_1_dev19():
+    """Create `gen_python_files` mock for Black 22.10.1.dev19+gffaaf48
+
+    Also record the call made to the mock function for test verification.
+
+    This revision renamed the `gitignore` parameter to `gitignore_dict`.
+
+    """
+    calls = Mock()
+
+    def gen_python_files(
+        paths: Iterable[Path],
+        root: Path,
+        include: Pattern[str],
+        exclude: Pattern[str],
+        extend_exclude: Optional[Pattern[str]],
+        force_exclude: Optional[Pattern[str]],
+        report: Report,
+        gitignore_dict: Optional[Dict[Path, PathSpec]],
+        *,
+        verbose: bool,
+        quiet: bool,
+    ) -> Iterator[Path]:
+        calls.gen_python_files = call(
+            gitignore_dict=gitignore_dict,
+            verbose=verbose,
+            quiet=quiet,
+        )
+        for _ in []:
+            yield Path()
+
+    return gen_python_files, calls
+
+
+@pytest.mark.kwparametrize(
+    dict(
+        make_mock=make_mock_gen_python_files_black_21_7b1_dev8,
+        expect={"gitignore": None},
+    ),
+    dict(
+        make_mock=make_mock_gen_python_files_black_21_7b1_dev9,
+        expect={"gitignore": None, "verbose": False, "quiet": False},
+    ),
+    dict(
+        make_mock=make_mock_gen_python_files_black_22_10_1_dev19,
+        expect={"gitignore_dict": {}, "verbose": False, "quiet": False},
+    ),
+)
+def test_filter_python_files_gitignore(make_mock, tmp_path, expect):
+    """`filter_python_files` uses per-Black-version params to `gen_python_files`"""
+    gen_python_files, calls = make_mock()
+    with patch.object(black_diff, "gen_python_files", gen_python_files):
+        # end of test setup
+
+        _ = filter_python_files(set(), tmp_path, BlackConfig())
+
+    assert calls.gen_python_files.kwargs == expect
 
 
 @pytest.mark.parametrize("encoding", ["utf-8", "iso-8859-1"])
