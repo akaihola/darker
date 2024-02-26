@@ -68,7 +68,11 @@ jobs:
               python -m venv venv
               source venv/bin/activate
               pip install "${{needs.build-wheel.outputs.wheel-path}}[test]"
-              pytest
+              # Run tests in installed package to avoid plugin import issue:
+              pytest $(python -c "
+          import os, darker
+          print(os.path.dirname(darker.__file__))
+              ")
             ' \
             ./default.nix
 
