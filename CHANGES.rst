@@ -6,6 +6,7 @@ These features will be included in the next release:
 Added
 -----
 - Limit Black to versions before 24.2 until the incompatibility is resolved.
+- Stop testing on Python 3.7. Note: dropping support to be done in a separate PR.
 
 Fixed
 -----
