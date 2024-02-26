@@ -89,14 +89,15 @@ jobs:
           - '3.11'
           - '3.12-dev'
         constraints: ['black==22.12.0']
+        post_install: ['']
         include:
           - os: ubuntu-latest
             python-version: '3.7'
             constraints: '--constraint constraints-oldest.txt'
           - os: ubuntu-latest
             python-version: '3.11'
-            constraints: '--constraint constraints-future.txt'
-            upgrade: '--upgrade --upgrade-strategy=eager'
+            post_install: pip install -r constraints-future.txt
+                                      --upgrade --upgrade-strategy=eager
     needs:
       - build-wheel
     steps:
@@ -113,6 +114,12 @@ jobs:
       - name: Install Darker and its dependencies from the wheel build earlier
         run: pip install "${{needs.build-wheel.outputs.wheel-path}}[test]"
                          ${{ matrix.upgrade }} ${{ matrix.constraints }}
+      - name: Upgrade Black and Isort from GitHub if future constraints are used
+        # This can't be done in the same Pip invocation as installing Darker
+        # since Darker might place an upper limit on Black and/or Isort during
+        # compatibility fixing periods.
+        if: matrix.post_install
+        run: ${{ matrix.post_install }}
       - name: Downgrade target-version when running oldest supported Black
         if: matrix.constraints == '--constraint constraints-oldest.txt'
         run: |
