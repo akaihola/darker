@@ -155,8 +155,10 @@ def filter_python_files(
     kwargs = {"verbose": False, "quiet": False} if "verbose" in sig.parameters else {}
     # `gitignore=` was replaced with `gitignore_dict=` in black==22.10.1.dev19+gffaaf48
     for param in sig.parameters:
-        if param.startswith("gitignore"):
+        if param == "gitignore":
             kwargs[param] = None  # type: ignore[assignment]
+        elif param == "gitignore_dict":
+            kwargs[param] = {}  # type: ignore[assignment]
     absolute_paths = {p.resolve() for p in paths}
     directories = {p for p in absolute_paths if p.is_dir()}
     files = {p for p in absolute_paths if p not in directories}
