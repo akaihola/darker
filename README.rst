@@ -137,11 +137,11 @@ How?
 
 To install or upgrade, use::
 
-  pip install --upgrade darker~=1.7.2
+  pip install --upgrade darker~=1.7.3
 
 Or, if you're using Conda_ for package management::
 
-  conda install -c conda-forge darker~=1.7.2 isort
+  conda install -c conda-forge darker~=1.7.3 isort
   conda update -c conda-forge darker
 
 ..
@@ -638,7 +638,7 @@ do the following:
    .. code-block:: yaml
 
       - repo: https://github.com/akaihola/darker
-        rev: 1.7.2
+        rev: 1.7.3
         hooks:
           - id: darker
 
@@ -657,7 +657,7 @@ other reformatter/linter tools you use to known compatible versions, for example
 .. code-block:: yaml
 
    - repo: https://github.com/akaihola/darker
-     rev: 1.7.2
+     rev: 1.7.3
      hooks:
        - id: darker
          args:
@@ -688,7 +688,7 @@ Note the inclusion of the isort Python package under ``additional_dependencies``
 .. code-block:: yaml
 
    - repo: https://github.com/akaihola/darker
-     rev: 1.7.2
+     rev: 1.7.3
      hooks:
        - id: darker
          args: [--isort]
@@ -733,11 +733,11 @@ Create a file named ``.github/workflows/darker.yml`` inside your repository with
            with:
              fetch-depth: 0 
          - uses: actions/setup-python@v5
-         - uses: akaihola/darker@1.7.2
+         - uses: akaihola/darker@1.7.3
            with:
              options: "--check --diff --isort --color"
              src: "./src"
-             version: "~=1.7.2"
+             version: "~=1.7.3"
              lint: "flake8,pylint==2.13.1"
 
 There needs to be a working Python environment, set up using ``actions/setup-python``
