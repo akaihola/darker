@@ -810,7 +810,7 @@ command or a full command line to pass to a linter. Some examples:
 
 - ``-L flake8``: enforce the Python style guide using Flake8_
 - ``-L "mypy --strict"``: do static type checking using Mypy_
-- ``--lint="pylint --ignore='setup.py'""``: analyze code using Pylint_
+- ``--lint="pylint --ignore='setup.py'"``: analyze code using Pylint_
 - ``-L cov_to_lint.py``: read ``.coverage`` and list non-covered modified lines
 
 **Note:** Full command lines aren't fully tested on Windows. See issue `#456`_ for a
