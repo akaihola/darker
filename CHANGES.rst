@@ -5,6 +5,7 @@ These features will be included in the next release:
 
 Added
 -----
+- Limit Black to versions before 24.2 until the incompatibility is resolved.
 
 Fixed
 -----
