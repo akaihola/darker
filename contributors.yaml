@@ -1,6 +1,8 @@
 ---
 AckslD:
   - {link_type: issues, type: Bug reports}
+Ashblaze:
+  - {link_type: search-discussions, type: Bug reports}
 Asuskf:
   - {link_type: search-discussions, type: Bug reports}
 Carreau:
@@ -15,6 +17,8 @@ DavidCDreher:
   - {link_type: issues, type: Bug reports}
 DylanYoung:
   - {link_type: issues, type: Bug reports}
+Eyobkibret15:
+  - {link_type: search-discussions, type: Bug reports}
 Hainguyen1210:
   - {link_type: issues, type: Bug reports}
 KangOl:
@@ -44,6 +48,8 @@ akaihola:
   - {link_type: commits, type: Maintenance}
 aljazerzen:
   - {link_type: commits, type: Code}
+baod-rate:
+  - {link_type: pulls-author, type: Code}
 bdperkin:
   - {link_type: issues, type: Bug reports}
 brtknr:
@@ -58,17 +64,24 @@ chmouel:
 chrisdecker1201:
   - {link_type: pulls-author, type: Code}
   - {link_type: issues, type: Bug reports}
+clintonsteiner:
+  - {link_type: issues, type: Bug reports}
 deadkex:
   - {link_type: search-discussions, type: Bug reports}
 dhrvjha:
   - {link_type: search-comments, type: Bug reports}
   - {link_type: pulls-author, type: Code}
+dkeraudren:
+  - {link_type: search-comments, type: Bug reports}
+dshemetov:
+  - {link_type: issues, type: Bug reports}
 dsmanl:
   - {link_type: issues, type: Bug reports}
 dwt:
   - {link_type: issues, type: Bug reports}
 falkben:
   - {link_type: pulls-author, type: Documentation}
+  - {link_type: search-discussions, type: Bug reports}
 fizbin:
   - {link_type: issues, type: Bug reports}
 flying-sheep:
@@ -77,6 +90,8 @@ foxwhite25:
   - {link_type: search, type: Bug reports}
 gdiscry:
   - {link_type: pulls-author, type: Code}
+gergelypolonkai:
+  - {link_type: issues, type: Bug reports}
 gesslerpd:
   - {link_type: issues, type: Bug reports}
 guettli:
@@ -107,6 +122,9 @@ jsuit:
   - {link_type: search-discussions, type: Bug reports}
 k-dominik:
   - {link_type: search-comments, type: Bug reports}
+kedhammar:
+  - {link_type: search-discussions, type: Bug reports}
+  - {link_type: issues, type: Bug reports}
 leej3:
   - {link_type: search-comments, type: Bug reports}
 leotrs:
@@ -127,6 +145,8 @@ mayk0gan:
   - {link_type: issues, type: Bug reports}
 minrk:
   - {link_type: darker-feedstock-issues, type: Code}
+mrfroggg:
+  - {link_type: search-comments, type: Bug reports}
 muggenhor:
   - {link_type: commits, type: Code}
 my-tien:
@@ -153,6 +173,10 @@ rossbar:
   - {link_type: issues, type: Bug reports}
 samoylovfp:
   - {link_type: pulls-reviewed, type: Reviewed Pull Requests}
+seweissman:
+  - {link_type: issues, type: Bug reports}
+sgaist:
+  - {link_type: pulls-author, type: Code}
 shangxiao:
   - {link_type: pulls-author, type: Code}
   - {link_type: issues, type: Bug reports}
