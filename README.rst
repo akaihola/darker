@@ -662,9 +662,12 @@ other reformatter/linter tools you use to known compatible versions, for example
        - id: darker
          args:
            - --isort
-           - --lint mypy
-           - --lint flake8
-           - --lint pylint
+           - --lint
+           - mypy
+           - --lint
+           - flake8
+           - --lint
+           - pylint
          additional_dependencies:
            - black==22.12.0
            - isort==5.11.4

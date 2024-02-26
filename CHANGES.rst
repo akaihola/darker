@@ -10,6 +10,7 @@ Added
 
 Fixed
 -----
+- Typo in README.
 
 
 1.7.2_ - 2023-07-12
