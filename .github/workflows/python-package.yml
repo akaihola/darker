@@ -86,7 +86,6 @@ jobs:
           - windows-latest
           - macos-latest
         python-version:
-          - '3.7'
           - '3.8'
           - '3.9'
           - '3.10'
@@ -96,7 +95,7 @@ jobs:
         post_install: ['']
         include:
           - os: ubuntu-latest
-            python-version: '3.7'
+            python-version: '3.8'
             constraints: '--constraint constraints-oldest.txt'
           - os: ubuntu-latest
             python-version: '3.11'
