@@ -216,6 +216,7 @@ def make_mock_gen_python_files_black_21_7b1_dev8():
     """
     calls = Mock()
 
+    # pylint: disable=unused-argument
     def gen_python_files(
         paths: Iterable[Path],
         root: Path,
@@ -243,6 +244,7 @@ def make_mock_gen_python_files_black_21_7b1_dev9():
     """
     calls = Mock()
 
+    # pylint: disable=unused-argument
     def gen_python_files(
         paths: Iterable[Path],
         root: Path,
@@ -277,6 +279,7 @@ def make_mock_gen_python_files_black_22_10_1_dev19():
     """
     calls = Mock()
 
+    # pylint: disable=unused-argument
     def gen_python_files(
         paths: Iterable[Path],
         root: Path,
