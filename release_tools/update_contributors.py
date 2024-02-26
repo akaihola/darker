@@ -168,7 +168,7 @@ CONTRIBUTION_LINKS = {
 
 
 class NotFoundError(Exception):
-    pass
+    """Raised when a GitHub API resource is not found"""
 
 
 class GitHubSession(CachedSession):
