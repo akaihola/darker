@@ -5,12 +5,25 @@ These features will be included in the next release:
 
 Added
 -----
+
+Fixed
+-----
+
+
+1.7.3_ - 2024-02-27
+===================
+
+Added
+-----
 - Limit Black to versions before 24.2 until the incompatibility is resolved.
 - Stop testing on Python 3.7. Note: dropping support to be done in a separate PR.
 
 Fixed
 -----
-- Typo in README.
+- Typos in README.
+- Usage of the Black ``gen_python_files(gitignore_dict=...)`` parameter.
+- ``show_capture`` option in Pytest configuration.
+- Ignore some linter messages by recent versions of linters used in CI builds.
 
 
 1.7.2_ - 2023-07-12
@@ -498,7 +511,8 @@ Added
 -----
 - Initial implementation
 
-.. _Unreleased: https://github.com/akaihola/darker/compare/1.7.2...HEAD
+.. _Unreleased: https://github.com/akaihola/darker/compare/1.7.3...HEAD
+.. _1.7.3: https://github.com/akaihola/darker/compare/1.7.2...1.7.3
 .. _1.7.2: https://github.com/akaihola/darker/compare/1.7.1...1.7.2
 .. _1.7.1: https://github.com/akaihola/darker/compare/1.7.0...1.7.1
 .. _1.7.0: https://github.com/akaihola/darker/compare/1.6.1...1.7.0
