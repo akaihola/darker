@@ -1,21 +1,14 @@
 """Helpers for invoking ``isort`` and acting on its output"""
 
 import logging
-import sys
 from pathlib import Path
-from typing import Any, Collection, List, Optional
+from typing import Any, Collection, List, Optional, TypedDict
 
 from darker.black_compat import find_project_root
 from darker.diff import diff_chunks
 from darker.exceptions import IncompatiblePackageError, MissingPackageError
 from darker.git import EditedLinenumsDiffer
 from darker.utils import DiffChunk, TextDocument, glob_any
-
-if sys.version_info >= (3, 8):
-    from typing import TypedDict
-else:
-    from typing_extensions import TypedDict
-
 
 try:
     import isort
@@ -33,6 +26,7 @@ try:
                 "An incompatible 'isort' package was found. Please install version"
                 " 5.0.0 or later."
             )
+
 except ImportError:
     # `isort` is an optional dependency. Prevent the `ImportError` if it's missing.
     isort = None  # type: ignore[assignment]
@@ -52,6 +46,7 @@ logger = logging.getLogger(__name__)
 
 class IsortArgs(TypedDict, total=False):
     """Types for command line arguments for ``isort``"""
+
     line_length: int
     settings_file: str
     settings_path: str

@@ -22,18 +22,12 @@ import re
 import sys
 from datetime import date
 from pathlib import Path
-from typing import Dict, List, Match, Optional, Tuple
+from typing import Dict, List, Match, Optional, Tuple, TypedDict
 from warnings import warn
 
 import click
 import requests
 from packaging.version import Version
-
-if sys.version_info >= (3, 8):
-    from typing import TypedDict
-else:
-    from typing_extensions import TypedDict
-
 
 VERSION_PY_PATH = "src/darker/version.py"
 

@@ -14,14 +14,13 @@ Usage::
 # pylint: disable=too-few-public-methods,abstract-method
 
 import re
-import sys
 import xml.etree.ElementTree as ET  # nosec
 from dataclasses import dataclass
 from functools import total_ordering
 from itertools import groupby
 from pathlib import Path
 from textwrap import dedent, indent
-from typing import Any, Dict, Iterable, List, MutableMapping, Optional, cast
+from typing import Any, Dict, Iterable, List, MutableMapping, Optional, TypedDict, cast
 
 import click
 import defusedxml.ElementTree
@@ -29,11 +28,6 @@ from airium import Airium
 from requests.models import Response
 from requests_cache.session import CachedSession
 from ruamel import yaml
-
-if sys.version_info >= (3, 8):
-    from typing import TypedDict
-else:
-    from typing_extensions import TypedDict
 
 
 @click.group()
