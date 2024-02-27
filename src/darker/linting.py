@@ -54,7 +54,7 @@ from darker.git import (
     shlex_join,
 )
 from darker.highlighting import colorize
-from darker.utils import WINDOWS, fix_py37_win_tempdir_permissions
+from darker.utils import WINDOWS
 
 logger = logging.getLogger(__name__)
 
@@ -534,7 +534,6 @@ def _get_messages_from_linters_for_baseline(
                 make_linter_env(root, rev1_commit),
                 normalize_whitespace,
             )
-            fix_py37_win_tempdir_permissions(tmpdir)
     return result
 
 

@@ -2,13 +2,12 @@
 
 import io
 import logging
-import os
 import sys
 import tokenize
 from datetime import datetime
 from itertools import chain
 from pathlib import Path
-from typing import Collection, Iterable, List, Tuple, Union
+from typing import Collection, Iterable, List, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -240,27 +239,3 @@ def glob_any(path: Path, patterns: Collection[str]) -> bool:
 
     """
     return any(path.glob(pattern) for pattern in patterns)
-
-
-def fix_py37_win_tempdir_permissions(dirpath: Union[str, Path]) -> None:
-    """Work around a `tempfile` clean-up issue on Windows with Python 3.7
-
-    Call this before exiting a ``with TemporaryDirectory():`` block or in teardown for
-    a Pytest fixture which creates a temporary directory.
-
-    See discussion in https://github.com/akaihola/darker/pull/393
-    Solution borrowed from https://github.com/python/cpython/pull/10320
-
-    :param dirpath: The root path of the temporary directory
-
-    """
-    if not WINDOWS or sys.version_info >= (3, 8):
-        return
-    for root, dirs, files in os.walk(dirpath):
-        for name in dirs + files:
-            path = os.path.join(root, name)
-            try:
-                os.chflags(path, 0)  # type: ignore[attr-defined]
-            except AttributeError:
-                pass
-            os.chmod(path, 0o700)
