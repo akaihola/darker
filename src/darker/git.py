@@ -29,7 +29,6 @@ from darker.diff import diff_and_get_opcodes, opcodes_to_edit_linenums
 from darker.multiline_strings import get_multiline_string_ranges
 from darker.utils import GIT_DATEFORMAT, TextDocument
 
-shlex_join = shlex.join
 
 logger = logging.getLogger(__name__)
 
@@ -324,7 +323,7 @@ def _git_check_output(
     encoding: Optional[str] = None,
 ) -> Union[str, bytes]:
     """Log command line, run Git, return stdout, exit with 123 on error"""
-    logger.debug("[%s]$ git %s", cwd, shlex_join(cmd))
+    logger.debug("[%s]$ git %s", cwd, shlex.join(cmd))
     try:
         return check_output(  # nosec
             ["git"] + cmd,

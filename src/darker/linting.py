@@ -51,7 +51,6 @@ from darker.git import (
     git_get_content_at_revision,
     git_get_root,
     git_rev_parse,
-    shlex_join,
 )
 from darker.highlighting import colorize
 from darker.utils import WINDOWS
@@ -300,7 +299,7 @@ def _check_linter_output(
     else:
         cmdline_parts = cmdline
     cmdline_and_paths = cmdline_parts + [str(path) for path in sorted(paths)]
-    logger.debug("[%s]$ %s", root, shlex_join(cmdline_and_paths))
+    logger.debug("[%s]$ %s", root, shlex.join(cmdline_and_paths))
     with Popen(  # nosec
         cmdline_and_paths,
         stdout=PIPE,
@@ -336,7 +335,7 @@ def run_linter(  # pylint: disable=too-many-locals
         cmdline_str = cmdline
     else:
         linter = cmdline[0]
-        cmdline_str = shlex_join(cmdline)
+        cmdline_str = shlex.join(cmdline)
     # 10. run a linter subprocess for files mentioned on the command line which may be
     #     modified or unmodified, to get current linting status in the working tree
     #     (steps 10.-12. are optional)
