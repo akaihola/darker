@@ -1,4 +1,5 @@
 """Helper functions for dealing with reformatting multi-line strings"""
+
 import sys
 from tokenize import STRING, tokenize
 from typing import Generator, Optional, Sequence, Tuple

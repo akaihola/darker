@@ -15,6 +15,7 @@ from darker.utils import fix_py37_win_tempdir_permissions
 
 class GitRepoFixture:
     """Fixture for managing temporary Git repositories"""
+
     def __init__(self, root: Path, env: Dict[str, str]):
         self.root = root
         self.env = env

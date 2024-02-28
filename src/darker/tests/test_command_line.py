@@ -456,9 +456,10 @@ def test_parse_command_line(
     (tmp_path / "my.cfg").touch()
     (tmp_path / "subdir_with_config").mkdir()
     (tmp_path / "subdir_with_config" / "pyproject.toml").touch()
-    with patch.dict(os.environ, environ, clear=True), raises_if_exception(
-        expect_value
-    ) as expect_exception:
+    with (
+        patch.dict(os.environ, environ, clear=True),
+        raises_if_exception(expect_value) as expect_exception,
+    ):
 
         args, effective_cfg, modified_cfg = parse_command_line(argv)
 
@@ -837,7 +838,7 @@ def test_options(git_repo, options, expect):
         {"a.py": "1\n", "b.py": "2\n", "my.cfg": ""}, commit="Initial commit"
     )
     paths["a.py"].write_bytes(b"one\n")
-    with patch('darker.__main__.format_edited_parts') as format_edited_parts:
+    with patch("darker.__main__.format_edited_parts") as format_edited_parts:
 
         retval = main(options)
 

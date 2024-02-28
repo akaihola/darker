@@ -237,9 +237,10 @@ def test_git_get_content_at_revision_obtain_file_content(
     revision, expect_git_calls, expect_textdocument_calls
 ):
     """``git_get_content_at_revision`` calls Git or reads files based on revision"""
-    with patch("darker.git.check_output") as check_output, patch(
-        "darker.git.TextDocument"
-    ) as text_document_class:
+    with (
+        patch("darker.git.check_output") as check_output,
+        patch("darker.git.TextDocument") as text_document_class,
+    ):
         # this dummy value acts both as a dummy Unix timestamp for the file as well as
         # the contents of the file:
         check_output.return_value = b"1627107028"
@@ -504,7 +505,9 @@ def encodings_repo(tmp_path_factory):
         lines=("# coding: iso-8859-1", "darker = 'plus foncé'"),
     ),
     dict(
-        commit="utf-8", encoding="utf-8", lines=("# coding: utf-8", "python = 'パイソン'")
+        commit="utf-8",
+        encoding="utf-8",
+        lines=("# coding: utf-8", "python = 'パイソン'"),
     ),
     dict(
         commit=":WORKTREE:",

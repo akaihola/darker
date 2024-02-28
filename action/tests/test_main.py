@@ -50,8 +50,10 @@ def patch_main(
 
     run_mock = Mock(wraps=run)
     exit_ = Mock(side_effect=SysExitCalled)
-    with patch("subprocess.run", run_mock), patch("sys.exit", exit_), patch.dict(
-        "os.environ", {"GITHUB_ACTION_PATH": str(tmp_path), **run_main_env}
+    with (
+        patch("subprocess.run", run_mock),
+        patch("sys.exit", exit_),
+        patch.dict("os.environ", {"GITHUB_ACTION_PATH": str(tmp_path), **run_main_env}),
     ):
 
         yield SimpleNamespace(
@@ -144,9 +146,12 @@ def test_installs_packages(tmp_path, main_patch, run_main_env, expect):
 )
 def test_wont_install_unknown_packages(tmp_path, linters):
     """Non-whitelisted linters raise an exception"""
-    with patch_main(tmp_path, {"INPUT_LINT": linters}) as main_patch, pytest.raises(
-        RuntimeError,
-        match=re.escape("'foo' is not supported as a linter by the GitHub Action"),
+    with (
+        patch_main(tmp_path, {"INPUT_LINT": linters}) as main_patch,
+        pytest.raises(
+            RuntimeError,
+            match=re.escape("'foo' is not supported as a linter by the GitHub Action"),
+        ),
     ):
 
         run_module("main")
@@ -227,8 +232,9 @@ def test_runs_darker(tmp_path, env, expect):
 
 def test_error_if_pip_fails(tmp_path, capsys):
     """Returns an error and the pip error code if pip fails"""
-    with patch_main(tmp_path, {}, pip_returncode=42) as main_patch, pytest.raises(
-        SysExitCalled
+    with (
+        patch_main(tmp_path, {}, pip_returncode=42) as main_patch,
+        pytest.raises(SysExitCalled),
     ):
 
         run_module("main")

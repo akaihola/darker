@@ -172,16 +172,18 @@ def test_require_rev2_worktree(rev2, expect):
     dict(
         cmdline='echo "two  spaces"',
         expect=["two  spaces first.py the  2nd.py\n"],
-        marks=[
-            pytest.mark.xfail(
-                reason=(
-                    "Quotes not removed on Windows."
-                    " See https://github.com/akaihola/darker/issues/456"
+        marks=(
+            [
+                pytest.mark.xfail(
+                    reason=(
+                        "Quotes not removed on Windows."
+                        " See https://github.com/akaihola/darker/issues/456"
+                    )
                 )
-            )
-        ]
-        if WINDOWS
-        else [],
+            ]
+            if WINDOWS
+            else []
+        ),
     ),
     dict(cmdline="echo eat  spaces", expect=["eat spaces first.py the  2nd.py\n"]),
 )

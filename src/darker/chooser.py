@@ -46,7 +46,7 @@ def _any_item_in_range(items: List[int], start: int, length: int) -> bool:
     """
     end = start + (length or 1) - 1
     has_edits = any(start <= n <= end for n in items)
-    line_range = f'line {start}' if end == start else f'lines {start}-{end}'
+    line_range = f"line {start}" if end == start else f"lines {start}-{end}"
     if has_edits:
         logger.debug("Found edits on %s", line_range)
     else:
@@ -69,13 +69,13 @@ def choose_lines(
             )
             chosen_lines = formatted_lines
         else:
-            choice = 'original'
+            choice = "original"
             chosen_lines = original_lines
         logger.debug(
-            'Using %s %s %s at line %s',
+            "Using %s %s %s at line %s",
             len(chosen_lines),
             choice,
-            'line' if len(chosen_lines) == 1 else 'lines',
+            "line" if len(chosen_lines) == 1 else "lines",
             original_lines_offset,
         )
         yield from chosen_lines

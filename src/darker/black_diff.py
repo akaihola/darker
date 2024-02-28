@@ -32,6 +32,7 @@ for how this result is further processed with:
   based on whether reformats touch user-edited lines
 
 """
+
 import inspect
 import logging
 import sys

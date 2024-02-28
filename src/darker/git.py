@@ -319,15 +319,13 @@ def _git_check_output_lines(
 @overload
 def _git_check_output(
     cmd: List[str], cwd: Path, *, exit_on_error: bool = ..., encoding: None = ...
-) -> bytes:
-    ...
+) -> bytes: ...
 
 
 @overload
 def _git_check_output(
     cmd: List[str], cwd: Path, *, exit_on_error: bool = ..., encoding: str
-) -> str:
-    ...
+) -> str: ...
 
 
 def _git_check_output(

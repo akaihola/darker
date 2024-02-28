@@ -34,9 +34,11 @@ def _replace_diff_timestamps(text, replacement="<timestamp>"):
 
 def test_isort_option_without_isort(git_repo, caplog):
     """Without isort, provide isort install instructions and error"""
-    with isort_present(False), patch.object(
-        darker.__main__, "isort", None
-    ), pytest.raises(MissingPackageError) as exc_info:
+    with (
+        isort_present(False),
+        patch.object(darker.__main__, "isort", None),
+        pytest.raises(MissingPackageError) as exc_info,
+    ):
 
         darker.__main__.main(["--isort", "."])
 

@@ -468,9 +468,10 @@ def test_run_black_configuration(
 ):
     """`run_black` passes correct configuration to Black"""
     src = TextDocument.from_str("import  os\n")
-    with patch.object(black_diff, "format_str") as format_str, raises_or_matches(
-        expect, []
-    ) as check:
+    with (
+        patch.object(black_diff, "format_str") as format_str,
+        raises_or_matches(expect, []) as check,
+    ):
         format_str.return_value = "import os\n"
 
         check(run_black(src, black_config))

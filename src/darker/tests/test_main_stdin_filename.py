@@ -157,11 +157,14 @@ def test_main_stdin_filename(
         arguments.insert(0, f"--stdin-filename={stdin_filename}")
     if revision is not None:
         arguments.insert(0, f"--revision={revision}")
-    with patch.object(
-        darker.__main__.sys,  # type: ignore[attr-defined]
-        "stdin",
-        Mock(buffer=BytesIO(b"modified  = 'stdin'")),
-    ), raises_if_exception(expect):
+    with (
+        patch.object(
+            darker.__main__.sys,  # type: ignore[attr-defined]
+            "stdin",
+            Mock(buffer=BytesIO(b"modified  = 'stdin'")),
+        ),
+        raises_if_exception(expect),
+    ):
         # end of test setup
 
         retval = darker.__main__.main(arguments)
