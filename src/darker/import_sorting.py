@@ -26,7 +26,6 @@ try:
                 "An incompatible 'isort' package was found. Please install version"
                 " 5.0.0 or later."
             )
-
 except ImportError:
     # `isort` is an optional dependency. Prevent the `ImportError` if it's missing.
     isort = None  # type: ignore[assignment]
@@ -46,7 +45,6 @@ logger = logging.getLogger(__name__)
 
 class IsortArgs(TypedDict, total=False):
     """Types for command line arguments for ``isort``"""
-
     line_length: int
     settings_file: str
     settings_path: str
