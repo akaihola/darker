@@ -10,6 +10,7 @@ from difflib import unified_diff
 from pathlib import Path
 from typing import Collection, Generator, List, Optional, Tuple
 
+import darker.black_compat
 from darker.black_diff import (
     BlackConfig,
     filter_python_files,
@@ -33,7 +34,6 @@ from darker.git import (
     get_path_in_repo,
     git_get_content_at_revision,
     git_get_modified_python_files,
-    git_get_repo_root,
     git_is_repository,
 )
 from darker.help import get_extra_instruction
@@ -574,7 +574,7 @@ def main(  # pylint: disable=too-many-locals,too-many-branches,too-many-statemen
         # In other modes, only reformat files which have been modified.
         if git_is_repository(root):
             # Get the modified files only.
-            repo_root = git_get_repo_root(root)
+            repo_root = darker.black_compat.find_project_root([str(root)])
             modified_files = git_get_modified_python_files(paths, revrange, repo_root)
             changed_files_to_reformat = {
                 (repo_root / file).relative_to(root) for file in modified_files
