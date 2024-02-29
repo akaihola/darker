@@ -576,9 +576,11 @@ def main(  # pylint: disable=too-many-locals,too-many-branches,too-many-statemen
             # Get the modified files only.
             repo_root = darker.black_compat.find_project_root([str(root)])
             modified_files = git_get_modified_python_files(paths, revrange, repo_root)
-            changed_files_to_reformat = {
+            changed_files = {
                 (repo_root / file).relative_to(root) for file in modified_files
             }
+            # Filter out changed files that are not supposed to be processed
+            changed_files_to_reformat = files_to_process.intersection(changed_files)
         else:
             changed_files_to_reformat = files_to_process
         black_exclude = {

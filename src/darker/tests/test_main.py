@@ -5,7 +5,9 @@
 # pylint: disable=use-dict-literal
 
 import logging
+import random
 import re
+import string
 from argparse import ArgumentError
 from io import BytesIO
 from pathlib import Path
@@ -26,6 +28,11 @@ from darker.tests.test_fstring import FLYNTED_SOURCE, MODIFIED_SOURCE, ORIGINAL_
 from darker.tests.test_highlighting import BLUE, CYAN, RESET, WHITE, YELLOW
 from darker.utils import TextDocument, joinlines
 from darker.verification import NotEquivalentError
+
+
+def randomword(length):
+    letters = string.ascii_lowercase
+    return "".join(random.choice(letters) for _i in range(length))
 
 
 def _replace_diff_timestamps(text, replacement="<timestamp>"):
@@ -932,3 +939,15 @@ def test_stdout_path_resolution(git_repo, capsys):
 
     assert result == 0
     assert capsys.readouterr().out == 'print("foo")\n'
+
+
+def test_large_file_count(git_repo):
+    # For PR #542 - large file count on windows breaks subprocess
+    # Need to exceed 32762 characters
+    files = {}
+    for i in range(0, 1100):
+        files[f"src/{randomword(30)}.py"] = randomword(10)
+
+    git_repo.add(files, commit="Add all the files")
+    result = darker.__main__.main(["--diff", "--check", "src"])
+    assert result == 0
