@@ -97,6 +97,16 @@ def git_is_repository(path: Path) -> bool:
         return False
 
 
+def git_get_repo_root(cwd: Path) -> Path:
+    """Return the root directory of the Git repository containing the given path
+
+    :param cwd: The path to start the search from
+    :return: The root directory of the Git repository, or ``None`` if not found
+
+    """
+    return Path(_git_check_output_lines(["rev-parse", "--show-toplevel"], cwd)[0])
+
+
 def git_get_mtime_at_commit(path: Path, revision: str, cwd: Path) -> str:
     """Return the committer date of the given file at the given revision
 
