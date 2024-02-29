@@ -8,6 +8,7 @@ import logging
 import random
 import re
 import string
+import sys
 from argparse import ArgumentError
 from io import BytesIO
 from pathlib import Path
@@ -941,12 +942,19 @@ def test_stdout_path_resolution(git_repo, capsys):
     assert capsys.readouterr().out == 'print("foo")\n'
 
 
+@pytest.mark.skipif(not sys.platform.startswith("win"), reason="Argument length limit on Windows")
 def test_large_file_count(git_repo):
-    # For PR #542 - large file count on windows breaks subprocess
+    # For PR #542 - large character count for changed files
+    # on windows breaks subprocess
     # Need to exceed 32762 characters
     files = {}
-    for i in range(0, 1100):
-        files[f"src/{randomword(30)}.py"] = randomword(10)
+
+    for _d in range(0, 210):
+        path = "src"
+        for _f in range(0, 4):
+            # Of course windows limits the path length too
+            path = f"{path}/{randomword(30)}"
+        files[f"{path}/{randomword(30)}.py"] = randomword(10)
 
     git_repo.add(files, commit="Add all the files")
     result = darker.__main__.main(["--diff", "--check", "src"])
