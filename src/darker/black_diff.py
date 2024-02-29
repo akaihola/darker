@@ -34,9 +34,8 @@ for how this result is further processed with:
 """
 import inspect
 import logging
-import sys
 from pathlib import Path
-from typing import Collection, Optional, Pattern, Set, Tuple, Union
+from typing import Collection, Optional, Pattern, Set, Tuple, TypedDict, Union
 
 # `FileMode as Mode` required to satisfy mypy==0.782. Strange.
 from black import FileMode as Mode
@@ -56,11 +55,6 @@ from black.report import Report
 
 from darker.config import ConfigurationError
 from darker.utils import TextDocument
-
-if sys.version_info >= (3, 8):
-    from typing import TypedDict
-else:
-    from typing_extensions import TypedDict
 
 __all__ = ["BlackConfig", "Mode", "run_black"]
 

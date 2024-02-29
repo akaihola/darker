@@ -2,20 +2,14 @@
 
 import logging
 import os
-import sys
 from argparse import ArgumentParser, Namespace
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, Iterable, List, Optional, Set, Union, cast
+from typing import Dict, Iterable, List, Optional, Set, TypedDict, Union, cast
 
 import toml
 
 from darker.black_compat import find_project_root
-
-if sys.version_info >= (3, 8):
-    from typing import TypedDict
-else:
-    from typing_extensions import TypedDict
 
 
 class TomlArrayLinesEncoder(toml.TomlEncoder):  # type: ignore
