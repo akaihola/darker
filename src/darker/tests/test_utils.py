@@ -56,12 +56,19 @@ def textdocument(request, textdocument_factory):
     dict(string="", expect="\n"),
     dict(string="\n", expect="\n"),
     dict(string="\r\n", expect="\r\n"),
+    dict(string="\r", expect="\r"),
     dict(string="one line\n", expect="\n"),
     dict(string="one line\r\n", expect="\r\n"),
+    dict(string="one line\r", expect="\r"),
     dict(string="first line\nsecond line\n", expect="\n"),
     dict(string="first line\r\nsecond line\r\n", expect="\r\n"),
+    dict(string="first line\rsecond line\r", expect="\r"),
     dict(string="first unix\nthen windows\r\n", expect="\n"),
     dict(string="first windows\r\nthen unix\n", expect="\r\n"),
+    dict(string="first unix\nthen macos\r", expect="\n"),
+    dict(string="first macos\rthen unix\n", expect="\r"),
+    dict(string="first macos\rthen windows\r\n", expect="\r"),
+    dict(string="first windows\r\nthen macos\r", expect="\r\n"),
 )
 def test_detect_newline(string, expect):
     """``detect_newline()`` gives correct results"""
@@ -157,13 +164,14 @@ def test_textdocument_set_encoding(textdocument, expect):
     dict(
         doc=TextDocument(lines=["zéro", "un"], newline="\r\n"), expect="zéro\r\nun\r\n"
     ),
+    dict(doc=TextDocument(lines=["zéro", "un"], newline="\r"), expect="zéro\run\r"),
 )
 def test_textdocument_string(doc, expect):
     """TextDocument.string respects the newline setting"""
     assert doc.string == expect
 
 
-@pytest.mark.parametrize("newline", ["\n", "\r\n"])
+@pytest.mark.parametrize("newline", ["\n", "\r\n", "\r"])
 @pytest.mark.kwparametrize(
     dict(textdocument=TextDocument(), expect=""),
     dict(textdocument=TextDocument(lines=["zéro", "un"])),
@@ -172,6 +180,7 @@ def test_textdocument_string(doc, expect):
     dict(textdocument=TextDocument(string="zéro\nun\n", newline="\n")),
     dict(textdocument=TextDocument(lines=["zéro", "un"], newline="\r\n")),
     dict(textdocument=TextDocument(string="zéro\r\nun\r\n", newline="\r\n")),
+    dict(textdocument=TextDocument(string="zéro\run\r", newline="\r")),
     expect="zéro{newline}un{newline}",
 )
 def test_textdocument_string_with_newline(textdocument, newline, expect):
@@ -187,6 +196,8 @@ def test_textdocument_string_with_newline(textdocument, newline, expect):
     dict(encoding="iso-8859-1", newline="\n", expect=b"z\xe9ro\nun\n"),
     dict(encoding="utf-8", newline="\r\n", expect=b"z\xc3\xa9ro\r\nun\r\n"),
     dict(encoding="iso-8859-1", newline="\r\n", expect=b"z\xe9ro\r\nun\r\n"),
+    dict(encoding="utf-8", newline="\r", expect=b"z\xc3\xa9ro\run\r"),
+    dict(encoding="iso-8859-1", newline="\r", expect=b"z\xe9ro\run\r"),
 )
 def test_textdocument_encoded_string(encoding, newline, expect):
     """TextDocument.encoded_string uses correct encoding and newline"""
@@ -204,6 +215,7 @@ def test_textdocument_encoded_string(encoding, newline, expect):
     dict(
         doc=TextDocument(string="zéro\r\nun\r\n", newline="\r\n"), expect=("zéro", "un")
     ),
+    dict(doc=TextDocument(string="zéro\run\r", newline="\r"), expect=("zéro", "un")),
 )
 def test_textdocument_lines(doc, expect):
     """TextDocument.lines is correct after parsing a string with different newlines"""
@@ -247,6 +259,13 @@ def test_textdocument_lines(doc, expect):
         expect_mtime="",
     ),
     dict(
+        textdocument=TextDocument.from_str("a\rb\r"),
+        expect_lines=("a", "b"),
+        expect_encoding="utf-8",
+        expect_newline="\r",
+        expect_mtime="",
+    ),
+    dict(
         textdocument=TextDocument.from_str("", mtime="my mtime"),
         expect_lines=(),
         expect_encoding="utf-8",
@@ -278,6 +297,7 @@ def test_textdocument_detect_encoding(textdocument, expect):
 @pytest.mark.kwparametrize(
     dict(textdocument=b'print("unix")\n', expect="\n"),
     dict(textdocument=b'print("windows")\r\n', expect="\r\n"),
+    dict(textdocument=b'print("macos")\r', expect="\r"),
     indirect=["textdocument"],
 )
 def test_textdocument_detect_newline(textdocument, expect):
@@ -298,6 +318,11 @@ def test_textdocument_detect_newline(textdocument, expect):
     ),
     dict(
         doc1=TextDocument(lines=["line1", "line2"], encoding="utf-16", newline="\r\n"),
+        doc2=TextDocument(lines=["line1", "line2"]),
+        expect=True,
+    ),
+    dict(
+        doc1=TextDocument(lines=["line1", "line2"], encoding="utf-16", newline="\r"),
         doc2=TextDocument(lines=["line1", "line2"]),
         expect=True,
     ),
@@ -328,6 +353,16 @@ def test_textdocument_detect_newline(textdocument, expect):
     dict(
         doc1=TextDocument("line1\r\nline2\r\n"),
         doc2=TextDocument("line1\nline2\n"),
+        expect=True,
+    ),
+    dict(
+        doc1=TextDocument("line1\rline2\r"),
+        doc2=TextDocument("line1\nline2\n"),
+        expect=True,
+    ),
+    dict(
+        doc1=TextDocument("line1\r\nline2\r\n"),
+        doc2=TextDocument("line1\rline2\r"),
         expect=True,
     ),
     dict(doc1=TextDocument("foo"), doc2="line1\nline2\n", expect=NotImplemented),

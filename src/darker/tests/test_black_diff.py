@@ -330,7 +330,7 @@ def test_filter_python_files_gitignore(make_mock, tmp_path, expect):
 
 
 @pytest.mark.parametrize("encoding", ["utf-8", "iso-8859-1"])
-@pytest.mark.parametrize("newline", ["\n", "\r\n"])
+@pytest.mark.parametrize("newline", ["\n", "\r\n", "\r"])
 def test_run_black(encoding, newline):
     """Running Black through its Python internal API gives correct results"""
     src = TextDocument.from_lines(
@@ -349,7 +349,7 @@ def test_run_black(encoding, newline):
     assert result.newline == newline
 
 
-@pytest.mark.parametrize("newline", ["\n", "\r\n"])
+@pytest.mark.parametrize("newline", ["\n", "\r\n", "\r"])
 def test_run_black_always_uses_unix_newlines(newline):
     """Content is always passed to Black with Unix newlines"""
     src = TextDocument.from_str(f"print ( 'touché' ){newline}")
@@ -385,11 +385,13 @@ def test_run_black_ignores_excludes():
         ("", ""),
         ("\n", "\n"),
         ("\r\n", "\r\n"),
+        ("\r", "\r"),
         (" ", ""),
         ("\t", ""),
         (" \t", ""),
         (" \t\n", "\n"),
         (" \t\r\n", "\r\n"),
+        (" \t\r", "\r"),
     ],
 )
 def test_run_black_all_whitespace_input(src_content, expect):

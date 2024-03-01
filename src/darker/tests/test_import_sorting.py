@@ -31,7 +31,7 @@ def test_import_sorting_importable_with_and_without_isort(present):
 
 
 @pytest.mark.parametrize("encoding", ["utf-8", "iso-8859-1"])
-@pytest.mark.parametrize("newline", ["\n", "\r\n"])
+@pytest.mark.parametrize("newline", ["\n", "\r\n", "\r"])
 @pytest.mark.kwparametrize(
     dict(content=ORIGINAL_SOURCE, expect=ORIGINAL_SOURCE),
     dict(content=("import sys", "import os"), expect=("import sys", "import os")),

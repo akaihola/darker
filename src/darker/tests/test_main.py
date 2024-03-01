@@ -182,7 +182,9 @@ A_PY_DIFF_BLACK_FLYNT = [
     isort_exclude={"**/*"},
     flynt_exclude={"**/*"},
 )
-@pytest.mark.parametrize("newline", ["\n", "\r\n"], ids=["unix", "windows"])
+@pytest.mark.parametrize(
+    "newline", ["\n", "\r\n", "\r"], ids=["unix", "windows", "macos"]
+)
 def test_format_edited_parts(
     git_repo, black_config, black_exclude, isort_exclude, flynt_exclude, newline, expect
 ):
@@ -545,7 +547,9 @@ def test_format_edited_parts_historical(git_repo, rev1, rev2, expect):
     expect_retval=0,
     root_as_cwd=True,
 )
-@pytest.mark.parametrize("newline", ["\n", "\r\n"], ids=["unix", "windows"])
+@pytest.mark.parametrize(
+    "newline", ["\n", "\r\n", "\r"], ids=["unix", "windows", "macos"]
+)
 def test_main(
     git_repo,
     monkeypatch,
@@ -652,7 +656,7 @@ def test_main_in_plain_directory(tmp_path, capsys):
 @pytest.mark.parametrize(
     "encoding, text", [(b"utf-8", b"touch\xc3\xa9"), (b"iso-8859-1", b"touch\xe9")]
 )
-@pytest.mark.parametrize("newline", [b"\n", b"\r\n"])
+@pytest.mark.parametrize("newline", [b"\n", b"\r\n", "\r"])
 def test_main_encoding(
     git_repo, find_project_root_cache_clear, encoding, text, newline
 ):
@@ -874,6 +878,10 @@ def test_maybe_flynt_single_file(git_repo, encoding, newline, exclude, expect):
     dict(
         new_content=TextDocument(lines=["touché"], newline="\r\n"),
         expect=b"touch\xc3\xa9\r\n",
+    ),
+    dict(
+        new_content=TextDocument(lines=["touché"], newline="\r"),
+        expect=b"touch\xc3\xa9\r",
     ),
     dict(
         new_content=TextDocument(lines=["touché"], encoding="iso-8859-1"),
