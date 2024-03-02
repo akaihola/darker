@@ -948,13 +948,13 @@ def test_large_file_count(git_repo):
     # on windows breaks subprocess
     # Need to exceed 32762 characters
     files = {}
+    path = "src"
+    for _f in range(0, 4):
+        # Of course windows limits the path length too
+        path = f"{path}/{randomword(30)}"
 
     for _d in range(0, 210):
-        path = "src"
-        for _f in range(0, 4):
-            # Of course windows limits the path length too
-            path = f"{path}/{randomword(30)}"
-        files[f"{path}/{randomword(30)}.py"] = randomword(10)
+       files[f"{path}/{randomword(30)}.py"] = randomword(10)
 
     git_repo.add(files, commit="Add all the files")
     result = darker.__main__.main(["--diff", "--check", "src"])
