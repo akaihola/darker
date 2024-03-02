@@ -27,7 +27,7 @@ from darker.tests.test_fstring import FLYNTED_SOURCE, MODIFIED_SOURCE, ORIGINAL_
 from darker.utils import joinlines
 from darker.verification import NotEquivalentError
 from darkgraylib.git import RevisionRange
-from darkgraylib.tests.test_highlighting import BLUE, CYAN, RESET, WHITE, YELLOW
+from darkgraylib.testtools.highlighting_helpers import BLUE, CYAN, RESET, WHITE, YELLOW
 from darkgraylib.utils import TextDocument
 
 

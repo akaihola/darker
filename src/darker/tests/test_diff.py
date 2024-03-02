@@ -10,7 +10,7 @@ from darker.diff import (
     opcodes_to_chunks,
     opcodes_to_edit_linenums,
 )
-from darkgraylib.tests.test_diff import (
+from darkgraylib.testtools.diff_helpers import (
     EXPECT_OPCODES,
     FUNCTIONS2_PY,
     FUNCTIONS2_PY_REFORMATTED,
