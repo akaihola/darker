@@ -1,35 +1,22 @@
 """Helpers for listing modified files and getting unmodified content from Git"""
 
 import logging
-import os
-import re
-import shlex
-import sys
-from contextlib import contextmanager
 from dataclasses import dataclass
-from datetime import datetime
 from functools import lru_cache
 from pathlib import Path
-from subprocess import DEVNULL, PIPE, CalledProcessError, check_output, run  # nosec
-from typing import (
-    Dict,
-    Iterable,
-    Iterator,
-    List,
-    Match,
-    Optional,
-    Set,
-    Tuple,
-    Union,
-    cast,
-    overload,
-)
+from subprocess import DEVNULL, CalledProcessError, run  # nosec
+from typing import Iterable, List, Set
 
 from darker.diff import opcodes_to_edit_linenums
 from darker.multiline_strings import get_multiline_string_ranges
-from darker.utils import GIT_DATEFORMAT
 from darkgraylib.diff import diff_and_get_opcodes
-from darkgraylib.git import RevisionRange
+from darkgraylib.git import (
+    WORKTREE,
+    RevisionRange,
+    git_check_output_lines,
+    git_get_content_at_revision,
+    make_git_env,
+)
 from darkgraylib.utils import TextDocument
 
 logger = logging.getLogger(__name__)
@@ -39,55 +26,18 @@ logger = logging.getLogger(__name__)
 # Handles these cases:
 # <rev>..   <rev>..<rev>   ..<rev>
 # <rev>...  <rev>...<rev>  ...<rev>
-COMMIT_RANGE_RE = re.compile(r"(.*?)(\.{2,3})(.*)$")
 
 
 # A colon is an invalid character in tag/branch names. Use that in the special value for
 # - denoting the working tree as one of the "revisions" in revision ranges
 # - referring to the `PRE_COMMIT_FROM_REF` and `PRE_COMMIT_TO_REF` environment variables
 #   for determining the revision range
-WORKTREE = ":WORKTREE:"
-STDIN = ":STDIN:"
-PRE_COMMIT_FROM_TO_REFS = ":PRE-COMMIT:"
-
-
-def git_get_version() -> Tuple[int, ...]:
-    """Return the Git version as a tuple of integers
-
-    Ignores any suffixes to the dot-separated parts of the version string.
-
-    :return: The version number of Git installed on the system
-    :raise: ``RuntimeError`` if unable to parse the Git version
-
-    """
-    output_lines = _git_check_output_lines(["--version"], Path("."))
-    version_string = output_lines[0].rsplit(None, 1)[-1]
-    # The version string might be e.g.
-    # - "2.39.0.windows.1"
-    # - "2.36.2"
-    part_matches = [re.match(r"\d+", part) for part in version_string.split(".")][:3]
-    if all(part_matches):
-        return tuple(
-            int(match.group(0)) for match in cast(List[Match[str]], part_matches)
-        )
-    raise RuntimeError(f"Unable to parse Git version: {output_lines!r}")
-
-
-def git_rev_parse(revision: str, cwd: Path) -> str:
-    """Return the commit hash for the given revision
-
-    :param revision: The revision to get the commit hash for
-    :param cwd: The root of the Git repository
-    :return: The commit hash for ``revision`` as parsed from Git output
-
-    """
-    return _git_check_output_lines(["rev-parse", revision], cwd)[0]
 
 
 def git_is_repository(path: Path) -> bool:
     """Return ``True`` if ``path`` is inside a Git working tree"""
     try:
-        lines = _git_check_output_lines(
+        lines = git_check_output_lines(
             ["rev-parse", "--is-inside-work-tree"], path, exit_on_error=False
         )
         return lines[:1] == ["true"]
@@ -97,52 +47,6 @@ def git_is_repository(path: Path) -> bool:
         ):
             raise
         return False
-
-
-def git_get_mtime_at_commit(path: Path, revision: str, cwd: Path) -> str:
-    """Return the committer date of the given file at the given revision
-
-    :param path: The relative path of the file in the Git repository
-    :param revision: The Git revision for which to get the file modification time
-    :param cwd: The root of the Git repository
-
-    """
-    cmd = ["log", "-1", "--format=%ct", revision, "--", path.as_posix()]
-    lines = _git_check_output_lines(cmd, cwd)
-    return datetime.utcfromtimestamp(int(lines[0])).strftime(GIT_DATEFORMAT)
-
-
-def git_get_content_at_revision(path: Path, revision: str, cwd: Path) -> TextDocument:
-    """Get unmodified text lines of a file at a Git revision
-
-    :param path: The relative path of the file in the Git repository
-    :param revision: The Git revision for which to get the file content, or ``WORKTREE``
-                     to get what's on disk right now.
-    :param cwd: The root of the Git repository
-
-    """
-    if path.is_absolute():
-        raise ValueError(
-            f"the 'path' parameter must receive a relative path, got {path!r} instead"
-        )
-
-    if revision == WORKTREE:
-        abspath = cwd / path
-        return TextDocument.from_file(abspath)
-    cmd = ["show", f"{revision}:./{path.as_posix()}"]
-    try:
-        return TextDocument.from_bytes(
-            _git_check_output(cmd, cwd, exit_on_error=False),
-            mtime=git_get_mtime_at_commit(path, revision, cwd),
-        )
-    except CalledProcessError as exc_info:
-        if exc_info.returncode != 128:
-            for error_line in exc_info.stderr.splitlines():
-                logger.error(error_line)
-            raise
-        # The file didn't exist at the given revision. Act as if it was an empty
-        # file, so all current lines appear as edited.
-        return TextDocument()
 
 
 def get_path_in_repo(path: Path) -> Path:
@@ -172,79 +76,6 @@ def should_reformat_file(path: Path) -> bool:
     return path.exists() and get_path_in_repo(path).suffix == ".py"
 
 
-@lru_cache(maxsize=1)
-def _make_git_env() -> Dict[str, str]:
-    """Create custom minimal environment variables to use when invoking Git
-
-    This makes sure that
-    - Git always runs in English
-    - ``$PATH`` is preserved (essential on NixOS)
-    - the environment is otherwise cleared
-
-    """
-    return {"LC_ALL": "C", "PATH": os.environ["PATH"]}
-
-
-def _git_check_output_lines(
-    cmd: List[str], cwd: Path, exit_on_error: bool = True
-) -> List[str]:
-    """Log command line, run Git, split stdout to lines, exit with 123 on error"""
-    return _git_check_output(
-        cmd,
-        cwd,
-        exit_on_error=exit_on_error,
-        encoding="utf-8",
-    ).splitlines()
-
-
-@overload
-def _git_check_output(
-    cmd: List[str], cwd: Path, *, exit_on_error: bool = ..., encoding: None = ...
-) -> bytes:
-    ...
-
-
-@overload
-def _git_check_output(
-    cmd: List[str], cwd: Path, *, exit_on_error: bool = ..., encoding: str
-) -> str:
-    ...
-
-
-def _git_check_output(
-    cmd: List[str],
-    cwd: Path,
-    *,
-    exit_on_error: bool = True,
-    encoding: Optional[str] = None,
-) -> Union[str, bytes]:
-    """Log command line, run Git, return stdout, exit with 123 on error"""
-    logger.debug("[%s]$ git %s", cwd, shlex.join(cmd))
-    try:
-        return check_output(  # nosec
-            ["git"] + cmd,
-            cwd=str(cwd),
-            encoding=encoding,
-            stderr=PIPE,
-            env=_make_git_env(),
-        )
-    except CalledProcessError as exc_info:
-        if not exit_on_error:
-            raise
-        if exc_info.returncode != 128:
-            if encoding:
-                sys.stderr.write(exc_info.stderr)
-            else:
-                sys.stderr.buffer.write(exc_info.stderr)
-            raise
-
-        # Bad revision or another Git failure. Follow Black's example and return the
-        # error status 123.
-        for error_line in exc_info.stderr.splitlines():
-            logger.error(error_line)
-        sys.exit(123)
-
-
 def _git_exists_in_revision(path: Path, rev2: str, cwd: Path) -> bool:
     """Return ``True`` if the given path exists in the given Git revision
 
@@ -266,7 +97,7 @@ def _git_exists_in_revision(path: Path, rev2: str, cwd: Path) -> bool:
         cwd=str(cwd),
         check=False,
         stderr=DEVNULL,
-        env=_make_git_env(),
+        env=make_git_env(),
     )
     return result.returncode == 0
 
@@ -312,7 +143,7 @@ def _git_diff_name_only(
     ]
     if rev2 != WORKTREE:
         diff_cmd.insert(diff_cmd.index("--"), rev2)
-    lines = _git_check_output_lines(diff_cmd, cwd)
+    lines = git_check_output_lines(diff_cmd, cwd)
     return {Path(line) for line in lines}
 
 
@@ -334,7 +165,7 @@ def _git_ls_files_others(relative_paths: Iterable[Path], cwd: Path) -> Set[Path]
         "--",
         *{path.as_posix() for path in relative_paths},
     ]
-    lines = _git_check_output_lines(ls_files_cmd, cwd)
+    lines = git_check_output_lines(ls_files_cmd, cwd)
     return {Path(line) for line in lines}
 
 
@@ -356,67 +187,6 @@ def git_get_modified_python_files(
     if revrange.rev2 == WORKTREE:
         changed_paths.update(_git_ls_files_others(paths, cwd))
     return {path for path in changed_paths if should_reformat_file(cwd / path)}
-
-
-@contextmanager
-def git_clone_local(
-    source_repository: Path, revision: str, destination: Path
-) -> Iterator[Path]:
-    """Clone a local repository and check out the given revision
-
-    :param source_repository: Path to the root of the local repository checkout
-    :param revision: The revision to check out, or ``HEAD``
-    :param destination: Directory to create for the clone
-    :return: A context manager which yields the path to the clone
-
-    """
-    opts = [
-        # By default, `add` refuses to create a new worktree when `<commit-ish>` is
-        # a branch name and is already checked out by another worktree, or if
-        # `<path>` is already assigned to some worktree but is missing (for
-        # instance, if `<path>` was deleted manually). This option overrides these
-        # safeguards. To add a missing but locked worktree path, specify `--force`
-        # twice.
-        # `remove` refuses to remove an unclean worktree unless `--force` is used.
-        # To remove a locked worktree, specify `--force` twice.
-        # https://git-scm.com/docs/git-worktree#_options
-        "--force",
-        "--force",
-        str(destination),
-    ]
-    _ = _git_check_output(
-        ["worktree", "add", "--quiet", *opts, revision], cwd=source_repository
-    )
-    yield destination
-    _ = _git_check_output(["worktree", "remove", *opts], cwd=source_repository)
-
-
-def git_get_root(path: Path) -> Optional[Path]:
-    """Get the root directory of a local Git repository clone based on a path inside it
-
-    :param path: A file or directory path inside the Git repository clone
-    :return: The root of the clone, or ``None`` if none could be found
-    :raises CalledProcessError: if Git exits with an unexpected error
-
-    """
-    try:
-        return Path(
-            _git_check_output(
-                ["rev-parse", "--show-toplevel"],
-                cwd=path if path.is_dir() else path.parent,
-                encoding="utf-8",
-                exit_on_error=False,
-            ).rstrip()
-        )
-    except CalledProcessError as exc_info:
-        if exc_info.returncode == 128 and exc_info.stderr.splitlines()[0].startswith(
-            "fatal: not a git repository (or any "
-        ):
-            # The error string differs a bit in different Git versions, but up to the
-            # point above it's identical in recent versions.
-            return None
-        sys.stderr.write(exc_info.stderr)
-        raise
 
 
 def _revision_vs_lines(

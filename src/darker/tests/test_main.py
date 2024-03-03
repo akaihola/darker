@@ -21,12 +21,12 @@ import darker.__main__
 import darker.import_sorting
 from darker.config import Exclusions
 from darker.exceptions import MissingPackageError
-from darker.git import WORKTREE, EditedLinenumsDiffer
+from darker.git import EditedLinenumsDiffer
 from darker.tests.helpers import isort_present
 from darker.tests.test_fstring import FLYNTED_SOURCE, MODIFIED_SOURCE, ORIGINAL_SOURCE
 from darker.utils import joinlines
 from darker.verification import NotEquivalentError
-from darkgraylib.git import RevisionRange
+from darkgraylib.git import WORKTREE, RevisionRange
 from darkgraylib.testtools.highlighting_helpers import BLUE, CYAN, RESET, WHITE, YELLOW
 from darkgraylib.utils import TextDocument
 

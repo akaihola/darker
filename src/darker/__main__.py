@@ -24,13 +24,9 @@ from darker.diff import diff_chunks
 from darker.exceptions import DependencyError, MissingPackageError
 from darker.fstring import apply_flynt, flynt
 from darker.git import (
-    PRE_COMMIT_FROM_TO_REFS,
-    STDIN,
-    WORKTREE,
     EditedLinenumsDiffer,
     get_missing_at_revision,
     get_path_in_repo,
-    git_get_content_at_revision,
     git_get_modified_python_files,
     git_is_repository,
 )
@@ -40,7 +36,13 @@ from darker.utils import GIT_DATEFORMAT, DiffChunk, debug_dump, glob_any
 from darker.verification import ASTVerifier, BinarySearch, NotEquivalentError
 from darkgraylib.black_compat import find_project_root
 from darkgraylib.config import show_config_if_debug
-from darkgraylib.git import RevisionRange
+from darkgraylib.git import (
+    PRE_COMMIT_FROM_TO_REFS,
+    STDIN,
+    WORKTREE,
+    RevisionRange,
+    git_get_content_at_revision,
+)
 from darkgraylib.highlighting import colorize, should_use_color
 from darkgraylib.log import setup_logging
 from darkgraylib.main import resolve_paths
