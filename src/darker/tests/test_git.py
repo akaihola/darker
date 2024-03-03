@@ -15,10 +15,10 @@ from unittest.mock import ANY, Mock, call, patch
 import pytest
 
 from darker import git
-from darker.tests.helpers import raises_or_matches
 from darker.utils import GIT_DATEFORMAT
 from darkgraylib.git import RevisionRange
 from darkgraylib.testtools.git_repo_plugin import GitRepoFixture
+from darkgraylib.testtools.helpers import raises_or_matches
 from darkgraylib.utils import TextDocument
 
 
