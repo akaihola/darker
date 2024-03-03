@@ -8,8 +8,8 @@ from pathlib import Path
 import pytest
 
 from darker.config import OutputMode
-from darker.tests.helpers import raises_if_exception
 from darkgraylib.config import ConfigurationError
+from darkgraylib.testtools.helpers import raises_if_exception
 
 
 @pytest.mark.kwparametrize(
