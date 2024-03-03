@@ -32,7 +32,7 @@ Example::
 import logging
 from typing import Generator, Iterable, List
 
-from darker.utils import DiffChunk
+from darkgraylib.utils import DiffChunk
 
 logger = logging.getLogger(__name__)
 

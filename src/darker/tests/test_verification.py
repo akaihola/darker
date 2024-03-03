@@ -6,14 +6,13 @@ from typing import List
 
 import pytest
 
-from darker.utils import DiffChunk
 from darker.verification import (
     ASTVerifier,
     BinarySearch,
     NotEquivalentError,
     verify_ast_unchanged,
 )
-from darkgraylib.utils import TextDocument
+from darkgraylib.utils import DiffChunk, TextDocument
 
 
 @pytest.mark.kwparametrize(

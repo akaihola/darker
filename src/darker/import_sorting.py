@@ -7,9 +7,9 @@ from typing import Any, Collection, List, Optional, TypedDict
 from darker.diff import diff_chunks
 from darker.exceptions import IncompatiblePackageError, MissingPackageError
 from darker.git import EditedLinenumsDiffer
-from darker.utils import DiffChunk, glob_any
+from darker.utils import glob_any
 from darkgraylib.black_compat import find_project_root
-from darkgraylib.utils import TextDocument
+from darkgraylib.utils import DiffChunk, TextDocument
 
 try:
     import isort

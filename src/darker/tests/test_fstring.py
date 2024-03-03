@@ -10,9 +10,8 @@ import pytest
 import darker.fstring
 from darker.git import EditedLinenumsDiffer
 from darker.tests.helpers import flynt_present
-from darker.utils import joinlines
 from darkgraylib.git import RevisionRange
-from darkgraylib.utils import TextDocument
+from darkgraylib.utils import TextDocument, joinlines
 
 ORIGINAL_SOURCE = ("'{}'.format(x)", "#", "'{0}'.format(42)")
 MODIFIED_SOURCE = ("'{}'.format( x)", "#", "'{0}'.format( 42)")

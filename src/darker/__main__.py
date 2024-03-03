@@ -32,7 +32,7 @@ from darker.git import (
 )
 from darker.help import get_extra_instruction
 from darker.import_sorting import apply_isort, isort
-from darker.utils import GIT_DATEFORMAT, DiffChunk, debug_dump, glob_any
+from darker.utils import debug_dump, glob_any
 from darker.verification import ASTVerifier, BinarySearch, NotEquivalentError
 from darkgraylib.black_compat import find_project_root
 from darkgraylib.config import show_config_if_debug
@@ -46,7 +46,7 @@ from darkgraylib.git import (
 from darkgraylib.highlighting import colorize, should_use_color
 from darkgraylib.log import setup_logging
 from darkgraylib.main import resolve_paths
-from darkgraylib.utils import TextDocument
+from darkgraylib.utils import GIT_DATEFORMAT, DiffChunk, TextDocument
 from graylint.linting import run_linters
 
 logger = logging.getLogger(__name__)

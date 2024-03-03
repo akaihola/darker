@@ -19,11 +19,10 @@ from darker.__main__ import main
 from darker.command_line import make_argument_parser, parse_command_line
 from darker.config import Exclusions
 from darker.tests.helpers import flynt_present, isort_present
-from darker.utils import joinlines
 from darkgraylib.config import ConfigurationError
 from darkgraylib.git import RevisionRange
 from darkgraylib.testtools.helpers import raises_if_exception
-from darkgraylib.utils import TextDocument
+from darkgraylib.utils import TextDocument, joinlines
 
 pytestmark = pytest.mark.usefixtures("find_project_root_cache_clear")
 
