@@ -4,11 +4,11 @@ import logging
 from pathlib import Path
 from typing import Any, Collection, List, Optional, TypedDict
 
-from darker.black_compat import find_project_root
 from darker.diff import diff_chunks
 from darker.exceptions import IncompatiblePackageError, MissingPackageError
 from darker.git import EditedLinenumsDiffer
 from darker.utils import DiffChunk, glob_any
+from darkgraylib.black_compat import find_project_root
 from darkgraylib.utils import TextDocument
 
 try:
