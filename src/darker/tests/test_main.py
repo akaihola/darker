@@ -942,10 +942,7 @@ def test_stdout_path_resolution(git_repo, capsys):
     assert capsys.readouterr().out == 'print("foo")\n'
 
 
-@pytest.mark.skipif(
-    not sys.platform.startswith("win"), reason="Argument length limit on Windows"
-)
-def test_large_file_count(git_repo):
+def test_long_command_length(git_repo):
     # For PR #542 - large character count for changed files
     # on windows breaks subprocess
     # Need to exceed 32762 characters
