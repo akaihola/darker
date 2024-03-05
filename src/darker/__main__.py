@@ -10,6 +10,7 @@ from difflib import unified_diff
 from pathlib import Path
 from typing import Collection, Generator, List, Optional, Tuple
 
+import darker.black_compat
 from darker.black_diff import (
     BlackConfig,
     filter_python_files,
@@ -572,9 +573,15 @@ def main(  # pylint: disable=too-many-locals,too-many-branches,too-many-statemen
     else:
         # In other modes, only reformat files which have been modified.
         if git_is_repository(root):
-            changed_files_to_reformat = git_get_modified_python_files(
-                files_to_process, revrange, root
-            )
+            # Get the modified files only.
+            repo_root = darker.black_compat.find_project_root([str(root)])
+            changed_files = {
+                (repo_root / file).relative_to(root)
+                for file in git_get_modified_python_files(paths, revrange, repo_root)
+            }
+            # Filter out changed files that are not supposed to be processed
+            changed_files_to_reformat = files_to_process.intersection(changed_files)
+
         else:
             changed_files_to_reformat = files_to_process
         black_exclude = {
