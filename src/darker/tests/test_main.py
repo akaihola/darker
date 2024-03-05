@@ -942,7 +942,9 @@ def test_stdout_path_resolution(git_repo, capsys):
     assert capsys.readouterr().out == 'print("foo")\n'
 
 
-@pytest.mark.skipif(not sys.platform.startswith("win"), reason="Argument length limit on Windows")
+@pytest.mark.skipif(
+    not sys.platform.startswith("win"), reason="Argument length limit on Windows"
+)
 def test_large_file_count(git_repo):
     # For PR #542 - large character count for changed files
     # on windows breaks subprocess
@@ -954,7 +956,7 @@ def test_large_file_count(git_repo):
         path = f"{path}/{randomword(30)}"
 
     for _d in range(0, 210):
-       files[f"{path}/{randomword(30)}.py"] = randomword(10)
+        files[f"{path}/{randomword(30)}.py"] = randomword(10)
 
     git_repo.add(files, commit="Add all the files")
     result = darker.__main__.main(["--diff", "--check", "src"])
