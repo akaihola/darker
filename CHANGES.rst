@@ -24,6 +24,7 @@ Fixed
 - Usage of the Black ``gen_python_files(gitignore_dict=...)`` parameter.
 - ``show_capture`` option in Pytest configuration.
 - Ignore some linter messages by recent versions of linters used in CI builds.
+- Fix compatibility with Pygments 2.17.2 in unit tests.
 
 
 1.7.2_ - 2023-07-12
