@@ -214,16 +214,16 @@ def test_get_missing_at_revision_worktree(git_repo):
 
 
 def test_git_diff_name_only(git_repo):
-    """``_git_diff_name_only()`` only returns paths of modified files"""
+    """``_git_diff_name_only()`` includes added/modified, skips renamed/moved files."""
     git_repo.add({"a.py": "a", "b.py": "b", "c.py": "c"}, commit="Initial commit")
     first = git_repo.get_hash()
     git_repo.add({"a.py": "A", "b.dy": "B"}, commit="only a.py modified")
+    git_repo.rename("c.py", "x.py", commit="rename c.py to x.py")
     second = git_repo.get_hash()
 
     result = git._git_diff_name_only(
         first, second, {Path("a.py"), Path("c.py"), Path("Z.py")}, git_repo.root
     )
-
     assert result == {Path("a.py")}
 
 
