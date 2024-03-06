@@ -145,7 +145,7 @@ def _git_diff_name_only(
         "diff",
         "--name-only",
         "--relative",
-        "--diff-filter=M",
+        "--diff-filter=MA",
         rev1,
         # rev2 is inserted here if not WORKTREE
         "--",
