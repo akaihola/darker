@@ -25,6 +25,7 @@ Fixed
 - ``show_capture`` option in Pytest configuration.
 - Ignore some linter messages by recent versions of linters used in CI builds.
 - Fix compatibility with Pygments 2.17.2 in unit tests.
+- Update `actions/checkout@v3` to `actions/checkout@v4` in CI builds.
 
 
 1.7.2_ - 2023-07-12
