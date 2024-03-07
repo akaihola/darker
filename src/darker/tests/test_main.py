@@ -8,7 +8,6 @@ import logging
 import random
 import re
 import string
-import sys
 from argparse import ArgumentError
 from io import BytesIO
 from pathlib import Path
@@ -31,9 +30,10 @@ from darker.utils import TextDocument, joinlines
 from darker.verification import NotEquivalentError
 
 
-def randomword(length):
+def randomword(length: int) -> str:
+    """Create a random string of lowercase letters of a given length."""
     letters = string.ascii_lowercase
-    return "".join(random.choice(letters) for _i in range(length))
+    return "".join(random.choice(letters) for _i in range(length))  # nosec
 
 
 def _replace_diff_timestamps(text, replacement="<timestamp>"):
@@ -943,6 +943,7 @@ def test_stdout_path_resolution(git_repo, capsys):
 
 
 def test_long_command_length(git_repo):
+    """Large amount of changed files does not break Git invocation even on Windows"""
     # For PR #542 - large character count for changed files
     # on windows breaks subprocess
     # Need to exceed 32762 characters
