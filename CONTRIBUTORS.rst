@@ -96,6 +96,7 @@
 - Sven Steinbauer (@Svenito)
 - Talha Juanid (@talhajunaidd)
 - Thomas Güttler (@guettli)
+- Tim Clephas (@Timple)
 - TJ Kolleh (@tkolleh)
 - Tobias Diez (@tobiasdiez)
 - Trent Apted (@tapted)
