@@ -19,15 +19,17 @@ import pytest
 
 import darker.__main__
 import darker.import_sorting
-import darker.linting
 from darker.config import Exclusions
 from darker.exceptions import MissingPackageError
-from darker.git import WORKTREE, EditedLinenumsDiffer, RevisionRange
+from darker.git import EditedLinenumsDiffer
 from darker.tests.helpers import isort_present
 from darker.tests.test_fstring import FLYNTED_SOURCE, MODIFIED_SOURCE, ORIGINAL_SOURCE
-from darker.tests.test_highlighting import BLUE, CYAN, RESET, WHITE, YELLOW
-from darker.utils import TextDocument, joinlines
 from darker.verification import NotEquivalentError
+from darkgraylib.git import WORKTREE, RevisionRange
+from darkgraylib.testtools.highlighting_helpers import BLUE, CYAN, RESET, WHITE, YELLOW
+from darkgraylib.utils import TextDocument, joinlines
+
+pytestmark = pytest.mark.usefixtures("find_project_root_cache_clear")
 
 
 def randomword(length: int) -> str:
@@ -55,7 +57,7 @@ def test_isort_option_without_isort(git_repo, caplog):
 
 
 @pytest.fixture
-def run_isort(git_repo, monkeypatch, caplog, request, find_project_root_cache_clear):
+def run_isort(git_repo, monkeypatch, caplog, request):
     """Fixture for running Darker with requested arguments and a patched `isort`
 
     Provides an `run_isort.isort_code` mock object which allows checking whether and how
@@ -558,7 +560,6 @@ def test_main(
     git_repo,
     monkeypatch,
     capsys,
-    find_project_root_cache_clear,
     arguments,
     newline,
     pyproject_toml,
@@ -661,9 +662,7 @@ def test_main_in_plain_directory(tmp_path, capsys):
     "encoding, text", [(b"utf-8", b"touch\xc3\xa9"), (b"iso-8859-1", b"touch\xe9")]
 )
 @pytest.mark.parametrize("newline", [b"\n", b"\r\n"])
-def test_main_encoding(
-    git_repo, find_project_root_cache_clear, encoding, text, newline
-):
+def test_main_encoding(git_repo, encoding, text, newline):
     """Encoding and newline of the file is kept unchanged after reformatting"""
     paths = git_repo.add({"a.py": newline.decode("ascii")}, commit="Initial commit")
     edited = [b"# coding: ", encoding, newline, b's="', text, b'"', newline]

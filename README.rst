@@ -323,34 +323,14 @@ The following `command line arguments`_ can also be used to modify the defaults:
        revision range from the ``PRE_COMMIT_FROM_REF`` and ``PRE_COMMIT_TO_REF``
        environment variables. If those are not found, Darker works against ``HEAD``.
        Also see ``--stdin-filename=`` for the ``:STDIN:`` special value.
---diff
-       Don't write the files back, just output a diff for each file on stdout. Highlight
-       syntax if on a terminal and the ``pygments`` package is available, or if enabled
-       by configuration.
--d, --stdout
-       Force complete reformatted output to stdout, instead of in-place. Only valid if
-       there's just one file to reformat. Highlight syntax if on a terminal and the
-       ``pygments`` package is available, or if enabled by configuration.
 --stdin-filename PATH
        The path to the file when passing it through stdin. Useful so Darker can find the
        previous version from Git. Only valid with ``--revision=<rev1>..:STDIN:``
        (``HEAD..:STDIN:`` being the default if ``--stdin-filename`` is enabled).
---check
-       Don't write the files back, just return the status. Return code 0 means nothing
-       would change. Return code 1 means some files would be reformatted.
--f, --flynt
-       Also convert string formatting to use f-strings using the ``flynt`` package
--i, --isort
-       Also sort imports using the ``isort`` package
--L CMD, --lint CMD
-       Also run a linter on changed files. ``CMD`` can be a name or path of the linter
-       binary, or a full quoted command line with the command and options. Linters read
-       their configuration as normally, and aren't affected by ``-c`` / ``--config``.
-       Linter output is syntax highlighted when the ``pygments`` package is available if
-       run on a terminal and or enabled by explicitly (see ``--color``).
 -c PATH, --config PATH
-       Ask ``black`` and ``isort`` to read configuration from ``PATH``. Note that other
-       tools like flynt, Mypy, Pylint and Flake8 won't use this configuration file.
+       Make ``darker``, ``black`` and ``isort`` read configuration from ``PATH``. Note
+       that other tools like ``flynt``, ``mypy``, ``pylint`` or ``flake8`` won't use
+       this configuration file.
 -v, --verbose
        Show steps taken and summarize modifications
 -q, --quiet
@@ -361,6 +341,29 @@ The following `command line arguments`_ can also be used to modify the defaults:
 --no-color
        Disable syntax highlighting even for terminal output. Overrides the environment
        variable PY_COLORS=1
+-W WORKERS, --workers WORKERS
+       How many parallel workers to allow, or ``0`` for one per core [default: 1]
+--diff
+       Don't write the files back, just output a diff for each file on stdout. Highlight
+       syntax if on a terminal and the ``pygments`` package is available, or if enabled
+       by configuration.
+-d, --stdout
+       Force complete reformatted output to stdout, instead of in-place. Only valid if
+       there's just one file to reformat. Highlight syntax if on a terminal and the
+       ``pygments`` package is available, or if enabled by configuration.
+--check
+       Don't write the files back, just return the status. Return code 0 means nothing
+       would change. Return code 1 means some files would be reformatted.
+-f, --flynt
+       Also convert string formatting to use f-strings using the ``flynt`` package
+-i, --isort
+       Also sort imports using the ``isort`` package
+-L CMD, --lint CMD
+       Run a linter on changed files. ``CMD`` can be a name or path of the linter
+       binary, or a full quoted command line with the command and options. Linters read
+       their configuration as normally, and aren't affected by ``-c`` / ``--config``.
+       Linter output is syntax highlighted when the ``pygments`` package is available if
+       run on a terminal and or enabled by explicitly (see ``--color``).
 -S, --skip-string-normalization
        Don't normalize string quotes or prefixes
 --no-skip-string-normalization
@@ -375,8 +378,6 @@ The following `command line arguments`_ can also be used to modify the defaults:
 -t VERSION, --target-version VERSION
        [py33|py34|py35|py36|py37|py38|py39|py310|py311|py312] Python versions that
        should be supported by Black's output. [default: per-file auto-detection]
--W WORKERS, --workers WORKERS
-       How many parallel workers to allow, or ``0`` for one per core [default: 1]
 
 To change default values for these options for a given project,
 add a ``[tool.darker]`` or ``[tool.black]`` section to ``pyproject.toml`` in the

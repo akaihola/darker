@@ -13,13 +13,15 @@ jobs:
       - run: |
           pip install -U \
             black \
+            git+https://github.com/akaihola/darkgraylib.git@main \
             flynt \
+            git+https://github.com/akaihola/graylint.git@main \
             isort \
             mypy>=0.990 \
             pytest \
             types-requests \
             types-toml
-      - uses: wearerequired/lint-action@v2.1.0
+      - uses: wearerequired/lint-action@v2.3.0
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           mypy: true

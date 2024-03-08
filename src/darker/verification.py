@@ -4,7 +4,8 @@ from typing import Dict, List
 
 from black import assert_equivalent, parse_ast, stringify_ast
 
-from darker.utils import DiffChunk, TextDocument, debug_dump
+from darker.utils import debug_dump
+from darkgraylib.utils import DiffChunk, TextDocument
 
 
 class NotEquivalentError(Exception):

@@ -3,7 +3,7 @@ import sys
 from tokenize import STRING, tokenize
 from typing import Generator, Optional, Sequence, Tuple
 
-from darker.utils import TextDocument
+from darkgraylib.utils import TextDocument
 
 if sys.version_info >= (3, 12):
     from tokenize import FSTRING_END, FSTRING_START

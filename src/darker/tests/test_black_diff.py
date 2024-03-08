@@ -6,12 +6,11 @@ import re
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, Iterable, Iterator, Optional, Pattern, TYPE_CHECKING
+from typing import TYPE_CHECKING, Dict, Iterable, Iterator, Optional, Pattern
 from unittest.mock import ANY, Mock, call, patch
 
 import pytest
 import regex
-
 from black import Mode, Report, TargetVersion
 from pathspec import PathSpec
 
@@ -22,9 +21,9 @@ from darker.black_diff import (
     read_black_config,
     run_black,
 )
-from darker.config import ConfigurationError
-from darker.tests.helpers import raises_or_matches
-from darker.utils import TextDocument
+from darkgraylib.config import ConfigurationError
+from darkgraylib.testtools.helpers import raises_or_matches
+from darkgraylib.utils import TextDocument
 
 if sys.version_info >= (3, 11):
     try:
