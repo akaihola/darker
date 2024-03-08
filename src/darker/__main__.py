@@ -34,8 +34,8 @@ from darker.help import get_extra_instruction
 from darker.import_sorting import apply_isort, isort
 from darker.utils import debug_dump, glob_any
 from darker.verification import ASTVerifier, BinarySearch, NotEquivalentError
-from darkgraylib.black_compat import find_project_root
 from darkgraylib.config import show_config_if_debug
+from darkgraylib.files import find_project_root
 from darkgraylib.git import (
     PRE_COMMIT_FROM_TO_REFS,
     STDIN,
@@ -564,7 +564,7 @@ def main(  # pylint: disable=too-many-locals,too-many-branches,too-many-statemen
         # In other modes, only reformat files which have been modified.
         if git_is_repository(root):
             # Get the modified files only.
-            repo_root = find_project_root([str(root)])
+            repo_root = find_project_root((str(root),))
             changed_files = {
                 (repo_root / file).relative_to(root)
                 for file in git_get_modified_python_files(paths, revrange, repo_root)
