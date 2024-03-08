@@ -917,6 +917,7 @@ def test_modify_file(tmp_path, new_content, expect):
             f'{CYAN}print{RESET}({YELLOW}"{RESET}{YELLOW}foo{RESET}{YELLOW}"{RESET})\n',
             # Pygments >=2.4.x, <2.14.0
             f'{BLUE}print{RESET}({YELLOW}"{RESET}foo{YELLOW}"{RESET})\n',
+            f'{BLUE}print{RESET}({YELLOW}"{RESET}{YELLOW}foo{RESET}{YELLOW}"{RESET})\n',
             # Pygments 2.14.0, variant 1:
             f'{CYAN}print{RESET}({YELLOW}"{RESET}foo{YELLOW}"{RESET}){WHITE}{RESET}\n',
             # Pygments 2.17.2
