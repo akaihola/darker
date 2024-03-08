@@ -14,8 +14,8 @@ repos:
       - id: darker
         args: [--isort]
         additional_dependencies:
-          - black~=21.8b0
-          - isort~=5.9
+          - black~=24.2.0
+          - isort~=5.13.2
   - repo: https://github.com/Lucas-C/pre-commit-hooks-markup
     rev: v1.0.1
     hooks:

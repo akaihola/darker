@@ -8,6 +8,7 @@ Added
 - Mark the Darker package as annotated with type hints.
 - Update to ``ioggstream/bandit-report-artifacts@v1.7.4`` in CI.
 - Support for Python 3.12 in the package metadata and the CI build.
+- Update to Black 24.2.x and isort 5.13.x in pre-commit configuration.
 
 Removed
 -------
