@@ -41,7 +41,6 @@ from typing import Collection, Optional, Pattern, Set, Tuple, TypedDict, Union
 from black import FileMode as Mode
 from black import (
     TargetVersion,
-    find_pyproject_toml,
     format_str,
     parse_pyproject_toml,
     re_compile_maybe_verbose,
@@ -53,6 +52,7 @@ from black.const import (  # pylint: disable=no-name-in-module
 from black.files import gen_python_files
 from black.report import Report
 
+from darker.files import find_pyproject_toml
 from darkgraylib.config import ConfigurationError
 from darkgraylib.utils import TextDocument
 
