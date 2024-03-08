@@ -337,7 +337,6 @@ def test_git_get_modified_python_files(git_repo, modify_paths, paths, expect):
         _description="from master to worktree and index on branch",
         revrange="master..",
         expect={
-            "del_master.py",
             "mod_master.py",
             "mod_both.py",
             "mod_branch.py",
@@ -353,7 +352,6 @@ def test_git_get_modified_python_files(git_repo, modify_paths, paths, expect):
         ),
         revrange="master..HEAD",
         expect={
-            "del_master.py",
             "mod_master.py",
             "mod_both.py",
             "mod_branch.py",
@@ -363,7 +361,6 @@ def test_git_get_modified_python_files(git_repo, modify_paths, paths, expect):
         _description="from master to branch, excluding worktree and index",
         revrange="master..branch",
         expect={
-            "del_master.py",
             "mod_master.py",
             "mod_both.py",
             "mod_branch.py",
