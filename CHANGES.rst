@@ -8,6 +8,8 @@ Added
 
 Fixed
 -----
+- Black 24.2 compatibility by using the new `darkgraylib.files.find_project_root`
+  instead of the implementation in Black.
 
 
 1.7.3_ - 2024-02-27
