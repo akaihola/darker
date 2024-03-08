@@ -38,6 +38,7 @@ Added
   This makes the option compatible with Black.
 - Upgrade NixOS tests to use Python 3.11 on both Linux and macOS.
 - Move ``git_repo`` fixture to ``darkgraylib``.
+- In CI builds, show a diff of changed ``--help`` output if ``README.rst`` is outdated.
 
 Fixed
 -----
