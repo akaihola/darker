@@ -1,3 +1,5 @@
+"""Helper functions for working with files and directories."""
+
 from typing import Optional, Tuple
 
 from black import err, find_user_pyproject_toml

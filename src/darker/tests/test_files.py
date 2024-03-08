@@ -1,3 +1,5 @@
+"""Test for the `darker.files` module."""
+
 import io
 from contextlib import redirect_stderr
 from pathlib import Path
