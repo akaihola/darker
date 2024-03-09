@@ -89,22 +89,32 @@ GitHub Docs.
 Setting up a development environment
 ====================================
 
-To set up an isolated virtualenv for Darker development, run the test suite and lint
-the code base on a Unix-like system::
+To set up an isolated virtualenv for Darker development, modify code in your own branch,
+run the test suite and lint modified code on a Unix-like system::
 
     git clone git@github.com:akaihola/darker.git
     python -m venv .venv-darker
     source .venv-darker/bin/activate
     cd darker
-    pip install -e '.[test]' mypy pylint flake8
+    pip install -e '.[test]'
+    git checkout -b my-feature-branch
+    # modify code
+    git commit -m "My feature"
     pytest
-    pylint src
-    mypy .
-    flake8 src
+    darker --config=check-darker.toml
 
-Before pushing your commits to a feature branch, it's good to run::
+Darker will fix formatting on modified lines and list any linting errors your changes
+may have introduced compared to the branching point of your feature branch from
+``master``.
 
-    darker --isort -L mypy -L pylint -L flake8 -r master... .
+Darker is configured in ``check-darker.toml`` to do the following on modified lines:
+- reformat using Black
+- sort imports using isort
+- run Flake8
+- run Mypy
+- run Pydocstyle
+- run Pylint
+- run Ruff
 
-This will fix formatting on modified lines and list any linting errors your changes may
-have introduced compared to the branching point of your feature branch from ``master``.
+Those tools have also been configured to match the conventions in the Darker code
+base.
