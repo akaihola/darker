@@ -3,18 +3,27 @@
 requires = ["setuptools", "wheel"]  # PEP 508 specifications.
 
 [tool.black]
+# Darker makes Black read its configuration from the file indicated by the `--config`
+# option, so we need to mirror the same configuration here and in `check-darker.toml`.
 skip-string-normalization = false
 target-version = ["py311"]
 
 [tool.isort]
+# Darker makes isort read its configuration from the file indicated by the `--config`
+# option, so we need to mirror the same configuration here and in `check-darker.toml`.
 profile = "black"
 known_first_party = ["darkgraylib", "graylint"]
 known_third_party = ["pytest"]
 
 [tool.darker]
+# Only minimal options for Darker by default, so it's easier to test while developing.
+# To check Darker's own code base with the full set of reformatters and linters, use:
+#   $ darker --config=check-darker.toml
 src = [
     "action",
+    "release_tools",
     "src",
+    "setup.py",
 ]
 revision = "origin/master..."
 
@@ -22,3 +31,24 @@ revision = "origin/master..."
 # Check import order only with isort. Pylint doesn't support a custom list of first
 # party packages. We want to consider "darkgraylib" and "graylint" as first party.
 disable = ["wrong-import-order"]
+
+[tool.ruff]
+target-version = "py38"
+
+[tool.ruff.lint]
+select = ["ALL"]
+ignore = [
+    "ANN101",  # Missing type annotation for `self` in method
+    "D203",  # One blank line required before class docstring
+    "D213",  # Multi-line docstring summary should start at the second line
+    "D400",  # First line should end with a period (duplicates D415)
+]
+
+[tool.ruff.lint.per-file-ignores]
+"src/darker/tests/*.py" = [
+    "ANN001",  # Missing type annotation for function argument
+    "ANN201",  # Missing return type annotation for public function
+    "ANN204",  # Missing return type annotation for special method `__init__`
+    "C408",  # Unnecessary `dict` call (rewrite as a literal)
+    "S101",  # Use of `assert` detected
+]

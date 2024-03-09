@@ -1,0 +1,33 @@
+# This is the Darker configuration file for running all the code formatters and linters
+# on the Darker code base. To use it, run:
+#   $ darker --config=check-darker.toml
+
+[tool.black]
+# Darker makes Black read its configuration from the file indicated by the `--config`
+# option, so we need to mirror the same configuration here and in `pyproject.toml`.
+skip-string-normalization = false
+target-version = ["py311"]
+
+[tool.isort]
+# Darker makes isort read its configuration from the file indicated by the `--config`
+# option, so we need to mirror the same configuration here and in `pyproject.toml`.
+profile = "black"
+known_first_party = ["darkgraylib", "graylint"]
+known_third_party = ["pytest"]
+
+[tool.darker]
+src = [
+    "action",
+    "release_tools",
+    "src",
+    "setup.py",
+]
+revision = "origin/master..."
+isort = true
+lint = [
+    "flake8",
+    "mypy",
+    "pydocstyle",
+    "pylint",
+    "ruff check",
+]
