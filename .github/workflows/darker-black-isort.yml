@@ -1,0 +1,20 @@
+---
+name: darker-black-isort
+
+on: push  # yamllint disable-line rule:truthy
+
+jobs:
+  reformat-modified:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Reformat code using own GitHub action straight from the repository
+        uses: ./
+        with:
+          options: --check --diff --color --isort
+          src: action release_tools setup.py src/darker
+          revision: origin/master...
+          version: "@${{ github.ref_name }}"
