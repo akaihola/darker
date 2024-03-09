@@ -14,8 +14,8 @@ jobs:
       - name: Run Darker's own GitHub action straight from the repository
         uses: ./
         with:
-          options: --check --diff --color --isort --config pyproject.toml
-          src: src/darker
+          options: --check --diff --color
+          src: action release_tools setup.py src/darker
           revision: origin/master...
           lint: flake8
           version: "@${{ github.ref_name }}"
