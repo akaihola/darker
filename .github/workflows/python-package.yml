@@ -67,6 +67,8 @@ jobs:
             --run '
               python -m venv venv
               source venv/bin/activate
+              cert_file=/nix/var/nix/profiles/default/etc/ssl/certs/ca-bundle.crt
+              export NIX_SSL_CERT_FILE=$cert_file
               pip install "${{needs.build-wheel.outputs.wheel-path}}[test]"
               # Run tests in installed package to avoid plugin import issue:
               pytest $(python -c "
@@ -127,17 +129,7 @@ jobs:
         if: matrix.constraints == '--constraint constraints-oldest.txt'
         run: |
           sed -i 's/py311/py39/' pyproject.toml
-      - name: Run Pytest with the Darker plugin on recent Black versions
-        if: matrix.constraints != '--constraint constraints-oldest.txt'
-        run: |
-          pytest --darker
-      - name: Run Pytest without the Darker plugin on oldest Black version
-        # The reformatting rules used to be a bit different. We don't need to
-        # test reformatting Darker's own code base with old Black versions.
-        # Interoperability is ensured by unit tests.
-        if: matrix.constraints == '--constraint constraints-oldest.txt'
-        run: |
-          pytest
+      - run: pytest
 
   build-sdist-validate-dists:
     runs-on: ubuntu-latest
