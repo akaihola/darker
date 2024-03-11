@@ -8,8 +8,10 @@ Added
 
 Fixed
 -----
-- Black 24.2 compatibility by using the new `darkgraylib.files.find_project_root`
+- Black 24.2.0 compatibility by using the new `darkgraylib.files.find_project_root`
   instead of the implementation in Black.
+- Black 24.2.1 compatibility by detecting the new `black.parsing.ASTSafetyError` instead
+  of `AssertionError` when Black>=24.2.1 is in use.
 
 
 1.7.3_ - 2024-02-27
