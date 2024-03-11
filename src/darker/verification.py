@@ -7,6 +7,13 @@ from black import assert_equivalent, parse_ast, stringify_ast
 from darker.utils import debug_dump
 from darkgraylib.utils import DiffChunk, TextDocument
 
+try:
+    # Black 24.2.1 and later
+    from black.parsing import ASTSafetyError  # pylint: disable=ungrouped-imports
+except ImportError:
+    # Black 24.2.0 and earlier
+    ASTSafetyError = AssertionError
+
 
 class NotEquivalentError(Exception):
     """Exception to raise if two ASTs being compared are not equivalent"""
@@ -65,7 +72,7 @@ def verify_ast_unchanged(
     """Verify that source code parses to the same AST before and after reformat"""
     try:
         assert_equivalent(edited_to_file.string, reformatted.string)
-    except AssertionError as exc_info:
+    except ASTSafetyError as exc_info:
         debug_dump(black_chunks, edited_linenums)
         raise NotEquivalentError() from exc_info
 
