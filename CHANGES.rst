@@ -13,6 +13,7 @@ Added
 - The contribution guide now gives better instructions for reformatting and linting.
 - Separate GitHub workflow for checking code formatting and import sorting.
 - Also check the action, release tools and ``setup.py`` in the build workflows.
+- Require Darkgraylib 1.0.x and Graylint 1.0.x.
 
 Removed
 -------
