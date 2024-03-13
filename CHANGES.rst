@@ -5,6 +5,16 @@ These features will be included in the next release:
 
 Added
 -----
+
+Fixed
+-----
+
+
+2.0.0_ - 2024-03-13
+===================
+
+Added
+-----
 - The command ``darker --config=check-darker.toml`` now runs Flake8_, Mypy_,
   pydocstyle_, Pylint_ and Ruff_ on modified lines in Python files. Those tools are
   included in the ``[test]`` extra.
@@ -14,9 +24,16 @@ Added
 - Separate GitHub workflow for checking code formatting and import sorting.
 - Also check the action, release tools and ``setup.py`` in the build workflows.
 - Require Darkgraylib 1.0.x and Graylint 1.0.x.
+- Update 3rd party GitHub actions to avoid using deprecated NodeJS versions.
+- CI build now shows a diff between output of ``darker --help`` and its output as
+  included ``README.rst`` in case the two differ.
 
 Removed
 -------
+- Drop support for Python 3.7 which has reached end of life.
+- ``shlex_join`` compatibility wrapper for Python 3.7 and earlier.
+- Move linting support to Graylint_ but keep the ``-L``/``--lint`` option for now.
+- Move code used by both Darker and Graylint_ into the Darkgraylib_ library.
 - Don't run pytest-darker_ in the CI build. It's lagging quite a bit behind.
 
 Fixed
@@ -26,6 +43,7 @@ Fixed
 - `Black 24.2.1`_ compatibility by detecting the new `black.parsing.ASTSafetyError` instead
   of `AssertionError` when Black>=24.2.1 is in use.
 - Make sure NixOS_ builds have good SSL certificates installed.
+- Work around some situations where Windows errors due to a too long Git command line.
 
 
 1.7.3_ - 2024-02-27
@@ -569,7 +587,9 @@ Added
 .. _Black 24.2.1: https://github.com/psf/black/blob/master/CHANGES.md#2421
 .. _Pylint: https://pypi.org/project/pylint
 .. _pygments: https://pypi.org/project/Pygments/
+.. _Darkgraylib: https://pypi.org/project/darkgraylib/
 .. _Flake8: https://flake8.pycqa.org/
+.. _Graylint: https://pypi.org/project/graylint/
 .. _Mypy: https://www.mypy-lang.org/
 .. _pydocstyle: http://www.pydocstyle.org/
 .. _Ruff: https://astral.sh/ruff
