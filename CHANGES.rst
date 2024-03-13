@@ -5,6 +5,16 @@ These features will be included in the next release:
 
 Added
 -----
+
+Fixed
+-----
+
+
+2.0.0_ - 2024-03-13
+===================
+
+Added
+-----
 - The command ``darker --config=check-darker.toml`` now runs Flake8_, Mypy_,
   pydocstyle_, Pylint_ and Ruff_ on modified lines in Python files. Those tools are
   included in the ``[test]`` extra.
