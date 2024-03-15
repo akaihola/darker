@@ -1,0 +1,70 @@
+---
+
+# Below are the regular expression patterns for finding and replacing version and
+# milestone numbers in files. Keys are file paths relative to the repository root.
+# Values are sets of regular expression pattern strings which contain a magic
+# `{OLD->NEW}` expression. For matching text, that expression will be turned into a
+# regular expression string which matches the expected version or milestone string in
+# the current content of a file. For replacing those matches with updated information,
+# `NEW` specifies which kind of a version or milestone number should be used as the
+# replacement.
+#
+# For example, if the current version ("old_version") was `1.0.1` and bumping the minor
+# version was requested, the entry
+#
+#   "README.rst":
+#   - |-
+#     next version: {old_version->new_version}
+#
+# would use this regular expression:
+#
+#   `r"next version: (1\.0\.1)"`
+#
+# in `README.rst` and replace the text matched by the capture group with "1.1".
+
+
+".github/ISSUE_TEMPLATE/bug_report.md":
+- |-
+  ^ - Darker version \[e\.g\. {old_version->new_version}\]
+
+"README.rst":
+- |-
+  ^  conda install -c conda-forge darker~={old_version->new_version} isort
+
+- |-
+  ^\.\. _next-milestone: https://github\.com/akaihola/darker/milestone/{any_milestone->next_milestone}
+
+- |-
+  ^     (?:   )?rev: {old_version->new_version}
+
+- |-
+  ^\.\. \|next-milestone\| image:: https://img\.shields\.io/github/milestones/progress/akaihola/darker/{any_milestone->next_milestone}
+
+- |-
+  ^             version: "~={old_version->new_version}"
+
+- |-
+  ^         - uses: akaihola/darker@{old_version->new_version}
+
+- |-
+  ^  pip install --upgrade darker~={old_version->new_version}
+
+- |-
+  label=release%20{any_version->next_version}
+
+"action.yml":
+- |-
+  ^    description: \'Version of Darker to use, e\.g\. "~={old_version->new_version}"
+
+- |-
+  ^    description: \'Version of Darker to use, e\.g\. "~=.*?", "{old_version->new_version}"
+
+- |-
+  ^    default: "~={old_version->new_version}"
+
+- |-
+  ^      uses: akaihola/darker/.github/actions/commit-range@{old_version->new_version}
+
+"src/darker/version.py":
+- |-
+  ^__version__ *= *\"{old_version->new_version}\"
