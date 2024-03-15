@@ -488,8 +488,9 @@ def main(  # pylint: disable=too-many-locals,too-many-branches,too-many-statemen
     validate_config_output_mode(config)
 
     setup_logging(args.log_level)
-    # Make sure we don't get excessive debug log output from Black
+    # Make sure we don't get excessive debug log output from Black and Flynt
     logging.getLogger("blib2to3.pgen2.driver").setLevel(logging.WARNING)
+    logging.getLogger("flynt.transform.transform").setLevel(logging.CRITICAL)
 
     show_config_if_debug(config, config_nondefault, args.log_level)
 
