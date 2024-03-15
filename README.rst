@@ -405,7 +405,7 @@ project's root directory, or to a different TOML file specified using the ``-c``
    line-length = 88                  # Overridden by [tool.darker] above
    skip-magic-trailing-comma = false
    skip-string-normalization = false
-   target-version = ['py311']
+   target-version = ["py38", "py39", "py310", "py311", "py312"]
    exclude = "test_*\.py"
    extend_exclude = "/generated/"
    force_exclude = ".*\.pyi"
