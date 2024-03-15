@@ -27,6 +27,7 @@ Added
 - Update 3rd party GitHub actions to avoid using deprecated NodeJS versions.
 - CI build now shows a diff between output of ``darker --help`` and its output as
   included ``README.rst`` in case the two differ.
+- Mark the Darker package as annotated with type hints.
 
 Removed
 -------
@@ -551,7 +552,8 @@ Added
 -----
 - Initial implementation
 
-.. _Unreleased: https://github.com/akaihola/darker/compare/1.7.3...HEAD
+.. _Unreleased: https://github.com/akaihola/darker/compare/2.0.0...HEAD
+.. _2.0.0: https://github.com/akaihola/darker/compare/1.7.3...2.0.0
 .. _1.7.3: https://github.com/akaihola/darker/compare/1.7.2...1.7.3
 .. _1.7.2: https://github.com/akaihola/darker/compare/1.7.1...1.7.2
 .. _1.7.1: https://github.com/akaihola/darker/compare/1.7.0...1.7.1
