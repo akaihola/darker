@@ -1,5 +1,5 @@
 ---
-name: bump_version.py check
+name: darkgray_bump_version check
 
 on: push  # yamllint disable-line rule:truthy
 
@@ -11,16 +11,18 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
 
-      - name: Make sure that `bump_version.py` still finds all version strings
+      - name: Make sure that `darkgray_bump_version` still finds all version strings
               and that there's a future milestone on GitHub Issues.
-        # If this fails, make sure the regular expressions in `bump_version.py`
+        # If this fails, make sure the regular expressions in
+        # release_tools/bump-version-patterns.yaml
         # match changes in the files to modify. Also ensure there's a milestone
-        # in https://github.com/akaihola/darker/milestones with a future
-        # version number as its name. This is used to update the call for
-        # reviewing pull requests in `README.rst`.
+        # in the GitHub repository with a future version number as its name.
+        # This is used to update the call for reviewing pull requests
+        # in `README.rst`.
         run: |
-          pip install click packaging requests
-          python release_tools/bump_version.py \
+          pip install \
+            https://github.com/akaihola/darkgray-dev-tools/archive/refs/heads/main.zip
+          darkgray_bump_version \
             --minor \
             --dry-run \
             --token=${{ secrets.GITHUB_TOKEN }}

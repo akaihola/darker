@@ -1,0 +1,10 @@
+---
+
+extends: default
+
+rules:
+  line-length:
+    max: 88
+    level: warning
+    ignore: |
+      release_tools/bump-version-patterns.yaml

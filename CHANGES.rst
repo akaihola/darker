@@ -8,6 +8,10 @@ Added
 - Mark the Darker package as annotated with type hints.
 - Update to ``ioggstream/bandit-report-artifacts@v1.7.4`` in CI.
 
+Removed
+-------
+- ``bump_version.py`` is now in the separate ``darkgray-dev-tools`` repository.
+
 Fixed
 -----
 
