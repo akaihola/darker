@@ -24,47 +24,47 @@
 
 
 ".github/ISSUE_TEMPLATE/bug_report.md":
-- |-
-  ^ - Darker version \[e\.g\. {old_version->new_version}\]
+  - |-
+    ^ - Darker version \[e\.g\. {old_version->new_version}\]
 
 "README.rst":
-- |-
-  ^  conda install -c conda-forge darker~={old_version->new_version} isort
+  - |-
+    ^  conda install -c conda-forge darker~={old_version->new_version} isort
 
-- |-
-  ^\.\. _next-milestone: https://github\.com/akaihola/darker/milestone/{any_milestone->next_milestone}
+  - |-
+    ^\.\. _next-milestone: https://github\.com/akaihola/darker/milestone/{any_milestone->next_milestone}
 
-- |-
-  ^     (?:   )?rev: {old_version->new_version}
+  - |-
+    ^     (?:   )?rev: {old_version->new_version}
 
-- |-
-  ^\.\. \|next-milestone\| image:: https://img\.shields\.io/github/milestones/progress/akaihola/darker/{any_milestone->next_milestone}
+  - |-
+    ^\.\. \|next-milestone\| image:: https://img\.shields\.io/github/milestones/progress/akaihola/darker/{any_milestone->next_milestone}
 
-- |-
-  ^             version: "~={old_version->new_version}"
+  - |-
+    ^             version: "~={old_version->new_version}"
 
-- |-
-  ^         - uses: akaihola/darker@{old_version->new_version}
+  - |-
+    ^         - uses: akaihola/darker@{old_version->new_version}
 
-- |-
-  ^  pip install --upgrade darker~={old_version->new_version}
+  - |-
+    ^  pip install --upgrade darker~={old_version->new_version}
 
-- |-
-  label=release%20{any_version->next_version}
+  - |-
+    label=release%20{any_version->next_version}
 
 "action.yml":
-- |-
-  ^    description: \'Version of Darker to use, e\.g\. "~={old_version->new_version}"
+  - |-
+    ^    description: \'Version of Darker to use, e\.g\. "~={old_version->new_version}"
 
-- |-
-  ^    description: \'Version of Darker to use, e\.g\. "~=.*?", "{old_version->new_version}"
+  - |-
+    ^    description: \'Version of Darker to use, e\.g\. "~=.*?", "{old_version->new_version}"
 
-- |-
-  ^    default: "~={old_version->new_version}"
+  - |-
+    ^    default: "~={old_version->new_version}"
 
-- |-
-  ^      uses: akaihola/darker/.github/actions/commit-range@{old_version->new_version}
+  - |-
+    ^      uses: akaihola/darker/.github/actions/commit-range@{old_version->new_version}
 
 "src/darker/version.py":
-- |-
-  ^__version__ *= *\"{old_version->new_version}\"
+  - |-
+    ^__version__ *= *\"{old_version->new_version}\"

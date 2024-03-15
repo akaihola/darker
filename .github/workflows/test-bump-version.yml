@@ -20,7 +20,8 @@ jobs:
         # This is used to update the call for reviewing pull requests
         # in `README.rst`.
         run: |
-          pip install https://github.com/akaihola/darkgray-dev-tools/archive/refs/heads/main.zip
+          pip install \
+            https://github.com/akaihola/darkgray-dev-tools/archive/refs/heads/main.zip
           darkgray_bump_version \
             --minor \
             --dry-run \
