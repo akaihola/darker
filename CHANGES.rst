@@ -5,6 +5,8 @@ These features will be included in the next release:
 
 Added
 -----
+- Mark the Darker package as annotated with type hints.
+- Update to ``ioggstream/bandit-report-artifacts@v1.7.4`` in CI.
 
 Fixed
 -----
@@ -27,7 +29,6 @@ Added
 - Update 3rd party GitHub actions to avoid using deprecated NodeJS versions.
 - CI build now shows a diff between output of ``darker --help`` and its output as
   included ``README.rst`` in case the two differ.
-- Mark the Darker package as annotated with type hints.
 
 Removed
 -------

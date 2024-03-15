@@ -11,19 +11,19 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Bandit security check for code
-        uses: akaihola/bandit-report-artifacts@use-config
+        uses: ioggstream/bandit-report-artifacts@v1.7.4
         with:
           project_path: .
           config_file: ./.bandit.code.yaml
 
       - name: Bandit security check for tests
-        uses: akaihola/bandit-report-artifacts@use-config
+        uses: ioggstream/bandit-report-artifacts@v1.7.4
         with:
           project_path: ./src/darker/tests
           config_file: ./.bandit.tests.yaml
 
       - name: Bandit security check for GitHub Action `main.py` tests
-        uses: akaihola/bandit-report-artifacts@use-config
+        uses: ioggstream/bandit-report-artifacts@v1.7.4
         with:
           project_path: ./action/tests
           config_file: ./.bandit.tests.yaml
