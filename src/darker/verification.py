@@ -12,7 +12,7 @@ try:
     from black.parsing import ASTSafetyError  # pylint: disable=ungrouped-imports
 except ImportError:
     # Black 24.2.0 and earlier
-    ASTSafetyError = AssertionError
+    ASTSafetyError = AssertionError  # type: ignore[assignment,misc]
 
 
 class NotEquivalentError(Exception):
