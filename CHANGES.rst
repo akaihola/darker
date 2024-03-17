@@ -5,6 +5,16 @@ These features will be included in the next release:
 
 Added
 -----
+
+Fixed
+-----
+
+
+2.1.0_ - 2024-03-27
+===================
+
+Added
+-----
 - Mark the Darker package as annotated with type hints.
 - Update to ``ioggstream/bandit-report-artifacts@v1.7.4`` in CI.
 - Support for Python 3.12 in the package metadata and the CI build.
@@ -565,7 +575,8 @@ Added
 -----
 - Initial implementation
 
-.. _Unreleased: https://github.com/akaihola/darker/compare/2.0.0...HEAD
+.. _Unreleased: https://github.com/akaihola/darker/compare/2.1.0...HEAD
+.. _2.1.0: https://github.com/akaihola/darker/compare/2.0.0...2.1.0
 .. _2.0.0: https://github.com/akaihola/darker/compare/1.7.3...2.0.0
 .. _1.7.3: https://github.com/akaihola/darker/compare/1.7.2...1.7.3
 .. _1.7.2: https://github.com/akaihola/darker/compare/1.7.1...1.7.2
