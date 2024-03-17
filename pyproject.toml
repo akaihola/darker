@@ -38,6 +38,7 @@ target-version = "py38"
 [tool.ruff.lint]
 select = ["ALL"]
 ignore = [
+    "A002",  # builtin-argument-shadowing
     "ANN101",  # Missing type annotation for `self` in method
     "D203",  # One blank line required before class docstring
     "D213",  # Multi-line docstring summary should start at the second line
