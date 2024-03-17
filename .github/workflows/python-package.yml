@@ -102,7 +102,8 @@ jobs:
             constraints: '--constraint constraints-oldest.txt'
           - os: ubuntu-latest
             python-version: '3.12'
-            post_install: pip install -r constraints-future.txt
+            post_install: pip uninstall -y -r constraints-future.txt ;
+                          pip install -r constraints-future.txt
                                       --upgrade --upgrade-strategy=eager
     needs:
       - build-wheel
@@ -117,12 +118,12 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Download wheel uploaded by the build-wheel job
         uses: actions/download-artifact@v3
-      - name: Install Darker and its dependencies from the wheel build earlier
+      - name: Install Darker and its dependencies from the wheel built earlier
         run: pip install "${{needs.build-wheel.outputs.wheel-path}}[test]"
                          ${{ matrix.upgrade }} ${{ matrix.constraints }}
-      - name: Upgrade Black and Isort from GitHub if future constraints are used
+      - name: Upgrade Black, Flynt and Isort from GitHub if future constraints are used
         # This can't be done in the same Pip invocation as installing Darker
-        # since Darker might place an upper limit on Black and/or Isort during
+        # since Darker might place an upper limit on Black, Flynt and/or Isort during
         # compatibility fixing periods.
         if: matrix.post_install
         run: ${{ matrix.post_install }}
