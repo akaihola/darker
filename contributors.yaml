@@ -38,6 +38,10 @@ PatrickJordanCongenica:
   - {link_type: search-discussions, type: Bug reports}
 RishiKumarRay:
   - {link_type: search, type: Bug reports}
+Svenito:
+  - {link_type: pulls-author, type: Code}
+Timple:
+  - {link_type: search-comments, type: Bug reports}
 agandra:
   - {link_type: issues, type: Bug reports}
 akaihola:
