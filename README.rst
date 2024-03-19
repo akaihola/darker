@@ -639,7 +639,7 @@ do the following:
    .. code-block:: yaml
 
       - repo: https://github.com/akaihola/darker
-        rev: 2.0.0
+        rev: v2.0.0
         hooks:
           - id: darker
 
@@ -658,7 +658,7 @@ other reformatter/linter tools you use to known compatible versions, for example
 .. code-block:: yaml
 
    - repo: https://github.com/akaihola/darker
-     rev: 2.0.0
+     rev: v2.0.0
      hooks:
        - id: darker
          args:
@@ -689,7 +689,7 @@ Note the inclusion of the isort Python package under ``additional_dependencies``
 .. code-block:: yaml
 
    - repo: https://github.com/akaihola/darker
-     rev: 2.0.0
+     rev: v2.0.0
      hooks:
        - id: darker
          args: [--isort]
