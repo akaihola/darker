@@ -17,6 +17,7 @@ Removed
 
 Fixed
 -----
+- Bump-version pre-commit hook pattern: ``rev: vX.Y.Z`` instead of ``X.Y.Z``.
 
 
 2.0.0_ - 2024-03-13
