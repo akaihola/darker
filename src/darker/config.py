@@ -21,6 +21,7 @@ class DarkerConfig(BaseConfig, total=False):
     skip_magic_trailing_comma: bool
     line_length: int
     target_version: str
+    formatter: str
 
 
 class OutputMode:
