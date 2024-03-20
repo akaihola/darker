@@ -378,6 +378,8 @@ The following `command line arguments`_ can also be used to modify the defaults:
 -t VERSION, --target-version VERSION
        [py33\|py34\|py35\|py36\|py37\|py38\|py39\|py310\|py311\|py312] Python versions
        that should be supported by Black's output. [default: per-file auto-detection]
+--formatter FORMATTER
+       Formatter to use for reformatting code
 
 To change default values for these options for a given project,
 add a ``[tool.darker]`` or ``[tool.black]`` section to ``pyproject.toml`` in the
