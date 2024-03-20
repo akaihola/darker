@@ -86,6 +86,8 @@ dwt:
 falkben:
   - {link_type: pulls-author, type: Documentation}
   - {link_type: search-discussions, type: Bug reports}
+felixvd:
+  - {link_type: pulls-author, type: Code}
 fizbin:
   - {link_type: issues, type: Bug reports}
 flying-sheep:
