@@ -950,6 +950,30 @@ To sort imports when the ``--isort`` option was specified, Darker proceeds like 
 For details on how linting support works, see Graylint_ documentation.
 
 
+Limitations and work-arounds
+=============================
+
+Black doesn't support partial formatting natively.
+Because of this, Darker lets Black reformat complete files.
+Darker then accepts or rejects chunks of contiguous lines touched by Black,
+depending on whether any of the lines in a chunk were edited or added
+between the two revisions.
+
+Due to the nature of this algorithm,
+Darker is often unable to minimize the number of changes made by Black
+as carefully as a developer could do by hand.
+Also, depending on what kind of changes were made to the code,
+diff results may lead to Darker applying reformatting in an invalid way.
+Fortunately, Darker always checks that the result of reformatting
+converts to the same AST as the original code.
+If that's not the case, Darker expands the chunk until it finds a valid reformatting.
+As a result, a much larger block of code may be reformatted than necessary.
+
+The most reasonable work-around to these limitations
+is to review the changes made by Darker before committing them to the repository
+and unstaging any changes that are not desired.
+
+
 License
 =======
 
