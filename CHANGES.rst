@@ -14,6 +14,8 @@ Added
 Removed
 -------
 - ``bump_version.py`` is now in the separate ``darkgray-dev-tools`` repository.
+- Skip tests on Python 3.13-dev in Windows and macOS. C extension builds are failing,
+  this exclusion is to be removed when Python 3.13 has been removed.
 
 Fixed
 -----
