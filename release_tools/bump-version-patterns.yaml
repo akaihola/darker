@@ -35,7 +35,7 @@
     ^\.\. _next-milestone: https://github\.com/akaihola/darker/milestone/{any_milestone->next_milestone}
 
   - |-
-    ^     (?:   )?rev: {old_version->new_version}
+    ^     (?:   )?rev: v{old_version->new_version}
 
   - |-
     ^\.\. \|next-milestone\| image:: https://img\.shields\.io/github/milestones/progress/akaihola/darker/{any_milestone->next_milestone}
