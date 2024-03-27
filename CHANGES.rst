@@ -5,12 +5,24 @@ These features will be included in the next release:
 
 Added
 -----
+
+Fixed
+-----
+
+
+2.1.0_ - 2024-03-27
+===================
+
+Added
+-----
 - Mark the Darker package as annotated with type hints.
 - Update to ``ioggstream/bandit-report-artifacts@v1.7.4`` in CI.
 - Support for Python 3.12 in the package metadata and the CI build.
 - Update to Black 24.2.x and isort 5.13.x in pre-commit configuration.
 - Test against Flynt ``master`` branch in the CI build.
 - Update to Darkgraylib 1.1.1 to get fixes for README formatting.
+- Improved "How does it work?" section in the README.
+- README section on limitations and work-arounds.
 
 Removed
 -------
@@ -22,6 +34,7 @@ Fixed
 -----
 - Bump-version pre-commit hook pattern: ``rev: vX.Y.Z`` instead of ``X.Y.Z``.
 - Escape pipe symbols (``|``) in the README to avoid RestructuredText rendering issues.
+- Compatibility with Flynt 0.78.0 and newer.
 
 
 2.0.0_ - 2024-03-13
@@ -565,7 +578,8 @@ Added
 -----
 - Initial implementation
 
-.. _Unreleased: https://github.com/akaihola/darker/compare/2.0.0...HEAD
+.. _Unreleased: https://github.com/akaihola/darker/compare/2.1.0...HEAD
+.. _2.1.0: https://github.com/akaihola/darker/compare/2.0.0...2.1.0
 .. _2.0.0: https://github.com/akaihola/darker/compare/1.7.3...2.0.0
 .. _1.7.3: https://github.com/akaihola/darker/compare/1.7.2...1.7.3
 .. _1.7.2: https://github.com/akaihola/darker/compare/1.7.1...1.7.2

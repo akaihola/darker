@@ -14,9 +14,9 @@ inputs:
     required: false
     default: "."
   version:
-    description: 'Version of Darker to use, e.g. "~=2.0.0", "2.0.0", "@master"'
+    description: 'Version of Darker to use, e.g. "~=2.1.0", "2.1.0", "@master"'
     required: false
-    default: "~=2.0.0"
+    default: "~=2.1.0"
   revision:
     description: >-
       Git revision range to compare when determining modified lines.
