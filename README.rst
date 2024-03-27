@@ -927,18 +927,51 @@ See issue `#382`_ and PR `#430`_ for more information.
 How does it work?
 =================
 
-Darker takes a ``git diff`` of your Python files,
-records which lines of current files have been edited or added since the last commit.
-It then runs Black_ and notes which chunks of lines were reformatted.
-Finally, only those reformatted chunks on which edited lines fall (even partially)
-are applied to the edited file.
+To apply Black reformatting and to modernize format strings on changed lines,
+Darker does the following:
 
-Also, in case the ``--isort`` option was specified,
-isort_ is run on each edited file before applying Black_.
-Similarly, each linter requested using the `--lint <command>` option is run,
-and only those linting messages are displayed which appeared after the modifications to
-the source code files,
-or which were there already before but now fall on modified lines.
+- take a ``git diff`` of Python files between ``REV1`` and ``REV2`` as specified using
+  the ``--revision=REV1..REV2`` option
+- record current line numbers of lines edited or added between those revisions
+- run flynt_ on edited and added files (if Flynt is enabled by the user)
+- run Black_ on edited and added files
+- compare before and after reformat, noting each continuous chunk of reformatted lines
+- discard reformatted chunks on which no edited/added line falls on
+- keep reformatted chunks on which some edited/added lines fall on
+
+To sort imports when the ``--isort`` option was specified, Darker proceeds like this:
+
+- run isort_ on each edited and added file before applying Black_
+- only if any of the edited or added lines falls between the first and last line
+  modified by isort_, are those modifications kept
+- if all lines between the first and last line modified by isort_ were unchanged between
+  the revisions, discard import sorting modifications for that file
+
+For details on how linting support works, see Graylint_ documentation.
+
+
+Limitations and work-arounds
+=============================
+
+Black doesn't support partial formatting natively.
+Because of this, Darker lets Black reformat complete files.
+Darker then accepts or rejects chunks of contiguous lines touched by Black,
+depending on whether any of the lines in a chunk were edited or added
+between the two revisions.
+
+Due to the nature of this algorithm,
+Darker is often unable to minimize the number of changes made by Black
+as carefully as a developer could do by hand.
+Also, depending on what kind of changes were made to the code,
+diff results may lead to Darker applying reformatting in an invalid way.
+Fortunately, Darker always checks that the result of reformatting
+converts to the same AST as the original code.
+If that's not the case, Darker expands the chunk until it finds a valid reformatting.
+As a result, a much larger block of code may be reformatted than necessary.
+
+The most reasonable work-around to these limitations
+is to review the changes made by Darker before committing them to the repository
+and unstaging any changes that are not desired.
 
 
 License
@@ -983,6 +1016,7 @@ __ https://github.com/asottile/pyupgrade
 __ https://github.com/google/yapf/blob/main/yapf/third_party/yapf_diff/yapf_diff.py
 .. _yapf: https://github.com/google/yapf
 .. _#51: https://github.com/akaihola/darker/pull/51
+.. _Graylint: https://github.com/akaihola/graylint
 
 
 Contributors ✨
