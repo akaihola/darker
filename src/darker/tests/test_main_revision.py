@@ -99,7 +99,9 @@ from darkgraylib.testtools.helpers import raises_if_exception
         worktree_content=b"USERMOD=1\n",
         expect={"+1", "+1M0", "+2-1", "+2", "+2M1-0", "+2M1"},
     ),
-    dict(revision="HEAD~2", worktree_content=b"ORIGINAL=1\n", expect={"+1", "+1M0"}),
+    # These are empty because git diff reports these are renamed files.
+    # We only care about added or modified files. See PR #454
+    dict(revision="HEAD~2", worktree_content=b"ORIGINAL=1\n", expect=set()),
     dict(
         revision="HEAD~2",
         worktree_content=b"MODIFIED=1\n",
