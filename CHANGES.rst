@@ -21,6 +21,7 @@ Removed
 Fixed
 -----
 - Bump-version pre-commit hook pattern: ``rev: vX.Y.Z`` instead of ``X.Y.Z``.
+- Escape pipe symbols (``|``) in the README to avoid RestructuredText rendering issues.
 
 
 2.0.0_ - 2024-03-13
