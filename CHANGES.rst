@@ -21,6 +21,8 @@ Added
 - Update to Black 24.2.x and isort 5.13.x in pre-commit configuration.
 - Test against Flynt ``master`` branch in the CI build.
 - Update to Darkgraylib 1.1.1 to get fixes for README formatting.
+- Improved "How does it work?" section in the README.
+- README section on limitations and work-arounds.
 
 Removed
 -------
@@ -32,6 +34,7 @@ Fixed
 -----
 - Bump-version pre-commit hook pattern: ``rev: vX.Y.Z`` instead of ``X.Y.Z``.
 - Escape pipe symbols (``|``) in the README to avoid RestructuredText rendering issues.
+- Compatibility with Flynt 0.78.0 and newer.
 
 
 2.0.0_ - 2024-03-13
