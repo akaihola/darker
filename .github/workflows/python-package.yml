@@ -96,6 +96,13 @@ jobs:
           - '3.13-dev'
         constraints: ['']
         post_install: ['']
+        exclude:
+          # C extension builds failing.
+          # Remove exclusions after Python 3.13 release.
+          - os: windows-latest
+            python-version: '3.13-dev'
+          - os: macos-latest
+            python-version: '3.13-dev'
         include:
           - os: ubuntu-latest
             python-version: '3.8'
