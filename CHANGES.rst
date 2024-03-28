@@ -8,6 +8,11 @@ Added
 
 Fixed
 -----
+- A dash (``-``) is now allowed as the single source filename when using the
+  ``--stdout`` option. This makes the option compatible with the
+  `new Black extension for VSCode`__.
+
+__ https://github.com/microsoft/vscode-black-formatter
 
 
 2.1.0_ - 2024-03-27
