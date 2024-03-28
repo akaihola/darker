@@ -549,15 +549,21 @@ Visual Studio Code
      $ where darker
      %LocalAppData%\Programs\Python\Python36-32\Scripts\darker.exe  # possible location
 
-3. Add these configuration options to VS code, ``Cmd-Shift-P``, ``Open Settings (JSON)``::
+3. Make sure you have the `VSCode black-formatter extension`__ installed.
 
-    "python.formatting.provider": "black",
-    "python.formatting.blackPath": "<install_location_from_step_2>",
-    "python.formatting.blackArgs": [],
+__ https://github.com/microsoft/vscode-black-formatter
+
+4. Add these configuration options to VSCode
+   (``⌘ Command / Ctrl`` + ``⇧ Shift`` + ``P``
+   and select ``Open Settings (JSON)``)::
+
+    "python.editor.defaultFormatter": "ms-python.black-formatter",
+    "black-formatter.path": "<install_location_from_step_2>",
+    "black-formatter.args": ["-d"],
 
 VSCode will always add ``--diff --quiet`` as arguments to Darker,
-but you can also pass additional arguments in the ``blackArgs`` option
-(e.g. ``["--isort", "--revision=master..."]``).
+but you can also pass additional arguments in the ``black-formatter.args`` option
+(e.g. ``["-d", "--isort", "--revision=master..."]``).
 Be sure to *not* enable any linters here or in ``pyproject.toml``
 since VSCode won't be able to understand output from them.
 
