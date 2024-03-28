@@ -57,7 +57,7 @@ class OutputMode:
             return
         if stdin_filename is None and len(src) == 1 and Path(src[0]).is_file():
             return
-        if stdin_filename is not None and len(src) == 0:
+        if stdin_filename is not None and len(src) == 0 or src == ["-"]:
             return
         raise ConfigurationError(
             "Either --stdin-filename=<path> or exactly one Python source file which"
