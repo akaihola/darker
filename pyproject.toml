@@ -53,3 +53,7 @@ ignore = [
     "C408",  # Unnecessary `dict` call (rewrite as a literal)
     "S101",  # Use of `assert` detected
 ]
+
+[tool.ruff.lint.isort]
+known-first-party = ["darkgraylib", "graylint"]
+known-third-party = ["pytest"]
