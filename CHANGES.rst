@@ -6,6 +6,11 @@ These features will be included in the next release:
 Added
 -----
 
+Removed
+-------
+The ``release_tools/update_contributors.py`` script was moved to the
+``darkgray-dev-tools`` repository.
+
 Fixed
 -----
 - A dash (``-``) is now allowed as the single source filename when using the

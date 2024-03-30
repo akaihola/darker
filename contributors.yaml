@@ -148,7 +148,7 @@ matclayton:
 mayk0gan:
   - {link_type: issues, type: Bug reports}
 minrk:
-  - {link_type: darker-feedstock-issues, type: Code}
+  - {link_type: feedstock-issues, type: Code}
 mrfroggg:
   - {link_type: search-comments, type: Bug reports}
 muggenhor:
