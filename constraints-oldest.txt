@@ -5,6 +5,7 @@
 # versions in `setup.cfg`.
 airium==0.2.3
 black==22.3.0
+darkgraylib==1.2.0
 defusedxml==0.7.1
 flake8-2020==1.6.1
 flake8-bugbear==22.1.11

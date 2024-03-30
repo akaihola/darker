@@ -1,5 +1,6 @@
 """Command line parsing for the ``darker`` binary"""
 
+import warnings
 from argparse import ArgumentParser, Namespace
 from functools import partial
 from typing import List, Optional, Tuple
@@ -8,7 +9,7 @@ from black import TargetVersion
 
 import darkgraylib.command_line
 from darker import help as hlp
-from darker.config import DarkerConfig, OutputMode
+from darker.config import DEPRECATED_CONFIG_OPTIONS, DarkerConfig, OutputMode
 from darkgraylib.command_line import add_parser_argument
 from graylint.command_line import add_lint_arg
 
@@ -78,6 +79,17 @@ def make_argument_parser(require_src: bool) -> ArgumentParser:
     return parser
 
 
+def show_config_deprecations(config: DarkerConfig) -> None:
+    """Show deprecation warnings for configuration keys from the config file."""
+    for option in DEPRECATED_CONFIG_OPTIONS & set(config):
+        warnings.warn(
+            f"The configuration option `{option}` in [tool.darker] is deprecated"
+            " and will be removed in Darker 3.0.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
+
 def parse_command_line(
     argv: Optional[List[str]],
 ) -> Tuple[Namespace, DarkerConfig, DarkerConfig]:
@@ -96,7 +108,11 @@ def parse_command_line(
 
     """
     args, effective_cfg, modified_cfg = darkgraylib.command_line.parse_command_line(
-        make_argument_parser, argv, "darker", DarkerConfig
+        make_argument_parser,
+        argv,
+        "darker",
+        DarkerConfig,
+        show_config_deprecations,
     )
     OutputMode.validate_diff_stdout(args.diff, args.stdout)
     OutputMode.validate_stdout_src(args.stdout, args.src, args.stdin_filename)

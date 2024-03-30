@@ -10,6 +10,9 @@ from darkgraylib.config import BaseConfig, ConfigurationError
 UnvalidatedConfig = Dict[str, Union[List[str], str, bool, int]]
 
 
+DEPRECATED_CONFIG_OPTIONS = {"skip_string_normalization", "skip_magic_trailing_comma"}
+
+
 class DarkerConfig(BaseConfig, total=False):
     """Dictionary representing ``[tool.darker]`` from ``pyproject.toml``"""
 
