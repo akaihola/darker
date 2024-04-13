@@ -56,6 +56,7 @@
 - Jens Diemer (@jedie)
 - Jens Hedegaard Nielsen (@jenshnielsen)
 - john lee (@leej3)
+- Jonas Vacek (@jvacek)
 - jsuit (@jsuit)
 - Kentaro Wada (@wkentaro)
 - Kevin David (@Asuskf)
