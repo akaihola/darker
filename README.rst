@@ -367,12 +367,12 @@ The following `command line arguments`_ can also be used to modify the defaults:
 -S, --skip-string-normalization
        Don't normalize string quotes or prefixes
 --no-skip-string-normalization
-       Normalize string quotes or prefixes. This can be used to override
-       ``skip_string_normalization = true`` from a configuration file.
+       Normalize string quotes or prefixes. This can be used to override ``skip-string-
+       normalization = true`` from a Black configuration file.
 --skip-magic-trailing-comma
        Skip adding trailing commas to expressions that are split by comma where each
        element is on its own line. This includes function signatures. This can be used
-       to override ``skip_magic_trailing_comma = true`` from a configuration file.
+       to override ``skip-magic-trailing-comma = true`` from a Black configuration file.
 -l LENGTH, --line-length LENGTH
        How many characters per line to allow [default: 88]
 -t VERSION, --target-version VERSION
@@ -380,9 +380,20 @@ The following `command line arguments`_ can also be used to modify the defaults:
        that should be supported by Black's output. [default: per-file auto-detection]
 
 To change default values for these options for a given project,
-add a ``[tool.darker]`` or ``[tool.black]`` section to ``pyproject.toml`` in the
-project's root directory, or to a different TOML file specified using the ``-c`` /
-``--config`` option. For example:
+add a ``[tool.darker]`` section to ``pyproject.toml`` in the project's root directory,
+or to a different TOML file specified using the ``-c`` / ``--config`` option.
+
+You should configure invoked tools like Black_, isort_ and flynt_
+using their own configuration files.
+
+As an exception, the ``line-length`` and ``target-version`` options in ``[tool.darker]``
+can be used to override corresponding options for individual tools.
+
+Note that Black_ honors only the options listed in the below example
+when called by ``darker``, because ``darker`` reads the Black configuration
+and passes it on when invoking Black_ directly through its Python API.
+
+An example ``pyproject.toml`` configuration file:
 
 .. code-block:: toml
 
@@ -399,13 +410,14 @@ project's root directory, or to a different TOML file specified using the ``-c``
        "pylint",
    ]
    line-length = 80                  # Passed to isort and Black, override their config
+   target-version = ["py312"]        # Passed to Black, overriding its config
    log_level = "INFO"
 
    [tool.black]
    line-length = 88                  # Overridden by [tool.darker] above
    skip-magic-trailing-comma = false
    skip-string-normalization = false
-   target-version = ["py38", "py39", "py310", "py311", "py312"]
+   target-version = ["py38", "py39", "py310", "py311", "py312"]  # Overridden above
    exclude = "test_*\.py"
    extend_exclude = "/generated/"
    force_exclude = ".*\.pyi"
@@ -414,10 +426,6 @@ project's root directory, or to a different TOML file specified using the ``-c``
    profile = "black"
    known_third_party = ["pytest"]
    line_length = 88                  # Overridden by [tool.darker] above
-
-While isort_ reads all of its options from the configuration file, Black_ only honors
-the ones listed above when called by ``darker``. Other tools are invoked as
-subprocesses and use their configuration mechanisms unmodified.
 
 Be careful to not use options which generate output which is unexpected for
 other tools. For example, VSCode only expects the reformat diff, so
@@ -452,6 +460,9 @@ command line options
 *New in version 1.7.0:* The ``-t`` / ``--target-version`` command line option
 
 *New in version 1.7.0:* The ``-f`` / ``--flynt`` command line option
+
+*New in version 2.1.1:* In ``[tool.darker]``, deprecate the the Black options
+``skip_string_normalization`` and ``skip_magic_trailing_comma``
 
 .. _Black documentation about pyproject.toml: https://black.readthedocs.io/en/stable/usage_and_configuration/the_basics.html#configuration-via-a-file
 .. _isort documentation about config files: https://timothycrosley.github.io/isort/docs/configuration/config_files/
