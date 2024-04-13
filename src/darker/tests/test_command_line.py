@@ -11,6 +11,7 @@ from textwrap import dedent
 from unittest.mock import DEFAULT, Mock, call, patch
 
 import pytest
+import toml
 from black import TargetVersion
 
 import darker.help
@@ -241,6 +242,62 @@ def test_parse_command_line(
             assert (
                 modified_cfg[modified_option] == expect_modified_value  # type: ignore
             )
+
+
+@pytest.mark.kwparametrize(
+    dict(config={}, expect_warn=set()),
+    dict(config={"diff": True}, expect_warn=set()),
+    dict(config={"stdout": True}, expect_warn=set()),
+    dict(config={"check": True}, expect_warn=set()),
+    dict(config={"isort": True}, expect_warn=set()),
+    dict(config={"lint": ["pylint"]}, expect_warn=set()),
+    dict(
+        config={"skip_string_normalization": True},
+        expect_warn={
+            "The configuration option `skip_string_normalization` in [tool.darker] is"
+            " deprecated and will be removed in Darker 3.0."
+        },
+    ),
+    dict(
+        config={"skip_magic_trailing_comma": True},
+        expect_warn={
+            "The configuration option `skip_magic_trailing_comma` in [tool.darker] is"
+            " deprecated and will be removed in Darker 3.0."
+        },
+    ),
+    dict(config={"line_length": 88}, expect_warn=set()),
+    dict(config={"target_version": "py37"}, expect_warn=set()),
+    dict(
+        config={
+            "diff": True,
+            "stdout": False,
+            "check": True,
+            "isort": True,
+            "lint": ["pylint"],
+            "skip_string_normalization": True,
+            "skip_magic_trailing_comma": True,
+            "line_length": 88,
+            "target_version": "py37",
+        },
+        expect_warn={
+            "The configuration option `skip_magic_trailing_comma` in [tool.darker] is"
+            " deprecated and will be removed in Darker 3.0.",
+            "The configuration option `skip_string_normalization` in [tool.darker] is"
+            " deprecated and will be removed in Darker 3.0.",
+        },
+    ),
+)
+def test_parse_command_line_deprecated_option(
+    tmp_path, monkeypatch, config, expect_warn
+):
+    """`parse_command_line` warns about deprecated configuration options."""
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / "pyproject.toml").write_text(toml.dumps({"tool": {"darker": config}}))
+    with patch("darker.command_line.warnings.warn") as warn:
+
+        parse_command_line(["-"])
+
+    assert {c.args[0] for c in warn.call_args_list} == expect_warn
 
 
 def test_help_description_without_isort_package(capsys):
