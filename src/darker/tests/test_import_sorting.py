@@ -5,6 +5,7 @@
 from importlib import reload
 from pathlib import Path
 from textwrap import dedent
+from typing import Any, Dict, Optional
 
 import pytest
 
@@ -12,6 +13,7 @@ import darker.import_sorting
 from darker.git import EditedLinenumsDiffer
 from darker.tests.helpers import isort_present
 from darkgraylib.git import RevisionRange
+from darkgraylib.testtools.git_repo_plugin import GitRepoFixture
 from darkgraylib.utils import TextDocument, joinlines
 
 ORIGINAL_SOURCE = ("import sys", "import os", "", "print(42)")
@@ -171,7 +173,13 @@ def test_isort_config(monkeypatch, tmpdir, line_length, settings_file, expect):
     config=None,
     line_length=None,
 )
-def test_build_isort_args(src, config, line_length, expect):
+def test_build_isort_args(
+    git_repo: GitRepoFixture,
+    src: Path,
+    config: Optional[str],
+    line_length: int,
+    expect: Dict[str, Any],
+) -> None:
     """``_build_isort_args`` returns correct arguments for isort"""
     result = darker.import_sorting._build_isort_args(src, config, line_length)
 
