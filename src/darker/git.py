@@ -76,25 +76,33 @@ def should_reformat_file(path: Path) -> bool:
     return path.exists() and get_path_in_repo(path).suffix == ".py"
 
 
-def _git_exists_in_revision(path: Path, rev2: str, cwd: Path) -> bool:
+def _git_exists_in_revision(path: Path, rev2: str, git_cwd: Path) -> bool:
     """Return ``True`` if the given path exists in the given Git revision
 
-    :param path: The path of the file or directory to check
+    :param path: The path of the file or directory to check, either relative to current
+                 working directory or absolute
     :param rev2: The Git revision to look at
-    :param cwd: The Git repository root
+    :param git_cwd: The working directory to use when invoking Git. This has to be
+                    either the root of the working tree, or another directory inside it.
     :return: ``True`` if the file or directory exists at the revision, or ``False`` if
              it doesn't.
 
     """
-    if (cwd / path).resolve() == cwd.resolve():
-        return True
+    while not git_cwd.exists():
+        # The working directory for running Git doesn't exist. Walk up the directory
+        # tree until we find an existing directory. This is necessary because `git
+        # cat-file` doesn't work if the current working directory doesn't exist.
+        git_cwd = git_cwd.parent
+    relative_path = (Path.cwd() / path).relative_to(git_cwd.resolve())
     # Surprise: On Windows, `git cat-file` doesn't work with backslash directory
     # separators in paths. We need to use Posix paths and forward slashes instead.
-    cmd = ["git", "cat-file", "-e", f"{rev2}:{path.as_posix()}"]
-    logger.debug("[%s]$ %s", cwd, " ".join(cmd))
+    # Surprise #2: `git cat-file` assumes paths are relative to the repository root.
+    # We need to prepend `./` to paths relative to the working directory.
+    cmd = ["git", "cat-file", "-e", f"{rev2}:./{relative_path.as_posix()}"]
+    logger.debug("[%s]$ %s", git_cwd, " ".join(cmd))
     result = run(  # nosec
         cmd,
-        cwd=str(cwd),
+        cwd=str(git_cwd),
         check=False,
         stderr=DEVNULL,
         env=make_git_env(),
