@@ -516,10 +516,10 @@ def main(  # pylint: disable=too-many-locals,too-many-branches,too-many-statemen
     if args.skip_magic_trailing_comma is not None:
         black_config["skip_magic_trailing_comma"] = args.skip_magic_trailing_comma
 
-    paths, root = resolve_paths(args.stdin_filename, args.src)
+    paths, common_root = resolve_paths(args.stdin_filename, args.src)
 
     revrange = RevisionRange.parse_with_common_ancestor(
-        args.revision, root, args.stdin_filename is not None
+        args.revision, common_root, args.stdin_filename is not None
     )
     output_mode = OutputMode.from_args(args)
     write_modified_files = not args.check and output_mode == OutputMode.NOTHING
@@ -539,7 +539,7 @@ def main(  # pylint: disable=too-many-locals,too-many-branches,too-many-statemen
             )
 
     if revrange.rev2 != STDIN:
-        missing = get_missing_at_revision(paths, revrange.rev2, root)
+        missing = get_missing_at_revision(paths, revrange.rev2, common_root)
         if missing:
             missing_reprs = " ".join(repr(str(path)) for path in missing)
             rev2_repr = (
@@ -550,9 +550,9 @@ def main(  # pylint: disable=too-many-locals,too-many-branches,too-many-statemen
                 f"Error: Path(s) {missing_reprs} do not exist in {rev2_repr}",
             )
 
-    # These paths are relative to `root`:
-    files_to_process = filter_python_files(paths, root, {})
-    files_to_blacken = filter_python_files(paths, root, black_config)
+    # These paths are relative to `common_root`:
+    files_to_process = filter_python_files(paths, common_root, {})
+    files_to_blacken = filter_python_files(paths, common_root, black_config)
     # Now decide which files to reformat (Black & isort). Note that this doesn't apply
     # to linting.
     if output_mode == OutputMode.CONTENT or revrange.rev2 == STDIN:
@@ -563,11 +563,11 @@ def main(  # pylint: disable=too-many-locals,too-many-branches,too-many-statemen
         black_exclude = set()
     else:
         # In other modes, only reformat files which have been modified.
-        if git_is_repository(root):
+        if git_is_repository(common_root):
             # Get the modified files only.
-            repo_root = find_project_root((str(root),))
+            repo_root = find_project_root((str(common_root),))
             changed_files = {
-                (repo_root / file).relative_to(root)
+                (repo_root / file).relative_to(common_root)
                 for file in git_get_modified_python_files(paths, revrange, repo_root)
             }
             # Filter out changed files that are not supposed to be processed
@@ -584,7 +584,7 @@ def main(  # pylint: disable=too-many-locals,too-many-branches,too-many-statemen
     formatting_failures_on_modified_lines = False
     for path, old, new in sorted(
         format_edited_parts(
-            root,
+            common_root,
             changed_files_to_reformat,
             Exclusions(
                 black=black_exclude,
@@ -602,16 +602,16 @@ def main(  # pylint: disable=too-many-locals,too-many-branches,too-many-statemen
         #     there were any changes to the original
         formatting_failures_on_modified_lines = True
         if output_mode == OutputMode.DIFF:
-            print_diff(path, old, new, root, use_color)
+            print_diff(path, old, new, common_root, use_color)
         elif output_mode == OutputMode.CONTENT:
             print_source(new, use_color)
         if write_modified_files:
             modify_file(path, new)
     linter_failures_on_modified_lines = run_linters(
         args.lint,
-        root,
+        common_root,
         # paths to lint are not limited to modified files or just Python files:
-        {p.resolve().relative_to(root) for p in paths},
+        {p.resolve().relative_to(common_root) for p in paths},
         revrange,
         use_color,
     )
