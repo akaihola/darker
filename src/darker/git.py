@@ -116,9 +116,10 @@ def get_missing_at_revision(paths: Iterable[Path], rev2: str, cwd: Path) -> Set[
     In case of ``WORKTREE``, just check if the files exist on the filesystem instead of
     asking Git.
 
-    :param paths: Paths to check
+    :param paths: Paths to check, relative to the current working directory or absolute
     :param rev2: The Git revision to look at, or ``WORKTREE`` for the working tree
-    :param cwd: The Git repository root
+    :param cwd: The working directory to use when invoking Git. This has to be either
+                the root of the working tree, or another directory inside it.
     :return: The set of file or directory paths which are missing in the revision
 
     """
