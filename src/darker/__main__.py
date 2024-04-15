@@ -517,6 +517,10 @@ def main(  # pylint: disable=too-many-locals,too-many-branches,too-many-statemen
         black_config["skip_magic_trailing_comma"] = args.skip_magic_trailing_comma
 
     paths, common_root = resolve_paths(args.stdin_filename, args.src)
+    # `common_root` is now the common root of given paths,
+    # not necessarily the repository root.
+    # `paths` are the unmodified paths from `--stdin-filename` or `SRC`,
+    # so either relative to the current working directory or absolute paths.
 
     revrange = RevisionRange.parse_with_common_ancestor(
         args.revision, common_root, args.stdin_filename is not None
