@@ -21,6 +21,7 @@ Fixed
   ``--stdout`` option. This makes the option compatible with the
   `new Black extension for VSCode`__.
 - Badge links in the README on GitHub.
+- Handling of relative paths and running from elsewhere than repository root.
 
 __ https://github.com/microsoft/vscode-black-formatter
 
