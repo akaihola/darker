@@ -179,23 +179,26 @@ def _git_ls_files_others(relative_paths: Iterable[Path], cwd: Path) -> Set[Path]
 
 
 def git_get_modified_python_files(
-    paths: Iterable[Path], revrange: RevisionRange, cwd: Path
+    paths: Iterable[Path], revrange: RevisionRange, repo_root: Path
 ) -> Set[Path]:
     """Ask Git for modified and untracked ``*.py`` files
 
     - ``git diff --name-only --relative <rev> -- <path(s)>``
     - ``git ls-files --others --exclude-standard -- <path(s)>``
 
-    :param paths: Relative paths to the files to diff
+    :param paths: Files to diff, either relative to the current working dir or absolute
     :param revrange: Git revision range to compare
-    :param cwd: The Git repository root
+    :param repo_root: The Git repository root
     :return: File names relative to the Git repository root
 
     """
-    changed_paths = _git_diff_name_only(revrange.rev1, revrange.rev2, paths, cwd)
+    repo_paths = [path.resolve().relative_to(repo_root) for path in paths]
+    changed_paths = _git_diff_name_only(
+        revrange.rev1, revrange.rev2, repo_paths, repo_root
+    )
     if revrange.rev2 == WORKTREE:
-        changed_paths.update(_git_ls_files_others(paths, cwd))
-    return {path for path in changed_paths if should_reformat_file(cwd / path)}
+        changed_paths.update(_git_ls_files_others(repo_paths, repo_root))
+    return {path for path in changed_paths if should_reformat_file(repo_root / path)}
 
 
 def _revision_vs_lines(
