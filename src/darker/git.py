@@ -129,15 +129,15 @@ def get_missing_at_revision(paths: Iterable[Path], rev2: str, cwd: Path) -> Set[
 
 
 def _git_diff_name_only(
-    rev1: str, rev2: str, relative_paths: Iterable[Path], cwd: Path
+    rev1: str, rev2: str, relative_paths: Iterable[Path], repo_root: Path
 ) -> Set[Path]:
     """Collect names of changed files between commits from Git
 
     :param rev1: The old commit to compare to
     :param rev2: The new commit to compare, or the string ``":WORKTREE:"`` to compare
                  current working tree to ``rev1``
-    :param relative_paths: Relative paths to the files to compare
-    :param cwd: The Git repository root
+    :param relative_paths: Relative paths from repository root to the files to compare
+    :param repo_root: The Git repository root
     :return: Relative paths of changed files
 
     """
@@ -152,7 +152,7 @@ def _git_diff_name_only(
     ]
     if rev2 != WORKTREE:
         diff_cmd.insert(diff_cmd.index("--"), rev2)
-    lines = git_check_output_lines(diff_cmd, cwd)
+    lines = git_check_output_lines(diff_cmd, repo_root)
     return {Path(line) for line in lines}
 
 
