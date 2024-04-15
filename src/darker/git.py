@@ -162,7 +162,7 @@ def _git_ls_files_others(relative_paths: Iterable[Path], cwd: Path) -> Set[Path]
     This will return those files in ``relative_paths`` which are untracked and not
     excluded by ``.gitignore`` or other Git's exclusion mechanisms.
 
-    :param relative_paths: Relative paths to the files to consider
+    :param relative_paths: Relative paths from repository root to the files to consider
     :param cwd: The Git repository root
     :return: Relative paths of untracked files
 
