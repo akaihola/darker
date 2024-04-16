@@ -69,7 +69,7 @@ def test_git_exists_in_revision_git_call(retval, expect):
         result = git._git_exists_in_revision(Path("path.py"), "rev2", Path("."))
 
     run.assert_called_once_with(
-        ["git", "cat-file", "-e", "rev2:path.py"],
+        ["git", "cat-file", "-e", "rev2:./path.py"],
         cwd=".",
         check=False,
         stderr=DEVNULL,
@@ -79,54 +79,125 @@ def test_git_exists_in_revision_git_call(retval, expect):
 
 
 @pytest.mark.kwparametrize(
-    dict(rev2="{add}", path="dir/a.py", expect=True),
-    dict(rev2="{add}", path="dir/b.py", expect=True),
-    dict(rev2="{add}", path="dir/", expect=True),
-    dict(rev2="{add}", path="dir", expect=True),
-    dict(rev2="{del_a}", path="dir/a.py", expect=False),
-    dict(rev2="{del_a}", path="dir/b.py", expect=True),
-    dict(rev2="{del_a}", path="dir/", expect=True),
-    dict(rev2="{del_a}", path="dir", expect=True),
-    dict(rev2="HEAD", path="dir/a.py", expect=False),
-    dict(rev2="HEAD", path="dir/b.py", expect=False),
-    dict(rev2="HEAD", path="dir/", expect=False),
-    dict(rev2="HEAD", path="dir", expect=False),
+    dict(cwd=".", rev2="{add}", path="x/dir/a.py", expect=True),
+    dict(cwd=".", rev2="{add}", path="x/dir/sub/b.py", expect=True),
+    dict(cwd=".", rev2="{add}", path="x/dir/", expect=True),
+    dict(cwd=".", rev2="{add}", path="x/dir", expect=True),
+    dict(cwd=".", rev2="{add}", path="x/dir/sub", expect=True),
+    dict(cwd=".", rev2="{del_a}", path="x/dir/a.py", expect=False),
+    dict(cwd=".", rev2="{del_a}", path="x/dir/sub/b.py", expect=True),
+    dict(cwd=".", rev2="{del_a}", path="x/dir/", expect=True),
+    dict(cwd=".", rev2="{del_a}", path="x/dir", expect=True),
+    dict(cwd=".", rev2="{del_a}", path="x/dir/sub", expect=True),
+    dict(cwd=".", rev2="HEAD", path="x/dir/a.py", expect=False),
+    dict(cwd=".", rev2="HEAD", path="x/dir/sub/b.py", expect=False),
+    dict(cwd=".", rev2="HEAD", path="x/dir/", expect=False),
+    dict(cwd=".", rev2="HEAD", path="x/dir", expect=False),
+    dict(cwd=".", rev2="HEAD", path="x/dir/sub", expect=False),
+    dict(cwd="x", rev2="{add}", path="dir/a.py", expect=True),
+    dict(cwd="x", rev2="{add}", path="dir/sub/b.py", expect=True),
+    dict(cwd="x", rev2="{add}", path="dir/", expect=True),
+    dict(cwd="x", rev2="{add}", path="dir", expect=True),
+    dict(cwd="x", rev2="{add}", path="dir/sub", expect=True),
+    dict(cwd="x", rev2="{del_a}", path="dir/a.py", expect=False),
+    dict(cwd="x", rev2="{del_a}", path="dir/sub/b.py", expect=True),
+    dict(cwd="x", rev2="{del_a}", path="dir/", expect=True),
+    dict(cwd="x", rev2="{del_a}", path="dir", expect=True),
+    dict(cwd="x", rev2="{del_a}", path="dir/sub", expect=True),
+    dict(cwd="x", rev2="HEAD", path="dir/a.py", expect=False),
+    dict(cwd="x", rev2="HEAD", path="dir/sub/b.py", expect=False),
+    dict(cwd="x", rev2="HEAD", path="dir/", expect=False),
+    dict(cwd="x", rev2="HEAD", path="dir", expect=False),
+    dict(cwd="x", rev2="HEAD", path="dir/sub", expect=False),
 )
-def test_git_exists_in_revision(git_repo, rev2, path, expect):
+def test_git_exists_in_revision(git_repo, monkeypatch, cwd, rev2, path, expect):
     """``_get_exists_in_revision()`` detects file/dir existence correctly"""
-    git_repo.add({"dir/a.py": "", "dir/b.py": ""}, commit="Add dir/*.py")
+    git_repo.add(
+        {"x/README": "", "x/dir/a.py": "", "x/dir/sub/b.py": ""},
+        commit="Add x/dir/*.py",
+    )
     add = git_repo.get_hash()
-    git_repo.add({"dir/a.py": None}, commit="Delete dir/a.py")
+    git_repo.add({"x/dir/a.py": None}, commit="Delete x/dir/a.py")
     del_a = git_repo.get_hash()
-    git_repo.add({"dir/b.py": None}, commit="Delete dir/b.py")
+    git_repo.add({"x/dir/sub/b.py": None}, commit="Delete x/dir/b.py")
+    monkeypatch.chdir(cwd)
 
     result = git._git_exists_in_revision(
-        Path(path), rev2.format(add=add, del_a=del_a), git_repo.root
+        Path(path), rev2.format(add=add, del_a=del_a), git_repo.root / "x/dir/sub"
     )
 
     assert result == expect
 
 
 @pytest.mark.kwparametrize(
-    dict(rev2="{add}", expect=set()),
-    dict(rev2="{del_a}", expect={Path("dir/a.py")}),
-    dict(rev2="HEAD", expect={Path("dir"), Path("dir/a.py"), Path("dir/b.py")}),
+    dict(
+        paths={"x/dir", "x/dir/a.py", "x/dir/sub", "x/dir/sub/b.py"},
+        rev2="{add}",
+        expect=set(),
+    ),
+    dict(
+        paths={"x/dir", "x/dir/a.py", "x/dir/sub", "x/dir/sub/b.py"},
+        rev2="{del_a}",
+        expect={"x/dir/a.py"},
+    ),
+    dict(
+        paths={"x/dir", "x/dir/a.py", "x/dir/sub", "x/dir/sub/b.py"},
+        rev2="HEAD",
+        expect={"x/dir", "x/dir/a.py", "x/dir/sub", "x/dir/sub/b.py"},
+    ),
+    dict(
+        paths={"x/dir", "x/dir/a.py", "x/dir/sub", "x/dir/sub/b.py"},
+        rev2=":WORKTREE:",
+        expect={"x/dir", "x/dir/a.py", "x/dir/sub", "x/dir/sub/b.py"},
+    ),
+    dict(
+        paths={"dir", "dir/a.py", "dir/sub", "dir/sub/b.py"},
+        cwd="x",
+        rev2="{add}",
+        expect=set(),
+    ),
+    dict(
+        paths={"dir", "dir/a.py", "dir/sub", "dir/sub/b.py"},
+        cwd="x",
+        rev2="{del_a}",
+        expect={"dir/a.py"},
+    ),
+    dict(
+        paths={"dir", "dir/a.py", "dir/sub", "dir/sub/b.py"},
+        cwd="x",
+        rev2="HEAD",
+        expect={"dir", "dir/a.py", "dir/sub", "dir/sub/b.py"},
+    ),
+    dict(
+        paths={"dir", "dir/a.py", "dir/sub", "dir/sub/b.py"},
+        cwd="x",
+        rev2=":WORKTREE:",
+        expect={"dir", "dir/a.py", "dir/sub", "dir/sub/b.py"},
+    ),
+    cwd=".",
+    git_cwd=".",
 )
-def test_get_missing_at_revision(git_repo, rev2, expect):
+def test_get_missing_at_revision(
+    git_repo, monkeypatch, paths, cwd, git_cwd, rev2, expect
+):
     """``get_missing_at_revision()`` returns missing files/directories correctly"""
-    git_repo.add({"dir/a.py": "", "dir/b.py": ""}, commit="Add dir/*.py")
+    git_repo.add(
+        {"x/README": "", "x/dir/a.py": "", "x/dir/sub/b.py": ""},
+        commit="Add x/dir/**/*.py",
+    )
     add = git_repo.get_hash()
-    git_repo.add({"dir/a.py": None}, commit="Delete dir/a.py")
+    git_repo.add({"x/dir/a.py": None}, commit="Delete x/dir/a.py")
     del_a = git_repo.get_hash()
-    git_repo.add({"dir/b.py": None}, commit="Delete dir/b.py")
+    git_repo.add({"x/dir/sub/b.py": None}, commit="Delete x/dir/sub/b.py")
+    monkeypatch.chdir(git_repo.root / cwd)
 
     result = git.get_missing_at_revision(
-        {Path("dir"), Path("dir/a.py"), Path("dir/b.py")},
+        {Path(p) for p in paths},
         rev2.format(add=add, del_a=del_a),
-        git_repo.root,
+        git_repo.root / git_cwd,
     )
 
-    assert result == expect
+    assert result == {Path(p) for p in expect}
 
 
 def test_get_missing_at_revision_worktree(git_repo):
@@ -224,7 +295,7 @@ def test_git_get_modified_python_files(git_repo, modify_paths, paths, expect):
     revrange = RevisionRange("HEAD", ":WORKTREE:")
 
     result = git.git_get_modified_python_files(
-        {root / p for p in paths}, revrange, cwd=root
+        {root / p for p in paths}, revrange, repo_root=root
     )
 
     assert result == {Path(p) for p in expect}

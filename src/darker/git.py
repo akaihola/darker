@@ -76,25 +76,33 @@ def should_reformat_file(path: Path) -> bool:
     return path.exists() and get_path_in_repo(path).suffix == ".py"
 
 
-def _git_exists_in_revision(path: Path, rev2: str, cwd: Path) -> bool:
+def _git_exists_in_revision(path: Path, rev2: str, git_cwd: Path) -> bool:
     """Return ``True`` if the given path exists in the given Git revision
 
-    :param path: The path of the file or directory to check
+    :param path: The path of the file or directory to check, either relative to current
+                 working directory or absolute
     :param rev2: The Git revision to look at
-    :param cwd: The Git repository root
+    :param git_cwd: The working directory to use when invoking Git. This has to be
+                    either the root of the working tree, or another directory inside it.
     :return: ``True`` if the file or directory exists at the revision, or ``False`` if
              it doesn't.
 
     """
-    if (cwd / path).resolve() == cwd.resolve():
-        return True
+    while not git_cwd.exists():
+        # The working directory for running Git doesn't exist. Walk up the directory
+        # tree until we find an existing directory. This is necessary because `git
+        # cat-file` doesn't work if the current working directory doesn't exist.
+        git_cwd = git_cwd.parent
+    relative_path = (Path.cwd() / path).relative_to(git_cwd.resolve())
     # Surprise: On Windows, `git cat-file` doesn't work with backslash directory
     # separators in paths. We need to use Posix paths and forward slashes instead.
-    cmd = ["git", "cat-file", "-e", f"{rev2}:{path.as_posix()}"]
-    logger.debug("[%s]$ %s", cwd, " ".join(cmd))
+    # Surprise #2: `git cat-file` assumes paths are relative to the repository root.
+    # We need to prepend `./` to paths relative to the working directory.
+    cmd = ["git", "cat-file", "-e", f"{rev2}:./{relative_path.as_posix()}"]
+    logger.debug("[%s]$ %s", git_cwd, " ".join(cmd))
     result = run(  # nosec
         cmd,
-        cwd=str(cwd),
+        cwd=str(git_cwd),
         check=False,
         stderr=DEVNULL,
         env=make_git_env(),
@@ -108,9 +116,10 @@ def get_missing_at_revision(paths: Iterable[Path], rev2: str, cwd: Path) -> Set[
     In case of ``WORKTREE``, just check if the files exist on the filesystem instead of
     asking Git.
 
-    :param paths: Paths to check
+    :param paths: Paths to check, relative to the current working directory or absolute
     :param rev2: The Git revision to look at, or ``WORKTREE`` for the working tree
-    :param cwd: The Git repository root
+    :param cwd: The working directory to use when invoking Git. This has to be either
+                the root of the working tree, or another directory inside it.
     :return: The set of file or directory paths which are missing in the revision
 
     """
@@ -120,15 +129,15 @@ def get_missing_at_revision(paths: Iterable[Path], rev2: str, cwd: Path) -> Set[
 
 
 def _git_diff_name_only(
-    rev1: str, rev2: str, relative_paths: Iterable[Path], cwd: Path
+    rev1: str, rev2: str, relative_paths: Iterable[Path], repo_root: Path
 ) -> Set[Path]:
     """Collect names of changed files between commits from Git
 
     :param rev1: The old commit to compare to
     :param rev2: The new commit to compare, or the string ``":WORKTREE:"`` to compare
                  current working tree to ``rev1``
-    :param relative_paths: Relative paths to the files to compare
-    :param cwd: The Git repository root
+    :param relative_paths: Relative paths from repository root to the files to compare
+    :param repo_root: The Git repository root
     :return: Relative paths of changed files
 
     """
@@ -143,7 +152,7 @@ def _git_diff_name_only(
     ]
     if rev2 != WORKTREE:
         diff_cmd.insert(diff_cmd.index("--"), rev2)
-    lines = git_check_output_lines(diff_cmd, cwd)
+    lines = git_check_output_lines(diff_cmd, repo_root)
     return {Path(line) for line in lines}
 
 
@@ -153,7 +162,7 @@ def _git_ls_files_others(relative_paths: Iterable[Path], cwd: Path) -> Set[Path]
     This will return those files in ``relative_paths`` which are untracked and not
     excluded by ``.gitignore`` or other Git's exclusion mechanisms.
 
-    :param relative_paths: Relative paths to the files to consider
+    :param relative_paths: Relative paths from repository root to the files to consider
     :param cwd: The Git repository root
     :return: Relative paths of untracked files
 
@@ -170,23 +179,26 @@ def _git_ls_files_others(relative_paths: Iterable[Path], cwd: Path) -> Set[Path]
 
 
 def git_get_modified_python_files(
-    paths: Iterable[Path], revrange: RevisionRange, cwd: Path
+    paths: Iterable[Path], revrange: RevisionRange, repo_root: Path
 ) -> Set[Path]:
     """Ask Git for modified and untracked ``*.py`` files
 
     - ``git diff --name-only --relative <rev> -- <path(s)>``
     - ``git ls-files --others --exclude-standard -- <path(s)>``
 
-    :param paths: Relative paths to the files to diff
+    :param paths: Files to diff, either relative to the current working dir or absolute
     :param revrange: Git revision range to compare
-    :param cwd: The Git repository root
+    :param repo_root: The Git repository root
     :return: File names relative to the Git repository root
 
     """
-    changed_paths = _git_diff_name_only(revrange.rev1, revrange.rev2, paths, cwd)
+    repo_paths = [path.resolve().relative_to(repo_root) for path in paths]
+    changed_paths = _git_diff_name_only(
+        revrange.rev1, revrange.rev2, repo_paths, repo_root
+    )
     if revrange.rev2 == WORKTREE:
-        changed_paths.update(_git_ls_files_others(paths, cwd))
-    return {path for path in changed_paths if should_reformat_file(cwd / path)}
+        changed_paths.update(_git_ls_files_others(repo_paths, repo_root))
+    return {path for path in changed_paths if should_reformat_file(repo_root / path)}
 
 
 def _revision_vs_lines(
