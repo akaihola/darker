@@ -5,6 +5,16 @@ These features will be included in the next release:
 
 Added
 -----
+
+Fixed
+-----
+
+
+2.1.1_ - 2024-04-16
+===================
+
+Added
+-----
 - In the Darker configuration file under ``[tool.darker]``, the Black configuration
   options ``skip_string_normalization`` and ``skip_magic_trailing_comma`` have been
   deprecated and will be removed in Darker 3.0. A deprecation warning is now displayed
