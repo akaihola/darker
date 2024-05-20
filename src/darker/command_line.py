@@ -7,6 +7,7 @@ from typing import List, Optional, Tuple
 
 from black import TargetVersion
 
+from darker.version import __version__
 import darkgraylib.command_line
 from darker import help as hlp
 from darker.config import DEPRECATED_CONFIG_OPTIONS, DarkerConfig, OutputMode
@@ -28,6 +29,7 @@ def make_argument_parser(require_src: bool) -> ArgumentParser:
         "Make `darker`, `black` and `isort` read configuration from `PATH`. Note that"
         " other tools like `flynt`, `mypy`, `pylint` or `flake8` won't use this"
         " configuration file.",
+        __version__,
     )
 
     add_arg = partial(add_parser_argument, parser)
