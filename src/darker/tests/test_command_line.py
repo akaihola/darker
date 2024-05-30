@@ -568,7 +568,7 @@ def test_black_options(monkeypatch, tmpdir, git_repo, options, expect):
     dict(
         config=["preview = true"],
         options=["--preview"],
-        expect=call(target_versions={TargetVersion.PY39}),
+        expect=call(preview=True),
     ),
 )
 def test_black_config_file_and_options(git_repo, config, options, expect):
