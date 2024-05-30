@@ -76,6 +76,7 @@ class BlackConfig(TypedDict, total=False):
     line_length: int
     skip_string_normalization: bool
     skip_magic_trailing_comma: bool
+    preview: bool
 
 
 class BlackModeAttributes(TypedDict, total=False):
@@ -109,6 +110,7 @@ def read_black_config(src: Tuple[str, ...], value: Optional[str]) -> BlackConfig
         "line_length",
         "skip_magic_trailing_comma",
         "skip_string_normalization",
+        "preview",
     ]:
         if key in raw_config:
             config[key] = raw_config[key]  # type: ignore
@@ -203,6 +205,8 @@ def run_black(src_contents: TextDocument, black_config: BlackConfig) -> TextDocu
         # ``black.Mode`` needs to be the opposite boolean of
         # ``skip-string-normalization``, hence the inverse boolean
         mode["string_normalization"] = not black_config["skip_string_normalization"]
+    if "preview" in black_config:
+        mode["preview"] = black_config["preview"]
 
     # The custom handling of empty and all-whitespace files below will be unnecessary if
     # https://github.com/psf/black/pull/2484 lands in Black.
