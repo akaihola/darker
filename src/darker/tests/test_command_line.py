@@ -208,6 +208,12 @@ def get_darker_help_output(capsys):
         expect_config=None,
         expect_modified=None,
     ),
+    dict(
+        argv=["--preview", "."],
+        expect_value=("preview", True),
+        expect_config=("preview", True),
+        expect_modified=("preview", True),
+    ),
     environ={},
 )
 def test_parse_command_line(
@@ -445,6 +451,12 @@ def test_help_with_flynt_package(capsys):
             target_versions={TargetVersion.PY39},
         ),
     ),
+    dict(
+        options=["--preview"],
+        expect=call(
+            preview=True,
+        ),
+    ),
 )
 def test_black_options(monkeypatch, tmpdir, git_repo, options, expect):
     """Black options from the command line are passed correctly to Black"""
@@ -554,6 +566,11 @@ def test_black_options(monkeypatch, tmpdir, git_repo, options, expect):
         options=["-t", "py39"],
         expect=call(target_versions={TargetVersion.PY39}),
     ),
+    dict(
+        config=["preview = true"],
+        options=["--preview"],
+        expect=call(target_versions={TargetVersion.PY39}),
+    ),
 )
 def test_black_config_file_and_options(git_repo, config, options, expect):
     """Black configuration file and command line options are combined correctly"""
@@ -643,6 +660,16 @@ def test_black_config_file_and_options(git_repo, config, options, expect):
             Exclusions(isort={"**/*"}, flynt={"**/*"}),
             RevisionRange("HEAD", ":WORKTREE:"),
             {"target_version": {"py39"}},
+        ),
+    ),
+    dict(
+        options=["--preview", "a.py"],
+        expect=(
+            Path("git_root"),
+            {Path("a.py")},
+            Exclusions(isort={"**/*"}, flynt={"**/*"}),
+            RevisionRange("HEAD", ":WORKTREE:"),
+            {"preview": True},
         ),
     ),
 )
