@@ -378,6 +378,8 @@ The following `command line arguments`_ can also be used to modify the defaults:
 -t VERSION, --target-version VERSION
        [py33\|py34\|py35\|py36\|py37\|py38\|py39\|py310\|py311\|py312] Python versions
        that should be supported by Black's output. [default: per-file auto-detection]
+--preview
+       Use black's preview future code style
 
 To change default values for these options for a given project,
 add a ``[tool.darker]`` section to ``pyproject.toml`` in the project's root directory,
@@ -412,6 +414,7 @@ An example ``pyproject.toml`` configuration file:
    line-length = 80                  # Passed to isort and Black, override their config
    target-version = ["py312"]        # Passed to Black, overriding its config
    log_level = "INFO"
+   preview = false                   # Passed to Black, overriding its config
 
    [tool.black]
    line-length = 88                  # Overridden by [tool.darker] above
@@ -421,6 +424,8 @@ An example ``pyproject.toml`` configuration file:
    exclude = "test_*\.py"
    extend_exclude = "/generated/"
    force_exclude = ".*\.pyi"
+   preview = true                    # Overridden above
+
 
    [tool.isort]
    profile = "black"

@@ -5,6 +5,8 @@ These features will be included in the next release:
 
 Added
 -----
+- The `--preview` configuration flag is now supported in Darker CLI and Block
+  configuration file.
 
 Fixed
 -----
