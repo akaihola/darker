@@ -34,6 +34,12 @@ from darker.help import get_extra_instruction
 from darker.import_sorting import apply_isort, isort
 from darker.utils import debug_dump, glob_any
 from darker.verification import ASTVerifier, BinarySearch, NotEquivalentError
+from darkgraylib.command_line import (
+    EXIT_CODE_CMDLINE_ERROR,
+    EXIT_CODE_DEPENDENCY,
+    EXIT_CODE_FILE_NOT_FOUND,
+    EXIT_CODE_UNKNOWN,
+)
 from darkgraylib.config import show_config_if_debug
 from darkgraylib.files import find_project_root
 from darkgraylib.git import (
@@ -549,9 +555,8 @@ def main(  # pylint: disable=too-many-locals,too-many-branches,too-many-statemen
             rev2_repr = (
                 "the working tree" if revrange.rev2 == WORKTREE else revrange.rev2
             )
-            raise ArgumentError(
-                Action(["PATH"], "path"),
-                f"Error: Path(s) {missing_reprs} do not exist in {rev2_repr}",
+            raise FileNotFoundError(
+                f"Path(s) {missing_reprs} do not exist in {rev2_repr}"
             )
 
     # These paths are relative to `common_root`:
@@ -631,10 +636,18 @@ def main_with_error_handling() -> int:
     """Entry point for console script"""
     try:
         return main()
-    except (ArgumentError, DependencyError) as exc_info:
-        if logger.root.level < logging.WARNING:
-            raise
-        sys.exit(str(exc_info))
+    except FileNotFoundError as exc_info:
+        logger.exception("%s (%d)", exc_info, EXIT_CODE_FILE_NOT_FOUND)  # noqa: TRY401
+        return EXIT_CODE_FILE_NOT_FOUND
+    except ArgumentError as exc_info:
+        logger.exception("%s (%d)", exc_info, EXIT_CODE_CMDLINE_ERROR)  # noqa: TRY401
+        return EXIT_CODE_CMDLINE_ERROR
+    except DependencyError as exc_info:
+        logger.exception("%s (%d)", exc_info, EXIT_CODE_DEPENDENCY)  # noqa: TRY401
+        return EXIT_CODE_DEPENDENCY
+    except Exception as exc_info:  # pylint: disable=broad-exception-caught
+        logger.exception("%s (%d)", exc_info, EXIT_CODE_UNKNOWN)  # noqa: TRY401
+        return EXIT_CODE_UNKNOWN
 
 
 if __name__ == "__main__":
