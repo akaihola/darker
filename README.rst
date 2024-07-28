@@ -376,8 +376,9 @@ The following `command line arguments`_ can also be used to modify the defaults:
 -l LENGTH, --line-length LENGTH
        How many characters per line to allow [default: 88]
 -t VERSION, --target-version VERSION
-       [py33\|py34\|py35\|py36\|py37\|py38\|py39\|py310\|py311\|py312] Python versions
-       that should be supported by Black's output. [default: per-file auto-detection]
+       [py33\|py34\|py35\|py36\|py37\|py38\|py39\|py310\|py311\|py312\|py313] Python
+       versions that should be supported by Black's output. [default: per-file auto-
+       detection]
 
 To change default values for these options for a given project,
 add a ``[tool.darker]`` section to ``pyproject.toml`` in the project's root directory,
