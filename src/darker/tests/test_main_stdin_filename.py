@@ -10,6 +10,7 @@ import pytest
 import toml
 
 import darker.__main__
+from darkgraylib.command_line import EXIT_CODE_CMDLINE_ERROR
 from darkgraylib.config import ConfigurationError
 from darkgraylib.testtools.git_repo_plugin import GitRepoFixture
 from darkgraylib.testtools.helpers import raises_if_exception
@@ -18,7 +19,7 @@ pytestmark = pytest.mark.usefixtures("find_project_root_cache_clear")
 
 
 @pytest.mark.kwparametrize(
-    dict(expect=SystemExit(2)),
+    dict(expect=SystemExit(EXIT_CODE_CMDLINE_ERROR)),
     dict(config_src=["a.py"], expect_a_py='modified = "a.py worktree"\n'),
     dict(config_src=["b.py"], src=["a.py"], expect_a_py='modified = "a.py worktree"\n'),
     dict(
@@ -125,8 +126,8 @@ pytestmark = pytest.mark.usefixtures("find_project_root_cache_clear")
             " ':WORKTREE:'"
         ),
     ),
-    dict(revision="..:STDIN:", expect=SystemExit(2)),
-    dict(revision="..:WORKTREE:", expect=SystemExit(2)),
+    dict(revision="..:STDIN:", expect=SystemExit(EXIT_CODE_CMDLINE_ERROR)),
+    dict(revision="..:WORKTREE:", expect=SystemExit(EXIT_CODE_CMDLINE_ERROR)),
     config_src=None,
     src=[],
     stdin_filename=None,
