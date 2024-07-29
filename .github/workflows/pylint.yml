@@ -13,7 +13,6 @@ jobs:
       - name: Install dependencies for running Pylint
         run: |
           pip install -U \
-            airium \
             black \
             git+https://github.com/akaihola/darkgraylib.git@main \
             defusedxml \
