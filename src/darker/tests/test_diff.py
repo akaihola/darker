@@ -3,13 +3,11 @@
 # pylint: disable=use-dict-literal
 
 from itertools import chain
+from typing import List, Literal, Tuple
 
 import pytest
 
-from darker.diff import (
-    opcodes_to_chunks,
-    opcodes_to_edit_linenums,
-)
+from darker.diff import opcodes_to_chunks, opcodes_to_edit_linenums
 from darkgraylib.testtools.diff_helpers import (
     EXPECT_OPCODES,
     FUNCTIONS2_PY,
@@ -98,7 +96,9 @@ def test_opcodes_to_chunks():
     ]
 
 
-EXAMPLE_OPCODES = [
+EXAMPLE_OPCODES: List[
+    Tuple[Literal["replace", "delete", "insert", "equal"], int, int, int, int]
+] = [
     # 0-based, end-exclusive
     ("replace", 0, 4, 0, 1),
     ("equal", 4, 6, 1, 3),
