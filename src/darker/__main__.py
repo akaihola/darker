@@ -492,7 +492,7 @@ def main(  # pylint: disable=too-many-locals,too-many-branches,too-many-statemen
     logging.getLogger("blib2to3.pgen2.driver").setLevel(logging.WARNING)
     logging.getLogger("flynt.transform.transform").setLevel(logging.CRITICAL)
 
-    show_config_if_debug(config, config_nondefault, args.log_level)
+    show_config_if_debug(config, config_nondefault, args.log_level, "darker")
 
     if args.isort and not isort:
         raise MissingPackageError(
