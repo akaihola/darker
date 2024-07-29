@@ -65,7 +65,7 @@ a mixed result with only selected regions reformatted can be reconstructed.
 """
 
 import logging
-from typing import Generator, List, Sequence, Tuple
+from typing import Generator, List, Literal, Sequence, Tuple
 
 from darker.multiline_strings import find_overlap
 from darkgraylib.diff import diff_and_get_opcodes, validate_opcodes
@@ -75,7 +75,9 @@ logger = logging.getLogger(__name__)
 
 
 def opcodes_to_edit_linenums(  # pylint: disable=too-many-locals
-    opcodes: List[Tuple[str, int, int, int, int]],
+    opcodes: List[
+        Tuple[Literal["replace", "delete", "insert", "equal"], int, int, int, int]
+    ],
     context_lines: int,
     multiline_string_ranges: Sequence[Tuple[int, int]],
 ) -> Generator[int, None, None]:
@@ -123,7 +125,9 @@ def opcodes_to_edit_linenums(  # pylint: disable=too-many-locals
 
 
 def opcodes_to_chunks(
-    opcodes: List[Tuple[str, int, int, int, int]],
+    opcodes: List[
+        Tuple[Literal["replace", "delete", "insert", "equal"], int, int, int, int]
+    ],
     src: TextDocument,
     dst: TextDocument,
 ) -> Generator[DiffChunk, None, None]:
