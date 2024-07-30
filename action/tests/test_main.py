@@ -46,7 +46,9 @@ def patch_main(
 
     def run(args, **kwargs):
         returncode = pip_returncode if args[1:3] == ["-m", "pip"] else 0
-        return CompletedProcess(args, returncode, stdout="", stderr="")
+        return CompletedProcess(
+            args, returncode, stdout="Output\nfrom\nDarker", stderr=""
+        )
 
     run_mock = Mock(wraps=run)
     exit_ = Mock(side_effect=SysExitCalled)
@@ -74,7 +76,16 @@ def main_patch(
         yield run_main_fixture
 
 
-def test_creates_virtualenv(tmp_path, main_patch):
+@pytest.fixture
+def github_output(tmp_path: Path) -> Generator[Path, None, None]:
+    """Fixture to set up a GitHub output file for the action"""
+    gh_output_filepath = tmp_path / "github.output"
+    with patch.dict("os.environ", {"GITHUB_OUTPUT": str(gh_output_filepath)}):
+
+        yield gh_output_filepath
+
+
+def test_creates_virtualenv(tmp_path, main_patch, github_output):
     """The GitHub action creates a virtualenv for Darker"""
     with pytest.raises(SysExitCalled):
 
@@ -93,9 +104,7 @@ def test_creates_virtualenv(tmp_path, main_patch):
     ),
     dict(
         run_main_env={"INPUT_VERSION": "@master"},
-        expect=[
-            "git+https://github.com/akaihola/darker@master#egg=darker[color,isort]"
-        ],
+        expect=["darker[color,isort]@git+https://github.com/akaihola/darker@master"],
     ),
     dict(
         run_main_env={"INPUT_LINT": "pylint"},
@@ -118,7 +127,7 @@ def test_creates_virtualenv(tmp_path, main_patch):
         expect=["darker[color,isort]", "flake8>=3.9.2", "pylint==2.13.1"],
     ),
 )
-def test_installs_packages(tmp_path, main_patch, run_main_env, expect):
+def test_installs_packages(tmp_path, main_patch, github_output, run_main_env, expect):
     """Darker, isort and linters are installed in the virtualenv using pip"""
     with pytest.raises(SysExitCalled):
 
@@ -213,7 +222,7 @@ def test_wont_install_unknown_packages(tmp_path, linters):
         ],
     ),
 )
-def test_runs_darker(tmp_path, env, expect):
+def test_runs_darker(tmp_path, github_output, env, expect):
     """Configuration translates correctly into a Darker command line"""
     with patch_main(tmp_path, env) as main_patch, pytest.raises(SysExitCalled):
 
@@ -241,15 +250,28 @@ def test_error_if_pip_fails(tmp_path, capsys):
     )
     assert (
         capsys.readouterr().out.splitlines()[-1]
-        == "::error::Failed to install darker[color,isort]."
+        == "Darker::error::Failed to install darker[color,isort]."
     )
     main_patch.sys.exit.assert_called_once_with(42)
 
 
-def test_exits(main_patch):
+def test_exits(main_patch, github_output):
     """A successful run exits with a zero return code"""
     with pytest.raises(SysExitCalled):
 
         run_module("main")
 
     main_patch.sys.exit.assert_called_once_with(0)
+
+
+@pytest.mark.parametrize(
+    "expect_line",
+    ["exitcode=0", "stdout<<DARKER_ACTION_EOF"],
+)
+def test_writes_github_output(main_patch, github_output, expect_line):
+    """A successful run exits with a zero return code"""
+    with pytest.raises(SysExitCalled):
+
+        run_module("main")
+
+    assert expect_line in github_output.read_text().splitlines()
