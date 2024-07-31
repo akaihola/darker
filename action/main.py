@@ -66,9 +66,7 @@ if not ENV_PATH.exists():
 req = ["darker[color,isort]"]
 if VERSION:
     if VERSION.startswith("@"):
-        req[0] = (
-            f"git+https://github.com/akaihola/darker{VERSION}[color,isort]#egg=darker"
-        )
+        req[0] += f"@git+https://github.com/akaihola/darker{VERSION}"
     elif VERSION.startswith(("~", "=", "<", ">")):
         req[0] += VERSION
     else:
