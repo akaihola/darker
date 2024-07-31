@@ -4,7 +4,6 @@
 
 import os
 import re
-from argparse import ArgumentError
 from importlib import reload
 from pathlib import Path
 from textwrap import dedent
@@ -711,10 +710,8 @@ def test_main_missing_in_worktree(git_repo):
     paths["a.py"].unlink()
 
     with pytest.raises(
-        ArgumentError,
-        match=re.escape(
-            "argument PATH: Error: Path(s) 'a.py' do not exist in the working tree"
-        ),
+        FileNotFoundError,
+        match=re.escape("Path(s) 'a.py' do not exist in the working tree"),
     ):
 
         main(["a.py"])
@@ -727,8 +724,8 @@ def test_main_missing_in_revision(git_repo):
     paths["a.py"].touch()
 
     with pytest.raises(
-        ArgumentError,
-        match=re.escape("argument PATH: Error: Path(s) 'a.py' do not exist in HEAD"),
+        FileNotFoundError,
+        match=re.escape("Path(s) 'a.py' do not exist in HEAD"),
     ):
 
         main(["--diff", "--revision", "..HEAD", "a.py"])
