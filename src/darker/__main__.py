@@ -451,7 +451,8 @@ def _import_pygments():  # type: ignore
     return highlight, TerminalFormatter, PythonLexer
 
 
-def main(  # pylint: disable=too-many-locals,too-many-branches,too-many-statements
+# pylint: disable=too-many-locals,too-many-branches,too-many-statements
+def main(  # noqa: C901,PLR0912,PLR0915
     argv: List[str] = None,
 ) -> int:
     """Parse the command line and reformat and optionally lint each source file
@@ -555,9 +556,8 @@ def main(  # pylint: disable=too-many-locals,too-many-branches,too-many-statemen
             rev2_repr = (
                 "the working tree" if revrange.rev2 == WORKTREE else revrange.rev2
             )
-            raise FileNotFoundError(
-                f"Path(s) {missing_reprs} do not exist in {rev2_repr}"
-            )
+            msg = f"Path(s) {missing_reprs} do not exist in {rev2_repr}"
+            raise FileNotFoundError(msg)
 
     # These paths are relative to `common_root`:
     files_to_process = filter_python_files(paths, common_root, {})
