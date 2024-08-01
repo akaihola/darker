@@ -80,6 +80,10 @@ aljazerzen:
   - {link_type: commits, type: Code}
 baod-rate:
   - {link_type: pulls-author, type: Code}
+baodrate:
+  - {link_type: search-comments, type: Bug reports}
+  - {link_type: search-comments, type: Reviewed Pull Requests}
+  - {link_type: pulls-author, type: Code}
 bdperkin:
   - {link_type: issues, type: Bug reports}
 brtknr:
