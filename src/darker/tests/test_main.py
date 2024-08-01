@@ -10,13 +10,13 @@ import string
 from argparse import ArgumentError
 from pathlib import Path
 from textwrap import dedent
-from unittest.mock import ANY, call, patch
 
 import pytest
 
 import darker.__main__
 import darker.import_sorting
 from darker.git import EditedLinenumsDiffer
+from darker.help import LINTING_GUIDE
 from darker.tests.examples import A_PY, A_PY_BLACK, A_PY_BLACK_FLYNT, A_PY_BLACK_ISORT
 from darker.tests.test_fstring import FLYNTED_SOURCE, MODIFIED_SOURCE, ORIGINAL_SOURCE
 from darkgraylib.git import RevisionRange
@@ -112,17 +112,16 @@ A_PY_DIFF_BLACK_FLYNT = [
         expect_retval=1,
     ),
     dict(
-        arguments=["--check", "--lint", "echo subdir/a.py:1: message"],
+        arguments=["--check", "--lint", "dummy"],
         # Windows compatible path assertion using `pathlib.Path()`
-        expect_stdout=["", f"{Path('subdir/a.py')}:1: message {Path('subdir')} [echo]"],
+        expect_stdout=["", *LINTING_GUIDE.lstrip().splitlines()],
         expect_retval=1,
     ),
     dict(
-        arguments=["--diff", "--lint", "echo subdir/a.py:1: message"],
+        arguments=["--diff", "--lint", "dummy"],
         # Windows compatible path assertion using `pathlib.Path()`
-        expect_stdout=A_PY_DIFF_BLACK
-        + ["", f"{Path('subdir/a.py')}:1: message {Path('subdir')} [echo]"],
-        expect_retval=1,
+        expect_stdout=[*A_PY_DIFF_BLACK, "", *LINTING_GUIDE.lstrip().splitlines()],
+        expect_retval=0,
     ),
     dict(
         arguments=[],
@@ -250,41 +249,35 @@ def test_main_in_plain_directory(tmp_path, capsys):
     (subdir_a / "non-python file.txt").write_text("not  reformatted\n")
     (subdir_a / "python file.py").write_text("import  sys, os\nprint('ok')")
     (subdir_c / "another python file.py").write_text("a  =5")
-    with patch.object(darker.__main__, "run_linters") as run_linters:
 
-        retval = darker.__main__.main(
-            ["--diff", "--check", "--isort", "--lint", "echo", str(tmp_path)]
-        )
+    retval = darker.__main__.main(
+        ["--diff", "--check", "--isort", "--lint", "dummy", str(tmp_path)],
+    )
 
     assert retval == 1
-    assert run_linters.call_args_list == [
-        call(
-            ["echo"],
-            tmp_path,
-            {Path(".")},
-            RevisionRange(rev1="HEAD", rev2=":WORKTREE:"),
-            False,
-        )
-    ]
     output = capsys.readouterr().out
     output = _replace_diff_timestamps(output)
-    assert output == dedent(
-        """\
-        --- subdir_a/python file.py	<timestamp> +0000
-        +++ subdir_a/python file.py	<timestamp> +0000
-        @@ -1,2 +1,4 @@
-        -import  sys, os
-        -print('ok')
-        +import os
-        +import sys
-        +
-        +print("ok")
-        --- subdir_b/subdir_c/another python file.py	<timestamp> +0000
-        +++ subdir_b/subdir_c/another python file.py	<timestamp> +0000
-        @@ -1 +1 @@
-        -a  =5
-        +a = 5
-        """
+    assert (
+        output
+        == dedent(
+            """\
+            --- subdir_a/python file.py	<timestamp> +0000
+            +++ subdir_a/python file.py	<timestamp> +0000
+            @@ -1,2 +1,4 @@
+            -import  sys, os
+            -print('ok')
+            +import os
+            +import sys
+            +
+            +print("ok")
+            --- subdir_b/subdir_c/another python file.py	<timestamp> +0000
+            +++ subdir_b/subdir_c/another python file.py	<timestamp> +0000
+            @@ -1 +1 @@
+            -a  =5
+            +a = 5
+            """,
+        )
+        + LINTING_GUIDE
     )
 
 
@@ -393,20 +386,6 @@ def test_main_vscode_tmpfile(git_repo, capsys):
         "-print ( 'reformat me now' ) ",
         '+print("reformat me now")',
     ]
-
-
-def test_main_lint_unchanged(git_repo):
-    """Linters are run on all ``src`` command line options, modified or not"""
-    git_repo.add({"src/a.py": "foo\n", "src/subdir/b.py": "bar\n"}, commit="Initial")
-    with patch.object(darker.__main__, "run_linters") as run_linters:
-        run_linters.return_value = 0
-
-        retval = darker.__main__.main(["--check", "--lint=mylint", "src"])
-
-    run_linters.assert_called_once_with(
-        ["mylint"], Path("src").absolute(), {Path(".")}, ANY, ANY
-    )
-    assert retval == 0
 
 
 def test_print_diff(tmp_path, capsys):
