@@ -12,7 +12,6 @@ from darker import help as hlp
 from darker.config import DEPRECATED_CONFIG_OPTIONS, DarkerConfig, OutputMode
 from darker.version import __version__
 from darkgraylib.command_line import add_parser_argument
-from graylint.command_line import add_lint_arg
 
 
 def make_argument_parser(require_src: bool) -> ArgumentParser:
@@ -39,7 +38,7 @@ def make_argument_parser(require_src: bool) -> ArgumentParser:
     add_arg(hlp.FLYNT, "-f", "--flynt", action="store_true")
     add_arg(hlp.ISORT, "-i", "--isort", action="store_true")
     add_arg(hlp.PREVIEW, "--preview", action="store_true")
-    add_lint_arg(parser)
+    add_arg(hlp.LINT, "-L", "--lint", action="append", metavar="CMD", default=[])
     add_arg(
         hlp.SKIP_STRING_NORMALIZATION,
         "-S",
