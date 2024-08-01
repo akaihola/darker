@@ -214,10 +214,12 @@ def test_get_missing_at_revision_worktree(git_repo):
 
 
 def test_git_diff_name_only(git_repo):
-    """``_git_diff_name_only()`` only returns paths of modified files"""
+    """``_git_diff_name_only()`` includes added/modified, skips renamed/moved files."""
     git_repo.add({"a.py": "a", "b.py": "b", "c.py": "c"}, commit="Initial commit")
     first = git_repo.get_hash()
     git_repo.add({"a.py": "A", "b.dy": "B"}, commit="only a.py modified")
+    git_repo.rename("c.py", "x.py", commit="rename c.py to x.py")
+
     second = git_repo.get_hash()
 
     result = git._git_diff_name_only(
@@ -337,7 +339,6 @@ def test_git_get_modified_python_files(git_repo, modify_paths, paths, expect):
         _description="from master to worktree and index on branch",
         revrange="master..",
         expect={
-            "del_master.py",
             "mod_master.py",
             "mod_both.py",
             "mod_branch.py",
@@ -353,7 +354,6 @@ def test_git_get_modified_python_files(git_repo, modify_paths, paths, expect):
         ),
         revrange="master..HEAD",
         expect={
-            "del_master.py",
             "mod_master.py",
             "mod_both.py",
             "mod_branch.py",
@@ -363,7 +363,6 @@ def test_git_get_modified_python_files(git_repo, modify_paths, paths, expect):
         _description="from master to branch, excluding worktree and index",
         revrange="master..branch",
         expect={
-            "del_master.py",
             "mod_master.py",
             "mod_both.py",
             "mod_branch.py",
