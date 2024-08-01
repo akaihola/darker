@@ -86,6 +86,8 @@ baodrate:
   - {link_type: pulls-author, type: Code}
 bdperkin:
   - {link_type: issues, type: Bug reports}
+brettcannon:
+  - {link_type: search-comments, type: Bug reports}
 brtknr:
   - {link_type: pulls-reviewed, type: Reviewed Pull Requests}
 casio:
