@@ -62,6 +62,8 @@ Svenito:
 Timple:
   - {link_type: search-comments, type: Bug reports}
   - {link_type: search-comments, type: Reviewed Pull Requests}
+Will-Ruddick:
+  - {link_type: search-comments, type: Bug reports}
 agandra:
   - {link_type: issues, type: Bug reports}
 akaihola:
