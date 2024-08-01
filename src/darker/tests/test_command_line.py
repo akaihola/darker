@@ -250,20 +250,6 @@ def test_parse_command_line(
     dict(config={"check": True}, expect_warn=set()),
     dict(config={"isort": True}, expect_warn=set()),
     dict(config={"lint": ["pylint"]}, expect_warn=set()),
-    dict(
-        config={"skip_string_normalization": True},
-        expect_warn={
-            "The configuration option `skip_string_normalization` in [tool.darker] is"
-            " deprecated and will be removed in Darker 3.0."
-        },
-    ),
-    dict(
-        config={"skip_magic_trailing_comma": True},
-        expect_warn={
-            "The configuration option `skip_magic_trailing_comma` in [tool.darker] is"
-            " deprecated and will be removed in Darker 3.0."
-        },
-    ),
     dict(config={"line_length": 88}, expect_warn=set()),
     dict(config={"target_version": "py37"}, expect_warn=set()),
     dict(
@@ -273,23 +259,21 @@ def test_parse_command_line(
             "check": True,
             "isort": True,
             "lint": ["pylint"],
-            "skip_string_normalization": True,
-            "skip_magic_trailing_comma": True,
             "line_length": 88,
             "target_version": "py37",
         },
-        expect_warn={
-            "The configuration option `skip_magic_trailing_comma` in [tool.darker] is"
-            " deprecated and will be removed in Darker 3.0.",
-            "The configuration option `skip_string_normalization` in [tool.darker] is"
-            " deprecated and will be removed in Darker 3.0.",
-        },
+        expect_warn=set(),
     ),
 )
 def test_parse_command_line_deprecated_option(
     tmp_path, monkeypatch, config, expect_warn
 ):
-    """`parse_command_line` warns about deprecated configuration options."""
+    """`parse_command_line` warns about deprecated configuration options.
+
+    Currently no options are under deprecation, but this test is kept here as a
+    placeholder so it's easy to add new tests when new deprecated options are added.
+
+    """
     monkeypatch.chdir(tmp_path)
     (tmp_path / "pyproject.toml").write_text(toml.dumps({"tool": {"darker": config}}))
     with patch("darker.command_line.warnings.warn") as warn:

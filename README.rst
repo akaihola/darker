@@ -462,8 +462,9 @@ command line options
 
 *New in version 1.7.0:* The ``-f`` / ``--flynt`` command line option
 
-*New in version 2.1.1:* In ``[tool.darker]``, deprecate the the Black options
-``skip_string_normalization`` and ``skip_magic_trailing_comma``
+*New in version 3.0.0:* In ``[tool.darker]``, remove the the Black options
+``skip_string_normalization`` and ``skip_magic_trailing_comma`` (previously deprecated
+in version 2.1.1)
 
 .. _Black documentation about pyproject.toml: https://black.readthedocs.io/en/stable/usage_and_configuration/the_basics.html#configuration-via-a-file
 .. _isort documentation about config files: https://timothycrosley.github.io/isort/docs/configuration/config_files/

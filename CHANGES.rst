@@ -11,6 +11,12 @@ Added
 - Do not reformat renamed files.
 - CI workflow to post recent project activity in a discussion. Triggered manually.
 
+Removed
+-------
+- In the Darker configuration file under ``[tool.darker]``, the Black configuration
+  options ``skip_string_normalization`` and ``skip_magic_trailing_comma`` are no longer
+  valid. Use ``[tool.black]`` instead.
+
 Fixed
 -----
 - Update ``darkgray-dev-tools`` for Pip >= 24.1 compatibility.
