@@ -262,6 +262,9 @@ talhajunaidd:
   - {link_type: commits, type: Code}
 tapted:
   - {link_type: issues, type: Bug reports}
+tehunter:
+  - {link_type: issues, type: Bug reports}
+  - {link_type: pulls-author, type: Code}
 tgross35:
   - {link_type: issues, type: Bug reports}
 tkolleh:
