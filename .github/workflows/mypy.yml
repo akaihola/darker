@@ -15,7 +15,6 @@ jobs:
             black \
             git+https://github.com/akaihola/darkgraylib.git@main \
             flynt \
-            git+https://github.com/akaihola/graylint.git@main \
             isort \
             mypy>=0.990 \
             pytest \
