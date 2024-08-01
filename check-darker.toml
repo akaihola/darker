@@ -24,6 +24,10 @@ src = [
 ]
 revision = "origin/master..."
 isort = true
+
+[tool.graylint]
+src = ["."]
+revision = "origin/master..."
 lint = [
     "flake8",
     "mypy",
