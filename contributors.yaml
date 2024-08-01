@@ -186,6 +186,8 @@ seweissman:
   - {link_type: issues, type: Bug reports}
 sgaist:
   - {link_type: pulls-author, type: Code}
+shane-kearns:
+  - {link_type: issues, type: Bug reports}
 shangxiao:
   - {link_type: pulls-author, type: Code}
   - {link_type: issues, type: Bug reports}
