@@ -1,5 +1,7 @@
 """Help and usage instruction texts used for the command line parser"""
 
+from textwrap import dedent
+
 from black import TargetVersion
 
 
@@ -100,12 +102,19 @@ if not isort:
     )
 ISORT = "".join(ISORT_PARTS)
 
-LINT = (
-    "Also run a linter on changed files. `CMD` can be a name or path of the linter"
-    " binary, or a full quoted command line with the command and options. Linters read"
-    " their configuration as normally, and aren't affected by `-c` / `--config`. Linter"
-    " output is syntax highlighted when the `pygments` package is available if run on"
-    " a terminal and or enabled by explicitly (see `--color`)."
+LINT = "Show information about baseline linting using the Graylint package."
+LINTING_GUIDE = dedent(
+    """
+    Baseline linting support has been moved to the Graylint package. Please install
+    and run it using:
+
+        pip install graylint
+        graylint -L CMD <directory>
+        graylint --lint CMD <directory>
+
+    See https://pypi.org/project/graylint for more information."
+
+    """,
 )
 
 VERBOSE = "Show steps taken and summarize modifications"
