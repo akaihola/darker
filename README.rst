@@ -1,6 +1,6 @@
-=================================================
- Darker – reformat and lint modified Python code
-=================================================
+========================================
+ Darker – reformat modified Python code
+========================================
 
 |build-badge| |license-badge| |pypi-badge| |downloads-badge| |black-badge| |changelog-badge|
 
@@ -32,12 +32,8 @@ What?
 
 This utility reformats and checks Python source code files.
 However, when run in a Git repository, it compares an old revision of the source tree
-to a newer revision (or the working tree). It then
-
-- only applies reformatting in regions which have changed in the Git working tree
-  between the two revisions, and
-- only reports those linting messages which appeared after the modifications to the
-  source code files.
+to a newer revision (or the working tree). It then only applies reformatting
+in regions which have changed in the Git working tree between the two revisions.
 
 The reformatters supported are:
 
@@ -45,7 +41,7 @@ The reformatters supported are:
 - isort_ for sorting imports
 - flynt_ for turning old-style format strings to f-strings
 
-See `Using linters`_ below for the list of supported linters.
+**NOTE:** Baseline linting support has been moved to the Graylint_ package.
 
 To easily run Darker as a Pytest_ plugin, see pytest-darker_.
 
@@ -168,11 +164,15 @@ You can enable additional features with command line options:
   your modules to determine whether they are first or third party modules.
 - ``-f`` / ``--flynt``: Also convert string formatting to use f-strings using the
   ``flynt`` package
-- ``-L <linter>`` / ``--lint <linter>``: Run a supported linter (see `Using linters`_)
 
 *New in version 1.1.0:* The ``-L`` / ``--lint`` option.
+
 *New in version 1.2.2:* Package available in conda-forge_.
+
 *New in version 1.7.0:* The ``-f`` / ``--flynt`` option
+
+*New in version 3.0.0:* Removed the ``-L`` / ``--lint`` functionality and moved it into
+the Graylint_ package.
 
 .. _Conda: https://conda.io/
 .. _conda-forge: https://conda-forge.org/
@@ -280,8 +280,8 @@ instead of the last commit:
    $ darker --revision master .
 
 
-Customizing ``darker``, Black_, isort_, flynt_ and linter behavior
-==================================================================
+Customizing ``darker``, Black_, isort_ and flynt_ behavior
+==========================================================
 
 ``darker`` invokes Black_ and isort_ internals directly instead of running their
 binaries, so it needs to read and pass configuration options to them explicitly.
@@ -289,20 +289,13 @@ Project-specific default options for ``darker`` itself, Black_ and isort_ are re
 the project's ``pyproject.toml`` file in the repository root. isort_ does also look for
 a few other places for configuration.
 
-Mypy_, Pylint_, Flake8_ and other compatible linters are invoked as
-subprocesses by ``darker``, so normal configuration mechanisms apply for each of those
-tools. Linters can also be configured on the command line, for example::
-
-    darker -L "mypy --strict" .
-    darker --lint "pylint --errors-only" .
-  
 flynt_ (option ``-f`` / ``--flynt``) is also invoked as a subprocess, but passing
 command line options to it is currently not supported. Configuration files need to be
 used instead.
 
 Darker does honor exclusion options in Black configuration files when recursing
-directories, but the exclusions are only applied to Black reformatting. Isort and
-linters are still run on excluded files. Also, individual files explicitly listed on the
+directories, but the exclusions are only applied to Black reformatting.
+Isort is still run on excluded files. Also, individual files explicitly listed on the
 command line are still reformatted even if they match exclusion patterns.
 
 For more details, see:
@@ -329,8 +322,7 @@ The following `command line arguments`_ can also be used to modify the defaults:
        (``HEAD..:STDIN:`` being the default if ``--stdin-filename`` is enabled).
 -c PATH, --config PATH
        Make ``darker``, ``black`` and ``isort`` read configuration from ``PATH``. Note
-       that other tools like ``flynt``, ``mypy``, ``pylint`` or ``flake8`` won't use
-       this configuration file.
+       that other tools like ``flynt`` won't use this configuration file.
 -v, --verbose
        Show steps taken and summarize modifications
 -q, --quiet
@@ -362,11 +354,7 @@ The following `command line arguments`_ can also be used to modify the defaults:
        In Black, enable potentially disruptive style changes that may be added to Black
        in the future
 -L CMD, --lint CMD
-       Run a linter on changed files. ``CMD`` can be a name or path of the linter
-       binary, or a full quoted command line with the command and options. Linters read
-       their configuration as normally, and aren't affected by ``-c`` / ``--config``.
-       Linter output is syntax highlighted when the ``pygments`` package is available if
-       run on a terminal and or enabled by explicitly (see ``--color``).
+       Show information about baseline linting using the Graylint package.
 -S, --skip-string-normalization
        Don't normalize string quotes or prefixes
 --no-skip-string-normalization
@@ -410,9 +398,6 @@ An example ``pyproject.toml`` configuration file:
    check = true
    isort = true
    flynt = true
-   lint = [
-       "pylint",
-   ]
    line-length = 80                  # Passed to isort and Black, override their config
    target-version = ["py312"]        # Passed to Black, overriding its config
    log_level = "INFO"
@@ -432,10 +417,6 @@ An example ``pyproject.toml`` configuration file:
    profile = "black"
    known_third_party = ["pytest"]
    line_length = 88                  # Overridden by [tool.darker] above
-
-Be careful to not use options which generate output which is unexpected for
-other tools. For example, VSCode only expects the reformat diff, so
-``lint = [ ... ]`` can't be used with it.
 
 *New in version 1.0.0:*
 
@@ -469,6 +450,10 @@ command line options
 
 *New in version 2.1.1:* In ``[tool.darker]``, deprecate the the Black options
 ``skip_string_normalization`` and ``skip_magic_trailing_comma``
+
+*New in version 3.0.0:* Removed the ``-L`` / ``--lint`` functionality and moved it into
+the Graylint_ package. Also removed ``lint =``, ``skip_string_normalization =`` and
+``skip_magic_trailing_comma =`` from ``[tool.darker]``.
 
 .. _Black documentation about pyproject.toml: https://black.readthedocs.io/en/stable/usage_and_configuration/the_basics.html#configuration-via-a-file
 .. _isort documentation about config files: https://timothycrosley.github.io/isort/docs/configuration/config_files/
@@ -581,8 +566,6 @@ __ https://github.com/microsoft/vscode-black-formatter
 VSCode will always add ``--diff --quiet`` as arguments to Darker,
 but you can also pass additional arguments in the ``black-formatter.args`` option
 (e.g. ``["-d", "--isort", "--revision=master..."]``).
-Be sure to *not* enable any linters here or in ``pyproject.toml``
-since VSCode won't be able to understand output from them.
 
 Note that VSCode first copies the file to reformat into a temporary
 ``<filename>.py.<hash>.tmp`` file, then calls Black (or Darker in this case) on that
@@ -676,7 +659,7 @@ introduced by Black updates. See `Guarding against Black compatibility breakage`
 more information.
 
 If you'd prefer to not update but keep a stable pre-commit setup, you can pin Black and
-other reformatter/linter tools you use to known compatible versions, for example:
+other reformatter tools you use to known compatible versions, for example:
 
 .. code-block:: yaml
 
@@ -686,18 +669,9 @@ other reformatter/linter tools you use to known compatible versions, for example
        - id: darker
          args:
            - --isort
-           - --lint
-           - mypy
-           - --lint
-           - flake8
-           - --lint
-           - pylint
          additional_dependencies:
            - black==22.12.0
            - isort==5.11.4
-           - mypy==0.990
-           - flake8==5.0.4
-           - pylint==2.15.5
 
 .. _pre-commit: https://pre-commit.com/
 .. _pre-commit Installation: https://pre-commit.com/#installation
@@ -745,12 +719,12 @@ Create a file named ``.github/workflows/darker.yml`` inside your repository with
 
 .. code-block:: yaml
 
-   name: Lint
+   name: Reformat
 
    on: [push, pull_request]
 
    jobs:
-     lint:
+     reformat:
        runs-on: ubuntu-latest
        steps:
          - uses: actions/checkout@v4
@@ -762,7 +736,6 @@ Create a file named ``.github/workflows/darker.yml`` inside your repository with
              options: "--check --diff --isort --color"
              src: "./src"
              version: "~=2.1.1"
-             lint: "flake8,pylint==2.13.1"
 
 There needs to be a working Python environment, set up using ``actions/setup-python``
 in the above example. Darker will be installed in an isolated virtualenv to prevent
@@ -789,11 +762,6 @@ You can also configure other arguments passed to Darker via ``"options:"``.
 It defaults to ``"--check --diff --color"``.
 You can e.g. add ``"--isort"`` to sort imports, or ``"--verbose"`` for debug logging.
 
-To run linters through Darker, you can provide a comma separated list of linters using
-the ``lint:`` option. Only ``flake8``, ``pylint`` and ``mypy`` are supported. Other
-linters may or may not work with Darker, depending on their message output format.
-Versions can be constrained using ``pip`` syntax, e.g. ``"flake8>=3.9.2"``.
-
 *New in version 1.1.0:*
 GitHub Actions integration. Modeled after how Black_ does it,
 thanks to Black authors for the example!
@@ -804,76 +772,16 @@ The ``revision:`` option, with smart default value if omitted.
 *New in version 1.5.0:*
 The ``lint:`` option.
 
-
-.. _Using linters:
-
-Using linters
-=============
-
-One way to use Darker is to filter linter output to only those linter messages
-which appeared after the modifications to source code files,
-as well as old messages which concern modified lines.
-Darker supports any linter with output in one of the following formats::
-
-    <file>:<linenum>: <description>
-    <file>:<linenum>:<col>: <description>
-
-Most notably, the following linters/checkers have been verified to work with Darker:
-
-- Mypy_ for static type checking
-- Pylint_ for generic static checking of code
-- Flake8_ for style guide enforcement
-- `cov_to_lint.py`_ for test coverage
-
-*New in version 1.1.0:* Support for Mypy_, Pylint_, Flake8_ and compatible linters.
-
-*New in version 1.2.0:* Support for test coverage output using `cov_to_lint.py`_.
-
-To run a linter, use the ``--lint`` / ``-L`` command line option with the linter
-command or a full command line to pass to a linter. Some examples:
-
-- ``-L flake8``: enforce the Python style guide using Flake8_
-- ``-L "mypy --strict"``: do static type checking using Mypy_
-- ``--lint="pylint --ignore='setup.py'"``: analyze code using Pylint_
-- ``-L cov_to_lint.py``: read ``.coverage`` and list non-covered modified lines
-
-**Note:** Full command lines aren't fully tested on Windows. See issue `#456`_ for a
-possible bug.
-
-Darker also groups linter output into blocks of consecutive lines
-separated by blank lines.
-Here's an example of `cov_to_lint.py`_ output::
-
-    $ darker --revision 0.1.0.. --check --lint cov_to_lint.py src
-    src/darker/__main__.py:94:  no coverage:             logger.debug("No changes in %s after isort", src)
-    src/darker/__main__.py:95:  no coverage:             break
-
-    src/darker/__main__.py:125: no coverage:         except NotEquivalentError:
-
-    src/darker/__main__.py:130: no coverage:             if context_lines == max_context_lines:
-    src/darker/__main__.py:131: no coverage:                 raise
-    src/darker/__main__.py:132: no coverage:             logger.debug(
-
-+-----------------------------------------------------------------------+
-|                               ⚠ NOTE ⚠                                |
-+=======================================================================+
-| Don't enable linting on the command line or in the configuration when |
-| running Darker as a reformatter in VSCode. You will confuse VSCode    |
-| with unexpected output from Darker, as it only expect black's output  |
-+-----------------------------------------------------------------------+
-
-.. _Mypy: https://pypi.org/project/mypy
-.. _Pylint: https://pypi.org/project/pylint
-.. _Flake8: https://pypi.org/project/flake8
-.. _cov_to_lint.py: https://gist.github.com/akaihola/2511fe7d2f29f219cb995649afd3d8d2
-.. _#456: https://github.com/akaihola/darker/issues/456
+*New in version 3.0.0:*
+Removed the ``lint:`` option and moved it into the GitHub action
+of the Graylint_ package.
 
 
 Syntax highlighting
 ===================
 
-Darker automatically enables syntax highlighting for the ``--diff``,
-``-d``/``--stdout`` and ``-L``/``--lint`` options if it's running on a terminal and the
+Darker automatically enables syntax highlighting for the ``--diff`` and
+``-d``/``--stdout`` options if it's running on a terminal and the
 Pygments_ package is installed.
 
 You can force enable syntax highlighting on non-terminal output using
@@ -969,8 +877,6 @@ To sort imports when the ``--isort`` option was specified, Darker proceeds like 
   modified by isort_, are those modifications kept
 - if all lines between the first and last line modified by isort_ were unchanged between
   the revisions, discard import sorting modifications for that file
-
-For details on how linting support works, see Graylint_ documentation.
 
 
 Limitations and work-arounds

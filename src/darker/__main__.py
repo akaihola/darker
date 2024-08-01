@@ -30,7 +30,7 @@ from darker.git import (
     git_get_modified_python_files,
     git_is_repository,
 )
-from darker.help import get_extra_instruction
+from darker.help import LINTING_GUIDE, get_extra_instruction
 from darker.import_sorting import apply_isort, isort
 from darker.utils import debug_dump, glob_any
 from darker.verification import ASTVerifier, BinarySearch, NotEquivalentError
@@ -641,6 +641,8 @@ def main(  # noqa: C901,PLR0912,PLR0915
         or (args.check and formatting_failures_on_modified_lines)
         else 0
     )
+    if args.lint:
+        print(LINTING_GUIDE, end="")
 
 
 def main_with_error_handling() -> int:

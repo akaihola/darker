@@ -27,8 +27,7 @@ def make_argument_parser(require_src: bool) -> ArgumentParser:
         "Darker",
         hlp.DESCRIPTION,
         "Make `darker`, `black` and `isort` read configuration from `PATH`. Note that"
-        " other tools like `flynt`, `mypy`, `pylint` or `flake8` won't use this"
-        " configuration file.",
+        " other tools like `flynt` won't use this configuration file.",
         __version__,
     )
 
@@ -88,6 +87,13 @@ def show_config_deprecations(config: DarkerConfig) -> None:
         warnings.warn(
             f"The configuration option `{option}` in [tool.darker] is deprecated"
             " and will be removed in Darker 3.0.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+    if "lint" in config:
+        warnings.warn(
+            "Baseline linting has been moved to the Graylint package. Please"
+            " remove the `lint =` option from your configuration file.",
             DeprecationWarning,
             stacklevel=2,
         )

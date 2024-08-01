@@ -18,6 +18,12 @@ VERSION = os.getenv("INPUT_VERSION", default="")
 LINT = os.getenv("INPUT_LINT", default="")
 REVISION = os.getenv("INPUT_REVISION") or os.getenv("INPUT_COMMIT_RANGE") or "HEAD^"
 
+if os.getenv("INPUT_LINT", default=""):
+    print(
+        "::notice:: Baseline linting has been moved to the Graylint package."
+        " See https://pypi.org/project/graylint for more information.",
+    )
+
 run([sys.executable, "-m", "venv", str(ENV_PATH)], check=True)  # nosec
 
 req = ["darker[color,isort]"]
