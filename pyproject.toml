@@ -50,6 +50,15 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
+"action/*.py" = [
+    "T201",  # `print` found
+]
+"action/tests/*.py" = [
+    "S101",  # Use of `assert` detected
+]
+"src/darker/__main__.py" = [
+    "T201",  # `print` found
+]
 "src/darker/tests/*.py" = [
     "ANN001",  # Missing type annotation for function argument
     "ANN201",  # Missing return type annotation for public function
