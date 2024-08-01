@@ -7,9 +7,12 @@
 import random
 import re
 import string
+import sys
 from argparse import ArgumentError
 from pathlib import Path
+from subprocess import PIPE, CalledProcessError, run  # nosec
 from textwrap import dedent
+from unittest.mock import patch
 
 import pytest
 
@@ -17,11 +20,12 @@ import darker.__main__
 import darker.import_sorting
 from darker.git import EditedLinenumsDiffer
 from darker.help import LINTING_GUIDE
+from darker.terminal import output
 from darker.tests.examples import A_PY, A_PY_BLACK, A_PY_BLACK_FLYNT, A_PY_BLACK_ISORT
 from darker.tests.test_fstring import FLYNTED_SOURCE, MODIFIED_SOURCE, ORIGINAL_SOURCE
 from darkgraylib.git import RevisionRange
 from darkgraylib.testtools.highlighting_helpers import BLUE, CYAN, RESET, WHITE, YELLOW
-from darkgraylib.utils import TextDocument, joinlines
+from darkgraylib.utils import WINDOWS, TextDocument, joinlines
 
 pytestmark = pytest.mark.usefixtures("find_project_root_cache_clear")
 
@@ -549,6 +553,64 @@ def test_stdout_path_resolution(git_repo, capsys):
 
     assert result == 0
     assert capsys.readouterr().out == 'print("foo")\n'
+
+
+@pytest.mark.parametrize("newline", ["\n", "\r\n"], ids=["unix", "windows"])
+def test_stdout_newlines(git_repo, capsysbinary, newline):
+    """When using ``--stdout``, newlines are not duplicated.
+
+    See: https://github.com/akaihola/darker/issues/604
+
+    The `git_repo` fixture is used to ensure that the test doesn't run in the Darker
+    repository clone in CI. It helps avoid the Git error message
+    "fatal: Not a valid object name origin/master" in the NixOS CI tests.
+
+    """
+    if WINDOWS and sys.version_info < (3, 10):
+        # See https://bugs.python.org/issue38671
+        Path("new-file.py").touch()
+    code = f"import collections{newline}import sys{newline}".encode()
+    with patch("sys.stdin.buffer.read", return_value=code):
+
+        result = darker.__main__.main(
+            ["--stdout", "--isort", "--stdin-filename=new-file.py", "-"],
+        )
+
+    assert result == 0
+    assert capsysbinary.readouterr().out == code
+
+
+@pytest.mark.parametrize("newline", ["\n", "\r\n"], ids=["unix", "windows"])
+def test_stdout_newlines_subprocess(git_repo, newline):
+    """When using ``--stdout``, newlines are not duplicated.
+
+    See: https://github.com/akaihola/darker/issues/604
+
+    The `git_repo` fixture is used to ensure that the test doesn't run in the Darker
+    repository clone in CI. It helps avoid the Git error message
+    "fatal: Not a valid object name origin/master" in the NixOS CI tests.
+
+    """
+    if WINDOWS and sys.version_info < (3, 10):
+        # See https://bugs.python.org/issue38671
+        Path("new-file.py").touch()
+    code = f"import collections{newline}import sys{newline}".encode()
+    try:
+
+        darker_subprocess = run(  # nosec
+            ["darker", "--stdout", "--isort", "--stdin-filename=new-file.py", "-"],
+            input=code,
+            stdout=PIPE,
+            check=True,
+        )
+
+    except CalledProcessError as e:
+        if e.stdout:
+            output(e.stdout, end="\n")
+        if e.stderr:
+            output(e.stderr, end="\n")
+        raise
+    assert darker_subprocess.stdout == code
 
 
 def test_long_command_length(git_repo):
