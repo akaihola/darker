@@ -3,6 +3,9 @@ name: Recent Activity Summary
 on:  # yamllint disable-line rule:truthy
   schedule:
     - cron: '0 0 * * MON'  # Run every Monday at 00:00 UTC
+  pull_request:
+    branches:
+      - repo-summary-discussion
   workflow_dispatch:  # Allow manual triggering
 
 jobs:
