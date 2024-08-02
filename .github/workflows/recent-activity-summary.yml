@@ -1,0 +1,17 @@
+---
+name: Recent Activity Summary
+on:  # yamllint disable-line rule:truthy
+  schedule:
+    - cron: '0 0 * * MON'  # Run every Monday at 00:00 UTC
+  workflow_dispatch:  # Allow manual triggering
+
+jobs:
+  prs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run PR Summary Action
+        uses: akaihola/repo-summary-post@reusable-action
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          repo_name: ${{ github.repository }}
+          # category: 'General'  # Don't post discussion yet
