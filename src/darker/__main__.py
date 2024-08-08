@@ -32,6 +32,7 @@ from darker.git import (
 )
 from darker.help import LINTING_GUIDE, get_extra_instruction
 from darker.import_sorting import apply_isort, isort
+from darker.terminal import output
 from darker.utils import debug_dump, glob_any
 from darker.verification import ASTVerifier, BinarySearch, NotEquivalentError
 from darkgraylib.command_line import (
@@ -415,7 +416,7 @@ def print_diff(
             n=5,  # Black shows 5 lines of context, do the same
         )
     )
-    print(colorize(diff, "diff", use_color))
+    output(colorize(diff, "diff", use_color), end="\n")
 
 
 def print_source(new: TextDocument, use_color: bool) -> None:
@@ -428,11 +429,11 @@ def print_source(new: TextDocument, use_color: bool) -> None:
                 PythonLexer,
             ) = _import_pygments()  # type: ignore
         except ImportError:
-            print(new.string, end="")
+            output(new.string)
         else:
-            print(highlight(new.string, PythonLexer(), TerminalFormatter()), end="")
+            output(highlight(new.string, PythonLexer(), TerminalFormatter()))
     else:
-        print(new.string, end="")
+        output(new.string)
 
 
 def _import_pygments():  # type: ignore
