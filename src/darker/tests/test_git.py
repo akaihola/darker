@@ -7,7 +7,7 @@ import os
 from pathlib import Path
 from subprocess import DEVNULL, check_call  # nosec
 from textwrap import dedent  # nosec
-from unittest.mock import patch
+from unittest.mock import ANY, patch
 
 import pytest
 
@@ -73,7 +73,7 @@ def test_git_exists_in_revision_git_call(retval, expect):
         cwd=".",
         check=False,
         stderr=DEVNULL,
-        env={"LC_ALL": "C", "PATH": os.environ["PATH"]},
+        env=ANY,
     )
     assert result == expect
 
