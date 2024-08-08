@@ -305,6 +305,19 @@ def test_parse_command_line_deprecated_option(
     assert {c.args[0] for c in warn.call_args_list} == expect_warn
 
 
+def test_parse_command_line_unknown_conffile_option(tmp_path, monkeypatch):
+    """`parse_command_line` warns about deprecated configuration options."""
+    monkeypatch.chdir(tmp_path)
+    config = {"unknown": "value", "preview": "true"}
+    (tmp_path / "pyproject.toml").write_text(toml.dumps({"tool": {"darker": config}}))
+    with pytest.raises(
+        ConfigurationError,
+        match=r"Invalid \[tool.darker\] keys in pyproject.toml: preview, unknown",
+    ):
+
+        parse_command_line(["-"])
+
+
 def test_help_description_without_isort_package(capsys):
     """``darker --help`` description shows how to add ``isort`` if it's not present"""
     with isort_present(False):
@@ -564,6 +577,16 @@ def test_black_options(monkeypatch, tmpdir, git_repo, options, expect):
         config=["target-version = ['py38']"],
         options=["-t", "py39"],
         expect=call(target_versions={TargetVersion.PY39}),
+    ),
+    dict(
+        config=["preview = true"],
+        options=[],
+        expect=call(preview=True),
+    ),
+    dict(
+        config=["preview = false"],
+        options=["--preview"],
+        expect=call(preview=True),
     ),
     dict(
         config=["preview = true"],
