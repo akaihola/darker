@@ -416,7 +416,6 @@ An example ``pyproject.toml`` configuration file:
    line-length = 80                  # Passed to isort and Black, override their config
    target-version = ["py312"]        # Passed to Black, overriding its config
    log_level = "INFO"
-   preview = false                   # Passed to Black, overriding its config
 
    [tool.black]
    line-length = 88                  # Overridden by [tool.darker] above
@@ -426,7 +425,7 @@ An example ``pyproject.toml`` configuration file:
    exclude = "test_*\.py"
    extend_exclude = "/generated/"
    force_exclude = ".*\.pyi"
-   preview = true                    # Overridden above
+   preview = true                    # Only supported in [tool.black]
 
 
    [tool.isort]
