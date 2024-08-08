@@ -52,7 +52,7 @@ from darkgraylib.git import (
 from darkgraylib.highlighting import colorize, should_use_color
 from darkgraylib.log import setup_logging
 from darkgraylib.main import resolve_paths
-from darkgraylib.utils import GIT_DATEFORMAT, DiffChunk, TextDocument
+from darkgraylib.utils import GIT_DATEFORMAT, WINDOWS, DiffChunk, TextDocument
 from graylint.linting import run_linters
 
 logger = logging.getLogger(__name__)
@@ -561,9 +561,18 @@ def main(  # noqa: C901,PLR0912,PLR0915
             msg = f"Path(s) {missing_reprs} do not exist in {rev2_repr}"
             raise FileNotFoundError(msg)
 
+    common_root_ = (
+        # On Windows, Python <= 3.9 requires the `filter_python_files` `root` argument
+        # to be an absolute path. Remove this after dropping support for Python 3.9.
+        # See https://github.com/python/cpython/issues/82852
+        common_root.resolve()
+        if WINDOWS and sys.version_info < (3, 10)
+        else common_root
+    )
     # These paths are relative to `common_root`:
-    files_to_process = filter_python_files(paths, common_root, {})
-    files_to_blacken = filter_python_files(paths, common_root, black_config)
+    files_to_process = filter_python_files(paths, common_root_, {})
+    files_to_blacken = filter_python_files(paths, common_root_, black_config)
+
     # Now decide which files to reformat (Black & isort). Note that this doesn't apply
     # to linting.
     if output_mode == OutputMode.CONTENT or revrange.rev2 == STDIN:
