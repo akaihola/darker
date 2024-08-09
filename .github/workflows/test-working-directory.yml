@@ -1,0 +1,107 @@
+---
+name: "GH Action `working-directory:` test"
+
+on: push  # yamllint disable-line rule:truthy
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up initial test repository
+        run: |
+          mkdir -p test-repo
+          cd test-repo
+          git init
+          git config user.email "test@example.com"
+          git config user.name "Test User"
+          git commit --allow-empty -m "Initial empty commit"
+          echo 'def hello(): return "Hello, World!"' > test.py
+          git add test.py
+          git commit -m "Add test.py file"
+          echo 'def  hello():    return  "Hello, World!"' > test.py
+
+      - name: Upload test repository
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-repo
+          path: test-repo
+
+  test:
+    needs: setup
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        scenario:
+          - name: no-work-dir
+            working_directory: null  # Consider it omitted
+            src: test.py
+            options: --check --diff
+            expected_exitcode: 2
+          - name: right-workdir
+            working_directory: test-repo
+            src: test.py
+            options: --check --diff
+            expected_exitcode: 1
+          - name: wrong-work-dir
+            working_directory: non-existent-dir
+            src: test.py
+            options: --check --diff
+            expected_exitcode: 21
+          - name: file-not-found
+            working_directory: test-repo
+            src: non_existent_file.py
+            options: --check --diff
+            expected_exitcode: 2
+          - name: invalid-arguments
+            working_directory: test-repo
+            src: test.py
+            options: --invalid-option
+            expected_exitcode: 3
+          - name: missing-deps
+            working_directory: test-repo
+            src: test.py
+            options: --flynt  # not yet supported by the action
+            expected_exitcode: 4
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 10
+
+      - name: Download test repository
+        uses: actions/download-artifact@v3
+        with:
+          name: test-repo
+          path: ${{ runner.temp }}/test-repo
+
+      - name: "Run Darker - ${{ matrix.scenario.name }}"
+        uses: ./
+        continue-on-error: true
+        id: darker-run
+        with:
+          version: "@gh-action-working-directory"
+          options: ${{ matrix.scenario.options }}
+          # In the action, '.' is the default value used if `working-directory` omitted
+          working-directory: >-
+            ${{
+              matrix.scenario.working_directory == null && '.'
+              || format('{0}/{1}', runner.temp, matrix.scenario.working_directory)
+            }}
+          src: ${{ matrix.scenario.src }}
+          revision: HEAD
+
+      - name: Check exit code
+        if: >-
+          steps.darker-run.outputs.exitcode != matrix.scenario.expected_exitcode
+        run: |
+          echo "::error::Expected exit code ${{ matrix.scenario.expected_exitcode }}"
+          echo "::error::Darker exited with ${{ steps.darker-run.outputs.exitcode }}"
+          exit 1
+
+      - name: Verify diff output for right-workdir scenario
+        if: >
+          matrix.scenario.name == 'right-workdir' &&
+          !contains(steps.darker-run.outputs.stdout, '@@')
+        run: |
+          echo "::error::Darker did not output a diff as expected"
+          exit 1
