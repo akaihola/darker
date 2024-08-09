@@ -20,6 +20,7 @@ Fixed
   section is now correctly named ``[tool.darker]`` instead of ``[tool.darkgraylib]``.
 - Pass Graylint version to `~darkgraylib.command_line.make_argument_parser` to make
   ``--version`` display the correct version number.
+- The Darker GitHub action now respects the ``working-directory`` input option.
 
 
 2.1.1_ - 2024-04-16
