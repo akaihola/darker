@@ -51,6 +51,7 @@ ignore = [
     "ANN201",  # Missing return type annotation for public function
     "ANN204",  # Missing return type annotation for special method `__init__`
     "C408",  # Unnecessary `dict` call (rewrite as a literal)
+    "PLR0913",  # Too many arguments in function definition (n > 5)
     "S101",  # Use of `assert` detected
 ]
 
