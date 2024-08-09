@@ -38,7 +38,7 @@ If applicable, add copy/paste the output or attach a screenshots to help explain
  - Git version [e.g. 2.36.0]
  - Darker version [e.g. 2.1.1]
  - Black version [e.g. 22.3.0]
- - other reformatter and linter versions [e.g. `isort==5.10.1`, `mypy==0.942`
+ - other reformatter versions [e.g. `isort==5.10.1`, `flynt==1.0.1`]
 
 **Additional context**
 Add any other context about the problem here.

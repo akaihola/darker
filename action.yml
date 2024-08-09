@@ -24,9 +24,7 @@ inputs:
     required: false
   lint:
     description: >-
-      Comma-separated list of linters to `pip install` and run from Darker.
-      Optionally, version constraints (using pip syntax) can be specified.
-      Example: flake8,pylint==2.13.1
+      NOTE: Baseline linting has been moved to the Graylint package.
     required: false
     default: ''
 branding:
@@ -56,7 +54,6 @@ runs:
         sys.exit(proc.returncode)
         "
 
-        pip install pip-requirements-parser
         if [ "$RUNNER_OS" == "Windows" ]; then
           echo $entrypoint | python
         else
