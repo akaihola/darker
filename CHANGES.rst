@@ -14,12 +14,13 @@ Added
 Fixed
 -----
 - Update ``darkgray-dev-tools`` for Pip >= 24.1 compatibility.
-- Update to Darkgraylib 1.3.1 to fix the configuration dump and the output of
-  ``--version`` (see below).
+- Update to Darkgraylib 2.0.1 to fix the configuration dump, the output of ``--version``
+  and the Git "dubious ownership" issue (see below).
 - In the configuration dump printed when ``-vv`` verbosity is used, the configuration
   section is now correctly named ``[tool.darker]`` instead of ``[tool.darkgraylib]``.
 - Pass Graylint version to `~darkgraylib.command_line.make_argument_parser` to make
   ``--version`` display the correct version number.
+- Pass full environment to Git to avoid the "dubious ownership" error.
 
 
 2.1.1_ - 2024-04-16
