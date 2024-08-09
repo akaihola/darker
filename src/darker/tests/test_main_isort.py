@@ -1,5 +1,7 @@
 """Tests for the ``--isort`` option of the ``darker`` command-line interface"""
 
+# pylint: disable=redefined-outer-name,unused-argument,use-dict-literal
+
 from types import SimpleNamespace
 from unittest.mock import patch
 
@@ -15,9 +17,11 @@ from darkgraylib.utils import TextDocument
 pytestmark = pytest.mark.usefixtures("find_project_root_cache_clear")
 
 
-def test_isort_option_without_isort(git_repo, caplog):
-    """Without isort, provide isort install instructions and error"""
-    with isort_present(False), patch.object(
+def test_isort_option_without_isort(git_repo):  # noqa: ARG001
+    """Without isort, provide isort install instructions and error."""
+    # The `git_repo` fixture ensures test is not run in the Darker repository clone in
+    # CI builds. It helps avoid a NixOS test issue.
+    with isort_present(present=False), patch.object(
         darker.__main__, "isort", None
     ), pytest.raises(MissingPackageError) as exc_info:
 
@@ -29,7 +33,7 @@ def test_isort_option_without_isort(git_repo, caplog):
     )
 
 
-@pytest.fixture
+@pytest.fixture()
 def run_isort(git_repo, monkeypatch, caplog, request):
     """Fixture for running Darker with requested arguments and a patched `isort`
 
