@@ -7,16 +7,16 @@ import logging
 import re
 from io import BytesIO
 from pathlib import Path
-from unittest.mock import patch, Mock
+from unittest.mock import Mock, patch
 
 import pytest
 
 import darker.__main__
 import darker.verification
 from darker.config import Exclusions
-from darker.tests.examples import A_PY, A_PY_BLACK, A_PY_BLACK_ISORT, A_PY_BLACK_FLYNT
+from darker.tests.examples import A_PY, A_PY_BLACK, A_PY_BLACK_FLYNT, A_PY_BLACK_ISORT
 from darker.verification import NotEquivalentError
-from darkgraylib.git import RevisionRange, WORKTREE
+from darkgraylib.git import WORKTREE, RevisionRange
 from darkgraylib.utils import TextDocument, joinlines
 
 A_PY_ISORT = ["import os", "import sys", "", "print( '{}'.format('42'))", ""]
@@ -66,9 +66,15 @@ A_PY_BLACK_ISORT_FLYNT = ["import os", "import sys", "", 'print("42")', ""]
 )
 @pytest.mark.parametrize("newline", ["\n", "\r\n"], ids=["unix", "windows"])
 def test_format_edited_parts(
-    git_repo, black_config, black_exclude, isort_exclude, flynt_exclude, newline, expect
+    git_repo,
+    black_config,
+    black_exclude,
+    isort_exclude,
+    flynt_exclude,
+    newline,
+    expect,
 ):
-    """Correct reformatting and import sorting changes are produced
+    """Correct reformatting and import sorting changes are produced.
 
     Black reformatting is done even if a file is excluded in Black configuration.
     File exclusion is done in Darker before calling
@@ -113,7 +119,7 @@ def test_format_edited_parts(
                 "a.py",
                 ("print('a.py HEAD' )", "#", "print( 'a.py STDIN')"),
                 ("print('a.py HEAD' )", "#", 'print("a.py STDIN")'),
-            )
+            ),
         ],
     ),
     dict(
@@ -124,7 +130,7 @@ def test_format_edited_parts(
                 "a.py",
                 ("print('a.py :WORKTREE:' )", "#", "print( 'a.py STDIN')"),
                 ("print('a.py :WORKTREE:' )", "#", 'print("a.py STDIN")'),
-            )
+            ),
         ],
     ),
     dict(
@@ -135,13 +141,13 @@ def test_format_edited_parts(
                 "a.py",
                 ("print('a.py :WORKTREE:' )", "#", "print( 'a.py HEAD')"),
                 ('print("a.py :WORKTREE:")', "#", "print( 'a.py HEAD')"),
-            )
+            ),
         ],
     ),
 )
 @pytest.mark.parametrize("newline", ["\n", "\r\n"], ids=["unix", "windows"])
 def test_format_edited_parts_stdin(git_repo, newline, rev1, rev2, expect):
-    """`format_edited_parts` with ``--stdin-filename``"""
+    """`format_edited_parts` with ``--stdin-filename``."""
     n = newline  # pylint: disable=invalid-name
     paths = git_repo.add(
         {
@@ -151,10 +157,10 @@ def test_format_edited_parts_stdin(git_repo, newline, rev1, rev2, expect):
         commit="Initial commit",
     )
     paths["a.py"].write_bytes(
-        f"print('a.py :WORKTREE:' ){n}#{n}print( 'a.py HEAD'){n}".encode("ascii")
+        f"print('a.py :WORKTREE:' ){n}#{n}print( 'a.py HEAD'){n}".encode("ascii"),
     )
     paths["b.py"].write_bytes(
-        f"print('b.py HEAD' ){n}#{n}print( 'b.py WORKTREE'){n}".encode("ascii")
+        f"print('b.py HEAD' ){n}#{n}print( 'b.py WORKTREE'){n}".encode("ascii"),
     )
     stdin = f"print('a.py {rev1}' ){n}#{n}print( 'a.py STDIN'){n}".encode("ascii")
     with patch.object(
@@ -172,7 +178,7 @@ def test_format_edited_parts_stdin(git_repo, newline, rev1, rev2, expect):
                 RevisionRange(rev1, rev2),
                 {},
                 report_unmodified=False,
-            )
+            ),
         )
 
     expect = [
@@ -183,7 +189,7 @@ def test_format_edited_parts_stdin(git_repo, newline, rev1, rev2, expect):
 
 
 def test_format_edited_parts_all_unchanged(git_repo, monkeypatch):
-    """``format_edited_parts()`` yields nothing if no reformatting was needed"""
+    """``format_edited_parts()`` yields nothing if no reformatting was needed."""
     monkeypatch.chdir(git_repo.root)
     paths = git_repo.add({"a.py": "pass\n", "b.py": "pass\n"}, commit="Initial commit")
     paths["a.py"].write_bytes(b'"properly"\n"formatted"\n')
@@ -197,19 +203,21 @@ def test_format_edited_parts_all_unchanged(git_repo, monkeypatch):
             RevisionRange("HEAD", ":WORKTREE:"),
             {},
             report_unmodified=False,
-        )
+        ),
     )
 
     assert result == []
 
 
 def test_format_edited_parts_ast_changed(git_repo, caplog):
-    """``darker.__main__.format_edited_parts()`` when reformatting changes the AST"""
+    """``darker.__main__.format_edited_parts()`` when reformatting changes the AST."""
     caplog.set_level(logging.DEBUG, logger="darker.__main__")
     paths = git_repo.add({"a.py": "1\n2\n3\n4\n5\n6\n7\n8\n"}, commit="Initial commit")
     paths["a.py"].write_bytes(b"8\n7\n6\n5\n4\n3\n2\n1\n")
     mock_ctx = patch.object(
-        darker.verification.ASTVerifier, "is_equivalent_to_baseline", return_value=False
+        darker.verification.ASTVerifier,
+        "is_equivalent_to_baseline",
+        return_value=False,
     )
     with mock_ctx, pytest.raises(NotEquivalentError):
         _ = list(
@@ -220,7 +228,7 @@ def test_format_edited_parts_ast_changed(git_repo, caplog):
                 RevisionRange("HEAD", ":WORKTREE:"),
                 black_config={},
                 report_unmodified=False,
-            )
+            ),
         )
     a_py = str(paths["a.py"])
     main = "darker.__main__:__main__.py"
@@ -241,7 +249,7 @@ def test_format_edited_parts_ast_changed(git_repo, caplog):
 
 
 def test_format_edited_parts_isort_on_already_formatted(git_repo):
-    """An already correctly formatted file after ``isort`` is simply skipped"""
+    """An already correctly formatted file after ``isort`` is simply skipped."""
     before = [
         "import a",
         "import b",
@@ -275,7 +283,7 @@ def test_format_edited_parts_isort_on_already_formatted(git_repo):
     dict(rev1="HEAD", rev2=WORKTREE, expect=[(":WORKTREE:", "reformatted")]),
 )
 def test_format_edited_parts_historical(git_repo, rev1, rev2, expect):
-    """``format_edited_parts()`` is correct for different commit pairs"""
+    """``format_edited_parts()`` is correct for different commit pairs."""
     a_py = {
         "HEAD^": TextDocument.from_lines(
             [
@@ -284,28 +292,28 @@ def test_format_edited_parts_historical(git_repo, rev1, rev2, expect):
                 "",
                 "a.foo()",
                 "bar()",
-            ]
+            ],
         ),
         "HEAD": TextDocument.from_lines(
             [
                 "from b import bar, foo",
                 "",
                 "bar()",
-            ]
+            ],
         ),
         ":WORKTREE:": TextDocument.from_lines(
             [
                 "from b import foo, bar",
                 "",
                 "bar( )",
-            ]
+            ],
         ),
         "reformatted": TextDocument.from_lines(
             [
                 "from b import bar, foo",
                 "",
                 "bar()",
-            ]
+            ],
         ),
     }
     paths = git_repo.add({"a.py": a_py["HEAD^"].string}, commit="Initial commit")

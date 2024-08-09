@@ -17,8 +17,8 @@ import pytest
 import darker.__main__
 import darker.import_sorting
 from darker.git import EditedLinenumsDiffer
+from darker.tests.examples import A_PY, A_PY_BLACK, A_PY_BLACK_FLYNT, A_PY_BLACK_ISORT
 from darker.tests.test_fstring import FLYNTED_SOURCE, MODIFIED_SOURCE, ORIGINAL_SOURCE
-from darker.tests.examples import A_PY, A_PY_BLACK, A_PY_BLACK_ISORT, A_PY_BLACK_FLYNT
 from darkgraylib.git import RevisionRange
 from darkgraylib.testtools.highlighting_helpers import BLUE, CYAN, RESET, WHITE, YELLOW
 from darkgraylib.utils import TextDocument, joinlines

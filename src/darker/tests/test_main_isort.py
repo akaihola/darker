@@ -1,4 +1,4 @@
-"""Tests for the ``--isort`` option of the ``darker`` command-line interface"""
+"""Tests for the ``--isort`` option of the ``darker`` command-line interface."""
 
 # pylint: disable=redefined-outer-name,unused-argument,use-dict-literal
 
@@ -22,7 +22,9 @@ def test_isort_option_without_isort(git_repo):  # noqa: ARG001
     # The `git_repo` fixture ensures test is not run in the Darker repository clone in
     # CI builds. It helps avoid a NixOS test issue.
     with isort_present(present=False), patch.object(
-        darker.__main__, "isort", None
+        darker.__main__,
+        "isort",
+        None,
     ), pytest.raises(MissingPackageError) as exc_info:
 
         darker.__main__.main(["--isort", "."])
@@ -35,7 +37,7 @@ def test_isort_option_without_isort(git_repo):  # noqa: ARG001
 
 @pytest.fixture()
 def run_isort(git_repo, monkeypatch, caplog, request):
-    """Fixture for running Darker with requested arguments and a patched `isort`
+    """Fixture for running Darker with requested arguments and a patched `isort`.
 
     Provides an `run_isort.isort_code` mock object which allows checking whether and how
     the `isort.code()` function was called.
@@ -48,7 +50,9 @@ def run_isort(git_repo, monkeypatch, caplog, request):
     isorted_code = "import os; import sys;"
     blacken_code = "import os\nimport sys\n"
     patch_run_black_ctx = patch.object(
-        darker.__main__, "run_black", return_value=TextDocument(blacken_code)
+        darker.__main__,
+        "run_black",
+        return_value=TextDocument(blacken_code),
     )
     with patch_run_black_ctx, patch("darker.import_sorting.isort_code") as isort_code:
         isort_code.return_value = isorted_code
@@ -61,7 +65,7 @@ def run_isort(git_repo, monkeypatch, caplog, request):
 
 
 def test_isort_option_with_isort(run_isort):
-    """Doesn't prompt to install ``isort`` if it's already installed"""
+    """Doesn't prompt to install ``isort`` if it's already installed."""
     assert "Please run" not in run_isort.caplog.text
 
 
@@ -71,7 +75,9 @@ def test_isort_option_with_isort(run_isort):
     indirect=["run_isort"],
 )
 def test_isort_option_with_isort_calls_sortimports(run_isort, isort_args):
-    """Relevant config options are passed from command line to ``isort``"""
+    """Relevant config options are passed from command line to ``isort``."""
     run_isort.isort_code.assert_called_once_with(
-        code="changed", settings_path=str(run_isort.root), **isort_args
+        code="changed",
+        settings_path=str(run_isort.root),
+        **isort_args,
     )
