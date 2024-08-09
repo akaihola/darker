@@ -133,6 +133,11 @@ SKIP_MAGIC_TRAILING_COMMA = (
     " `skip-magic-trailing-comma = true` from a Black configuration file."
 )
 
+PREVIEW = (
+    "In Black, enable potentially disruptive style changes that may be added to Black"
+    " in the future"
+)
+
 LINE_LENGTH = "How many characters per line to allow [default: 88]"
 
 TARGET_VERSION = (

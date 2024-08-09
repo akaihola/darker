@@ -39,6 +39,7 @@ def make_argument_parser(require_src: bool) -> ArgumentParser:
     add_arg(hlp.CHECK, "--check", action="store_true")
     add_arg(hlp.FLYNT, "-f", "--flynt", action="store_true")
     add_arg(hlp.ISORT, "-i", "--isort", action="store_true")
+    add_arg(hlp.PREVIEW, "--preview", action="store_true")
     add_lint_arg(parser)
     add_arg(
         hlp.SKIP_STRING_NORMALIZATION,

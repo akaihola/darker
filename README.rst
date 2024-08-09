@@ -358,6 +358,9 @@ The following `command line arguments`_ can also be used to modify the defaults:
        Also convert string formatting to use f-strings using the ``flynt`` package
 -i, --isort
        Also sort imports using the ``isort`` package
+--preview
+       In Black, enable potentially disruptive style changes that may be added to Black
+       in the future
 -L CMD, --lint CMD
        Run a linter on changed files. ``CMD`` can be a name or path of the linter
        binary, or a full quoted command line with the command and options. Linters read
@@ -422,6 +425,8 @@ An example ``pyproject.toml`` configuration file:
    exclude = "test_*\.py"
    extend_exclude = "/generated/"
    force_exclude = ".*\.pyi"
+   preview = true                    # Only supported in [tool.black]
+
 
    [tool.isort]
    profile = "black"
