@@ -20,8 +20,6 @@ class DarkerConfig(BaseConfig, total=False):
     check: bool
     isort: bool
     lint: List[str]
-    skip_string_normalization: bool
-    skip_magic_trailing_comma: bool
     line_length: int
     target_version: str
 
