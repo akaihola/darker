@@ -4,6 +4,7 @@ import logging
 from pathlib import Path
 from typing import Collection, List
 
+from darker.terminal import output
 from darkgraylib.utils import DiffChunk
 
 logger = logging.getLogger(__name__)
@@ -14,14 +15,14 @@ def debug_dump(black_chunks: List[DiffChunk], edited_linenums: List[int]) -> Non
     if logger.getEffectiveLevel() > logging.DEBUG:
         return
     for offset, old_lines, new_lines in black_chunks:
-        print(80 * "-")
+        output(80 * "-", end="\n")
         for delta, old_line in enumerate(old_lines):
             linenum = offset + delta
             edited = "*" if linenum in edited_linenums else " "
-            print(f"{edited}-{linenum:4} {old_line}")
+            output(f"{edited}-{linenum:4} {old_line}", end="\n")
         for _, new_line in enumerate(new_lines):
-            print(f" +     {new_line}")
-    print(80 * "-")
+            output(f" +     {new_line}", end="\n")
+    output(80 * "-", end="\n")
 
 
 def glob_any(path: Path, patterns: Collection[str]) -> bool:
