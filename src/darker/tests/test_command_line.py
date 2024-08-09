@@ -326,6 +326,54 @@ def test_parse_command_line_unknown_conffile_option(tmp_path, monkeypatch):
         parse_command_line(["-"])
 
 
+@pytest.mark.kwparametrize(
+    dict(config={}),
+    dict(config={"diff": True}),
+    dict(config={"stdout": True}),
+    dict(config={"check": True}),
+    dict(config={"isort": True}),
+    dict(config={"lint": ["pylint"]}),
+    dict(
+        config={"skip_string_normalization": True},
+        expect=ConfigurationError(
+            "Invalid [tool.darker] keys in pyproject.toml: skip_string_normalization",
+        ),
+    ),
+    dict(
+        config={"skip_magic_trailing_comma": True},
+        expect=ConfigurationError(
+            "Invalid [tool.darker] keys in pyproject.toml: skip_magic_trailing_comma",
+        ),
+    ),
+    dict(config={"line_length": 88}),
+    dict(config={"target_version": "py37"}),
+    dict(
+        config={
+            "diff": True,
+            "stdout": False,
+            "check": True,
+            "isort": True,
+            "lint": ["pylint"],
+            "skip_string_normalization": True,
+            "skip_magic_trailing_comma": True,
+            "line_length": 88,
+            "target_version": "py37",
+        },
+        expect=ConfigurationError(
+            "Invalid [tool.darker] keys in pyproject.toml: skip_magic_trailing_comma",
+        ),
+    ),
+    expect=None,
+)
+def test_parse_command_line_removed_option(tmp_path, monkeypatch, config, expect):
+    """`parse_command_line` fails if old removed options are used."""
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / "pyproject.toml").write_text(toml.dumps({"tool": {"darker": config}}))
+    with raises_if_exception(expect):
+
+        parse_command_line(["-"])
+
+
 def test_help_description_without_isort_package(capsys):
     """``darker --help`` description shows how to add ``isort`` if it's not present"""
     with isort_present(False):
