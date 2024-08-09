@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Run PR Summary Action
-        uses: akaihola/repo-summary-post@reusable-action
+        uses: akaihola/repo-summary-post
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           repo_name: ${{ github.repository }}
