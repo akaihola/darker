@@ -14,10 +14,9 @@ jobs:
           repo-name: ${{ github.repository }}
           project-name: 'Darker'
           extra-packages: 'llm-openrouter'
-        env:
-          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
-
           # Optional inputs for debugging purposes:
           verbose: '2'
           dry-run: 'true'
           output-content: '-'
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
