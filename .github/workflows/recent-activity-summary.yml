@@ -3,7 +3,11 @@ name: Recent Activity Summary
 on:  # yamllint disable-line rule:truthy
   workflow_dispatch:  # Allow manual triggering
     inputs:
-      extra_commands:
+      version:
+        description: 'The version of the action to run'
+        required: true
+        default: 'v0.0.5-debug'
+      extra-commands:
         description: 'Extra commands to run before the main action'
         required: false
         default: ''
@@ -13,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Generate and Post Repository Summary
-        uses: akaihola/repo-summary-post@v0.0.5-debug
+        uses: akaihola/repo-summary-post@${{ github.event.inputs.version }}
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           repo-name: ${{ github.repository }}
