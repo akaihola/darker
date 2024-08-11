@@ -7,9 +7,16 @@ jobs:
   prs:
     runs-on: ubuntu-latest
     steps:
-      - name: Run PR Summary Action
-        uses: akaihola/repo-summary-post@main
+      - name: Generate and Post Repository Summary
+        uses: akaihola/repo-summary-post@v0.0.4
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          repo_name: ${{ github.repository }}
-          # category: 'General'  # Don't post discussion yet
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repo-name: ${{ github.repository }}
+          project-name: 'Darker'
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+
+          # Optional inputs for debugging purposes:
+          verbose: '2'
+          dry-run: 'true'
+          output-content: '-'
