@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Generate and Post Repository Summary
-        uses: 'akaihola/repo-summary-post@${{ github.event.inputs.version }}'
+        uses: 'akaihola/repo-summary-post@${{ inputs.version }}'
         with:
           github-token: '${{ secrets.GITHUB_TOKEN }}'
           repo-name: '${{ github.repository }}'
@@ -27,6 +27,6 @@ jobs:
           verbose: '2'
           dry-run: 'true'
           output-content: '-'
-          extra-commands: '${{ github.event.inputs.extra-commands }}'
+          extra-commands: '${{ inputs.extra-commands }}'
         env:
           OPENROUTER_API_KEY: '${{ secrets.OPENROUTER_API_KEY }}'
