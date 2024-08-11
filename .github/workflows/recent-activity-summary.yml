@@ -16,8 +16,10 @@ jobs:
   prs:
     runs-on: ubuntu-latest
     steps:
+      - name: Show inputs
+        run: echo "${{ toJSON(github.event.inputs) }}"
       - name: Generate and Post Repository Summary
-        uses: 'akaihola/repo-summary-post@${{ inputs.version }}'
+        uses: akaihola/repo-summary-post@v0.0.5-debug
         with:
           github-token: '${{ secrets.GITHUB_TOKEN }}'
           repo-name: '${{ github.repository }}'
