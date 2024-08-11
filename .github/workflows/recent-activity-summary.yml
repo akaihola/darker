@@ -13,6 +13,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           repo-name: ${{ github.repository }}
           project-name: 'Darker'
+          extra-packages: 'llm-openrouter'
         env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
 
