@@ -1,21 +1,23 @@
 ---
 name: Recent Activity Summary
 on:  # yamllint disable-line rule:truthy
+  schedule:
+    - cron: '16 0 * * Mon'  # Run every Monday at 00:16 UTC
   workflow_dispatch:  # Allow manual triggering
 
 jobs:
-  prs:
+  generate:
     runs-on: ubuntu-latest
     steps:
       - name: Generate and Post Repository Summary
-        uses: akaihola/repo-summary-post@v0.0.5.3-debug
+        uses: akaihola/repo-summary-post@v0.0.6
         with:
           github-token: '${{ secrets.GITHUB_TOKEN }}'
           repo-name: '${{ github.repository }}'
           project-name: 'Darker'
           # Optional inputs for debugging purposes:
           verbose: '2'
-          dry-run: 'true'
+          dry-run: 'false'
           output-content: '-'
         env:
           OPENROUTER_KEY: '${{ secrets.OPENROUTER_KEY }}'
