@@ -31,4 +31,4 @@ jobs:
           output-content: '-'
           extra-commands: '${{ inputs.extra-commands }}'
         env:
-          OPENROUTER_API_KEY: '${{ secrets.OPENROUTER_API_KEY }}'
+          OPENROUTER_KEY: '${{ secrets.OPENROUTER_KEY }}'
