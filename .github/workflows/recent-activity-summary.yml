@@ -23,7 +23,7 @@ jobs:
       - name: Show inputs
         run: |
           echo Inputs for Darker Recent Activity Summary:
-          echo "${{ toJSON(github.event.inputs) }}"
+          echo '${{ toJSON(github.event.inputs) }}'
           echo Inputs -- end.
       - name: Generate and Post Repository Summary
         uses: akaihola/repo-summary-post@v0.0.5-debug
