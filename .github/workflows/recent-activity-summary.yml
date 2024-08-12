@@ -11,20 +11,27 @@ on:  # yamllint disable-line rule:truthy
         description: 'Extra commands to run before the main action'
         required: false
         default: ''
+      extra-packages:
+        description: 'Extra packages to install (space delimited)'
+        required: false
+        default: 'llm-openrouter'
 
 jobs:
   prs:
     runs-on: ubuntu-latest
     steps:
       - name: Show inputs
-        run: echo "${{ toJSON(github.event.inputs) }}"
+        run: |
+          echo Inputs for Darker Recent Activity Summary:
+          echo "${{ toJSON(github.event.inputs) }}"
+          echo Inputs -- end.
       - name: Generate and Post Repository Summary
         uses: akaihola/repo-summary-post@v0.0.5-debug
         with:
           github-token: '${{ secrets.GITHUB_TOKEN }}'
           repo-name: '${{ github.repository }}'
           project-name: 'Darker'
-          extra-packages: 'llm-openrouter'
+          extra-packages: '${{ inputs.extra-packages }}'
           # Optional inputs for debugging purposes:
           verbose: '2'
           dry-run: 'true'
