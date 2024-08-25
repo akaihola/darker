@@ -87,6 +87,7 @@ class BlackModeAttributes(TypedDict, total=False):
     string_normalization: bool
     is_pyi: bool
     magic_trailing_comma: bool
+    preview: bool
 
 
 def read_black_config(src: Tuple[str, ...], value: Optional[str]) -> BlackConfig:
