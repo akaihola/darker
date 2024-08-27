@@ -522,6 +522,8 @@ def main(  # noqa: C901,PLR0912,PLR0915
         black_config["skip_string_normalization"] = args.skip_string_normalization
     if args.skip_magic_trailing_comma is not None:
         black_config["skip_magic_trailing_comma"] = args.skip_magic_trailing_comma
+    if args.preview:
+        black_config["preview"] = args.preview
 
     paths, common_root = resolve_paths(args.stdin_filename, args.src)
     # `common_root` is now the common root of given paths,
