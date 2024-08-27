@@ -13,6 +13,11 @@ Added
 - The ``--preview`` configuration flag is now supported in the configuration files for
   Darker and Black
 
+Removed
+-------
+- **Backwards incompatible change:** Baseline linting support (``-L``/``--lint`` option)
+  has been removed. Use the Graylint_ tool instead.
+
 Fixed
 -----
 - Update ``darkgray-dev-tools`` for Pip >= 24.1 compatibility.
