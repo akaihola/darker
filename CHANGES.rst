@@ -23,6 +23,8 @@ Fixed
 - Pass Graylint version to `~darkgraylib.command_line.make_argument_parser` to make
   ``--version`` display the correct version number.
 - Pass full environment to Git to avoid the "dubious ownership" error.
+- Work around a `pathlib.Path.resolve` bug in Python 3.8 and 3.9 on Windows.
+  The work-around should be removed when Python 3.8 and 3.9 are no longer supported.
 
 
 2.1.1_ - 2024-04-16
