@@ -13,5 +13,5 @@ jobs:
         with:
           plugins: >
             flake8-2020>=1.6.1
-            flake8-bugbear>=22.1.11
+            flake8-bugbear>=22.1.11,!=24.8.19
             flake8-comprehensions>=3.7.0
