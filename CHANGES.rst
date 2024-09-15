@@ -15,6 +15,10 @@ Added
 - Prevent Pylint from updating beyond version 3.2.7 due to dropped Python 3.8 support.
 - The ``--formatter=black`` option (the default) has been added in preparation for
   future formatters.
+- Invoking Black is now implemented as a plugin. This allows for easier integration of
+  other formatters in the future. There's also a dummy ``none`` formatter plugin.
+- ``--formatter=none`` now skips running Black. This is useful when you only want to run
+  Isort or Flynt.
 
 Removed
 -------
