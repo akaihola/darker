@@ -1,34 +1,23 @@
 ---
 name: Recent Activity Summary
 on:  # yamllint disable-line rule:truthy
+  schedule:
+    - cron: '16 0 * * Mon'  # Run every Monday at 00:16 UTC
   workflow_dispatch:  # Allow manual triggering
-    inputs:
-      version:
-        description: 'The version of the action to run'
-        required: true
-        default: 'v0.0.5-debug'
-      extra-commands:
-        description: 'Extra commands to run before the main action'
-        required: false
-        default: ''
 
 jobs:
-  prs:
+  generate:
     runs-on: ubuntu-latest
     steps:
-      - name: Show inputs
-        run: echo "${{ toJSON(github.event.inputs) }}"
       - name: Generate and Post Repository Summary
-        uses: akaihola/repo-summary-post@v0.0.5-debug
+        uses: akaihola/repo-summary-post@v0.0.7
         with:
           github-token: '${{ secrets.GITHUB_TOKEN }}'
           repo-name: '${{ github.repository }}'
           project-name: 'Darker'
-          extra-packages: 'llm-openrouter'
           # Optional inputs for debugging purposes:
           verbose: '2'
-          dry-run: 'true'
+          dry-run: 'false'
           output-content: '-'
-          extra-commands: '${{ inputs.extra-commands }}'
         env:
           OPENROUTER_KEY: '${{ secrets.OPENROUTER_KEY }}'
