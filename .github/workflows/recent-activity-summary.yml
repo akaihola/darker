@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Generate and Post Repository Summary
-        uses: akaihola/repo-summary-post@v0.0.7
+        uses: akaihola/repo-summary-post@v0.0.8
         with:
           github-token: '${{ secrets.GITHUB_TOKEN }}'
           repo-name: '${{ github.repository }}'
