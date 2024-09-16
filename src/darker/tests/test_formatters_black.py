@@ -34,7 +34,7 @@ else:
     import tomli as tomllib
 
 if TYPE_CHECKING:
-    from darker.formatters.formatter_config import BlackConfig
+    from darker.formatters.formatter_config import BlackCompatibleConfig
 
 
 @dataclass
@@ -189,7 +189,7 @@ def test_filter_python_files(  # pylint: disable=too-many-arguments
     paths = {tmp_path / name for name in names}
     for path in paths:
         path.touch()
-    black_config: BlackConfig = {
+    black_config: BlackCompatibleConfig = {
         "exclude": regex.compile(exclude) if exclude else None,
         "extend_exclude": regex.compile(extend_exclude) if extend_exclude else None,
         "force_exclude": regex.compile(force_exclude) if force_exclude else None,

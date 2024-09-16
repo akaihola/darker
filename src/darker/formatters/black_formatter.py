@@ -13,7 +13,7 @@ The first line will be reformatted by Black, and the second left intact::
     ...     ]
     ... )
 
-First, :func:`run_black` uses Black to reformat the contents of a given file.
+First, `BlackFormatter.run` uses Black to reformat the contents of a given file.
 Reformatted lines are returned e.g.::
 
     >>> from darker.formatters.black_formatter import BlackFormatter
@@ -48,15 +48,18 @@ from black import (
 )
 
 from darker.files import find_pyproject_toml
-from darker.formatters.base_formatter import BaseFormatter
+from darker.formatters.base_formatter import BaseFormatter, HasConfig
+from darker.formatters.formatter_config import (
+    BlackCompatibleConfig,
+    read_black_compatible_cli_args,
+    validate_target_versions,
+)
 from darkgraylib.config import ConfigurationError
 from darkgraylib.utils import TextDocument
 
 if TYPE_CHECKING:
     from argparse import Namespace
     from typing import Pattern
-
-    from darker.formatters.formatter_config import BlackConfig
 
 __all__ = ["Mode"]
 
@@ -74,12 +77,10 @@ class BlackModeAttributes(TypedDict, total=False):
     preview: bool
 
 
-class BlackFormatter(BaseFormatter):
+class BlackFormatter(BaseFormatter, HasConfig[BlackCompatibleConfig]):
     """Black code formatter plugin interface."""
 
-    def __init__(self) -> None:  # pylint: disable=super-init-not-called
-        """Initialize the Black code re-formatter plugin."""
-        self.config: BlackConfig = {}
+    config: BlackCompatibleConfig  # type: ignore[assignment]
 
     def read_config(self, src: tuple[str, ...], args: Namespace) -> None:
         """Read Black configuration from ``pyproject.toml``.
@@ -131,18 +132,7 @@ class BlackFormatter(BaseFormatter):
             )
 
     def _read_cli_args(self, args: Namespace) -> None:
-        if args.config:
-            self.config["config"] = args.config
-        if getattr(args, "line_length", None):
-            self.config["line_length"] = args.line_length
-        if getattr(args, "target_version", None):
-            self.config["target_version"] = {args.target_version}
-        if getattr(args, "skip_string_normalization", None) is not None:
-            self.config["skip_string_normalization"] = args.skip_string_normalization
-        if getattr(args, "skip_magic_trailing_comma", None) is not None:
-            self.config["skip_magic_trailing_comma"] = args.skip_magic_trailing_comma
-        if getattr(args, "preview", None):
-            self.config["preview"] = args.preview
+        return read_black_compatible_cli_args(args, self.config)
 
     def run(self, content: TextDocument) -> TextDocument:
         """Run the Black code re-formatter for the Python source code given as a string.
@@ -175,15 +165,10 @@ class BlackFormatter(BaseFormatter):
         if "line_length" in self.config:
             mode["line_length"] = self.config["line_length"]
         if "target_version" in self.config:
-            if isinstance(self.config["target_version"], set):
-                target_versions_in = self.config["target_version"]
-            else:
-                target_versions_in = {self.config["target_version"]}
             all_target_versions = {tgt_v.name.lower(): tgt_v for tgt_v in TargetVersion}
-            bad_target_versions = target_versions_in - set(all_target_versions)
-            if bad_target_versions:
-                message = f"Invalid target version(s) {bad_target_versions}"
-                raise ConfigurationError(message)
+            target_versions_in = validate_target_versions(
+                self.config["target_version"], all_target_versions
+            )
             mode["target_versions"] = {
                 all_target_versions[n] for n in target_versions_in
             }
