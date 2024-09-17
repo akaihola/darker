@@ -1,8 +1,9 @@
 """Helper functions for working with files and directories."""
 
+from __future__ import annotations
+
 import inspect
-from pathlib import Path
-from typing import Collection, Optional, Set, Tuple
+from typing import TYPE_CHECKING, Collection, Optional, Set, Tuple
 
 from black import (
     DEFAULT_EXCLUDES,
@@ -14,8 +15,12 @@ from black import (
     re_compile_maybe_verbose,
 )
 
-from darker.formatters.formatter_config import BlackConfig
 from darkgraylib.files import find_project_root
+
+if TYPE_CHECKING:
+    from pathlib import Path
+
+    from darker.formatters.base_formatter import BaseFormatter
 
 
 def find_pyproject_toml(path_search_start: Tuple[str, ...]) -> Optional[str]:
@@ -41,14 +46,14 @@ def find_pyproject_toml(path_search_start: Tuple[str, ...]) -> Optional[str]:
 def filter_python_files(
     paths: Collection[Path],  # pylint: disable=unsubscriptable-object
     root: Path,
-    black_config: BlackConfig,
+    formatter: BaseFormatter,
 ) -> Set[Path]:
-    """Get Python files and explicitly listed files not excluded by Black's config
+    """Get Python files and explicitly listed files not excluded by Black's config.
 
     :param paths: Relative file/directory paths from CWD to Python sources
     :param root: A common root directory for all ``paths``
-    :param black_config: Black configuration which contains the exclude options read
-                         from Black's configuration files
+    :param formatter: The code re-formatter which provides the configuration containing
+                      the exclude options
     :return: Paths of files which should be reformatted according to
              ``black_config``, relative to ``root``.
 
@@ -70,9 +75,9 @@ def filter_python_files(
             directories,
             root,
             include=DEFAULT_INCLUDE_RE,
-            exclude=black_config.get("exclude", DEFAULT_EXCLUDE_RE),
-            extend_exclude=black_config.get("extend_exclude"),
-            force_exclude=black_config.get("force_exclude"),
+            exclude=formatter.get_exclude(DEFAULT_EXCLUDE_RE),
+            extend_exclude=formatter.get_extend_exclude(),
+            force_exclude=formatter.get_force_exclude(),
             report=Report(),
             **kwargs,  # type: ignore[arg-type]
         )
