@@ -10,18 +10,18 @@ from difflib import unified_diff
 from pathlib import Path
 from typing import Collection, Generator, List, Optional, Tuple
 
-from darker.black_diff import (
-    BlackConfig,
-    filter_python_files,
-    read_black_config,
-    run_black,
-)
 from darker.chooser import choose_lines
 from darker.command_line import parse_command_line
 from darker.concurrency import get_executor
 from darker.config import Exclusions, OutputMode, validate_config_output_mode
 from darker.diff import diff_chunks
 from darker.exceptions import DependencyError, MissingPackageError
+from darker.formatters.black_formatter import (
+    BlackConfig,
+    filter_python_files,
+    read_black_config,
+    run_black,
+)
 from darker.fstring import apply_flynt, flynt
 from darker.git import (
     EditedLinenumsDiffer,
