@@ -9,9 +9,15 @@ from black import TargetVersion
 
 import darkgraylib.command_line
 from darker import help as hlp
-from darker.config import DEPRECATED_CONFIG_OPTIONS, DarkerConfig, OutputMode
+from darker.config import (
+    DEPRECATED_CONFIG_OPTIONS,
+    REMOVED_CONFIG_OPTIONS,
+    DarkerConfig,
+    OutputMode,
+)
 from darker.version import __version__
 from darkgraylib.command_line import add_parser_argument
+from darkgraylib.config import ConfigurationError
 
 
 def make_argument_parser(require_src: bool) -> ArgumentParser:
@@ -82,10 +88,17 @@ def make_argument_parser(require_src: bool) -> ArgumentParser:
 
 def show_config_deprecations(config: DarkerConfig) -> None:
     """Show deprecation warnings for configuration keys from the config file."""
+    removal_messages = {
+        REMOVED_CONFIG_OPTIONS[option]
+        for option in config
+        if option in REMOVED_CONFIG_OPTIONS
+    }
+    if removal_messages:
+        raise ConfigurationError(" ".join(sorted(removal_messages)))
     for option in DEPRECATED_CONFIG_OPTIONS & set(config):
         warnings.warn(
             f"The configuration option `{option}` in [tool.darker] is deprecated"
-            " and will be removed in Darker 3.0.",
+            " and will be removed in Darker 4.0.",
             DeprecationWarning,
             stacklevel=2,
         )

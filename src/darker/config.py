@@ -1,5 +1,7 @@
 """Load and save configuration in TOML format"""
 
+from __future__ import annotations
+
 from argparse import Namespace
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -10,7 +12,17 @@ from darkgraylib.config import BaseConfig, ConfigurationError
 UnvalidatedConfig = Dict[str, Union[List[str], str, bool, int]]
 
 
-DEPRECATED_CONFIG_OPTIONS = {"skip_string_normalization", "skip_magic_trailing_comma"}
+REMOVED_CONFIG_OPTIONS = {
+    "skip_string_normalization": (
+        "Please move the `skip_string_normalization` option from the [tool.darker]"
+        " section to the [tool.black] section in your `pyproject.toml` file."
+    ),
+    "skip_magic_trailing_comma": (
+        "Please move the `skip_magic_trailing_comma` option from the [tool.darker]"
+        " section to the [tool.black] section in your `pyproject.toml` file."
+    ),
+}
+DEPRECATED_CONFIG_OPTIONS: set[str] = set()
 
 
 class DarkerConfig(BaseConfig, total=False):
