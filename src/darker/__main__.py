@@ -16,12 +16,9 @@ from darker.concurrency import get_executor
 from darker.config import Exclusions, OutputMode, validate_config_output_mode
 from darker.diff import diff_chunks
 from darker.exceptions import DependencyError, MissingPackageError
-from darker.formatters.black_formatter import (
-    BlackConfig,
-    filter_python_files,
-    read_black_config,
-    run_black,
-)
+from darker.files import filter_python_files
+from darker.formatters.black_formatter import read_black_config, run_black
+from darker.formatters.formatter_config import BlackConfig
 from darker.fstring import apply_flynt, flynt
 from darker.git import (
     EditedLinenumsDiffer,
