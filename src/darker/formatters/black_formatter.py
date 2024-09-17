@@ -115,9 +115,8 @@ class BlackFormatter(BaseFormatter):
                 # Convert TOML list to a Python set
                 self.config["target_version"] = set(target_version)
             else:
-                raise ConfigurationError(
-                    f"Invalid target-version = {target_version!r} in {value}"
-                )
+                message = f"Invalid target-version = {target_version!r} in {value}"
+                raise ConfigurationError(message)
         if "exclude" in raw_config:
             self.config["exclude"] = re_compile_maybe_verbose(raw_config["exclude"])
         if "extend_exclude" in raw_config:
@@ -151,8 +150,8 @@ class BlackFormatter(BaseFormatter):
 
         """
         # Collect relevant Black configuration options from ``self.config`` in order to
-        # pass them to Black's ``format_str()``. File exclusion options aren't needed since
-        # at this point we already have a single file's content to work on.
+        # pass them to Black's ``format_str()``. File exclusion options aren't needed
+        # since at this point we already have a single file's content to work on.
         mode = BlackModeAttributes()
         if "line_length" in self.config:
             mode["line_length"] = self.config["line_length"]
@@ -164,9 +163,11 @@ class BlackFormatter(BaseFormatter):
             all_target_versions = {tgt_v.name.lower(): tgt_v for tgt_v in TargetVersion}
             bad_target_versions = target_versions_in - set(all_target_versions)
             if bad_target_versions:
-                raise ConfigurationError(f"Invalid target version(s) {bad_target_versions}")
-            mode["target_versions"] = {all_target_versions[n] for n in
-                                       target_versions_in}
+                message = f"Invalid target version(s) {bad_target_versions}"
+                raise ConfigurationError(message)
+            mode["target_versions"] = {
+                all_target_versions[n] for n in target_versions_in
+            }
         if "skip_magic_trailing_comma" in self.config:
             mode["magic_trailing_comma"] = not self.config["skip_magic_trailing_comma"]
         if "skip_string_normalization" in self.config:
@@ -178,8 +179,8 @@ class BlackFormatter(BaseFormatter):
         if "preview" in self.config:
             mode["preview"] = self.config["preview"]
 
-        # The custom handling of empty and all-whitespace files below will be unnecessary if
-        # https://github.com/psf/black/pull/2484 lands in Black.
+        # The custom handling of empty and all-whitespace files below will be
+        # unnecessary if https://github.com/psf/black/pull/2484 lands in Black.
         contents_for_black = src_contents.string_with_newline("\n")
         if contents_for_black.strip():
             dst_contents = format_str(contents_for_black, mode=Mode(**mode))
