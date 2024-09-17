@@ -68,15 +68,16 @@ class BlackModeAttributes(TypedDict, total=False):
     preview: bool
 
 
-def read_black_config(src: tuple[str, ...], value: str | None) -> BlackConfig:
+class BlackFormatter:
+    """Black code formatter interface."""
+
+    def read_config(self, src: tuple[str, ...], value: str | None) -> BlackConfig:
         """Read the black configuration from ``pyproject.toml``
 
         :param src: The source code files and directories to be processed by Darker
         :param value: The path of the Black configuration file
         :return: A dictionary of those Black parameters from the configuration file which
                  are supported by Darker
-
-        NOTE: the non-standard indentation is here to make review diffs simpler
 
         """
         value = value or find_pyproject_toml(src)
@@ -111,15 +112,12 @@ def read_black_config(src: tuple[str, ...], value: str | None) -> BlackConfig:
                 config[key] = re_compile_maybe_verbose(raw_config[key])  # type: ignore
         return config
 
-
-def run_black(src_contents: TextDocument, black_config: BlackConfig) -> TextDocument:
+    def run(self, src_contents: TextDocument, black_config: BlackConfig) -> TextDocument:
         """Run the black formatter for the Python source code given as a string
 
         :param src_contents: The source code
         :param black_config: Configuration to use for running Black
         :return: The reformatted content
-
-        NOTE: the non-standard indentation is here to make review diffs simpler
 
         """
         # Collect relevant Black configuration options from ``black_config`` in order to
@@ -161,3 +159,26 @@ def run_black(src_contents: TextDocument, black_config: BlackConfig) -> TextDocu
             encoding=src_contents.encoding,
             override_newline=src_contents.newline,
         )
+
+
+def read_black_config(src: tuple[str, ...], value: str | None) -> BlackConfig:
+    """Read the black configuration from ``pyproject.toml``
+
+    :param src: The source code files and directories to be processed by Darker
+    :param value: The path of the Black configuration file
+    :return: A dictionary of those Black parameters from the configuration file which
+             are supported by Darker
+
+    """
+    return BlackFormatter().read_config(src, value)
+
+
+def run_black(src_contents: TextDocument, black_config: BlackConfig) -> TextDocument:
+    """Run the black formatter for the Python source code given as a string
+
+    :param src_contents: The source code
+    :param black_config: Configuration to use for running Black
+    :return: The reformatted content
+
+    """
+    return BlackFormatter().run(src_contents, black_config)
