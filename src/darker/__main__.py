@@ -1,4 +1,4 @@
-"""Darker - apply black reformatting to only areas edited since the last commit"""
+"""Darker - re-format only code areas edited since the last commit."""
 
 import concurrent.futures
 import logging
@@ -17,8 +17,9 @@ from darker.config import Exclusions, OutputMode, validate_config_output_mode
 from darker.diff import diff_chunks
 from darker.exceptions import DependencyError, MissingPackageError
 from darker.files import filter_python_files
-from darker.formatters.black_formatter import read_black_config, run_black
-from darker.formatters.formatter_config import BlackConfig
+from darker.formatters import create_formatter
+from darker.formatters.base_formatter import BaseFormatter
+from darker.formatters.none_formatter import NoneFormatter
 from darker.fstring import apply_flynt, flynt
 from darker.git import (
     EditedLinenumsDiffer,
@@ -57,12 +58,12 @@ logger = logging.getLogger(__name__)
 ProcessedDocument = Tuple[Path, TextDocument, TextDocument]
 
 
-def format_edited_parts(  # pylint: disable=too-many-arguments
+def format_edited_parts(  # noqa: PLR0913  # pylint: disable=too-many-arguments
     root: Path,
-    changed_files: Collection[Path],  # pylint: disable=unsubscriptable-object
+    changed_files: Collection[Path],
     exclude: Exclusions,
     revrange: RevisionRange,
-    black_config: BlackConfig,
+    formatter: BaseFormatter,
     report_unmodified: bool,
     workers: int = 1,
 ) -> Generator[ProcessedDocument, None, None]:
@@ -79,7 +80,7 @@ def format_edited_parts(  # pylint: disable=too-many-arguments
                           modified in the repository between the given Git revisions
     :param exclude: Files to exclude when running Black,``isort`` or ``flynt``
     :param revrange: The Git revisions to compare
-    :param black_config: Configuration to use for running Black
+    :param formatter: The code re-formatter to use
     :param report_unmodified: ``True`` to yield also files which weren't modified
     :param workers: number of cpu processes to use (0 - autodetect)
     :return: A generator which yields details about changes for each file which should
@@ -98,7 +99,7 @@ def format_edited_parts(  # pylint: disable=too-many-arguments
                 edited_linenums_differ,
                 exclude,
                 revrange,
-                black_config,
+                formatter,
             )
             futures.append(future)
 
@@ -112,21 +113,22 @@ def format_edited_parts(  # pylint: disable=too-many-arguments
                 yield (absolute_path_in_rev2, rev2_content, content_after_reformatting)
 
 
-def _modify_and_reformat_single_file(  # pylint: disable=too-many-arguments
+def _modify_and_reformat_single_file(  # noqa: PLR0913
     root: Path,
     relative_path_in_rev2: Path,
     edited_linenums_differ: EditedLinenumsDiffer,
     exclude: Exclusions,
     revrange: RevisionRange,
-    black_config: BlackConfig,
+    formatter: BaseFormatter,
 ) -> ProcessedDocument:
+    # pylint: disable=too-many-arguments
     """Black, isort and/or flynt formatting for modified chunks in a single file
 
     :param root: Root directory for the relative path
     :param relative_path_in_rev2: Relative path to a Python source code file
     :param exclude: Files to exclude when running Black, ``isort`` or ``flynt``
     :param revrange: The Git revisions to compare
-    :param black_config: Configuration to use for running Black
+    :param formatter: The code re-formatter to use
     :return: Details about changes for the file
 
     """
@@ -145,13 +147,14 @@ def _modify_and_reformat_single_file(  # pylint: disable=too-many-arguments
         relative_path_in_rev2,
         exclude.isort,
         edited_linenums_differ,
-        black_config.get("config"),
-        black_config.get("line_length"),
+        formatter.get_config_path(),
+        formatter.get_line_length(),
     )
     has_isort_changes = rev2_isorted != rev2_content
     # 2. run flynt (optional) on the isorted contents of each edited to-file
-    # 3. run black on the isorted and fstringified contents of each edited to-file
-    content_after_reformatting = _blacken_and_flynt_single_file(
+    # 3. run a re-formatter on the isorted and fstringified contents of each edited
+    #    to-file
+    content_after_reformatting = _reformat_and_flynt_single_file(
         root,
         relative_path_in_rev2,
         get_path_in_repo(relative_path_in_rev2),
@@ -160,13 +163,12 @@ def _modify_and_reformat_single_file(  # pylint: disable=too-many-arguments
         rev2_content,
         rev2_isorted,
         has_isort_changes,
-        black_config,
+        formatter,
     )
     return absolute_path_in_rev2, rev2_content, content_after_reformatting
 
 
-def _blacken_and_flynt_single_file(
-    # pylint: disable=too-many-arguments,too-many-locals
+def _reformat_and_flynt_single_file(  # noqa: PLR0913
     root: Path,
     relative_path_in_rev2: Path,
     relative_path_in_repo: Path,
@@ -175,8 +177,9 @@ def _blacken_and_flynt_single_file(
     rev2_content: TextDocument,
     rev2_isorted: TextDocument,
     has_isort_changes: bool,
-    black_config: BlackConfig,
+    formatter: BaseFormatter,
 ) -> TextDocument:
+    # pylint: disable=too-many-arguments
     """In a Python file, reformat chunks with edits since the last commit using Black
 
     :param root: The common root of all files to reformat
@@ -189,7 +192,7 @@ def _blacken_and_flynt_single_file(
     :param rev2_content: Contents of the file at ``revrange.rev2``
     :param rev2_isorted: Contents of the file after optional import sorting
     :param has_isort_changes: ``True`` if ``isort`` was run and modified the file
-    :param black_config: Configuration to use for running Black
+    :param formatter: The code re-formatter to use
     :return: Contents of the file after reformatting
     :raise: NotEquivalentError
 
@@ -211,9 +214,10 @@ def _blacken_and_flynt_single_file(
         len(fstringified.lines),
         "some" if has_fstring_changes else "no",
     )
-    # 3. run black on the isorted and fstringified contents of each edited to-file
-    formatted = _maybe_blacken_single_file(
-        relative_path_in_rev2, exclude.black, fstringified, black_config
+    # 3. run the code re-formatter on the isorted and fstringified contents of each
+    #    edited to-file
+    formatted = _maybe_reformat_single_file(
+        relative_path_in_rev2, exclude.formatter, fstringified, formatter
     )
     logger.debug(
         "Black reformat resulted in %s lines, with %s changes from reformatting",
@@ -267,26 +271,26 @@ def _maybe_flynt_single_file(
     return apply_flynt(rev2_isorted, relpath_in_rev2, edited_linenums_differ)
 
 
-def _maybe_blacken_single_file(
+def _maybe_reformat_single_file(
     relpath_in_rev2: Path,
     exclude: Collection[str],
     fstringified: TextDocument,
-    black_config: BlackConfig,
+    formatter: BaseFormatter,
 ) -> TextDocument:
-    """Format Python source code with Black if the source code file path isn't excluded
+    """Re-format Python source code if the source code file path isn't excluded.
 
     :param relpath_in_rev2: Relative path to a Python source code file. Possibly a
                             VSCode ``.py.<HASH>.tmp`` file in the working tree.
-    :param exclude: Files to exclude when running Black
+    :param exclude: Files to exclude when running the re-formatter
     :param fstringified: Contents of the file after optional import sorting and flynt
-    :param black_config: Configuration to use for running Black
+    :param formatter: The code re-formatter to use
     :return: Python source code after reformatting
 
     """
     if glob_any(relpath_in_rev2, exclude):
         # File was excluded by Black configuration, don't reformat
         return fstringified
-    return run_black(fstringified, black_config)
+    return formatter.run(fstringified)
 
 
 def _drop_changes_on_unedited_lines(
@@ -456,7 +460,8 @@ def main(  # noqa: C901,PLR0912,PLR0915
 
     1. run isort on each edited file (optional)
     2. run flynt (optional) on the isorted contents of each edited to-file
-    3. run black on the isorted and fstringified contents of each edited to-file
+    3. run a code re-formatter on the isorted and fstringified contents of each edited
+       to-file
     4. get a diff between the edited to-file and the processed content
     5. convert the diff into chunks, keeping original and reformatted content for each
        chunk
@@ -508,19 +513,8 @@ def main(  # noqa: C901,PLR0912,PLR0915
             f"{get_extra_instruction('flynt')} to use the `--flynt` option."
         )
 
-    black_config = read_black_config(tuple(args.src), args.config)
-    if args.config:
-        black_config["config"] = args.config
-    if args.line_length:
-        black_config["line_length"] = args.line_length
-    if args.target_version:
-        black_config["target_version"] = {args.target_version}
-    if args.skip_string_normalization is not None:
-        black_config["skip_string_normalization"] = args.skip_string_normalization
-    if args.skip_magic_trailing_comma is not None:
-        black_config["skip_magic_trailing_comma"] = args.skip_magic_trailing_comma
-    if args.preview:
-        black_config["preview"] = args.preview
+    formatter = create_formatter(args.formatter)
+    formatter.read_config(tuple(args.src), args)
 
     paths, common_root = resolve_paths(args.stdin_filename, args.src)
     # `common_root` is now the common root of given paths,
@@ -567,8 +561,8 @@ def main(  # noqa: C901,PLR0912,PLR0915
         else common_root
     )
     # These paths are relative to `common_root`:
-    files_to_process = filter_python_files(paths, common_root_, {})
-    files_to_blacken = filter_python_files(paths, common_root_, black_config)
+    files_to_process = filter_python_files(paths, common_root_, NoneFormatter())
+    files_to_reformat = filter_python_files(paths, common_root_, formatter)
 
     # Now decide which files to reformat (Black & isort). Note that this doesn't apply
     # to linting.
@@ -577,7 +571,7 @@ def main(  # noqa: C901,PLR0912,PLR0915
         # modified or not. Paths have previously been validated to contain exactly one
         # existing file.
         changed_files_to_reformat = files_to_process
-        black_exclude = set()
+        formatter_exclude = set()
     else:
         # In other modes, only reformat files which have been modified.
         if git_is_repository(common_root):
@@ -592,10 +586,10 @@ def main(  # noqa: C901,PLR0912,PLR0915
 
         else:
             changed_files_to_reformat = files_to_process
-        black_exclude = {
+        formatter_exclude = {
             str(path)
             for path in changed_files_to_reformat
-            if path not in files_to_blacken
+            if path not in files_to_reformat
         }
     use_color = should_use_color(config["color"])
     formatting_failures_on_modified_lines = False
@@ -604,12 +598,12 @@ def main(  # noqa: C901,PLR0912,PLR0915
             common_root,
             changed_files_to_reformat,
             Exclusions(
-                black=black_exclude,
+                formatter=formatter_exclude,
                 isort=set() if args.isort else {"**/*"},
                 flynt=set() if args.flynt else {"**/*"},
             ),
             revrange,
-            black_config,
+            formatter,
             report_unmodified=output_mode == OutputMode.CONTENT,
             workers=config["workers"],
         ),

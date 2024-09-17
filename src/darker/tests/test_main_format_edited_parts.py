@@ -14,6 +14,7 @@ import pytest
 import darker.__main__
 import darker.verification
 from darker.config import Exclusions
+from darker.formatters.black_formatter import BlackFormatter
 from darker.tests.examples import A_PY, A_PY_BLACK, A_PY_BLACK_FLYNT, A_PY_BLACK_ISORT
 from darker.verification import NotEquivalentError
 from darkgraylib.git import WORKTREE, RevisionRange
@@ -84,13 +85,15 @@ def test_format_edited_parts(
     paths = git_repo.add({"a.py": newline, "b.py": newline}, commit="Initial commit")
     paths["a.py"].write_bytes(newline.join(A_PY).encode("ascii"))
     paths["b.py"].write_bytes(f"print(42 ){newline}".encode("ascii"))
+    formatter = BlackFormatter()
+    formatter.config = black_config
 
     result = darker.__main__.format_edited_parts(
         Path(git_repo.root),
         {Path("a.py")},
-        Exclusions(black=black_exclude, isort=isort_exclude, flynt=flynt_exclude),
+        Exclusions(formatter=black_exclude, isort=isort_exclude, flynt=flynt_exclude),
         RevisionRange("HEAD", ":WORKTREE:"),
-        black_config,
+        formatter,
         report_unmodified=False,
     )
 
@@ -174,9 +177,9 @@ def test_format_edited_parts_stdin(git_repo, newline, rev1, rev2, expect):
             darker.__main__.format_edited_parts(
                 Path(git_repo.root),
                 {Path("a.py")},
-                Exclusions(black=set(), isort=set()),
+                Exclusions(formatter=set(), isort=set()),
                 RevisionRange(rev1, rev2),
-                {},
+                BlackFormatter(),
                 report_unmodified=False,
             ),
         )
@@ -201,7 +204,7 @@ def test_format_edited_parts_all_unchanged(git_repo, monkeypatch):
             {Path("a.py"), Path("b.py")},
             Exclusions(),
             RevisionRange("HEAD", ":WORKTREE:"),
-            {},
+            BlackFormatter(),
             report_unmodified=False,
         ),
     )
@@ -226,7 +229,7 @@ def test_format_edited_parts_ast_changed(git_repo, caplog):
                 {Path("a.py")},
                 Exclusions(isort={"**/*"}),
                 RevisionRange("HEAD", ":WORKTREE:"),
-                black_config={},
+                BlackFormatter(),
                 report_unmodified=False,
             ),
         )
@@ -270,7 +273,7 @@ def test_format_edited_parts_isort_on_already_formatted(git_repo):
         {Path("a.py")},
         Exclusions(),
         RevisionRange("HEAD", ":WORKTREE:"),
-        black_config={},
+        BlackFormatter(),
         report_unmodified=False,
     )
 
@@ -325,7 +328,7 @@ def test_format_edited_parts_historical(git_repo, rev1, rev2, expect):
         {Path("a.py")},
         Exclusions(),
         RevisionRange(rev1, rev2),
-        black_config={},
+        BlackFormatter(),
         report_unmodified=False,
     )
 
