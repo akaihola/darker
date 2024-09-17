@@ -16,7 +16,8 @@ The first line will be reformatted by Black, and the second left intact::
 First, :func:`run_black` uses Black to reformat the contents of a given file.
 Reformatted lines are returned e.g.::
 
-    >>> dst = run_black(src_content, black_config={})
+    >>> from darker.formatters.black_formatter import BlackFormatter
+    >>> dst = BlackFormatter().run(src_content)
     >>> dst.lines
     ('for i in range(5):', '    print(i)', 'print("done")')
 
@@ -36,9 +37,8 @@ for how this result is further processed with:
 from __future__ import annotations
 
 import logging
-from typing import TypedDict
+from typing import TYPE_CHECKING, TypedDict
 
-# `FileMode as Mode` required to satisfy mypy==0.782. Strange.
 from black import FileMode as Mode
 from black import (
     TargetVersion,
@@ -48,11 +48,17 @@ from black import (
 )
 
 from darker.files import find_pyproject_toml
-from darker.formatters.formatter_config import BlackConfig
+from darker.formatters.base_formatter import BaseFormatter
 from darkgraylib.config import ConfigurationError
 from darkgraylib.utils import TextDocument
 
-__all__ = ["Mode", "run_black"]
+if TYPE_CHECKING:
+    from argparse import Namespace
+    from typing import Pattern
+
+    from darker.formatters.formatter_config import BlackConfig
+
+__all__ = ["Mode"]
 
 logger = logging.getLogger(__name__)
 
@@ -68,26 +74,30 @@ class BlackModeAttributes(TypedDict, total=False):
     preview: bool
 
 
-class BlackFormatter:
-    """Black code formatter interface."""
+class BlackFormatter(BaseFormatter):
+    """Black code formatter plugin interface."""
 
-    def read_config(self, src: tuple[str, ...], value: str | None) -> BlackConfig:
+    def __init__(self) -> None:  # pylint: disable=super-init-not-called
+        """Initialize the Black code re-formatter plugin."""
+        self.config: BlackConfig = {}
+
+    def read_config(self, src: tuple[str, ...], args: Namespace) -> None:
         """Read the black configuration from ``pyproject.toml``
 
         :param src: The source code files and directories to be processed by Darker
-        :param value: The path of the Black configuration file
-        :return: A dictionary of those Black parameters from the configuration file which
-                 are supported by Darker
+        :param args: Command line arguments
 
         """
+        value = args.config
         value = value or find_pyproject_toml(src)
+        if value:
+            self._read_config_file(value)
+        self._read_cli_args(args)
 
-        if not value:
-            return BlackConfig()
-
+    def _read_config_file(self, value: str) -> None:  # noqa: C901
         raw_config = parse_pyproject_toml(value)
+        config = self.config
 
-        config: BlackConfig = {}
         for key in [
             "line_length",
             "skip_magic_trailing_comma",
@@ -112,11 +122,24 @@ class BlackFormatter:
                 config[key] = re_compile_maybe_verbose(raw_config[key])  # type: ignore
         return config
 
-    def run(self, src_contents: TextDocument, black_config: BlackConfig) -> TextDocument:
+    def _read_cli_args(self, args: Namespace) -> None:
+        if args.config:
+            self.config["config"] = args.config
+        if getattr(args, "line_length", None):
+            self.config["line_length"] = args.line_length
+        if getattr(args, "target_version", None):
+            self.config["target_version"] = {args.target_version}
+        if getattr(args, "skip_string_normalization", None) is not None:
+            self.config["skip_string_normalization"] = args.skip_string_normalization
+        if getattr(args, "skip_magic_trailing_comma", None) is not None:
+            self.config["skip_magic_trailing_comma"] = args.skip_magic_trailing_comma
+        if getattr(args, "preview", None):
+            self.config["preview"] = args.preview
+
+    def run(self, src_contents: TextDocument) -> TextDocument:
         """Run the black formatter for the Python source code given as a string
 
         :param src_contents: The source code
-        :param black_config: Configuration to use for running Black
         :return: The reformatted content
 
         """
@@ -124,6 +147,7 @@ class BlackFormatter:
         # pass them to Black's ``format_str()``. File exclusion options aren't needed since
         # at this point we already have a single file's content to work on.
         mode = BlackModeAttributes()
+        black_config = self.config
         if "line_length" in black_config:
             mode["line_length"] = black_config["line_length"]
         if "target_version" in black_config:
@@ -160,25 +184,22 @@ class BlackFormatter:
             override_newline=src_contents.newline,
         )
 
+    def get_config_path(self) -> str | None:
+        """Get the path of the Black configuration file."""
+        return self.config.get("config")
 
-def read_black_config(src: tuple[str, ...], value: str | None) -> BlackConfig:
-    """Read the black configuration from ``pyproject.toml``
+    def get_line_length(self) -> int | None:
+        """Get the ``line-length`` Black configuration option value."""
+        return self.config.get("line_length")
 
-    :param src: The source code files and directories to be processed by Darker
-    :param value: The path of the Black configuration file
-    :return: A dictionary of those Black parameters from the configuration file which
-             are supported by Darker
+    def get_exclude(self, default: Pattern[str]) -> Pattern[str]:
+        """Get the ``exclude`` Black configuration option value."""
+        return self.config.get("exclude", default)
 
-    """
-    return BlackFormatter().read_config(src, value)
+    def get_extend_exclude(self) -> Pattern[str] | None:
+        """Get the ``extend_exclude`` Black configuration option value."""
+        return self.config.get("extend_exclude")
 
-
-def run_black(src_contents: TextDocument, black_config: BlackConfig) -> TextDocument:
-    """Run the black formatter for the Python source code given as a string
-
-    :param src_contents: The source code
-    :param black_config: Configuration to use for running Black
-    :return: The reformatted content
-
-    """
-    return BlackFormatter().run(src_contents, black_config)
+    def get_force_exclude(self) -> Pattern[str] | None:
+        """Get the ``force_exclude`` Black configuration option value."""
+        return self.config.get("force_exclude")

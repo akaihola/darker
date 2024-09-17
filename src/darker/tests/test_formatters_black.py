@@ -4,6 +4,7 @@
 
 import re
 import sys
+from argparse import Namespace
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING, Dict, Iterable, Iterator, Optional, Pattern
@@ -17,8 +18,7 @@ from pathspec import PathSpec
 from darker import files
 from darker.files import DEFAULT_EXCLUDE_RE, filter_python_files
 from darker.formatters import black_formatter
-from darker.formatters.black_formatter import read_black_config, run_black
-from darker.formatters.formatter_config import BlackConfig
+from darker.formatters.black_formatter import BlackFormatter
 from darkgraylib.config import ConfigurationError
 from darkgraylib.testtools.helpers import raises_or_matches
 from darkgraylib.utils import TextDocument
@@ -32,6 +32,9 @@ if sys.version_info >= (3, 11):
             import tomli as tomllib
 else:
     import tomli as tomllib
+
+if TYPE_CHECKING:
+    from darker.formatters.formatter_config import BlackConfig
 
 
 @dataclass
@@ -110,15 +113,22 @@ class RegexEquality:
     ),
     config_path=None,
 )
-def test_read_black_config(tmpdir, config_path, config_lines, expect):
-    """``read_black_config()`` reads Black configuration from a TOML file correctly"""
+def test_read_config(tmpdir, config_path, config_lines, expect):
+    """`BlackFormatter.read_config` reads Black config correctly from a TOML file."""
     tmpdir = Path(tmpdir)
     src = tmpdir / "src.py"
     toml = tmpdir / (config_path or "pyproject.toml")
     toml.write_text("[tool.black]\n{}\n".format("\n".join(config_lines)))
-    with raises_or_matches(expect, []) as check:
+    with raises_or_matches(expect, []):
+        formatter = BlackFormatter()
+        args = Namespace()
+        args.config = config_path and str(toml)
+        if config_path:
+            expect["config"] = str(toml)
 
-        check(read_black_config((str(src),), config_path and str(toml)))
+        formatter.read_config((str(src),), args)
+
+        assert formatter.config == expect
 
 
 @pytest.mark.kwparametrize(
@@ -179,13 +189,11 @@ def test_filter_python_files(  # pylint: disable=too-many-arguments
     paths = {tmp_path / name for name in names}
     for path in paths:
         path.touch()
-    black_config = BlackConfig(
-        {
-            "exclude": regex.compile(exclude) if exclude else DEFAULT_EXCLUDE_RE,
-            "extend_exclude": regex.compile(extend_exclude) if extend_exclude else None,
-            "force_exclude": regex.compile(force_exclude) if force_exclude else None,
-        }
-    )
+    black_config: BlackConfig = {
+        "exclude": regex.compile(exclude) if exclude else DEFAULT_EXCLUDE_RE,
+        "extend_exclude": regex.compile(extend_exclude) if extend_exclude else None,
+        "force_exclude": regex.compile(force_exclude) if force_exclude else None,
+    }
     explicit = {
         Path("none+explicit.py"),
         Path("exclude+explicit.py"),
@@ -196,8 +204,10 @@ def test_filter_python_files(  # pylint: disable=too-many-arguments
         Path("extend+force+explicit.py"),
         Path("exclude+extend+force+explicit.py"),
     }
+    formatter = BlackFormatter()
+    formatter.config = black_config
 
-    result = filter_python_files({Path(".")} | explicit, tmp_path, black_config)
+    result = filter_python_files({Path()} | explicit, tmp_path, formatter)
 
     expect_paths = {Path(f"{path}.py") for path in expect} | explicit
     assert result == expect_paths
@@ -321,14 +331,14 @@ def test_filter_python_files_gitignore(make_mock, tmp_path, expect):
     with patch.object(files, "gen_python_files", gen_python_files):
         # end of test setup
 
-        _ = filter_python_files(set(), tmp_path, BlackConfig())
+        _ = filter_python_files(set(), tmp_path, BlackFormatter())
 
     assert calls.gen_python_files.kwargs == expect
 
 
 @pytest.mark.parametrize("encoding", ["utf-8", "iso-8859-1"])
 @pytest.mark.parametrize("newline", ["\n", "\r\n"])
-def test_run_black(encoding, newline):
+def test_run(encoding, newline):
     """Running Black through its Python internal API gives correct results"""
     src = TextDocument.from_lines(
         [f"# coding: {encoding}", "print ( 'touché' )"],
@@ -336,7 +346,7 @@ def test_run_black(encoding, newline):
         newline=newline,
     )
 
-    result = run_black(src, BlackConfig())
+    result = BlackFormatter().run(src)
 
     assert result.lines == (
         f"# coding: {encoding}",
@@ -347,31 +357,28 @@ def test_run_black(encoding, newline):
 
 
 @pytest.mark.parametrize("newline", ["\n", "\r\n"])
-def test_run_black_always_uses_unix_newlines(newline):
+def test_run_always_uses_unix_newlines(newline):
     """Content is always passed to Black with Unix newlines"""
     src = TextDocument.from_str(f"print ( 'touché' ){newline}")
     with patch.object(black_formatter, "format_str") as format_str:
         format_str.return_value = 'print("touché")\n'
 
-        _ = run_black(src, BlackConfig())
+        _ = BlackFormatter().run(src)
 
     format_str.assert_called_once_with("print ( 'touché' )\n", mode=ANY)
 
 
-def test_run_black_ignores_excludes():
-    """Black's exclude configuration is ignored by ``run_black()``"""
+def test_run_ignores_excludes():
+    """Black's exclude configuration is ignored by `BlackFormatter.run`."""
     src = TextDocument.from_str("a=1\n")
+    formatter = BlackFormatter()
+    formatter.config = {
+        "exclude": regex.compile(r".*"),
+        "extend_exclude": regex.compile(r".*"),
+        "force_exclude": regex.compile(r".*"),
+    }
 
-    result = run_black(
-        src,
-        BlackConfig(
-            {
-                "exclude": regex.compile(r".*"),
-                "extend_exclude": regex.compile(r".*"),
-                "force_exclude": regex.compile(r".*"),
-            }
-        ),
-    )
+    result = formatter.run(src)
 
     assert result.string == "a = 1\n"
 
@@ -389,11 +396,11 @@ def test_run_black_ignores_excludes():
         (" \t\r\n", "\r\n"),
     ],
 )
-def test_run_black_all_whitespace_input(src_content, expect):
+def test_run_all_whitespace_input(src_content, expect):
     """All-whitespace files are reformatted correctly"""
     src = TextDocument.from_str(src_content)
 
-    result = run_black(src, BlackConfig())
+    result = BlackFormatter().run(src)
 
     assert result.string == expect
 
@@ -455,7 +462,7 @@ def test_run_black_all_whitespace_input(src_content, expect):
     expect_string_normalization=True,
     expect_magic_trailing_comma=True,
 )
-def test_run_black_configuration(
+def test_run_configuration(
     black_config,
     expect,
     expect_target_versions,
@@ -463,14 +470,16 @@ def test_run_black_configuration(
     expect_string_normalization,
     expect_magic_trailing_comma,
 ):
-    """`run_black` passes correct configuration to Black"""
+    """`BlackFormatter.run` passes correct configuration to Black."""
     src = TextDocument.from_str("import  os\n")
     with patch.object(black_formatter, "format_str") as format_str, raises_or_matches(
         expect, []
     ) as check:
         format_str.return_value = "import os\n"
+        formatter = BlackFormatter()
+        formatter.config = black_config
 
-        check(run_black(src, black_config))
+        check(formatter.run(src))
 
         assert format_str.call_count == 1
         mode = format_str.call_args[1]["mode"]
