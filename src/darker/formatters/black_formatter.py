@@ -69,91 +69,95 @@ class BlackModeAttributes(TypedDict, total=False):
 
 
 def read_black_config(src: tuple[str, ...], value: str | None) -> BlackConfig:
-    """Read the black configuration from ``pyproject.toml``
+        """Read the black configuration from ``pyproject.toml``
 
-    :param src: The source code files and directories to be processed by Darker
-    :param value: The path of the Black configuration file
-    :return: A dictionary of those Black parameters from the configuration file which
-             are supported by Darker
+        :param src: The source code files and directories to be processed by Darker
+        :param value: The path of the Black configuration file
+        :return: A dictionary of those Black parameters from the configuration file which
+                 are supported by Darker
 
-    """
-    value = value or find_pyproject_toml(src)
+        NOTE: the non-standard indentation is here to make review diffs simpler
 
-    if not value:
-        return BlackConfig()
+        """
+        value = value or find_pyproject_toml(src)
 
-    raw_config = parse_pyproject_toml(value)
+        if not value:
+            return BlackConfig()
 
-    config: BlackConfig = {}
-    for key in [
-        "line_length",
-        "skip_magic_trailing_comma",
-        "skip_string_normalization",
-        "preview",
-    ]:
-        if key in raw_config:
-            config[key] = raw_config[key]  # type: ignore
-    if "target_version" in raw_config:
-        target_version = raw_config["target_version"]
-        if isinstance(target_version, str):
-            config["target_version"] = target_version
-        elif isinstance(target_version, list):
-            # Convert TOML list to a Python set
-            config["target_version"] = set(target_version)
-        else:
-            raise ConfigurationError(
-                f"Invalid target-version = {target_version!r} in {value}"
-            )
-    for key in ["exclude", "extend_exclude", "force_exclude"]:
-        if key in raw_config:
-            config[key] = re_compile_maybe_verbose(raw_config[key])  # type: ignore
-    return config
+        raw_config = parse_pyproject_toml(value)
+
+        config: BlackConfig = {}
+        for key in [
+            "line_length",
+            "skip_magic_trailing_comma",
+            "skip_string_normalization",
+            "preview",
+        ]:
+            if key in raw_config:
+                config[key] = raw_config[key]  # type: ignore
+        if "target_version" in raw_config:
+            target_version = raw_config["target_version"]
+            if isinstance(target_version, str):
+                config["target_version"] = target_version
+            elif isinstance(target_version, list):
+                # Convert TOML list to a Python set
+                config["target_version"] = set(target_version)
+            else:
+                raise ConfigurationError(
+                    f"Invalid target-version = {target_version!r} in {value}"
+                )
+        for key in ["exclude", "extend_exclude", "force_exclude"]:
+            if key in raw_config:
+                config[key] = re_compile_maybe_verbose(raw_config[key])  # type: ignore
+        return config
 
 
 def run_black(src_contents: TextDocument, black_config: BlackConfig) -> TextDocument:
-    """Run the black formatter for the Python source code given as a string
+        """Run the black formatter for the Python source code given as a string
 
-    :param src_contents: The source code
-    :param black_config: Configuration to use for running Black
-    :return: The reformatted content
+        :param src_contents: The source code
+        :param black_config: Configuration to use for running Black
+        :return: The reformatted content
 
-    """
-    # Collect relevant Black configuration options from ``black_config`` in order to
-    # pass them to Black's ``format_str()``. File exclusion options aren't needed since
-    # at this point we already have a single file's content to work on.
-    mode = BlackModeAttributes()
-    if "line_length" in black_config:
-        mode["line_length"] = black_config["line_length"]
-    if "target_version" in black_config:
-        if isinstance(black_config["target_version"], set):
-            target_versions_in = black_config["target_version"]
+        NOTE: the non-standard indentation is here to make review diffs simpler
+
+        """
+        # Collect relevant Black configuration options from ``black_config`` in order to
+        # pass them to Black's ``format_str()``. File exclusion options aren't needed since
+        # at this point we already have a single file's content to work on.
+        mode = BlackModeAttributes()
+        if "line_length" in black_config:
+            mode["line_length"] = black_config["line_length"]
+        if "target_version" in black_config:
+            if isinstance(black_config["target_version"], set):
+                target_versions_in = black_config["target_version"]
+            else:
+                target_versions_in = {black_config["target_version"]}
+            all_target_versions = {tgt_v.name.lower(): tgt_v for tgt_v in TargetVersion}
+            bad_target_versions = target_versions_in - set(all_target_versions)
+            if bad_target_versions:
+                raise ConfigurationError(f"Invalid target version(s) {bad_target_versions}")
+            mode["target_versions"] = {all_target_versions[n] for n in target_versions_in}
+        if "skip_magic_trailing_comma" in black_config:
+            mode["magic_trailing_comma"] = not black_config["skip_magic_trailing_comma"]
+        if "skip_string_normalization" in black_config:
+            # The ``black`` command line argument is
+            # ``--skip-string-normalization``, but the parameter for
+            # ``black.Mode`` needs to be the opposite boolean of
+            # ``skip-string-normalization``, hence the inverse boolean
+            mode["string_normalization"] = not black_config["skip_string_normalization"]
+        if "preview" in black_config:
+            mode["preview"] = black_config["preview"]
+
+        # The custom handling of empty and all-whitespace files below will be unnecessary if
+        # https://github.com/psf/black/pull/2484 lands in Black.
+        contents_for_black = src_contents.string_with_newline("\n")
+        if contents_for_black.strip():
+            dst_contents = format_str(contents_for_black, mode=Mode(**mode))
         else:
-            target_versions_in = {black_config["target_version"]}
-        all_target_versions = {tgt_v.name.lower(): tgt_v for tgt_v in TargetVersion}
-        bad_target_versions = target_versions_in - set(all_target_versions)
-        if bad_target_versions:
-            raise ConfigurationError(f"Invalid target version(s) {bad_target_versions}")
-        mode["target_versions"] = {all_target_versions[n] for n in target_versions_in}
-    if "skip_magic_trailing_comma" in black_config:
-        mode["magic_trailing_comma"] = not black_config["skip_magic_trailing_comma"]
-    if "skip_string_normalization" in black_config:
-        # The ``black`` command line argument is
-        # ``--skip-string-normalization``, but the parameter for
-        # ``black.Mode`` needs to be the opposite boolean of
-        # ``skip-string-normalization``, hence the inverse boolean
-        mode["string_normalization"] = not black_config["skip_string_normalization"]
-    if "preview" in black_config:
-        mode["preview"] = black_config["preview"]
-
-    # The custom handling of empty and all-whitespace files below will be unnecessary if
-    # https://github.com/psf/black/pull/2484 lands in Black.
-    contents_for_black = src_contents.string_with_newline("\n")
-    if contents_for_black.strip():
-        dst_contents = format_str(contents_for_black, mode=Mode(**mode))
-    else:
-        dst_contents = "\n" if "\n" in src_contents.string else ""
-    return TextDocument.from_str(
-        dst_contents,
-        encoding=src_contents.encoding,
-        override_newline=src_contents.newline,
-    )
+            dst_contents = "\n" if "\n" in src_contents.string else ""
+        return TextDocument.from_str(
+            dst_contents,
+            encoding=src_contents.encoding,
+            override_newline=src_contents.newline,
+        )
