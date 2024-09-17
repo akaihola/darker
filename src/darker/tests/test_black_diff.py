@@ -1,4 +1,4 @@
-"""Unit tests for `darker.black_diff`"""
+"""Unit tests for `darker.black_formatter`"""
 
 # pylint: disable=too-many-arguments,use-dict-literal
 
@@ -14,8 +14,8 @@ import regex
 from black import Mode, Report, TargetVersion
 from pathspec import PathSpec
 
-from darker import black_diff
-from darker.black_diff import (
+from darker.formatters import black_formatter
+from darker.formatters.black_formatter import (
     BlackConfig,
     filter_python_files,
     read_black_config,
@@ -320,7 +320,7 @@ def make_mock_gen_python_files_black_22_10_1_dev19():
 def test_filter_python_files_gitignore(make_mock, tmp_path, expect):
     """`filter_python_files` uses per-Black-version params to `gen_python_files`"""
     gen_python_files, calls = make_mock()
-    with patch.object(black_diff, "gen_python_files", gen_python_files):
+    with patch.object(black_formatter, "gen_python_files", gen_python_files):
         # end of test setup
 
         _ = filter_python_files(set(), tmp_path, BlackConfig())
@@ -352,7 +352,7 @@ def test_run_black(encoding, newline):
 def test_run_black_always_uses_unix_newlines(newline):
     """Content is always passed to Black with Unix newlines"""
     src = TextDocument.from_str(f"print ( 'touché' ){newline}")
-    with patch.object(black_diff, "format_str") as format_str:
+    with patch.object(black_formatter, "format_str") as format_str:
         format_str.return_value = 'print("touché")\n'
 
         _ = run_black(src, BlackConfig())
@@ -467,7 +467,7 @@ def test_run_black_configuration(
 ):
     """`run_black` passes correct configuration to Black"""
     src = TextDocument.from_str("import  os\n")
-    with patch.object(black_diff, "format_str") as format_str, raises_or_matches(
+    with patch.object(black_formatter, "format_str") as format_str, raises_or_matches(
         expect, []
     ) as check:
         format_str.return_value = "import os\n"
