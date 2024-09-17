@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import inspect
-from typing import TYPE_CHECKING, Collection, Optional, Set, Tuple
+from typing import TYPE_CHECKING, Collection
 
 from black import (
     DEFAULT_EXCLUDES,
@@ -23,7 +23,7 @@ if TYPE_CHECKING:
     from darker.formatters.base_formatter import BaseFormatter
 
 
-def find_pyproject_toml(path_search_start: Tuple[str, ...]) -> Optional[str]:
+def find_pyproject_toml(path_search_start: tuple[str, ...]) -> str | None:
     """Find the absolute filepath to a pyproject.toml if it exists"""
     path_project_root = find_project_root(path_search_start)
     path_pyproject_toml = path_project_root / "pyproject.toml"
@@ -47,7 +47,7 @@ def filter_python_files(
     paths: Collection[Path],  # pylint: disable=unsubscriptable-object
     root: Path,
     formatter: BaseFormatter,
-) -> Set[Path]:
+) -> set[Path]:
     """Get Python files and explicitly listed files not excluded by Black's config.
 
     :param paths: Relative file/directory paths from CWD to Python sources
