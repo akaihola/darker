@@ -14,13 +14,11 @@ import regex
 from black import Mode, Report, TargetVersion
 from pathspec import PathSpec
 
+from darker import files
+from darker.files import DEFAULT_EXCLUDE_RE, filter_python_files
 from darker.formatters import black_formatter
-from darker.formatters.black_formatter import (
-    BlackConfig,
-    filter_python_files,
-    read_black_config,
-    run_black,
-)
+from darker.formatters.black_formatter import read_black_config, run_black
+from darker.formatters.formatter_config import BlackConfig
 from darkgraylib.config import ConfigurationError
 from darkgraylib.testtools.helpers import raises_or_matches
 from darkgraylib.utils import TextDocument
@@ -183,7 +181,7 @@ def test_filter_python_files(  # pylint: disable=too-many-arguments
         path.touch()
     black_config = BlackConfig(
         {
-            "exclude": regex.compile(exclude) if exclude else None,
+            "exclude": regex.compile(exclude) if exclude else DEFAULT_EXCLUDE_RE,
             "extend_exclude": regex.compile(extend_exclude) if extend_exclude else None,
             "force_exclude": regex.compile(force_exclude) if force_exclude else None,
         }
@@ -320,7 +318,7 @@ def make_mock_gen_python_files_black_22_10_1_dev19():
 def test_filter_python_files_gitignore(make_mock, tmp_path, expect):
     """`filter_python_files` uses per-Black-version params to `gen_python_files`"""
     gen_python_files, calls = make_mock()
-    with patch.object(black_formatter, "gen_python_files", gen_python_files):
+    with patch.object(files, "gen_python_files", gen_python_files):
         # end of test setup
 
         _ = filter_python_files(set(), tmp_path, BlackConfig())

@@ -35,9 +35,8 @@ for how this result is further processed with:
 
 from __future__ import annotations
 
-import inspect
 import logging
-from typing import TYPE_CHECKING, Collection, Pattern, TypedDict
+from typing import TypedDict
 
 # `FileMode as Mode` required to satisfy mypy==0.782. Strange.
 from black import FileMode as Mode
@@ -47,41 +46,15 @@ from black import (
     parse_pyproject_toml,
     re_compile_maybe_verbose,
 )
-from black.const import (  # pylint: disable=no-name-in-module
-    DEFAULT_EXCLUDES,
-    DEFAULT_INCLUDES,
-)
-from black.files import gen_python_files
-from black.report import Report
 
 from darker.files import find_pyproject_toml
+from darker.formatters.formatter_config import BlackConfig
 from darkgraylib.config import ConfigurationError
 from darkgraylib.utils import TextDocument
 
-if TYPE_CHECKING:
-    from pathlib import Path
-
-__all__ = ["BlackConfig", "Mode", "run_black"]
+__all__ = ["Mode", "run_black"]
 
 logger = logging.getLogger(__name__)
-
-
-DEFAULT_EXCLUDE_RE = re_compile_maybe_verbose(DEFAULT_EXCLUDES)
-DEFAULT_INCLUDE_RE = re_compile_maybe_verbose(DEFAULT_INCLUDES)
-
-
-class BlackConfig(TypedDict, total=False):
-    """Type definition for Black configuration dictionaries"""
-
-    config: str
-    exclude: Pattern[str] | None
-    extend_exclude: Pattern[str] | None
-    force_exclude: Pattern[str] | None
-    target_version: str | set[str]
-    line_length: int
-    skip_string_normalization: bool
-    skip_magic_trailing_comma: bool
-    preview: bool
 
 
 class BlackModeAttributes(TypedDict, total=False):
@@ -135,48 +108,6 @@ def read_black_config(src: tuple[str, ...], value: str | None) -> BlackConfig:
         if key in raw_config:
             config[key] = re_compile_maybe_verbose(raw_config[key])  # type: ignore
     return config
-
-
-def filter_python_files(
-    paths: Collection[Path],  # pylint: disable=unsubscriptable-object
-    root: Path,
-    black_config: BlackConfig,
-) -> set[Path]:
-    """Get Python files and explicitly listed files not excluded by Black's config
-
-    :param paths: Relative file/directory paths from CWD to Python sources
-    :param root: A common root directory for all ``paths``
-    :param black_config: Black configuration which contains the exclude options read
-                         from Black's configuration files
-    :return: Paths of files which should be reformatted according to
-             ``black_config``, relative to ``root``.
-
-    """
-    sig = inspect.signature(gen_python_files)
-    # those two exist and are required in black>=21.7b1.dev9
-    kwargs = {"verbose": False, "quiet": False} if "verbose" in sig.parameters else {}
-    # `gitignore=` was replaced with `gitignore_dict=` in black==22.10.1.dev19+gffaaf48
-    for param in sig.parameters:
-        if param == "gitignore":
-            kwargs[param] = None  # type: ignore[assignment]
-        elif param == "gitignore_dict":
-            kwargs[param] = {}  # type: ignore[assignment]
-    absolute_paths = {p.resolve() for p in paths}
-    directories = {p for p in absolute_paths if p.is_dir()}
-    files = {p for p in absolute_paths if p not in directories}
-    files_from_directories = set(
-        gen_python_files(
-            directories,
-            root,
-            include=DEFAULT_INCLUDE_RE,
-            exclude=black_config.get("exclude") or DEFAULT_EXCLUDE_RE,
-            extend_exclude=black_config.get("extend_exclude"),
-            force_exclude=black_config.get("force_exclude"),
-            report=Report(),
-            **kwargs,  # type: ignore[arg-type]
-        )
-    )
-    return {p.resolve().relative_to(root) for p in files_from_directories | files}
 
 
 def run_black(src_contents: TextDocument, black_config: BlackConfig) -> TextDocument:
