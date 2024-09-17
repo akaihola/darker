@@ -107,8 +107,7 @@ def test_output_mode_validate_stdout_src(
     Path("first.py").touch()
     Path("second.py").touch()
     with raises_if_exception(expect):
-
-        OutputMode.validate_stdout_src(stdout, src, stdin_filename)
+        OutputMode.validate_stdout_src(src, stdin_filename, stdout=stdout)
 
 
 @pytest.mark.kwparametrize(

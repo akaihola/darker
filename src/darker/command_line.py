@@ -136,5 +136,5 @@ def parse_command_line(
         show_config_deprecations,
     )
     OutputMode.validate_diff_stdout(args.diff, args.stdout)
-    OutputMode.validate_stdout_src(args.stdout, args.src, args.stdin_filename)
+    OutputMode.validate_stdout_src(args.src, args.stdin_filename, stdout=args.stdout)
     return args, effective_cfg, modified_cfg

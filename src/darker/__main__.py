@@ -490,7 +490,7 @@ def main(  # noqa: C901,PLR0912,PLR0915
     # Make sure there aren't invalid option combinations after merging configuration and
     # command line options.
     OutputMode.validate_diff_stdout(args.diff, args.stdout)
-    OutputMode.validate_stdout_src(args.stdout, args.src, args.stdin_filename)
+    OutputMode.validate_stdout_src(args.src, args.stdin_filename, stdout=args.stdout)
     validate_config_output_mode(config)
 
     setup_logging(args.log_level)
