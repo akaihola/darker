@@ -16,8 +16,6 @@ jobs:
             black \
             git+https://github.com/akaihola/darkgraylib.git@main \
             defusedxml \
-            git+https://github.com/akaihola/graylint.git@main \
-            pip-requirements-parser \
             pygments \
             pylint \
             pytest>=6.2.0 \

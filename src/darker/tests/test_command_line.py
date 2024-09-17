@@ -118,16 +118,16 @@ def get_darker_help_output(capsys):
         expect_modified=("lint", ...),
     ),
     dict(
-        argv=["-L", "pylint", "."],
-        expect_value=("lint", ["pylint"]),
-        expect_config=("lint", ["pylint"]),
-        expect_modified=("lint", ["pylint"]),
+        argv=["-L", "dummy", "."],
+        expect_value=("lint", ["dummy"]),
+        expect_config=("lint", ["dummy"]),
+        expect_modified=("lint", ["dummy"]),
     ),
     dict(
-        argv=["--lint", "flake8", "-L", "mypy", "."],
-        expect_value=("lint", ["flake8", "mypy"]),
-        expect_config=("lint", ["flake8", "mypy"]),
-        expect_modified=("lint", ["flake8", "mypy"]),
+        argv=["--lint", "dummy", "-L", "foobar", "."],
+        expect_value=("lint", ["dummy", "foobar"]),
+        expect_config=("lint", ["dummy", "foobar"]),
+        expect_modified=("lint", ["dummy", "foobar"]),
     ),
     dict(
         argv=["."],
@@ -255,7 +255,13 @@ def test_parse_command_line(
     dict(config={"stdout": True}, expect_warn=set()),
     dict(config={"check": True}, expect_warn=set()),
     dict(config={"isort": True}, expect_warn=set()),
-    dict(config={"lint": ["pylint"]}, expect_warn=set()),
+    dict(
+        config={"lint": ["dummy"]},
+        expect_warn={
+            "Baseline linting has been moved to the Graylint package. Please remove the"
+            " `lint =` option from your configuration file.",
+        },
+    ),
     dict(
         config={"skip_string_normalization": True},
         expect_warn={
@@ -278,13 +284,15 @@ def test_parse_command_line(
             "stdout": False,
             "check": True,
             "isort": True,
-            "lint": ["pylint"],
+            "lint": ["dummy"],
             "skip_string_normalization": True,
             "skip_magic_trailing_comma": True,
             "line_length": 88,
             "target_version": "py37",
         },
         expect_warn={
+            "Baseline linting has been moved to the Graylint package. Please remove the"
+            " `lint =` option from your configuration file.",
             "The configuration option `skip_magic_trailing_comma` in [tool.darker] is"
             " deprecated and will be removed in Darker 3.0.",
             "The configuration option `skip_string_normalization` in [tool.darker] is"
@@ -717,16 +725,14 @@ def test_options(git_repo, options, expect):
 
 
 @pytest.mark.kwparametrize(
-    dict(check=False, changes=False, lintfail=False),
-    dict(check=False, changes=False, lintfail=True, expect_retval=1),
-    dict(check=False, changes=True, lintfail=False),
-    dict(check=False, changes=True, lintfail=True, expect_retval=1),
-    dict(check=True, changes=False, lintfail=False),
-    dict(check=True, changes=True, lintfail=True, expect_retval=1),
+    dict(arguments=["a.py"], changes=False),
+    dict(arguments=["a.py"], changes=True),
+    dict(arguments=["--check", "a.py"], changes=False),
+    dict(arguments=["--check", "a.py"], changes=True, expect_retval=1),
     expect_retval=0,
 )
-def test_main_retval(git_repo, check, changes, lintfail, expect_retval):
-    """main() return value is correct based on --check, reformatting and linters"""
+def test_main_retval(git_repo, arguments, changes, expect_retval):
+    """``main()`` return value is correct based on ``--check`` and reformatting."""
     git_repo.add({"a.py": ""}, commit="Initial commit")
     format_edited_parts = Mock()
     format_edited_parts.return_value = (
@@ -740,16 +746,13 @@ def test_main_retval(git_repo, check, changes, lintfail, expect_retval):
         if changes
         else []
     )
-    run_linters = Mock(return_value=lintfail)
-    check_arg_maybe = ["--check"] if check else []
     with patch.multiple(
         "darker.__main__",
         format_edited_parts=format_edited_parts,
         modify_file=DEFAULT,
-        run_linters=run_linters,
     ):
 
-        retval = main(check_arg_maybe + ["a.py"])
+        retval = main(arguments)
 
     assert retval == expect_retval
 

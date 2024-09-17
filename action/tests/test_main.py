@@ -2,17 +2,20 @@
 
 # pylint: disable=use-dict-literal
 
-import re
+from __future__ import annotations
+
 import sys
 from contextlib import contextmanager
-from pathlib import Path
 from runpy import run_module
 from subprocess import PIPE, STDOUT, CompletedProcess  # nosec
 from types import SimpleNamespace
-from typing import Dict, Generator
+from typing import TYPE_CHECKING, Generator
 from unittest.mock import ANY, Mock, call, patch
 
 import pytest
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 # pylint: disable=redefined-outer-name,unused-argument
 
@@ -25,7 +28,7 @@ class SysExitCalled(Exception):
 
 
 @pytest.fixture
-def run_main_env() -> Dict[str, str]:
+def run_main_env() -> dict[str, str]:
     """By default, call `main.py` with just `GITHUB_ACTION_PATH` in the environment"""
     return {}
 
@@ -33,9 +36,9 @@ def run_main_env() -> Dict[str, str]:
 @contextmanager
 def patch_main(
     tmp_path: Path,
-    run_main_env: Dict[str, str],
+    run_main_env: dict[str, str],
     pip_returncode: int = 0,
-) -> Generator[SimpleNamespace, None, None]:
+) -> Generator[SimpleNamespace]:
     """Patch `subprocess.run`, `sys.exit` and environment variables
 
     :param tmp_path: Path to use for the `GITHUB_ACTION_PATH` environment variable
@@ -61,8 +64,9 @@ def patch_main(
 
 @pytest.fixture
 def main_patch(
-    tmp_path: Path, run_main_env: Dict[str, str]
-) -> Generator[SimpleNamespace, None, None]:
+    tmp_path: Path,
+    run_main_env: dict[str, str],
+) -> Generator[SimpleNamespace]:
     """`subprocess.run, `sys.exit` and environment variables patching as Pytest fixture
 
     :param tmp_path: Path to use for the `GITHUB_ACTION_PATH` environment variable
@@ -98,24 +102,12 @@ def test_creates_virtualenv(tmp_path, main_patch):
         ],
     ),
     dict(
-        run_main_env={"INPUT_LINT": "pylint"},
-        expect=["darker[color,isort]", "pylint"],
+        run_main_env={"INPUT_LINT": "dummy"},
+        expect=["darker[color,isort]"],
     ),
     dict(
-        run_main_env={"INPUT_LINT": "pylint,flake8"},
-        expect=["darker[color,isort]", "pylint", "flake8"],
-    ),
-    dict(
-        run_main_env={"INPUT_LINT": "  flake8  "},
-        expect=["darker[color,isort]", "flake8"],
-    ),
-    dict(
-        run_main_env={"INPUT_LINT": "  flake8  ,  pylint  "},
-        expect=["darker[color,isort]", "flake8", "pylint"],
-    ),
-    dict(
-        run_main_env={"INPUT_LINT": "  flake8  >=  3.9.2  ,  pylint  ==  2.13.1  "},
-        expect=["darker[color,isort]", "flake8>=3.9.2", "pylint==2.13.1"],
+        run_main_env={"INPUT_LINT": "dummy,foobar"},
+        expect=["darker[color,isort]"],
     ),
 )
 def test_installs_packages(tmp_path, main_patch, run_main_env, expect):
@@ -137,24 +129,6 @@ def test_installs_packages(tmp_path, main_patch, run_main_env, expect):
         stderr=STDOUT,
         encoding="utf-8",
     )
-
-
-@pytest.mark.parametrize(
-    "linters", ["foo", "  foo  ", "foo==2.0,bar", "  foo>1.0  ,  bar  ", "pylint,foo"]
-)
-def test_wont_install_unknown_packages(tmp_path, linters):
-    """Non-whitelisted linters raise an exception"""
-    with patch_main(tmp_path, {"INPUT_LINT": linters}) as main_patch, pytest.raises(
-        RuntimeError,
-        match=re.escape("'foo' is not supported as a linter by the GitHub Action"),
-    ):
-
-        run_module("main")
-
-    # only virtualenv `run` called, `pip` and `darker` not called
-    (venv_create,) = main_patch.subprocess.run.call_args_list
-    assert venv_create == call([ANY, "-m", "venv", ANY], check=True)
-    assert not main_patch.sys.exit.called
 
 
 @pytest.mark.kwparametrize(
@@ -184,12 +158,12 @@ def test_wont_install_unknown_packages(tmp_path, linters):
         expect=["--revision", "master...", "."],
     ),
     dict(
-        env={"INPUT_SRC": ".", "INPUT_LINT": "pylint,flake8"},
-        expect=["--lint", "pylint", "--lint", "flake8", "--revision", "HEAD^", "."],
+        env={"INPUT_SRC": ".", "INPUT_LINT": "dummy,foobar"},
+        expect=["--revision", "HEAD^", "."],
     ),
     dict(
-        env={"INPUT_SRC": ".", "INPUT_LINT": "pylint == 2.13.1,flake8>=3.9.2"},
-        expect=["--lint", "pylint", "--lint", "flake8", "--revision", "HEAD^", "."],
+        env={"INPUT_SRC": ".", "INPUT_LINT": "dummy == 2.13.1,foobar>=3.9.2"},
+        expect=["--revision", "HEAD^", "."],
     ),
     dict(
         env={
@@ -197,15 +171,11 @@ def test_wont_install_unknown_packages(tmp_path, linters):
             "INPUT_OPTIONS": "--isort --verbose",
             "INPUT_REVISION": "master...",
             "INPUT_COMMIT_RANGE": "ignored",
-            "INPUT_LINT": "pylint,flake8",
+            "INPUT_LINT": "dummy,foobar",
         },
         expect=[
             "--isort",
             "--verbose",
-            "--lint",
-            "pylint",
-            "--lint",
-            "flake8",
             "--revision",
             "master...",
             "here.py",
@@ -213,7 +183,7 @@ def test_wont_install_unknown_packages(tmp_path, linters):
         ],
     ),
 )
-def test_runs_darker(tmp_path, env, expect):
+def test_runs_darker(tmp_path: Path, env: dict[str, str], expect: list[str]) -> None:
     """Configuration translates correctly into a Darker command line"""
     with patch_main(tmp_path, env) as main_patch, pytest.raises(SysExitCalled):
 
@@ -221,7 +191,12 @@ def test_runs_darker(tmp_path, env, expect):
 
     darker = str(tmp_path / ".darker-env" / BIN / "darker")
     # This gets the first list item of the first positional argument to the `run` call.
-    assert darker in [c.args[0][0] for c in main_patch.subprocess.run.call_args_list]
+    (darker_call,) = (
+        c.args[0]
+        for c in main_patch.subprocess.run.call_args_list
+        if c.args[0][0] == darker
+    )
+    assert darker_call[1:] == expect
 
 
 def test_error_if_pip_fails(tmp_path, capsys):

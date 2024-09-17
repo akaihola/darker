@@ -30,7 +30,7 @@ from darker.git import (
     git_get_modified_python_files,
     git_is_repository,
 )
-from darker.help import get_extra_instruction
+from darker.help import LINTING_GUIDE, get_extra_instruction
 from darker.import_sorting import apply_isort, isort
 from darker.utils import debug_dump, glob_any
 from darker.verification import ASTVerifier, BinarySearch, NotEquivalentError
@@ -53,7 +53,6 @@ from darkgraylib.highlighting import colorize, should_use_color
 from darkgraylib.log import setup_logging
 from darkgraylib.main import resolve_paths
 from darkgraylib.utils import GIT_DATEFORMAT, WINDOWS, DiffChunk, TextDocument
-from graylint.linting import run_linters
 
 logger = logging.getLogger(__name__)
 
@@ -627,20 +626,9 @@ def main(  # noqa: C901,PLR0912,PLR0915
             print_source(new, use_color)
         if write_modified_files:
             modify_file(path, new)
-    linter_failures_on_modified_lines = run_linters(
-        args.lint,
-        common_root,
-        # paths to lint are not limited to modified files or just Python files:
-        {p.resolve().relative_to(common_root) for p in paths},
-        revrange,
-        use_color,
-    )
-    return (
-        1
-        if linter_failures_on_modified_lines
-        or (args.check and formatting_failures_on_modified_lines)
-        else 0
-    )
+    if args.lint:
+        print(LINTING_GUIDE, end="")
+    return 1 if args.check and formatting_failures_on_modified_lines else 0
 
 
 def main_with_error_handling() -> int:
