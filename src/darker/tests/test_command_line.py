@@ -18,6 +18,7 @@ from darker.__main__ import main
 from darker.command_line import make_argument_parser, parse_command_line
 from darker.config import Exclusions
 from darker.formatters import black_formatter
+from darker.formatters.black_formatter import BlackFormatter
 from darker.tests.helpers import flynt_present, isort_present
 from darkgraylib.config import ConfigurationError
 from darkgraylib.git import RevisionRange
@@ -776,7 +777,11 @@ def test_options(git_repo, options, expect):
 
         retval = main(options)
 
-    expect = (Path(git_repo.root), expect[1]) + expect[2:]
+    expect_formatter = BlackFormatter()
+    expect_formatter.config = expect[4]
+    actual_formatter = format_edited_parts.call_args.args[4]
+    assert actual_formatter.config == expect_formatter.config
+    expect = (Path(git_repo.root), expect[1]) + expect[2:4] + (expect_formatter,)
     format_edited_parts.assert_called_once_with(
         *expect, report_unmodified=False, workers=1
     )
