@@ -1,4 +1,4 @@
-"""Re-format Python source code using Black
+"""Re-format Python source code using Black.
 
 In examples below, a simple two-line snippet is used.
 The first line will be reformatted by Black, and the second left intact::
@@ -54,7 +54,7 @@ from darkgraylib.utils import TextDocument
 
 if TYPE_CHECKING:
     from argparse import Namespace
-    from typing import Pattern, Set
+    from typing import Pattern
 
     from darker.formatters.formatter_config import BlackConfig
 
@@ -64,9 +64,9 @@ logger = logging.getLogger(__name__)
 
 
 class BlackModeAttributes(TypedDict, total=False):
-    """Type definition for items accepted by ``black.Mode``"""
+    """Type definition for items accepted by ``black.Mode``."""
 
-    target_versions: Set[TargetVersion]
+    target_versions: set[TargetVersion]
     line_length: int
     string_normalization: bool
     is_pyi: bool
@@ -82,45 +82,52 @@ class BlackFormatter(BaseFormatter):
         self.config: BlackConfig = {}
 
     def read_config(self, src: tuple[str, ...], args: Namespace) -> None:
-        """Read the black configuration from ``pyproject.toml``
+        """Read Black configuration from ``pyproject.toml``.
 
         :param src: The source code files and directories to be processed by Darker
         :param args: Command line arguments
 
         """
-        value = args.config
-        value = value or find_pyproject_toml(src)
-        if value:
-            self._read_config_file(value)
+        config_path = args.config or find_pyproject_toml(src)
+        if config_path:
+            self._read_config_file(config_path)
         self._read_cli_args(args)
 
     def _read_config_file(self, value: str) -> None:  # noqa: C901
         raw_config = parse_pyproject_toml(value)
-        config = self.config
-
-        for key in [
-            "line_length",
-            "skip_magic_trailing_comma",
-            "skip_string_normalization",
-            "preview",
-        ]:
-            if key in raw_config:
-                config[key] = raw_config[key]  # type: ignore
+        if "line_length" in raw_config:
+            self.config["line_length"] = raw_config["line_length"]
+        if "skip_magic_trailing_comma" in raw_config:
+            self.config["skip_magic_trailing_comma"] = raw_config[
+                "skip_magic_trailing_comma"
+            ]
+        if "skip_string_normalization" in raw_config:
+            self.config["skip_string_normalization"] = raw_config[
+                "skip_string_normalization"
+            ]
+        if "preview" in raw_config:
+            self.config["preview"] = raw_config["preview"]
         if "target_version" in raw_config:
             target_version = raw_config["target_version"]
             if isinstance(target_version, str):
-                config["target_version"] = target_version
+                self.config["target_version"] = target_version
             elif isinstance(target_version, list):
                 # Convert TOML list to a Python set
-                config["target_version"] = set(target_version)
+                self.config["target_version"] = set(target_version)
             else:
                 raise ConfigurationError(
                     f"Invalid target-version = {target_version!r} in {value}"
                 )
-        for key in ["exclude", "extend_exclude", "force_exclude"]:
-            if key in raw_config:
-                config[key] = re_compile_maybe_verbose(raw_config[key])  # type: ignore
-        return config
+        if "exclude" in raw_config:
+            self.config["exclude"] = re_compile_maybe_verbose(raw_config["exclude"])
+        if "extend_exclude" in raw_config:
+            self.config["extend_exclude"] = re_compile_maybe_verbose(
+                raw_config["extend_exclude"]
+            )
+        if "force_exclude" in raw_config:
+            self.config["force_exclude"] = re_compile_maybe_verbose(
+                raw_config["force_exclude"]
+            )
 
     def _read_cli_args(self, args: Namespace) -> None:
         if args.config:
@@ -137,39 +144,39 @@ class BlackFormatter(BaseFormatter):
             self.config["preview"] = args.preview
 
     def run(self, src_contents: TextDocument) -> TextDocument:
-        """Run the black formatter for the Python source code given as a string
+        """Run the Black code re-formatter for the Python source code given as a string.
 
         :param src_contents: The source code
         :return: The reformatted content
 
         """
-        # Collect relevant Black configuration options from ``black_config`` in order to
+        # Collect relevant Black configuration options from ``self.config`` in order to
         # pass them to Black's ``format_str()``. File exclusion options aren't needed since
         # at this point we already have a single file's content to work on.
         mode = BlackModeAttributes()
-        black_config = self.config
-        if "line_length" in black_config:
-            mode["line_length"] = black_config["line_length"]
-        if "target_version" in black_config:
-            if isinstance(black_config["target_version"], set):
-                target_versions_in = black_config["target_version"]
+        if "line_length" in self.config:
+            mode["line_length"] = self.config["line_length"]
+        if "target_version" in self.config:
+            if isinstance(self.config["target_version"], set):
+                target_versions_in = self.config["target_version"]
             else:
-                target_versions_in = {black_config["target_version"]}
+                target_versions_in = {self.config["target_version"]}
             all_target_versions = {tgt_v.name.lower(): tgt_v for tgt_v in TargetVersion}
             bad_target_versions = target_versions_in - set(all_target_versions)
             if bad_target_versions:
                 raise ConfigurationError(f"Invalid target version(s) {bad_target_versions}")
-            mode["target_versions"] = {all_target_versions[n] for n in target_versions_in}
-        if "skip_magic_trailing_comma" in black_config:
-            mode["magic_trailing_comma"] = not black_config["skip_magic_trailing_comma"]
-        if "skip_string_normalization" in black_config:
+            mode["target_versions"] = {all_target_versions[n] for n in
+                                       target_versions_in}
+        if "skip_magic_trailing_comma" in self.config:
+            mode["magic_trailing_comma"] = not self.config["skip_magic_trailing_comma"]
+        if "skip_string_normalization" in self.config:
             # The ``black`` command line argument is
             # ``--skip-string-normalization``, but the parameter for
             # ``black.Mode`` needs to be the opposite boolean of
             # ``skip-string-normalization``, hence the inverse boolean
-            mode["string_normalization"] = not black_config["skip_string_normalization"]
-        if "preview" in black_config:
-            mode["preview"] = black_config["preview"]
+            mode["string_normalization"] = not self.config["skip_string_normalization"]
+        if "preview" in self.config:
+            mode["preview"] = self.config["preview"]
 
         # The custom handling of empty and all-whitespace files below will be unnecessary if
         # https://github.com/psf/black/pull/2484 lands in Black.
