@@ -16,14 +16,14 @@ DEPRECATED_CONFIG_OPTIONS = {"skip_string_normalization", "skip_magic_trailing_c
 class DarkerConfig(BaseConfig, total=False):
     """Dictionary representing ``[tool.darker]`` from ``pyproject.toml``"""
 
+    check: bool
     diff: bool
     flynt: bool
-    check: bool
     isort: bool
-    lint: List[str]
-    skip_string_normalization: bool
-    skip_magic_trailing_comma: bool
     line_length: int
+    lint: List[str]
+    skip_magic_trailing_comma: bool
+    skip_string_normalization: bool
     target_version: str
 
 
