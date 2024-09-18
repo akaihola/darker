@@ -37,6 +37,7 @@ class DarkerConfig(BaseConfig, total=False):
     """Dictionary representing ``[tool.darker]`` from ``pyproject.toml``"""
 
     diff: bool
+    flynt: bool
     check: bool
     isort: bool
     lint: list[str]
