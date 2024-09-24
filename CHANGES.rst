@@ -13,7 +13,7 @@ Added
 - Do not reformat renamed files.
 - CI workflow to post recent project activity in a discussion. Triggered manually.
 - The ``--preview`` configuration flag is now supported in the configuration files for
-  Darker and Black
+  Darker and Black.
 - Prevent Pylint from updating beyond version 3.2.7 due to dropped Python 3.8 support.
 - The ``--formatter=black`` option (the default) has been added in preparation for
   future formatters.
@@ -23,6 +23,8 @@ Added
   Isort or Flynt_.
 - Black_ is no longer installed by default. Use ``pip install 'darker[black]'`` to get
   Black support.
+- For linting Darker itself, upgrade to Pylint 3.3.0 or later, and add ignores for the
+  ``too-many-positional-arguments`` message.
 
 Removed
 -------
