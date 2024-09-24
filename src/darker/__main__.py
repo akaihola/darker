@@ -58,7 +58,7 @@ logger = logging.getLogger(__name__)
 ProcessedDocument = Tuple[Path, TextDocument, TextDocument]
 
 
-def format_edited_parts(  # noqa: PLR0913
+def format_edited_parts(  # noqa: PLR0913  # pylint: disable=too-many-arguments,too-many-positional-arguments
     root: Path,
     changed_files: Collection[Path],
     exclude: Exclusions,
