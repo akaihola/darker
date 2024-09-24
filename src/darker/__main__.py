@@ -59,7 +59,7 @@ logger = logging.getLogger(__name__)
 ProcessedDocument = Tuple[Path, TextDocument, TextDocument]
 
 
-def format_edited_parts(  # pylint: disable=too-many-arguments,too-many-positional-arguments
+def format_edited_parts(  # pylint: disable=too-many-arguments,too-many-positional-arguments  # noqa: PLR0913
     root: Path,
     changed_files: Collection[Path],  # pylint: disable=unsubscriptable-object
     exclude: Exclusions,
@@ -114,7 +114,7 @@ def format_edited_parts(  # pylint: disable=too-many-arguments,too-many-position
                 yield (absolute_path_in_rev2, rev2_content, content_after_reformatting)
 
 
-def _modify_and_reformat_single_file(  # pylint: disable=too-many-arguments,too-many-positional-arguments
+def _modify_and_reformat_single_file(  # pylint: disable=too-many-arguments,too-many-positional-arguments  # noqa: PLR0913
     root: Path,
     relative_path_in_rev2: Path,
     edited_linenums_differ: EditedLinenumsDiffer,
