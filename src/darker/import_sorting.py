@@ -52,7 +52,7 @@ class IsortArgs(TypedDict, total=False):
     settings_path: str
 
 
-def apply_isort(  # pylint: disable=too-many-arguments  # noqa: PLR0913
+def apply_isort(  # pylint: disable=too-many-arguments,too-many-positional-arguments  # noqa: PLR0913
     content: TextDocument,
     relative_path: Path,
     root: Path,

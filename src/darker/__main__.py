@@ -58,7 +58,7 @@ logger = logging.getLogger(__name__)
 ProcessedDocument = Tuple[Path, TextDocument, TextDocument]
 
 
-def format_edited_parts(  # noqa: PLR0913  # pylint: disable=too-many-arguments
+def format_edited_parts(  # noqa: PLR0913
     root: Path,
     changed_files: Collection[Path],
     exclude: Exclusions,
@@ -113,7 +113,7 @@ def format_edited_parts(  # noqa: PLR0913  # pylint: disable=too-many-arguments
                 yield (absolute_path_in_rev2, rev2_content, content_after_reformatting)
 
 
-def _modify_and_reformat_single_file(  # noqa: PLR0913
+def _modify_and_reformat_single_file(  # noqa: PLR0913  # pylint: disable=too-many-arguments,too-many-positional-arguments
     root: Path,
     relative_path_in_rev2: Path,
     edited_linenums_differ: EditedLinenumsDiffer,
@@ -169,7 +169,7 @@ def _modify_and_reformat_single_file(  # noqa: PLR0913
     return absolute_path_in_rev2, rev2_content, content_after_reformatting
 
 
-def _reformat_and_flynt_single_file(  # noqa: PLR0913
+def _reformat_and_flynt_single_file(  # noqa: PLR0913  # pylint: disable=too-many-arguments,too-many-positional-arguments,too-many-locals
     root: Path,
     relative_path_in_rev2: Path,
     relative_path_in_repo: Path,
@@ -307,7 +307,7 @@ def _maybe_reformat_single_file(
 
 
 def _drop_changes_on_unedited_lines(
-    # pylint: disable=too-many-arguments
+    # pylint: disable=too-many-arguments,too-many-positional-arguments
     new_chunks: List[DiffChunk],
     abspath_in_rev2: Path,
     relpath_in_repo: Path,
