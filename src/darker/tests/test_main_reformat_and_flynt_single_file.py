@@ -1,6 +1,7 @@
 """Unit tests for `darker.__main__._reformat_and_flynt_single_file`."""
 
-# pylint: disable=no-member,redefined-outer-name,too-many-arguments,use-dict-literal
+# pylint: disable=no-member,redefined-outer-name
+# pylint: disable=too-many-arguments,too-many-positional-arguments,use-dict-literal
 
 from pathlib import Path
 from textwrap import dedent
