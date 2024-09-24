@@ -10,7 +10,8 @@ Added
 - Display exit code in parentheses after error message.
 - Do not reformat renamed files.
 - The ``--preview`` configuration flag is now supported in the configuration files for
-  Darker and Black
+  Darker and Black.
+- Prevent Pylint from updating beyond version 3.2.7 due to dropped Python 3.8 support.
 - The ``--formatter=black`` option (the default) has been added in preparation for
   future formatters.
 - ``--formatter=none`` now skips running Black. This is useful when you only want to run
@@ -19,6 +20,8 @@ Added
   Black support.
 - pyupgrade_ is now supported as a formatter plugin. Note that changes from pyupgrade
   are applied on a per-file basis, not only for modified lines as with Black_ and Ruff_.
+- For linting Darker itself, upgrade to Pylint 3.3.0 or later, and add ignores for the
+  ``too-many-positional-arguments`` message.
 
 Removed
 -------
