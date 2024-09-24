@@ -1,6 +1,6 @@
 """Tests for `darker.config`"""
 
-# pylint: disable=unused-argument,too-many-arguments,use-dict-literal
+# pylint: disable=unused-argument,too-many-arguments,too-many-positional-arguments,use-dict-literal
 
 from argparse import Namespace
 from pathlib import Path

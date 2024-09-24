@@ -1,6 +1,6 @@
 """Unit tests for `darker.black_diff`"""
 
-# pylint: disable=too-many-arguments,use-dict-literal
+# pylint: disable=too-many-arguments,too-many-positional-arguments,use-dict-literal
 
 import re
 import sys
@@ -152,7 +152,7 @@ def test_read_black_config(tmpdir, config_path, config_lines, expect):
     extend_exclude=None,
     force_exclude=None,
 )
-def test_filter_python_files(  # pylint: disable=too-many-arguments
+def test_filter_python_files(  # pylint: disable=too-many-arguments,too-many-positional-arguments
     tmp_path, monkeypatch, exclude, extend_exclude, force_exclude, expect
 ):
     """``filter_python_files()`` skips excluded files correctly"""

@@ -51,7 +51,7 @@ class IsortArgs(TypedDict, total=False):
     settings_path: str
 
 
-def apply_isort(  # pylint: disable=too-many-arguments
+def apply_isort(  # pylint: disable=too-many-arguments,too-many-positional-arguments
     content: TextDocument,
     src: Path,
     exclude: Collection[str],

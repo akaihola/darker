@@ -1,6 +1,6 @@
 """Tests for `darker.__main__.main` and the ``--stdin-filename`` option"""
 
-# pylint: disable=too-many-arguments,use-dict-literal
+# pylint: disable=too-many-arguments,too-many-positional-arguments,use-dict-literal
 
 from io import BytesIO
 from typing import List, Optional

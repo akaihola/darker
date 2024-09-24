@@ -1,6 +1,6 @@
 """Tests for the `darker.__main__.format_edited_parts` function."""
 
-# pylint: disable=too-many-arguments,use-dict-literal
+# pylint: disable=too-many-arguments,too-many-positional-arguments,use-dict-literal
 # pylint: disable=use-implicit-booleaness-not-comparison
 
 import logging
