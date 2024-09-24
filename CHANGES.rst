@@ -11,8 +11,9 @@ Added
 - Do not reformat renamed files.
 - CI workflow to post recent project activity in a discussion. Triggered manually.
 - The ``--preview`` configuration flag is now supported in the configuration files for
-  Darker and Black
-- Prevent Pylint from updating beyond version 3.2.7 due to dropped Python 3.8 support.
+  Darker and Black.
+- For linting Darker itself, upgrade to Pylint 3.3.0 or later, and add ignores for the
+  ``too-many-positional-arguments`` message.
 
 Removed
 -------
