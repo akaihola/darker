@@ -93,8 +93,8 @@ class BlackFormatter(BaseFormatter):
             self._read_config_file(config_path)
         self._read_cli_args(args)
 
-    def _read_config_file(self, value: str) -> None:  # noqa: C901
-        raw_config = parse_pyproject_toml(value)
+    def _read_config_file(self, config_path: str) -> None:  # noqa: C901
+        raw_config = parse_pyproject_toml(config_path)
         if "line_length" in raw_config:
             self.config["line_length"] = raw_config["line_length"]
         if "skip_magic_trailing_comma" in raw_config:
@@ -115,7 +115,9 @@ class BlackFormatter(BaseFormatter):
                 # Convert TOML list to a Python set
                 self.config["target_version"] = set(target_version)
             else:
-                message = f"Invalid target-version = {target_version!r} in {value}"
+                message = (
+                    f"Invalid target-version = {target_version!r} in {config_path}"
+                )
                 raise ConfigurationError(message)
         if "exclude" in raw_config:
             self.config["exclude"] = re_compile_maybe_verbose(raw_config["exclude"])
@@ -142,10 +144,10 @@ class BlackFormatter(BaseFormatter):
         if getattr(args, "preview", None):
             self.config["preview"] = args.preview
 
-    def run(self, src_contents: TextDocument) -> TextDocument:
+    def run(self, content: TextDocument) -> TextDocument:
         """Run the Black code re-formatter for the Python source code given as a string.
 
-        :param src_contents: The source code
+        :param content: The source code
         :return: The reformatted content
 
         """
@@ -181,15 +183,15 @@ class BlackFormatter(BaseFormatter):
 
         # The custom handling of empty and all-whitespace files below will be
         # unnecessary if https://github.com/psf/black/pull/2484 lands in Black.
-        contents_for_black = src_contents.string_with_newline("\n")
+        contents_for_black = content.string_with_newline("\n")
         if contents_for_black.strip():
             dst_contents = format_str(contents_for_black, mode=Mode(**mode))
         else:
-            dst_contents = "\n" if "\n" in src_contents.string else ""
+            dst_contents = "\n" if "\n" in content.string else ""
         return TextDocument.from_str(
             dst_contents,
-            encoding=src_contents.encoding,
-            override_newline=src_contents.newline,
+            encoding=content.encoding,
+            override_newline=content.newline,
         )
 
     def get_config_path(self) -> str | None:
