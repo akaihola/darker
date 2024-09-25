@@ -58,7 +58,7 @@ logger = logging.getLogger(__name__)
 ProcessedDocument = Tuple[Path, TextDocument, TextDocument]
 
 
-def format_edited_parts(  # noqa: PLR0913  # pylint: disable=too-many-arguments,too-many-positional-arguments
+def format_edited_parts(  # noqa: PLR0913
     root: Path,
     changed_files: Collection[Path],
     exclude: Exclusions,
@@ -67,6 +67,7 @@ def format_edited_parts(  # noqa: PLR0913  # pylint: disable=too-many-arguments,
     report_unmodified: bool,
     workers: int = 1,
 ) -> Generator[ProcessedDocument, None, None]:
+    # pylint: disable=too-many-arguments,too-many-positional-arguments
     """Black (and optional isort and flynt) formatting modified chunks in a set of files
 
     Files inside given directories and excluded by Black's configuration are not
@@ -113,7 +114,7 @@ def format_edited_parts(  # noqa: PLR0913  # pylint: disable=too-many-arguments,
                 yield (absolute_path_in_rev2, rev2_content, content_after_reformatting)
 
 
-def _modify_and_reformat_single_file(  # noqa: PLR0913  # pylint: disable=too-many-arguments,too-many-positional-arguments
+def _modify_and_reformat_single_file(  # noqa: PLR0913
     root: Path,
     relative_path_in_rev2: Path,
     edited_linenums_differ: EditedLinenumsDiffer,
@@ -121,7 +122,7 @@ def _modify_and_reformat_single_file(  # noqa: PLR0913  # pylint: disable=too-ma
     revrange: RevisionRange,
     formatter: BaseFormatter,
 ) -> ProcessedDocument:
-    # pylint: disable=too-many-arguments
+    # pylint: disable=too-many-arguments,too-many-positional-arguments
     """Black, isort and/or flynt formatting for modified chunks in a single file
 
     :param root: Root directory for the relative path
@@ -169,7 +170,7 @@ def _modify_and_reformat_single_file(  # noqa: PLR0913  # pylint: disable=too-ma
     return absolute_path_in_rev2, rev2_content, content_after_reformatting
 
 
-def _reformat_and_flynt_single_file(  # noqa: PLR0913  # pylint: disable=too-many-arguments,too-many-positional-arguments,too-many-locals
+def _reformat_and_flynt_single_file(  # noqa: PLR0913
     root: Path,
     relative_path_in_rev2: Path,
     relative_path_in_repo: Path,
@@ -180,7 +181,7 @@ def _reformat_and_flynt_single_file(  # noqa: PLR0913  # pylint: disable=too-man
     has_isort_changes: bool,
     formatter: BaseFormatter,
 ) -> TextDocument:
-    # pylint: disable=too-many-arguments
+    # pylint: disable=too-many-arguments,too-many-positional-arguments,too-many-locals
     """In a Python file, reformat chunks with edits since the last commit using Black
 
     :param root: The common root of all files to reformat
