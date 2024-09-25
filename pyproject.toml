@@ -44,9 +44,14 @@ select = ["ALL"]
 ignore = [
     "A002",  # builtin-argument-shadowing
     "ANN101",  # Missing type annotation for `self` in method
+    "COM812",  # Trailing comma missing
     "D203",  # One blank line required before class docstring
     "D213",  # Multi-line docstring summary should start at the second line
     "D400",  # First line should end with a period (duplicates D415)
+
+    # Remove these when support for Python 3.8 is dropped:
+    "UP006",  # Use `xyz` instead of `Xyz` for type annotation
+    "UP007",  # Use `X | Y` for type annotations
 ]
 
 [tool.ruff.lint.per-file-ignores]

@@ -262,20 +262,6 @@ def test_parse_command_line(
             " `lint =` option from your configuration file.",
         },
     ),
-    dict(
-        config={"skip_string_normalization": True},
-        expect_warn={
-            "The configuration option `skip_string_normalization` in [tool.darker] is"
-            " deprecated and will be removed in Darker 3.0."
-        },
-    ),
-    dict(
-        config={"skip_magic_trailing_comma": True},
-        expect_warn={
-            "The configuration option `skip_magic_trailing_comma` in [tool.darker] is"
-            " deprecated and will be removed in Darker 3.0."
-        },
-    ),
     dict(config={"line_length": 88}, expect_warn=set()),
     dict(config={"target_version": "py37"}, expect_warn=set()),
     dict(
@@ -285,18 +271,12 @@ def test_parse_command_line(
             "check": True,
             "isort": True,
             "lint": ["dummy"],
-            "skip_string_normalization": True,
-            "skip_magic_trailing_comma": True,
             "line_length": 88,
             "target_version": "py37",
         },
         expect_warn={
             "Baseline linting has been moved to the Graylint package. Please remove the"
             " `lint =` option from your configuration file.",
-            "The configuration option `skip_magic_trailing_comma` in [tool.darker] is"
-            " deprecated and will be removed in Darker 3.0.",
-            "The configuration option `skip_string_normalization` in [tool.darker] is"
-            " deprecated and will be removed in Darker 3.0.",
         },
     ),
 )
@@ -322,6 +302,59 @@ def test_parse_command_line_unknown_conffile_option(tmp_path, monkeypatch):
         ConfigurationError,
         match=r"Invalid \[tool.darker\] keys in pyproject.toml: preview, unknown",
     ):
+
+        parse_command_line(["-"])
+
+
+@pytest.mark.kwparametrize(
+    dict(config={}),
+    dict(config={"diff": True}),
+    dict(config={"stdout": True}),
+    dict(config={"check": True}),
+    dict(config={"isort": True}),
+    dict(config={"lint": ["pylint"]}),
+    dict(
+        config={"skip_string_normalization": True},
+        expect=ConfigurationError(
+            "Please move the `skip_string_normalization` option from the [tool.darker]"
+            " section to the [tool.black] section in your `pyproject.toml` file.",
+        ),
+    ),
+    dict(
+        config={"skip_magic_trailing_comma": True},
+        expect=ConfigurationError(
+            "Please move the `skip_magic_trailing_comma` option from the [tool.darker]"
+            " section to the [tool.black] section in your `pyproject.toml` file.",
+        ),
+    ),
+    dict(config={"line_length": 88}),
+    dict(config={"target_version": "py37"}),
+    dict(
+        config={
+            "diff": True,
+            "stdout": False,
+            "check": True,
+            "isort": True,
+            "lint": ["pylint"],
+            "skip_string_normalization": True,
+            "skip_magic_trailing_comma": True,
+            "line_length": 88,
+            "target_version": "py37",
+        },
+        expect=ConfigurationError(
+            "Please move the `skip_magic_trailing_comma` option from the [tool.darker]"
+            " section to the [tool.black] section in your `pyproject.toml` file. Please"
+            " move the `skip_string_normalization` option from the [tool.darker]"
+            " section to the [tool.black] section in your `pyproject.toml` file.",
+        ),
+    ),
+    expect=None,
+)
+def test_parse_command_line_removed_option(tmp_path, monkeypatch, config, expect):
+    """`parse_command_line` fails if old removed options are used."""
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / "pyproject.toml").write_text(toml.dumps({"tool": {"darker": config}}))
+    with raises_if_exception(expect):
 
         parse_command_line(["-"])
 

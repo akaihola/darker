@@ -18,6 +18,9 @@ Removed
 -------
 - **Backwards incompatible change:** Baseline linting support (``-L``/``--lint`` option)
   has been removed. Use the Graylint_ tool instead.
+- In the Darker configuration file under ``[tool.darker]``, the Black configuration
+  options ``skip_string_normalization`` and ``skip_magic_trailing_comma`` are no longer
+  valid. Use ``[tool.black]`` instead.
 
 Fixed
 -----

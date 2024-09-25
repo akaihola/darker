@@ -1,16 +1,36 @@
 """Load and save configuration in TOML format"""
 
-from argparse import Namespace
+from __future__ import annotations
+
+import sys
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, List, Optional, Set, Union
+from typing import TYPE_CHECKING, Dict, List, Union
 
 from darkgraylib.config import BaseConfig, ConfigurationError
 
-UnvalidatedConfig = Dict[str, Union[List[str], str, bool, int]]
+if TYPE_CHECKING:
+    from argparse import Namespace
+
+if sys.version_info < (3, 10):
+    from typing_extensions import TypeAlias
+else:
+    from typing import TypeAlias
+
+UnvalidatedConfig: TypeAlias = Dict[str, Union[List[str], str, bool, int]]
 
 
-DEPRECATED_CONFIG_OPTIONS = {"skip_string_normalization", "skip_magic_trailing_comma"}
+REMOVED_CONFIG_OPTIONS = {
+    "skip_string_normalization": (
+        "Please move the `skip_string_normalization` option from the [tool.darker]"
+        " section to the [tool.black] section in your `pyproject.toml` file."
+    ),
+    "skip_magic_trailing_comma": (
+        "Please move the `skip_magic_trailing_comma` option from the [tool.darker]"
+        " section to the [tool.black] section in your `pyproject.toml` file."
+    ),
+}
+DEPRECATED_CONFIG_OPTIONS: set[str] = set()
 
 
 class DarkerConfig(BaseConfig, total=False):
@@ -19,7 +39,7 @@ class DarkerConfig(BaseConfig, total=False):
     diff: bool
     check: bool
     isort: bool
-    lint: List[str]
+    lint: list[str]
     skip_string_normalization: bool
     skip_magic_trailing_comma: bool
     line_length: int
@@ -53,7 +73,7 @@ class OutputMode:
 
     @staticmethod
     def validate_stdout_src(
-        stdout: bool, src: List[str], stdin_filename: Optional[str]
+        src: list[str], stdin_filename: str | None, *, stdout: bool
     ) -> None:
         """Raise an exception in ``stdout`` mode if not exactly one input is provided"""
         if not stdout:
@@ -92,6 +112,6 @@ class Exclusions:
 
     """
 
-    black: Set[str] = field(default_factory=set)
-    isort: Set[str] = field(default_factory=set)
-    flynt: Set[str] = field(default_factory=set)
+    black: set[str] = field(default_factory=set)
+    isort: set[str] = field(default_factory=set)
+    flynt: set[str] = field(default_factory=set)
