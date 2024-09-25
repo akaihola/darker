@@ -12,6 +12,7 @@ Added
 - CI workflow to post recent project activity in a discussion. Triggered manually.
 - The ``--preview`` configuration flag is now supported in the configuration files for
   Darker and Black
+- Prevent Pylint from updating beyond version 3.2.7 due to dropped Python 3.8 support.
 
 Removed
 -------
