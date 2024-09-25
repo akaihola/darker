@@ -59,7 +59,7 @@ logger = logging.getLogger(__name__)
 ProcessedDocument = Tuple[Path, TextDocument, TextDocument]
 
 
-def format_edited_parts(  # pylint: disable=too-many-arguments,too-many-positional-arguments  # noqa: PLR0913
+def format_edited_parts(  # noqa: PLR0913
     root: Path,
     changed_files: Collection[Path],  # pylint: disable=unsubscriptable-object
     exclude: Exclusions,
@@ -68,6 +68,7 @@ def format_edited_parts(  # pylint: disable=too-many-arguments,too-many-position
     report_unmodified: bool,
     workers: int = 1,
 ) -> Generator[ProcessedDocument, None, None]:
+    # pylint: disable=too-many-arguments,too-many-positional-arguments
     """Black (and optional isort and flynt) formatting modified chunks in a set of files
 
     Files inside given directories and excluded by Black's configuration are not
@@ -114,7 +115,7 @@ def format_edited_parts(  # pylint: disable=too-many-arguments,too-many-position
                 yield (absolute_path_in_rev2, rev2_content, content_after_reformatting)
 
 
-def _modify_and_reformat_single_file(  # pylint: disable=too-many-arguments,too-many-positional-arguments  # noqa: PLR0913
+def _modify_and_reformat_single_file(  # noqa: PLR0913
     root: Path,
     relative_path_in_rev2: Path,
     edited_linenums_differ: EditedLinenumsDiffer,
@@ -122,6 +123,7 @@ def _modify_and_reformat_single_file(  # pylint: disable=too-many-arguments,too-
     revrange: RevisionRange,
     black_config: BlackConfig,
 ) -> ProcessedDocument:
+    # pylint: disable=too-many-arguments,too-many-positional-arguments
     """Black, isort and/or flynt formatting for modified chunks in a single file
 
     :param root: Root directory for the relative path

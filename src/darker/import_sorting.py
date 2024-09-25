@@ -51,7 +51,7 @@ class IsortArgs(TypedDict, total=False):
     settings_path: str
 
 
-def apply_isort(  # pylint: disable=too-many-arguments,too-many-positional-arguments  # noqa: PLR0913
+def apply_isort(  # noqa: PLR0913
     content: TextDocument,
     src: Path,
     exclude: Collection[str],
@@ -59,6 +59,7 @@ def apply_isort(  # pylint: disable=too-many-arguments,too-many-positional-argum
     config: Optional[str] = None,
     line_length: Optional[int] = None,
 ) -> TextDocument:
+    # pylint: disable=too-many-arguments,too-many-positional-arguments
     """Run isort on the given Python source file content
 
     :param content: The contents of the Python source code file to sort imports in

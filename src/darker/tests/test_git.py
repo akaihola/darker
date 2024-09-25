@@ -1,7 +1,7 @@
 """Unit tests for :mod:`darker.git`"""
 
-# pylint: disable=protected-access,redefined-outer-name,too-many-arguments,too-many-positional-arguments
-# pylint: disable=too-many-lines,use-dict-literal
+# pylint: disable=protected-access,redefined-outer-name,use-dict-literal
+# pylint: disable=too-many-arguments,too-many-positional-arguments,too-many-lines
 
 import os
 from pathlib import Path
