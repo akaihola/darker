@@ -1,8 +1,8 @@
 """Unit tests for :mod:`darker.__main__`"""
 
-# pylint: disable=no-member,protected-access,redefined-outer-name,use-dict-literal
+# pylint: disable=no-member,too-many-locals,use-implicit-booleaness-not-comparison
+# pylint: disable=protected-access,redefined-outer-name,use-dict-literal,
 # pylint: disable=too-many-arguments,too-many-positional-arguments,unused-argument
-# pylint: disable=too-many-locals,use-implicit-booleaness-not-comparison
 
 import random
 import re
