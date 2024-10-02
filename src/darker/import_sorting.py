@@ -84,7 +84,7 @@ def apply_isort(  # pylint: disable=too-many-arguments  # noqa: PLR0913
     )  # pylint: disable=duplicate-code
     if not edited_linenums:
         return content
-    isort_args = _build_isort_args(src, config, line_length)
+    isort_args = _build_isort_args(root / src, config, line_length)
     rev2_isorted = _call_isort_code(content, root / src, isort_args)
     # Get the chunks in the diff between the edited and import-sorted file
     isort_chunks = diff_chunks(content, rev2_isorted)
