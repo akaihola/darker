@@ -145,6 +145,7 @@ def _modify_and_reformat_single_file(  # noqa: PLR0913
     rev2_isorted = apply_isort(
         rev2_content,
         relative_path_in_rev2,
+        root,
         exclude.isort,
         edited_linenums_differ,
         formatter.get_config_path(),
