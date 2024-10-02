@@ -2,6 +2,7 @@
 
 # pylint: disable=no-member,redefined-outer-name,unused-argument,use-dict-literal
 
+from pathlib import Path
 from textwrap import dedent
 from types import SimpleNamespace
 from unittest.mock import patch
@@ -91,6 +92,7 @@ def test_isort_option_with_isort_calls_sortimports(run_isort, isort_args):
     """Relevant config options are passed from command line to ``isort``."""
     run_isort.isort_code.assert_called_once_with(
         code="changed",
+        file_path=Path(run_isort.root / "test1.py"),
         settings_path=str(run_isort.root),
         **isort_args,
     )
