@@ -17,7 +17,7 @@ import darker.help
 from darker.__main__ import main
 from darker.command_line import make_argument_parser, parse_command_line
 from darker.config import Exclusions
-from darker.formatters import black_formatter
+from darker.formatters import black_formatter, ruff_formatter
 from darker.formatters.black_formatter import BlackFormatter
 from darker.tests.helpers import flynt_present, isort_present
 from darkgraylib.config import ConfigurationError
@@ -554,6 +554,91 @@ def test_black_options(monkeypatch, tmpdir, git_repo, options, expect):
 
     _, expect_args, expect_kwargs = expect
     file_mode_class.assert_called_once_with(*expect_args, **expect_kwargs)
+
+
+@pytest.mark.kwparametrize(
+    dict(options=[]),
+    dict(options=["-c", "ruff.cfg"], expect_opts=["--line-length=81"]),
+    dict(options=["--config", "ruff.cfg"], expect_opts=["--line-length=81"]),
+    dict(
+        options=["-S"],
+        expect_opts=['--config=format.quote-style="preserve"'],
+    ),
+    dict(
+        options=["--skip-string-normalization"],
+        expect_opts=['--config=format.quote-style="preserve"'],
+    ),
+    dict(options=["-l", "90"], expect_opts=["--line-length=90"]),
+    dict(options=["--line-length", "90"], expect_opts=["--line-length=90"]),
+    dict(
+        options=["-c", "ruff.cfg", "-S"],
+        expect_opts=["--line-length=81", '--config=format.quote-style="preserve"'],
+    ),
+    dict(
+        options=["-c", "ruff.cfg", "-l", "90"],
+        expect_opts=["--line-length=90"],
+    ),
+    dict(
+        options=["-l", "90", "-S"],
+        expect_opts=["--line-length=90", '--config=format.quote-style="preserve"'],
+    ),
+    dict(
+        options=["-c", "ruff.cfg", "-l", "90", "-S"],
+        expect_opts=["--line-length=90", '--config=format.quote-style="preserve"'],
+    ),
+    dict(options=["-t", "py39"], expect_opts=["--target-version=py39"]),
+    dict(options=["--target-version", "py39"], expect_opts=["--target-version=py39"]),
+    dict(
+        options=["-c", "ruff.cfg", "-t", "py39"],
+        expect_opts=["--line-length=81", "--target-version=py39"],
+    ),
+    dict(
+        options=["-t", "py39", "-S"],
+        expect_opts=[
+            "--target-version=py39",
+            '--config=format.quote-style="preserve"',
+        ],
+    ),
+    dict(
+        options=["-c", "ruff.cfg", "-t", "py39", "-S"],
+        expect_opts=[
+            "--line-length=81",
+            "--target-version=py39",
+            '--config=format.quote-style="preserve"',
+        ],
+    ),
+    dict(options=["--preview"], expect_opts=["--preview"]),
+    expect_opts=[],
+)
+def test_ruff_options(monkeypatch, tmpdir, git_repo, capsys, options, expect_opts):
+    """Ruff options from the command line are passed correctly to Ruff"""
+    monkeypatch.chdir(tmpdir)
+    (tmpdir / "pyproject.toml").write("[tool.ruff]\n")
+    (tmpdir / "ruff.cfg").write(
+        dedent(
+            """
+            [tool.ruff]
+            line_length = 81
+            skip_string_normalization = false
+            target_version = 'py38'
+            """
+        )
+    )
+    added_files = git_repo.add(
+        {"main.py": 'print("Hello World!")\n'}, commit="Initial commit"
+    )
+    main_py = added_files["main.py"]
+    main_py.write_bytes(b'print ("Hello World!")\n')
+    with patch.object(ruff_formatter, "_ruff_format_stdin") as format_stdin:
+        format_stdin.return_value = 'print("Hello World!")\n'
+
+        main([*options, "--formatter=ruff", str(main_py)])
+
+    format_stdin.assert_called_once_with(
+        'print ("Hello World!")\n',
+        Path("main.py"),
+        ['--config=lint.ignore=["ISC001"]', *expect_opts],
+    )
 
 
 @pytest.mark.kwparametrize(
