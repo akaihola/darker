@@ -183,12 +183,12 @@ class BlackFormatter(BaseFormatter):
         if "preview" in self.config:
             mode["preview"] = self.config["preview"]
 
-        # The custom handling of empty and all-whitespace files below will be
-        # unnecessary if https://github.com/psf/black/pull/2484 lands in Black.
         contents_for_black = content.string_with_newline("\n")
         if contents_for_black.strip():
             dst_contents = format_str(contents_for_black, mode=Mode(**mode))
         else:
+            # The custom handling of empty and all-whitespace files was needed until
+            # Black 22.12.0. See https://github.com/psf/black/pull/2484
             dst_contents = "\n" if "\n" in content.string else ""
         return TextDocument.from_str(
             dst_contents,
