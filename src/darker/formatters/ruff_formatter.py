@@ -37,11 +37,10 @@ for how this result is further processed with:
 from __future__ import annotations
 
 import logging
+import sys
 from pathlib import Path
 from subprocess import PIPE, run  # nosec
 from typing import TYPE_CHECKING, Collection
-
-import toml
 
 from darker.formatters.base_formatter import BaseFormatter, HasConfig
 from darker.formatters.formatter_config import (
@@ -51,6 +50,16 @@ from darker.formatters.formatter_config import (
 )
 from darkgraylib.config import ConfigurationError
 from darkgraylib.utils import TextDocument
+
+if sys.version_info >= (3, 11):
+    try:
+        import tomllib
+    except ImportError:
+        # Help users on older alphas
+        if not TYPE_CHECKING:
+            import tomli as tomllib
+else:
+    import tomli as tomllib
 
 if TYPE_CHECKING:
     from argparse import Namespace
@@ -108,8 +117,8 @@ class RuffFormatter(BaseFormatter, HasConfig[BlackCompatibleConfig]):
 
     def _read_config_file(self, config_path: str) -> None:
         """Read Ruff configuration from a configuration file."""
-        with Path(config_path).open(encoding="utf-8") as config_file:
-            raw_config = toml.load(config_file).get("tool", {}).get("ruff", {})
+        with Path(config_path).open(mode="rb") as config_file:
+            raw_config = tomllib.load(config_file).get("tool", {}).get("ruff", {})
         if "line_length" in raw_config:
             self.config["line_length"] = raw_config["line_length"]
 
