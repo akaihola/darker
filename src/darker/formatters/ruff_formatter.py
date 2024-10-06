@@ -75,6 +75,7 @@ class RuffFormatter(BaseFormatter, HasConfig[BlackCompatibleConfig]):
     config: BlackCompatibleConfig  # type: ignore[assignment]
 
     name = "ruff format"
+    config_section = "tool.ruff"
 
     def run(self, content: TextDocument, path_from_cwd: Path) -> TextDocument:
         """Run the Ruff code re-formatter for the Python source code given as a string.
