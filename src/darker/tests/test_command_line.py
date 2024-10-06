@@ -757,6 +757,52 @@ def test_black_config_file_and_options(git_repo, config, options, expect):
 
 
 @pytest.mark.kwparametrize(
+    dict(config=[], options=[], expect=[]),
+    dict(options=["--line-length=50"], expect=["--line-length=50"]),
+    dict(config=["line_length = 60"], expect=["--line-length=60"]),
+    dict(
+        config=["line_length = 60"],
+        options=["--line-length=50"],
+        expect=["--line-length=50"],
+    ),
+    dict(
+        options=["--skip-string-normalization"],
+        expect=['--config=format.quote-style="preserve"'],
+    ),
+    dict(options=["--no-skip-string-normalization"], expect=[]),
+    dict(
+        options=["--skip-magic-trailing-comma"],
+        expect=[
+            '--config="format.skip-magic-trailing-comma=true"',
+            '--config="lint.isort.split-on-trailing-comma=false"',
+        ],
+    ),
+    dict(options=["--target-version", "py39"], expect=["--target-version=py39"]),
+    dict(options=["--preview"], expect=["--preview"]),
+    config=[],
+    options=[],
+)
+def test_ruff_config_file_and_options(git_repo, config, options, expect):
+    """Ruff configuration file and command line options are combined correctly"""
+    # Only line length is both supported as a command line option and read by Darker
+    # from Ruff configuration.
+    added_files = git_repo.add(
+        {"main.py": "foo", "pyproject.toml": joinlines(["[tool.ruff]"] + config)},
+        commit="Initial commit",
+    )
+    added_files["main.py"].write_bytes(b"a = [1, 2,]")
+    # Speed up tests by mocking `_ruff_format_stdin` to skip running Ruff
+    format_stdin = Mock(return_value="a = [1, 2,]")
+    with patch.object(ruff_formatter, "_ruff_format_stdin", format_stdin):
+
+        main([*options, "--formatter=ruff", str(added_files["main.py"])])
+
+    format_stdin.assert_called_once_with(
+        "a = [1, 2,]", Path("main.py"), ['--config=lint.ignore=["ISC001"]', *expect]
+    )
+
+
+@pytest.mark.kwparametrize(
     dict(
         options=["a.py"],
         # Expected arguments to the `format_edited_parts()` call.
