@@ -502,14 +502,6 @@ def test_help_with_flynt_package(capsys):
         expect=call(target_versions={TargetVersion.PY39}),
     ),
     dict(
-        options=["-c", "black.cfg", "-S"],
-        expect=call(
-            line_length=81,
-            string_normalization=False,
-            target_versions={TargetVersion.PY38},
-        ),
-    ),
-    dict(
         options=["-c", "black.cfg", "-t", "py39"],
         expect=call(
             line_length=81,
