@@ -42,7 +42,6 @@ from pathlib import Path
 from subprocess import PIPE, run  # nosec
 from typing import TYPE_CHECKING, Collection
 
-
 from darker.formatters.base_formatter import BaseFormatter, HasConfig
 from darker.formatters.formatter_config import (
     BlackCompatibleConfig,
