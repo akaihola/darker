@@ -17,7 +17,7 @@ First, `BlackFormatter.run` uses Black to reformat the contents of a given file.
 Reformatted lines are returned e.g.::
 
     >>> from darker.formatters.black_formatter import BlackFormatter
-    >>> dst = BlackFormatter().run(src_content)
+    >>> dst = BlackFormatter().run(src_content, src)
     >>> dst.lines
     ('for i in range(5):', '    print(i)', 'print("done")')
 
@@ -59,6 +59,7 @@ from darkgraylib.utils import TextDocument
 
 if TYPE_CHECKING:
     from argparse import Namespace
+    from pathlib import Path
     from typing import Pattern
 
 __all__ = ["Mode"]
@@ -139,10 +140,12 @@ class BlackFormatter(BaseFormatter, HasConfig[BlackCompatibleConfig]):
     def _read_cli_args(self, args: Namespace) -> None:
         return read_black_compatible_cli_args(args, self.config)
 
-    def run(self, content: TextDocument) -> TextDocument:
+    def run(self, content: TextDocument, path_from_cwd: Path) -> TextDocument:
         """Run the Black code re-formatter for the Python source code given as a string.
 
         :param content: The source code
+        :param path_from_cwd: The path to the source code file being reformatted, either
+                              absolute or relative to the current working directory
         :return: The reformatted content
 
         """
