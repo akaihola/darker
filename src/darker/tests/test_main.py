@@ -15,6 +15,9 @@ from textwrap import dedent
 from unittest.mock import patch
 
 import pytest
+from darkgraylib.git import RevisionRange
+from darkgraylib.testtools.highlighting_helpers import BLUE, CYAN, RESET, WHITE, YELLOW
+from darkgraylib.utils import WINDOWS, TextDocument, joinlines
 
 import darker.__main__
 import darker.import_sorting
@@ -23,9 +26,6 @@ from darker.help import LINTING_GUIDE
 from darker.terminal import output
 from darker.tests.examples import A_PY, A_PY_BLACK, A_PY_BLACK_FLYNT, A_PY_BLACK_ISORT
 from darker.tests.test_fstring import FLYNTED_SOURCE, MODIFIED_SOURCE, ORIGINAL_SOURCE
-from darkgraylib.git import RevisionRange
-from darkgraylib.testtools.highlighting_helpers import BLUE, CYAN, RESET, WHITE, YELLOW
-from darkgraylib.utils import WINDOWS, TextDocument, joinlines
 
 pytestmark = pytest.mark.usefixtures("find_project_root_cache_clear")
 
@@ -86,6 +86,9 @@ A_PY_DIFF_BLACK_FLYNT = [
 ]
 
 
+@pytest.mark.parametrize(
+    "formatter_arguments", [[], ["--formatter=black"], ["--formatter=ruff"]]
+)
 @pytest.mark.kwparametrize(
     dict(arguments=["--diff"], expect_stdout=A_PY_DIFF_BLACK),
     dict(arguments=["--isort"], expect_a_py=A_PY_BLACK_ISORT),
@@ -132,6 +135,8 @@ A_PY_DIFF_BLACK_FLYNT = [
         pyproject_toml="""
            [tool.black]
            exclude = 'a.py'
+           [tool.ruff.format]
+           exclude = ['a.py']
            """,
         expect_a_py=A_PY,
     ),
@@ -140,6 +145,8 @@ A_PY_DIFF_BLACK_FLYNT = [
         pyproject_toml="""
            [tool.black]
            exclude = 'a.py'
+           [tool.ruff.format]
+           exclude = ['a.py']
            """,
         expect_stdout=[],
     ),
@@ -148,6 +155,8 @@ A_PY_DIFF_BLACK_FLYNT = [
         pyproject_toml="""
            [tool.black]
            extend_exclude = 'a.py'
+           [tool.ruff]
+           extend-exclude = ['a.py']
            """,
         expect_a_py=A_PY,
     ),
@@ -156,6 +165,8 @@ A_PY_DIFF_BLACK_FLYNT = [
         pyproject_toml="""
            [tool.black]
            extend_exclude = 'a.py'
+           [tool.ruff]
+           extend-exclude = ['a.py']
            """,
         expect_stdout=[],
     ),
@@ -164,6 +175,10 @@ A_PY_DIFF_BLACK_FLYNT = [
         pyproject_toml="""
            [tool.black]
            force_exclude = 'a.py'
+           [tool.ruff.format]
+           exclude = ['a.py']
+           [tool.ruff]
+           force-exclude = true  # redundant, always passed to ruff anyway
            """,
         expect_a_py=A_PY,
     ),
@@ -172,6 +187,10 @@ A_PY_DIFF_BLACK_FLYNT = [
         pyproject_toml="""
            [tool.black]
            force_exclude = 'a.py'
+           [tool.ruff.format]
+           exclude = ['a.py']
+           [tool.ruff]
+           force-exclude = true  # redundant, always passed to ruff anyway
            """,
         expect_stdout=[],
     ),
@@ -190,6 +209,7 @@ A_PY_DIFF_BLACK_FLYNT = [
 )
 @pytest.mark.parametrize("newline", ["\n", "\r\n"], ids=["unix", "windows"])
 def test_main(
+    formatter_arguments,
     git_repo,
     monkeypatch,
     capsys,
@@ -221,7 +241,9 @@ def test_main(
     paths["subdir/a.py"].write_bytes(newline.join(A_PY).encode("ascii"))
     paths["b.py"].write_bytes(f"print(42 ){newline}".encode("ascii"))
 
-    retval = darker.__main__.main(arguments + [str(pwd / "subdir")])
+    retval = darker.__main__.main(
+        [*formatter_arguments, *arguments, str(pwd / "subdir")]
+    )
 
     stdout = capsys.readouterr().out.replace(str(git_repo.root), "")
     diff_output = stdout.splitlines(False)
