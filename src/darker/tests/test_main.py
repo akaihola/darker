@@ -104,6 +104,9 @@ def main_repo(request, tmp_path_factory):
         yield fixture
 
 
+@pytest.mark.parametrize(
+    "formatter_arguments", [[], ["--formatter=black"], ["--formatter=ruff"]]
+)
 @pytest.mark.kwparametrize(
     dict(arguments=["--diff"], expect_stdout=A_PY_DIFF_BLACK),
     dict(arguments=["--isort"], expect_a_py=A_PY_BLACK_ISORT),
@@ -150,6 +153,8 @@ def main_repo(request, tmp_path_factory):
         pyproject_toml="""
            [tool.black]
            exclude = 'a.py'
+           [tool.ruff.format]
+           exclude = ['a.py']
            """,
         expect_a_py=A_PY,
     ),
@@ -158,6 +163,8 @@ def main_repo(request, tmp_path_factory):
         pyproject_toml="""
            [tool.black]
            exclude = 'a.py'
+           [tool.ruff.format]
+           exclude = ['a.py']
            """,
         expect_stdout=[],
     ),
@@ -166,6 +173,8 @@ def main_repo(request, tmp_path_factory):
         pyproject_toml="""
            [tool.black]
            extend_exclude = 'a.py'
+           [tool.ruff]
+           extend-exclude = ['a.py']
            """,
         expect_a_py=A_PY,
     ),
@@ -174,6 +183,8 @@ def main_repo(request, tmp_path_factory):
         pyproject_toml="""
            [tool.black]
            extend_exclude = 'a.py'
+           [tool.ruff]
+           extend-exclude = ['a.py']
            """,
         expect_stdout=[],
     ),
@@ -182,6 +193,10 @@ def main_repo(request, tmp_path_factory):
         pyproject_toml="""
            [tool.black]
            force_exclude = 'a.py'
+           [tool.ruff.format]
+           exclude = ['a.py']
+           [tool.ruff]
+           force-exclude = true  # redundant, always passed to ruff anyway
            """,
         expect_a_py=A_PY,
     ),
@@ -190,6 +205,10 @@ def main_repo(request, tmp_path_factory):
         pyproject_toml="""
            [tool.black]
            force_exclude = 'a.py'
+           [tool.ruff.format]
+           exclude = ['a.py']
+           [tool.ruff]
+           force-exclude = true  # redundant, always passed to ruff anyway
            """,
         expect_stdout=[],
     ),
@@ -211,6 +230,7 @@ def test_main(
     main_repo,
     monkeypatch,
     capsys,
+    formatter_arguments,
     arguments,
     newline,
     pyproject_toml,
@@ -233,7 +253,9 @@ def test_main(
     repo.paths["subdir/a.py"].write_bytes(newline.join(A_PY).encode("ascii"))
     repo.paths["b.py"].write_bytes(f"print(42 ){newline}".encode("ascii"))
 
-    retval = darker.__main__.main(arguments + [str(pwd / "subdir")])
+    retval = darker.__main__.main(
+        [*formatter_arguments, *arguments, str(pwd / "subdir")]
+    )
 
     stdout = capsys.readouterr().out.replace(str(repo.root), "")
     diff_output = stdout.splitlines(False)
