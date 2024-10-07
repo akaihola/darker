@@ -9,6 +9,7 @@ from darker.formatters.formatter_config import FormatterConfig
 
 if TYPE_CHECKING:
     from argparse import Namespace
+    from pathlib import Path
 
     from darkgraylib.utils import TextDocument
 
@@ -41,7 +42,7 @@ class BaseFormatter(HasConfig[FormatterConfig]):
             self._read_config_file(config_path)
         self._read_cli_args(args)
 
-    def run(self, content: TextDocument) -> TextDocument:
+    def run(self, content: TextDocument, path_from_cwd: Path) -> TextDocument:
         """Reformat the content."""
         raise NotImplementedError
 
