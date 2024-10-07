@@ -17,7 +17,7 @@ First, `RuffFormatter.run` uses Ruff to reformat the contents of a given file.
 Reformatted lines are returned e.g.::
 
     >>> from darker.formatters.ruff_formatter import RuffFormatter
-    >>> dst = RuffFormatter().run(src_content)
+    >>> dst = RuffFormatter().run(src_content, src)
     >>> dst.lines
     ('for i in range(5):', '    print(i)', 'print("done")')
 
@@ -76,10 +76,12 @@ class RuffFormatter(BaseFormatter, HasConfig[BlackCompatibleConfig]):
 
     name = "ruff format"
 
-    def run(self, content: TextDocument) -> TextDocument:
+    def run(self, content: TextDocument, path_from_cwd: Path) -> TextDocument:
         """Run the Ruff code re-formatter for the Python source code given as a string.
 
         :param content: The source code
+        :param path_from_cwd: The path to the file being reformatted, either absolute or
+                              relative to the current working directory
         :return: The reformatted content
 
         """
@@ -109,7 +111,7 @@ class RuffFormatter(BaseFormatter, HasConfig[BlackCompatibleConfig]):
         # The custom handling of empty and all-whitespace files below will be
         # unnecessary if https://github.com/psf/ruff/pull/2484 lands in Ruff.
         contents_for_ruff = content.string_with_newline("\n")
-        dst_contents = _ruff_format_stdin(contents_for_ruff, args)
+        dst_contents = _ruff_format_stdin(contents_for_ruff, path_from_cwd, args)
         return TextDocument.from_str(
             dst_contents,
             encoding=content.encoding,
@@ -211,15 +213,26 @@ def _get_supported_target_versions() -> dict[tuple[int, int], str]:
         raise ConfigurationError(message) from exc
 
 
-def _ruff_format_stdin(contents: str, args: Collection[str]) -> str:
+def _ruff_format_stdin(
+    contents: str, path_from_cwd: Path, args: Collection[str]
+) -> str:
     """Run the contents through ``ruff format``.
 
     :param contents: The source code to be reformatted
+    :param path_from_cwd: The path to the file being reformatted, either absolute or
+                          relative to the current working directory
     :param args: Additional command line arguments to pass to Ruff
     :return: The reformatted source code
 
     """
-    cmdline = ["ruff", "format", *args, "-"]
+    cmdline = [
+        "ruff",
+        "format",
+        "--force-exclude",  # apply `exclude =` from conffile even with stdin
+        f"--stdin-filename={path_from_cwd}",  # allow to match exclude patterns
+        *args,
+        "-",
+    ]
     logger.debug("Running %s", " ".join(cmdline))
     result = run(  # noqa: S603  # nosec
         cmdline, input=contents, stdout=PIPE, check=True, text=True, encoding="utf-8"
