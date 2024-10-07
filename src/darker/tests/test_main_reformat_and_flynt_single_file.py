@@ -10,6 +10,7 @@ import pytest
 from darker.__main__ import _reformat_and_flynt_single_file
 from darker.config import Exclusions
 from darker.formatters.black_formatter import BlackFormatter
+from darker.formatters.ruff_formatter import RuffFormatter
 from darker.git import EditedLinenumsDiffer
 from darkgraylib.git import RevisionRange
 from darkgraylib.utils import TextDocument
@@ -57,6 +58,7 @@ from darkgraylib.utils import TextDocument
     exclusions=Exclusions(),
     expect="import  original\nprint( original )\n",
 )
+@pytest.mark.parametrize("formatter_class", [BlackFormatter, RuffFormatter])
 def test_reformat_and_flynt_single_file(
     git_repo,
     relative_path,
@@ -64,6 +66,7 @@ def test_reformat_and_flynt_single_file(
     rev2_isorted,
     exclusions,
     expect,
+    formatter_class,
 ):
     """Test for `_reformat_and_flynt_single_file`."""
     git_repo.add(
@@ -80,13 +83,14 @@ def test_reformat_and_flynt_single_file(
         TextDocument(rev2_content),
         TextDocument(rev2_isorted),
         has_isort_changes=False,
-        formatter=BlackFormatter(),
+        formatter=formatter_class(),
     )
 
     assert result.string == expect
 
 
-def test_blacken_and_flynt_single_file_common_ancestor(git_repo):
+@pytest.mark.parametrize("formatter_class", [BlackFormatter, RuffFormatter])
+def test_blacken_and_flynt_single_file_common_ancestor(git_repo, formatter_class):
     """`_blacken_and_flynt_single_file` diffs to common ancestor of ``rev1...rev2``."""
     a_py_initial = dedent(
         """\
@@ -143,7 +147,7 @@ def test_blacken_and_flynt_single_file_common_ancestor(git_repo):
         rev2_content=worktree,
         rev2_isorted=worktree,
         has_isort_changes=False,
-        formatter=BlackFormatter(),
+        formatter=formatter_class(),
     )
 
     assert result.lines == (
@@ -155,7 +159,8 @@ def test_blacken_and_flynt_single_file_common_ancestor(git_repo):
     )
 
 
-def test_reformat_single_file_docstring(git_repo):
+@pytest.mark.parametrize("formatter_class", [BlackFormatter, RuffFormatter])
+def test_reformat_single_file_docstring(git_repo, formatter_class):
     """`_blacken_and_flynt_single_file()` handles docstrings as one contiguous block."""
     initial = dedent(
         '''\
@@ -202,7 +207,7 @@ def test_reformat_single_file_docstring(git_repo):
         rev2_content=TextDocument.from_str(modified),
         rev2_isorted=TextDocument.from_str(modified),
         has_isort_changes=False,
-        formatter=BlackFormatter(),
+        formatter=formatter_class(),
     )
 
     assert result.lines == tuple(expect.splitlines())
