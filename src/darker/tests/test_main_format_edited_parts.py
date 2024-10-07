@@ -15,6 +15,7 @@ import darker.__main__
 import darker.verification
 from darker.config import Exclusions
 from darker.formatters.black_formatter import BlackFormatter
+from darker.formatters.ruff_formatter import RuffFormatter
 from darker.tests.examples import A_PY, A_PY_BLACK, A_PY_BLACK_FLYNT, A_PY_BLACK_ISORT
 from darker.verification import NotEquivalentError
 from darkgraylib.git import WORKTREE, RevisionRange
@@ -47,7 +48,7 @@ A_PY_BLACK_ISORT_FLYNT = ["import os", "import sys", "", 'print("42")', ""]
         expect=[A_PY_BLACK_ISORT_FLYNT],
     ),
     dict(
-        black_config={"skip_string_normalization": True},
+        formatter_config={"skip_string_normalization": True},
         black_exclude=set(),
         expect=[A_PY_BLACK_UNNORMALIZE],
     ),
@@ -60,18 +61,20 @@ A_PY_BLACK_ISORT_FLYNT = ["import os", "import sys", "", 'print("42")', ""]
         isort_exclude=set(),
         expect=[A_PY_ISORT],
     ),
-    black_config={},
+    formatter_config={},
     black_exclude={"**/*"},
     isort_exclude={"**/*"},
     flynt_exclude={"**/*"},
 )
+@pytest.mark.parametrize("formatter_class", [BlackFormatter, RuffFormatter])
 @pytest.mark.parametrize("newline", ["\n", "\r\n"], ids=["unix", "windows"])
 def test_format_edited_parts(
     git_repo,
-    black_config,
+    formatter_config,
     black_exclude,
     isort_exclude,
     flynt_exclude,
+    formatter_class,
     newline,
     expect,
 ):
@@ -85,8 +88,8 @@ def test_format_edited_parts(
     paths = git_repo.add({"a.py": newline, "b.py": newline}, commit="Initial commit")
     paths["a.py"].write_bytes(newline.join(A_PY).encode("ascii"))
     paths["b.py"].write_bytes(f"print(42 ){newline}".encode("ascii"))
-    formatter = BlackFormatter()
-    formatter.config = black_config
+    formatter = formatter_class()
+    formatter.config = formatter_config
 
     result = darker.__main__.format_edited_parts(
         Path(git_repo.root),
@@ -148,8 +151,11 @@ def test_format_edited_parts(
         ],
     ),
 )
+@pytest.mark.parametrize("formatter_class", [BlackFormatter, RuffFormatter])
 @pytest.mark.parametrize("newline", ["\n", "\r\n"], ids=["unix", "windows"])
-def test_format_edited_parts_stdin(git_repo, newline, rev1, rev2, expect):
+def test_format_edited_parts_stdin(
+    git_repo, rev1, rev2, expect, formatter_class, newline
+):
     """`format_edited_parts` with ``--stdin-filename``."""
     n = newline  # pylint: disable=invalid-name
     paths = git_repo.add(
@@ -179,7 +185,7 @@ def test_format_edited_parts_stdin(git_repo, newline, rev1, rev2, expect):
                 {Path("a.py")},
                 Exclusions(formatter=set(), isort=set()),
                 RevisionRange(rev1, rev2),
-                BlackFormatter(),
+                formatter_class(),
                 report_unmodified=False,
             ),
         )
@@ -191,12 +197,15 @@ def test_format_edited_parts_stdin(git_repo, newline, rev1, rev2, expect):
     assert result == expect
 
 
-def test_format_edited_parts_all_unchanged(git_repo, monkeypatch):
+@pytest.mark.parametrize("formatter_class", [BlackFormatter, RuffFormatter])
+def test_format_edited_parts_all_unchanged(git_repo, monkeypatch, formatter_class):
     """``format_edited_parts()`` yields nothing if no reformatting was needed."""
     monkeypatch.chdir(git_repo.root)
     paths = git_repo.add({"a.py": "pass\n", "b.py": "pass\n"}, commit="Initial commit")
-    paths["a.py"].write_bytes(b'"properly"\n"formatted"\n')
-    paths["b.py"].write_bytes(b'"not"\n"checked"\n')
+    # Note: `ruff format` likes to add a blank line between strings, Black not
+    #       - but since black won't remove it either, this works for our test:
+    paths["a.py"].write_bytes(b'"properly"\n\n"formatted"\n')
+    paths["b.py"].write_bytes(b'"not"\n\n"checked"\n')
 
     result = list(
         darker.__main__.format_edited_parts(
@@ -204,7 +213,7 @@ def test_format_edited_parts_all_unchanged(git_repo, monkeypatch):
             {Path("a.py"), Path("b.py")},
             Exclusions(),
             RevisionRange("HEAD", ":WORKTREE:"),
-            BlackFormatter(),
+            formatter_class(),
             report_unmodified=False,
         ),
     )
@@ -212,7 +221,8 @@ def test_format_edited_parts_all_unchanged(git_repo, monkeypatch):
     assert result == []
 
 
-def test_format_edited_parts_ast_changed(git_repo, caplog):
+@pytest.mark.parametrize("formatter_class", [BlackFormatter, RuffFormatter])
+def test_format_edited_parts_ast_changed(git_repo, caplog, formatter_class):
     """``darker.__main__.format_edited_parts()`` when reformatting changes the AST."""
     caplog.set_level(logging.DEBUG, logger="darker.__main__")
     paths = git_repo.add({"a.py": "1\n2\n3\n4\n5\n6\n7\n8\n"}, commit="Initial commit")
@@ -229,7 +239,7 @@ def test_format_edited_parts_ast_changed(git_repo, caplog):
                 {Path("a.py")},
                 Exclusions(isort={"**/*"}),
                 RevisionRange("HEAD", ":WORKTREE:"),
-                BlackFormatter(),
+                formatter_class(),
                 report_unmodified=False,
             ),
         )
@@ -251,7 +261,8 @@ def test_format_edited_parts_ast_changed(git_repo, caplog):
     ]
 
 
-def test_format_edited_parts_isort_on_already_formatted(git_repo):
+@pytest.mark.parametrize("formatter_class", [BlackFormatter, RuffFormatter])
+def test_format_edited_parts_isort_on_already_formatted(git_repo, formatter_class):
     """An already correctly formatted file after ``isort`` is simply skipped."""
     before = [
         "import a",
@@ -273,7 +284,7 @@ def test_format_edited_parts_isort_on_already_formatted(git_repo):
         {Path("a.py")},
         Exclusions(),
         RevisionRange("HEAD", ":WORKTREE:"),
-        BlackFormatter(),
+        formatter_class(),
         report_unmodified=False,
     )
 
@@ -285,7 +296,8 @@ def test_format_edited_parts_isort_on_already_formatted(git_repo):
     dict(rev1="HEAD^", rev2=WORKTREE, expect=[(":WORKTREE:", "reformatted")]),
     dict(rev1="HEAD", rev2=WORKTREE, expect=[(":WORKTREE:", "reformatted")]),
 )
-def test_format_edited_parts_historical(git_repo, rev1, rev2, expect):
+@pytest.mark.parametrize("formatter_class", [BlackFormatter, RuffFormatter])
+def test_format_edited_parts_historical(git_repo, rev1, rev2, expect, formatter_class):
     """``format_edited_parts()`` is correct for different commit pairs."""
     a_py = {
         "HEAD^": TextDocument.from_lines(
@@ -328,7 +340,7 @@ def test_format_edited_parts_historical(git_repo, rev1, rev2, expect):
         {Path("a.py")},
         Exclusions(),
         RevisionRange(rev1, rev2),
-        BlackFormatter(),
+        formatter_class(),
         report_unmodified=False,
     )
 
