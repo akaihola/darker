@@ -86,6 +86,9 @@ A_PY_DIFF_BLACK_FLYNT = [
 ]
 
 
+@pytest.mark.parametrize(
+    "formatter_arguments", [[], ["--formatter=black"], ["--formatter=ruff"]]
+)
 @pytest.mark.kwparametrize(
     dict(arguments=["--diff"], expect_stdout=A_PY_DIFF_BLACK),
     dict(arguments=["--isort"], expect_a_py=A_PY_BLACK_ISORT),
@@ -132,6 +135,8 @@ A_PY_DIFF_BLACK_FLYNT = [
         pyproject_toml="""
            [tool.black]
            exclude = 'a.py'
+           [tool.ruff.format]
+           exclude = ['a.py']
            """,
         expect_a_py=A_PY,
     ),
@@ -140,6 +145,8 @@ A_PY_DIFF_BLACK_FLYNT = [
         pyproject_toml="""
            [tool.black]
            exclude = 'a.py'
+           [tool.ruff.format]
+           exclude = ['a.py']
            """,
         expect_stdout=[],
     ),
@@ -148,6 +155,8 @@ A_PY_DIFF_BLACK_FLYNT = [
         pyproject_toml="""
            [tool.black]
            extend_exclude = 'a.py'
+           [tool.ruff]
+           extend-exclude = ['a.py']
            """,
         expect_a_py=A_PY,
     ),
@@ -156,6 +165,8 @@ A_PY_DIFF_BLACK_FLYNT = [
         pyproject_toml="""
            [tool.black]
            extend_exclude = 'a.py'
+           [tool.ruff]
+           extend-exclude = ['a.py']
            """,
         expect_stdout=[],
     ),
@@ -164,6 +175,10 @@ A_PY_DIFF_BLACK_FLYNT = [
         pyproject_toml="""
            [tool.black]
            force_exclude = 'a.py'
+           [tool.ruff.format]
+           exclude = ['a.py']
+           [tool.ruff]
+           force-exclude = true  # redundant, always passed to ruff anyway
            """,
         expect_a_py=A_PY,
     ),
@@ -172,6 +187,10 @@ A_PY_DIFF_BLACK_FLYNT = [
         pyproject_toml="""
            [tool.black]
            force_exclude = 'a.py'
+           [tool.ruff.format]
+           exclude = ['a.py']
+           [tool.ruff]
+           force-exclude = true  # redundant, always passed to ruff anyway
            """,
         expect_stdout=[],
     ),
@@ -190,6 +209,7 @@ A_PY_DIFF_BLACK_FLYNT = [
 )
 @pytest.mark.parametrize("newline", ["\n", "\r\n"], ids=["unix", "windows"])
 def test_main(
+    formatter_arguments,
     git_repo,
     monkeypatch,
     capsys,
@@ -221,7 +241,9 @@ def test_main(
     paths["subdir/a.py"].write_bytes(newline.join(A_PY).encode("ascii"))
     paths["b.py"].write_bytes(f"print(42 ){newline}".encode("ascii"))
 
-    retval = darker.__main__.main(arguments + [str(pwd / "subdir")])
+    retval = darker.__main__.main(
+        [*formatter_arguments, *arguments, str(pwd / "subdir")]
+    )
 
     stdout = capsys.readouterr().out.replace(str(git_repo.root), "")
     diff_output = stdout.splitlines(False)
