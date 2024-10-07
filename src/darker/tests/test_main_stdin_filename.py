@@ -135,6 +135,7 @@ pytestmark = pytest.mark.usefixtures("find_project_root_cache_clear")
     expect=0,
     expect_a_py="original\n",
 )
+@pytest.mark.parametrize("formatter", [[], ["--formatter=black"], ["--formatter=ruff"]])
 def test_main_stdin_filename(
     git_repo: GitRepoFixture,
     config_src: Optional[List[str]],
@@ -143,6 +144,7 @@ def test_main_stdin_filename(
     revision: Optional[str],
     expect: int,
     expect_a_py: str,
+    formatter: List[str],
 ) -> None:
     """Tests for `darker.__main__.main` and the ``--stdin-filename`` option"""
     if config_src is not None:
@@ -165,7 +167,7 @@ def test_main_stdin_filename(
     ), raises_if_exception(expect):
         # end of test setup
 
-        retval = darker.__main__.main(arguments)
+        retval = darker.__main__.main([*formatter, *arguments])
 
         assert retval == expect
         assert paths["a.py"].read_text() == expect_a_py
