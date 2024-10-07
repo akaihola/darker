@@ -296,7 +296,7 @@ def test_run_ignores_excludes():
         "force_exclude": regex.compile(r".*"),
     }
 
-    result = formatter.run(src)
+    result = formatter.run(src, Path("a.py"))
 
     assert result.string == "a = 1\n"
 
@@ -397,7 +397,7 @@ def test_run_configuration(
         formatter = BlackFormatter()
         formatter.config = black_config
 
-        check(formatter.run(src))
+        check(formatter.run(src, Path("a.py")))
 
         assert format_str.call_count == 1
         mode = format_str.call_args[1]["mode"]
