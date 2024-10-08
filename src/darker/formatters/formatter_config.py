@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import re
-from decimal import Decimal
 from typing import TYPE_CHECKING, Iterable, Pattern, TypedDict
 
 from darkgraylib.config import ConfigurationError
@@ -17,11 +15,12 @@ class FormatterConfig(TypedDict):
 
 
 def validate_target_versions(
-    value: str | set[str], valid_target_versions: Iterable[str]
-) -> set[str]:
+    value: tuple[int, int] | set[tuple[int, int]],
+    valid_target_versions: Iterable[tuple[int, int]],
+) -> set[tuple[int, int]]:
     """Validate the target-version configuration option value."""
-    target_versions_in = {value} if isinstance(value, str) else value
-    if not isinstance(value, (str, set)):
+    target_versions_in = value if isinstance(value, set) else {value}
+    if not isinstance(value, (tuple, set)):
         message = f"Invalid target version(s) {value!r}"  # type: ignore[unreachable]
         raise ConfigurationError(message)
     bad_target_versions = target_versions_in - set(valid_target_versions)
@@ -31,16 +30,6 @@ def validate_target_versions(
     return target_versions_in
 
 
-get_version_num = re.compile(r"\d+").search
-
-
-def get_minimum_target_version(target_versions: set[str]) -> str:
-    """Get the minimum target version from a set of target versions."""
-    nums_and_tgts = ((get_version_num(tgt), tgt) for tgt in target_versions)
-    matches = ((Decimal(match.group()), tgt) for match, tgt in nums_and_tgts if match)
-    return min(matches)[1]
-
-
 class BlackCompatibleConfig(FormatterConfig, total=False):
     """Type definition for configuration dictionaries of Black compatible formatters."""
 
@@ -48,7 +37,7 @@ class BlackCompatibleConfig(FormatterConfig, total=False):
     exclude: Pattern[str]
     extend_exclude: Pattern[str]
     force_exclude: Pattern[str]
-    target_version: str | set[str]
+    target_version: tuple[int, int] | set[tuple[int, int]]
     line_length: int
     skip_string_normalization: bool
     skip_magic_trailing_comma: bool
@@ -64,7 +53,9 @@ def read_black_compatible_cli_args(
     if getattr(args, "line_length", None):
         config["line_length"] = args.line_length
     if getattr(args, "target_version", None):
-        config["target_version"] = {args.target_version}
+        config["target_version"] = {
+            (int(args.target_version[2]), int(args.target_version[3:]))
+        }
     if getattr(args, "skip_string_normalization", None) is not None:
         config["skip_string_normalization"] = args.skip_string_normalization
     if getattr(args, "skip_magic_trailing_comma", None) is not None:
