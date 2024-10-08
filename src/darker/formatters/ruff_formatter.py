@@ -46,7 +46,6 @@ import toml
 from darker.formatters.base_formatter import BaseFormatter, HasConfig
 from darker.formatters.formatter_config import (
     BlackCompatibleConfig,
-    get_minimum_target_version,
     read_black_compatible_cli_args,
     validate_target_versions,
 )
@@ -83,8 +82,8 @@ class RuffFormatter(BaseFormatter, HasConfig[BlackCompatibleConfig]):
             target_versions_in = validate_target_versions(
                 self.config["target_version"], supported_target_versions
             )
-            target_version = get_minimum_target_version(target_versions_in)
-            args.append(f"--target-version={target_version}")
+            target_version_str = supported_target_versions[min(target_versions_in)]
+            args.append(f"--target-version={target_version_str}")
         if self.config.get("skip_magic_trailing_comma", False):
             args.append('--config="format.skip-magic-trailing-comma=true"')
             args.append('--config="lint.isort.split-on-trailing-comma=false"')
@@ -134,7 +133,7 @@ class RuffFormatter(BaseFormatter, HasConfig[BlackCompatibleConfig]):
         return self.config.get("force_exclude")
 
 
-def _get_supported_target_versions() -> set[str]:
+def _get_supported_target_versions() -> dict[tuple[int, int], str]:
     """Get the supported target versions for Ruff.
 
     Calls ``ruff config target-version`` as a subprocess, looks for the line looking
@@ -154,7 +153,10 @@ def _get_supported_target_versions() -> set[str]:
     if any(tgt_ver[0] != '"' or tgt_ver[-1] != '"' for tgt_ver in quoted_targets):
         message = f"`{cmdline}` returned invalid target versions {type_lines[0]!r}"
         raise ConfigurationError(message)
-    return {tgt_ver[1:-1] for tgt_ver in quoted_targets}
+    return {
+        (int(tgt_ver[3]), int(tgt_ver[4:-1])): tgt_ver[1:-1]
+        for tgt_ver in quoted_targets
+    }
 
 
 def _ruff_format_stdin(contents: str, args: Collection[str]) -> str:
