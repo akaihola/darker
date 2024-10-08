@@ -49,23 +49,23 @@ class BaseFormatter(HasConfig[FormatterConfig]):
 
     def get_config_path(self) -> str | None:
         """Get the path of the configuration file."""
-        raise NotImplementedError
+        return None
 
     def get_line_length(self) -> int | None:
         """Get the ``line-length`` configuration option value."""
-        raise NotImplementedError
+        return None
 
     def get_exclude(self, default: Pattern[str]) -> Pattern[str]:
         """Get the ``exclude`` configuration option value."""
-        raise NotImplementedError
+        return default
 
     def get_extend_exclude(self) -> Pattern[str] | None:
         """Get the ``extend_exclude`` configuration option value."""
-        raise NotImplementedError
+        return None
 
     def get_force_exclude(self) -> Pattern[str] | None:
         """Get the ``force_exclude`` configuration option value."""
-        raise NotImplementedError
+        return None
 
     def __eq__(self, other: object) -> bool:
         """Compare two formatters for equality."""
