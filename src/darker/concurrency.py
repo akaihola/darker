@@ -1,24 +1,9 @@
 """Concurrency helpers for enhancing the performance of Darker"""
 
-import sys
 from concurrent.futures import Executor, Future, ProcessPoolExecutor
-from typing import Any, Callable, Generic, TypeVar, cast
+from typing import Any, Callable, TypeVar
 
 T = TypeVar("T")  # pylint: disable=invalid-name
-
-if sys.version_info < (3, 9):
-
-    class FutureType(Generic[T]):
-        """For Python <3.9 compatibility"""
-
-        def set_exception(self, exc_info: BaseException) -> None:
-            "Dummy method for typing"
-
-        def set_result(self, result: Any) -> None:
-            "Dummy method for typing"
-
-else:
-    FutureType = Future
 
 
 class DummyExecutor(Executor):
@@ -31,7 +16,7 @@ class DummyExecutor(Executor):
     # pylint: disable=arguments-differ,unsubscriptable-object,broad-except
     def submit(  # type: ignore[override]
         self, fn: Callable[..., T], *args: Any, **kwargs: Any
-    ) -> FutureType[T]:
+    ) -> Future[T]:
         """Submits "a callable to be executed with the given arguments.
 
         Executes the callable immediately as ``fn(*args, **kwargs)`` and returns a
@@ -43,7 +28,7 @@ class DummyExecutor(Executor):
         :return: A `Future` representing the given call
 
         """
-        future = cast(FutureType[T], Future())
+        future: Future[T] = Future()
         try:
             result = fn(*args, **kwargs)
         except BaseException as exc_info:  # noqa: B036
