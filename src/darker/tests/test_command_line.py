@@ -741,7 +741,7 @@ def test_black_config_file_and_options(git_repo, config, options, expect):
             {Path("a.py")},
             Exclusions(isort={"**/*"}, flynt={"**/*"}),
             RevisionRange("HEAD", ":WORKTREE:"),
-            {"target_version": {"py39"}},
+            {"target_version": {(3, 9)}},
         ),
     ),
     dict(
