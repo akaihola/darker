@@ -117,10 +117,15 @@ class BlackFormatter(BaseFormatter, HasConfig[BlackCompatibleConfig]):
         if "target_version" in raw_config:
             target_version = raw_config["target_version"]
             if isinstance(target_version, str):
-                self.config["target_version"] = target_version
+                self.config["target_version"] = (
+                    int(target_version[2]),
+                    int(target_version[3:]),
+                )
             elif isinstance(target_version, list):
-                # Convert TOML list to a Python set
-                self.config["target_version"] = set(target_version)
+                # Convert TOML list to a Python set of int-tuples
+                self.config["target_version"] = {
+                    (int(v[2]), int(v[3:])) for v in target_version
+                }
             else:
                 message = (
                     f"Invalid target-version = {target_version!r} in {config_path}"
@@ -183,7 +188,10 @@ class BlackFormatter(BaseFormatter, HasConfig[BlackCompatibleConfig]):
         if "line_length" in self.config:
             mode["line_length"] = self.config["line_length"]
         if "target_version" in self.config:
-            all_target_versions = {tgt_v.name.lower(): tgt_v for tgt_v in TargetVersion}
+            all_target_versions = {
+                (int(tgt_v.name[2]), int(tgt_v.name[3:])): tgt_v
+                for tgt_v in TargetVersion
+            }
             target_versions_in = validate_target_versions(
                 self.config["target_version"], all_target_versions
             )

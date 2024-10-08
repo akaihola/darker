@@ -119,21 +119,22 @@ def test_formatter_without_black(caplog):
     ),
     dict(config_lines=["target-version ="], expect=tomllib.TOMLDecodeError()),
     dict(config_lines=["target-version = false"], expect=ConfigurationError()),
-    dict(config_lines=["target-version = 'py37'"], expect={"target_version": "py37"}),
+    dict(config_lines=["target-version = 'py37'"], expect={"target_version": (3, 7)}),
     dict(
-        config_lines=["target-version = ['py37']"], expect={"target_version": {"py37"}}
+        config_lines=["target-version = ['py37']"],
+        expect={"target_version": {(3, 7)}},
     ),
     dict(
         config_lines=["target-version = ['py39']"],
-        expect={"target_version": {"py39"}},
+        expect={"target_version": {(3, 9)}},
     ),
     dict(
         config_lines=["target-version = ['py37', 'py39']"],
-        expect={"target_version": {"py37", "py39"}},
+        expect={"target_version": {(3, 7), (3, 9)}},
     ),
     dict(
         config_lines=["target-version = ['py39', 'py37']"],
-        expect={"target_version": {"py39", "py37"}},
+        expect={"target_version": {(3, 9), (3, 7)}},
     ),
     dict(config_lines=[r"include = '\.pyi$'"], expect={}),
     dict(
@@ -326,27 +327,27 @@ def test_run_all_whitespace_input(src_content, expect):
 @pytest.mark.kwparametrize(
     dict(black_config={}),
     dict(
-        black_config={"target_version": "py37"},
+        black_config={"target_version": (3, 7)},
         expect_target_versions={TargetVersion.PY37},
     ),
     dict(
-        black_config={"target_version": "py39"},
+        black_config={"target_version": (3, 9)},
         expect_target_versions={TargetVersion.PY39},
     ),
     dict(
-        black_config={"target_version": {"py37"}},
+        black_config={"target_version": {(3, 7)}},
         expect_target_versions={TargetVersion.PY37},
     ),
     dict(
-        black_config={"target_version": {"py39"}},
+        black_config={"target_version": {(3, 9)}},
         expect_target_versions={TargetVersion.PY39},
     ),
     dict(
-        black_config={"target_version": {"py37", "py39"}},
+        black_config={"target_version": {(3, 7), (3, 9)}},
         expect_target_versions={TargetVersion.PY37, TargetVersion.PY39},
     ),
     dict(
-        black_config={"target_version": {"py39", "py37"}},
+        black_config={"target_version": {(3, 9), (3, 7)}},
         expect_target_versions={TargetVersion.PY37, TargetVersion.PY39},
     ),
     dict(

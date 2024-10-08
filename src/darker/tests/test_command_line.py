@@ -821,7 +821,7 @@ def options_repo(request, tmp_path_factory):
             {Path("a.py")},
             Exclusions(isort={"**/*"}, flynt={"**/*"}),
             RevisionRange("HEAD", ":WORKTREE:"),
-            {"target_version": {"py39"}},
+            {"target_version": {(3, 9)}},
         ),
     ),
     dict(
