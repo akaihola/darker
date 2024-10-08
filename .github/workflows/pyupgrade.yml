@@ -20,5 +20,5 @@ jobs:
           from pyupgrade._main import main
           from glob import glob
           files = glob('**/*.py', recursive=True)
-          sys.exit(main(files + ['--py38-plus']))
+          sys.exit(main(files + ['--py39-plus']))
           " || ( git diff ; false )
