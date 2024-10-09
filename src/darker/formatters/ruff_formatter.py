@@ -137,25 +137,29 @@ def _get_supported_target_versions() -> dict[tuple[int, int], str]:
     """Get the supported target versions for Ruff.
 
     Calls ``ruff config target-version`` as a subprocess, looks for the line looking
-    like ``Type: "py38" | "py39" | "py310"``, and returns the target versions as a set
-    of strings.
+    like ``Type: "py38" | "py39" | "py310"``, and returns the target versions as a dict
+    of int-tuples mapped to version strings.
 
     """
     cmdline = "ruff config target-version"
     output = run(  # noqa: S603  # nosec
         cmdline.split(), stdout=PIPE, check=True, text=True
-    ).stdout
-    type_lines = [line for line in output.splitlines() if line.startswith('Type: "py')]
+    ).stdout.splitlines()
+    # Find a line like: Type: "py37" | "py38" | "py39" | "py310" | "py311" | "py312"
+    type_lines = [s for s in output if s.startswith('Type: "py') and s.endswith('"')]
     if not type_lines:
         message = f"`{cmdline}` returned no target versions on a 'Type: \"py...' line"
         raise ConfigurationError(message)
-    quoted_targets = type_lines[0][len('Type: '):].split(" | ")
-    if any(tgt_ver[0] != '"' or tgt_ver[-1] != '"' for tgt_ver in quoted_targets):
-        message = f"`{cmdline}` returned invalid target versions {type_lines[0]!r}"
-        raise ConfigurationError(message)
+    # Drop 'Type:' prefix and the initial and final double quotes
+    delimited_versions = type_lines[0][len('Type: "') : -len('"')]
+    # Now we have: py37" | "py38" | "py39" | "py310" | "py311" | "py312
+    # which we split by '" | "' (turn strs to lists since Mypy disallows str unpacking)
+    py_versions = [list(py_version) for py_version in delimited_versions.split('" | "')]
+    # Now we have: [("p", "y", "3", "7"), ("p", "y", "3", "8"), ...]
+    # Turn it into {(3, 7): "py37", (3, 8): "py38", (3, 9): "py39", ...}
     return {
-        (int(tgt_ver[3]), int(tgt_ver[4:-1])): tgt_ver[1:-1]
-        for tgt_ver in quoted_targets
+        (int(major), int("".join(minor))): f"py{major}{''.join(minor)}"
+        for _p, _y, major, *minor in py_versions
     }
 
 
