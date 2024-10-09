@@ -177,7 +177,7 @@ def _get_supported_target_versions() -> set[str]:
     if not type_lines:
         message = f"`{cmdline}` returned no target versions on a 'Type: \"py...' line"
         raise ConfigurationError(message)
-    quoted_targets = type_lines[0][6:].split(" | ")
+    quoted_targets = type_lines[0][len('Type: '):].split(" | ")
     if any(tgt_ver[0] != '"' or tgt_ver[-1] != '"' for tgt_ver in quoted_targets):
         message = f"`{cmdline}` returned invalid target versions {type_lines[0]!r}"
         raise ConfigurationError(message)
