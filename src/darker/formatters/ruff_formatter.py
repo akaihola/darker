@@ -53,12 +53,14 @@ from darkgraylib.config import ConfigurationError
 from darkgraylib.utils import TextDocument
 
 if sys.version_info >= (3, 11):
+    # On Python 3.11+, we can use the `tomllib` module from the standard library.
     try:
         import tomllib
     except ImportError:
         # Help users on older Python 3.11 alphas
         import tomli as tomllib  # type: ignore[no-redef,import-not-found]
 else:
+    # On older Pythons, we must use the backport.
     import tomli as tomllib
 
 if TYPE_CHECKING:
