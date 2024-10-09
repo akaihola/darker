@@ -1,6 +1,6 @@
 """Unit tests for `darker.__main__._blacken_and_flynt_single_file`"""
 
-# pylint: disable=too-many-arguments,use-dict-literal
+# pylint: disable=too-many-arguments,too-many-positional-arguments,use-dict-literal
 
 from pathlib import Path
 from textwrap import dedent
