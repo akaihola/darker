@@ -20,7 +20,41 @@ jobs:
       wheel-path: ${{ steps.get-darker-version.outputs.wheel-path }}
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - id: setup-python
+        uses: actions/setup-python@v5
+
+      # PYTHON CACHING:
+      - id: python-cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ env.pythonLocation }}/lib
+            ${{ env.pythonLocation }}/bin
+          key: >
+            os${{ runner.os }}-
+            py${{ steps.setup-python.outputs.python-version }}-
+            req${{ hashFiles('setup.cfg') }}
+      - id: get-pip-cache
+        if: steps.python-cache.outputs.cache-hit != 'true'
+        run: echo "pip-cache-dir=$(pip cache dir)" >> ${GITHUB_OUTPUT}
+      - name: "Cache pip"
+        if: steps.python-cache.outputs.cache-hit != 'true'
+        uses: actions/cache@v4
+        with:
+          path: ${{steps.get-pip-cache.outputs.pip-cache-dir}}
+          key: >
+            os${{ runner.os }}-
+            py${{ steps.setup-python.outputs.python-version }}-
+            req${{ hashFiles('setup.cfg') }}
+          restore-keys: "\
+            os${{ runner.os }}-\
+            py${{ steps.setup-python.outputs.python-version }}-
+
+            os${{ runner.os }}-
+
+          "
+      # END PYTHON CACHING
+
       - name: Install wheel
         run: python -m pip install wheel
       - name: Build wheel distribution
@@ -119,10 +153,44 @@ jobs:
         with:
           fetch-depth: 0
           # need full history since Pytest runs Darker itself below
-      - name: Set up Python ${{ matrix.python-version }}
+      - id: setup-python
+        name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
+
+      # PYTHON CACHING:
+      - id: python-cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ env.pythonLocation }}/lib
+            ${{ env.pythonLocation }}/bin
+          key: >
+            os${{ runner.os }}-
+            py${{ steps.setup-python.outputs.python-version }}-
+            req${{ hashFiles('setup.cfg') }}
+      - id: get-pip-cache
+        if: steps.python-cache.outputs.cache-hit != 'true'
+        run: echo "pip-cache-dir=$(pip cache dir)" >> ${GITHUB_OUTPUT}
+      - name: "Cache pip"
+        if: steps.python-cache.outputs.cache-hit != 'true'
+        uses: actions/cache@v4
+        with:
+          path: ${{steps.get-pip-cache.outputs.pip-cache-dir}}
+          key: >
+            os${{ runner.os }}-
+            py${{ steps.setup-python.outputs.python-version }}-
+            req${{ hashFiles('setup.cfg') }}
+          restore-keys: "\
+            os${{ runner.os }}-\
+            py${{ steps.setup-python.outputs.python-version }}-
+
+            os${{ runner.os }}-
+
+          "
+      # END PYTHON CACHING
+
       - name: Download wheel uploaded by the build-wheel job
         uses: actions/download-artifact@v4.1.7
       - name: Install Darker and its dependencies from the wheel built earlier
@@ -146,7 +214,41 @@ jobs:
       - build-wheel
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - id: setup-python
+        uses: actions/setup-python@v5
+
+      # PYTHON CACHING:
+      - id: python-cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ env.pythonLocation }}/lib
+            ${{ env.pythonLocation }}/bin
+          key: >
+            os${{ runner.os }}-
+            py${{ steps.setup-python.outputs.python-version }}-
+            req${{ hashFiles('setup.cfg') }}
+      - id: get-pip-cache
+        if: steps.python-cache.outputs.cache-hit != 'true'
+        run: echo "pip-cache-dir=$(pip cache dir)" >> ${GITHUB_OUTPUT}
+      - name: "Cache pip"
+        if: steps.python-cache.outputs.cache-hit != 'true'
+        uses: actions/cache@v4
+        with:
+          path: ${{steps.get-pip-cache.outputs.pip-cache-dir}}
+          key: >
+            os${{ runner.os }}-
+            py${{ steps.setup-python.outputs.python-version }}-
+            req${{ hashFiles('setup.cfg') }}
+          restore-keys: "\
+            os${{ runner.os }}-\
+            py${{ steps.setup-python.outputs.python-version }}-
+
+            os${{ runner.os }}-
+
+          "
+      # END PYTHON CACHING
+
       - name: Install twine
         run: python -m pip install twine
       - name: Download wheel uploaded by the build-wheel job
