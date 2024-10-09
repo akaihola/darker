@@ -39,7 +39,7 @@ from __future__ import annotations
 import logging
 import sys
 from pathlib import Path
-from subprocess import PIPE, run  # nosec
+from subprocess import PIPE, SubprocessError, run  # nosec
 from typing import TYPE_CHECKING, Collection
 
 from darker.formatters.base_formatter import BaseFormatter, HasConfig
@@ -160,30 +160,55 @@ class RuffFormatter(BaseFormatter, HasConfig[BlackCompatibleConfig]):
         return self.config.get("force_exclude")
 
 
+TYPE_PREFIX = 'Type: "'
+VER_PREFIX = "py"
+
+
 def _get_supported_target_versions() -> dict[tuple[int, int], str]:
     """Get the supported target versions for Ruff.
 
     Calls ``ruff config target-version`` as a subprocess, looks for the line looking
-    like ``Type: "py38" | "py39" | "py310"``, and returns the target versions as a set
-    of strings.
+    like ``Type: "py38" | "py39" | "py310"``, and returns the target versions as a dict
+    of int-tuples mapped to version strings.
 
+    :returns: A dictionary mapping Python version tuples to their string
+              representations. For example: ``{(3, 8): "py38", (3, 9): "py39"}``
+    :raises ConfigurationError: If target versions cannot be determined from Ruff output
     """
-    cmdline = "ruff config target-version"
-    output = run(  # noqa: S603  # nosec
-        cmdline.split(), stdout=PIPE, check=True, text=True
-    ).stdout
-    type_lines = [line for line in output.splitlines() if line.startswith('Type: "py')]
-    if not type_lines:
-        message = f"`{cmdline}` returned no target versions on a 'Type: \"py...' line"
-        raise ConfigurationError(message)
-    quoted_targets = type_lines[0][len('Type: '):].split(" | ")
-    if any(tgt_ver[0] != '"' or tgt_ver[-1] != '"' for tgt_ver in quoted_targets):
-        message = f"`{cmdline}` returned invalid target versions {type_lines[0]!r}"
-        raise ConfigurationError(message)
-    return {
-        (int(tgt_ver[3]), int(tgt_ver[4:-1])): tgt_ver[1:-1]
-        for tgt_ver in quoted_targets
-    }
+    try:
+        cmdline = "ruff config target-version"
+        output = run(  # noqa: S603  # nosec
+            cmdline.split(), stdout=PIPE, check=True, text=True
+        ).stdout.splitlines()
+        # Find a line like: Type: "py37" | "py38" | "py39" | "py310" | "py311" | "py312"
+        type_lines = [
+            line
+            for line in output
+            if line.startswith(TYPE_PREFIX + VER_PREFIX) and line.endswith('"')
+        ]
+        if not type_lines:
+            message = (
+                f"`{cmdline}` returned no target versions on a"
+                f" '{TYPE_PREFIX}{VER_PREFIX}...' line"
+            )
+            raise ConfigurationError(message)
+        # Drop 'Type:' prefix and the initial and final double quotes
+        delimited_versions = type_lines[0][len(TYPE_PREFIX) : -len('"')]
+        # Now we have: py37" | "py38" | "py39" | "py310" | "py311" | "py312
+        # Split it by '" | "' (turn strs to lists since Mypy disallows str unpacking)
+        py_versions = [
+            list(py_version) for py_version in delimited_versions.split('" | "')
+        ]
+        # Now we have: [("p", "y", "3", "7"), ("p", "y", "3", "8"), ...]
+        # Turn it into {(3, 7): "py37", (3, 8): "py38", (3, 9): "py39", ...}
+        return {
+            (int(major), int("".join(minor))): f"{VER_PREFIX}{major}{''.join(minor)}"
+            for _p, _y, major, *minor in py_versions
+        }
+
+    except (OSError, ValueError, SubprocessError) as exc:
+        message = f"Failed to get Ruff target versions: {exc}"
+        raise ConfigurationError(message) from exc
 
 
 def _ruff_format_stdin(contents: str, args: Collection[str]) -> str:
