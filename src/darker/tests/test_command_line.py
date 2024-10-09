@@ -610,7 +610,7 @@ def test_black_options(monkeypatch, tmpdir, git_repo, options, expect):
     dict(options=["--preview"], expect_opts=["--preview"]),
     expect_opts=[],
 )
-def test_ruff_options(monkeypatch, tmpdir, git_repo, capsys, options, expect_opts):
+def test_ruff_options(monkeypatch, tmpdir, git_repo, options, expect_opts):
     """Ruff options from the command line are passed correctly to Ruff"""
     monkeypatch.chdir(tmpdir)
     (tmpdir / "pyproject.toml").write("[tool.ruff]\n")
