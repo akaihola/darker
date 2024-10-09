@@ -153,6 +153,23 @@ class BlackFormatter(BaseFormatter):
         :return: The reformatted content
 
         """
+        contents_for_black = content.string_with_newline("\n")
+        if contents_for_black.strip():
+            dst_contents = format_str(
+                contents_for_black, mode=self._make_black_options()
+            )
+        else:
+            # The custom handling of empty and all-whitespace files was needed until
+            # Black 22.12.0. See https://github.com/psf/black/pull/2484
+            dst_contents = "\n" if "\n" in content.string else ""
+        return TextDocument.from_str(
+            dst_contents,
+            encoding=content.encoding,
+            override_newline=content.newline,
+        )
+
+    def _make_black_options(self) -> Mode:
+        """Create a Black ``Mode`` object from the configuration options."""
         # Collect relevant Black configuration options from ``self.config`` in order to
         # pass them to Black's ``format_str()``. File exclusion options aren't needed
         # since at this point we already have a single file's content to work on.
@@ -182,19 +199,7 @@ class BlackFormatter(BaseFormatter):
             mode["string_normalization"] = not self.config["skip_string_normalization"]
         if "preview" in self.config:
             mode["preview"] = self.config["preview"]
-
-        contents_for_black = content.string_with_newline("\n")
-        if contents_for_black.strip():
-            dst_contents = format_str(contents_for_black, mode=Mode(**mode))
-        else:
-            # The custom handling of empty and all-whitespace files was needed until
-            # Black 22.12.0. See https://github.com/psf/black/pull/2484
-            dst_contents = "\n" if "\n" in content.string else ""
-        return TextDocument.from_str(
-            dst_contents,
-            encoding=content.encoding,
-            override_newline=content.newline,
-        )
+        return Mode(**mode)
 
     def get_config_path(self) -> str | None:
         """Get the path of the Black configuration file."""
