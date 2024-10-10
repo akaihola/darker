@@ -18,6 +18,8 @@ class BaseFormatter:
         """Initialize the code re-formatter plugin base class."""
         self.config: FormatterConfig = {}
 
+    name: str
+
     def read_config(self, src: tuple[str, ...], args: Namespace) -> None:
         """Read the formatter configuration from a configuration file
 
