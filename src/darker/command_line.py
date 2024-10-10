@@ -15,6 +15,7 @@ from darker.config import (
     DarkerConfig,
     OutputMode,
 )
+from darker.formatters import get_formatter_names
 from darker.version import __version__
 from darkgraylib.command_line import add_parser_argument
 from darkgraylib.config import ConfigurationError
@@ -82,6 +83,13 @@ def make_argument_parser(require_src: bool) -> ArgumentParser:
         dest="target_version",
         metavar="VERSION",
         choices=[v.name.lower() for v in TargetVersion],
+    )
+    add_arg(
+        hlp.FORMATTER,
+        "--formatter",
+        default="black",
+        choices=get_formatter_names(),
+        metavar="FORMATTER",
     )
     return parser
 

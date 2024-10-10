@@ -4,6 +4,8 @@ from textwrap import dedent
 
 from black import TargetVersion
 
+from darker.formatters import get_formatter_names
+
 
 def get_extra_instruction(dependency: str) -> str:
     """Generate the instructions to install Darker with particular extras
@@ -155,3 +157,8 @@ TARGET_VERSION = (
 )
 
 WORKERS = "How many parallel workers to allow, or `0` for one per core [default: 1]"
+
+FORMATTER = (
+    f"[{'|'.join(get_formatter_names())}] Formatter"
+    " to use for reformatting code. [default: black]"
+)
