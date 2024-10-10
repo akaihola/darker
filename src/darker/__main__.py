@@ -220,9 +220,12 @@ def _reformat_and_flynt_single_file(  # noqa: PLR0913
         relative_path_in_rev2, exclude.formatter, fstringified, formatter
     )
     logger.debug(
-        "Black reformat resulted in %s lines, with %s changes from reformatting",
-        len(formatted.lines),
+        "Running %r by %s.%s resulted in %s changed lines within a total of %s lines",
+        formatter.name,
+        formatter.__module__,
+        type(formatter).__name__,
         "no" if formatted == fstringified else "some",
+        len(formatted.lines),
     )
 
     # 4. get a diff between the edited to-file and the processed content
