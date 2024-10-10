@@ -783,17 +783,18 @@ def test_black_config_file_and_options(git_repo, config, options, expect):
     options=[],
 )
 def test_ruff_config_file_and_options(git_repo, config, options, expect):
-    """Ruff configuration file and command line options are combined correctly"""
+    """Ruff configuration file and command line options are combined correctly."""
     # Only line length is both supported as a command line option and read by Darker
     # from Ruff configuration.
     added_files = git_repo.add(
-        {"main.py": "foo", "pyproject.toml": joinlines(["[tool.ruff]"] + config)},
+        {"main.py": "foo", "pyproject.toml": joinlines(["[tool.ruff]", *config])},
         commit="Initial commit",
     )
     added_files["main.py"].write_bytes(b"a = [1, 2,]")
     # Speed up tests by mocking `_ruff_format_stdin` to skip running Ruff
     format_stdin = Mock(return_value="a = [1, 2,]")
     with patch.object(ruff_formatter, "_ruff_format_stdin", format_stdin):
+        # end of test setup, now run the test:
 
         main([*options, "--formatter=ruff", str(added_files["main.py"])])
 
