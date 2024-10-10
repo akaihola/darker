@@ -16,6 +16,8 @@ if TYPE_CHECKING:
 class NoneFormatter(BaseFormatter):
     """A dummy code formatter plugin interface."""
 
+    name = "dummy reformat"
+
     def run(self, content: TextDocument, path_from_cwd: Path) -> TextDocument:
         """Return the Python source code unmodified.
 

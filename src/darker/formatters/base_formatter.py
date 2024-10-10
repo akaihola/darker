@@ -28,6 +28,8 @@ class HasConfig(Generic[T]):  # pylint: disable=too-few-public-methods
 class BaseFormatter(HasConfig[FormatterConfig]):
     """Base class for code re-formatters."""
 
+    name = NotImplemented
+
     def read_config(self, src: tuple[str, ...], args: Namespace) -> None:
         """Read code re-formatter configuration from a configuration file.
 
