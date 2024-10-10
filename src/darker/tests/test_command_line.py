@@ -184,6 +184,30 @@ def get_darker_help_output(capsys):
         expect_modified=("target_version", "py37"),
     ),
     dict(
+        argv=["--formatter", "black", "."],
+        expect_value=("formatter", "black"),
+        expect_config=("formatter", "black"),
+        expect_modified=("formatter", ...),
+    ),
+    dict(
+        argv=["--formatter=black", "."],
+        expect_value=("formatter", "black"),
+        expect_config=("formatter", "black"),
+        expect_modified=("formatter", ...),
+    ),
+    dict(
+        argv=["--formatter", "rustfmt", "."],
+        expect_value=SystemExit,
+        expect_config=None,
+        expect_modified=None,
+    ),
+    dict(
+        argv=["--formatter=rustfmt", "."],
+        expect_value=SystemExit,
+        expect_config=None,
+        expect_modified=None,
+    ),
+    dict(
         argv=["--target-version", "py39", "."],
         expect_value=("target_version", "py39"),
         expect_config=("target_version", "py39"),

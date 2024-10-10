@@ -13,6 +13,8 @@ Added
 - The ``--preview`` configuration flag is now supported in the configuration files for
   Darker and Black
 - Prevent Pylint from updating beyond version 3.2.7 due to dropped Python 3.8 support.
+- The ``--formatter=black`` option (the default) has been added in preparation for
+  future formatters.
 
 Removed
 -------

@@ -83,6 +83,13 @@ def make_argument_parser(require_src: bool) -> ArgumentParser:
         metavar="VERSION",
         choices=[v.name.lower() for v in TargetVersion],
     )
+    add_arg(
+        "Formatter to use for reformatting code",
+        "--formatter",
+        default="black",
+        choices=["black"],
+        metavar="FORMATTER",
+    )
     return parser
 
 
