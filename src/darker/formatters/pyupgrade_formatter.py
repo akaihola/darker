@@ -69,6 +69,8 @@ class PyupgradeFormatter(BaseFormatter, HasConfig[PyupgradeConfig]):
 
     config: PyupgradeConfig  # type: ignore[assignment]
 
+    name = "pyupgrade"
+
     def run(self, content: TextDocument, path_from_cwd: Path) -> TextDocument:
         """Run the Pyupgrade code upgrader for the Python source code given as a string.
 
