@@ -81,6 +81,8 @@ class BlackFormatter(BaseFormatter):
         """Initialize the Black code re-formatter plugin."""
         self.config: BlackConfig = {}
 
+    name = "black"
+
     def read_config(self, src: tuple[str, ...], args: Namespace) -> None:
         """Read the black configuration from ``pyproject.toml``
 
