@@ -44,6 +44,7 @@ class DarkerConfig(BaseConfig, total=False):
     skip_magic_trailing_comma: bool
     line_length: int
     target_version: str
+    formatter: str
 
 
 class OutputMode:
@@ -112,6 +113,6 @@ class Exclusions:
 
     """
 
-    black: set[str] = field(default_factory=set)
+    formatter: set[str] = field(default_factory=set)
     isort: set[str] = field(default_factory=set)
     flynt: set[str] = field(default_factory=set)
