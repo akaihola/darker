@@ -39,14 +39,6 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, TypedDict
 
-from black import FileMode as Mode
-from black import (
-    TargetVersion,
-    format_str,
-    parse_pyproject_toml,
-    re_compile_maybe_verbose,
-)
-
 from darker.files import find_pyproject_toml
 from darker.formatters.base_formatter import BaseFormatter, HasConfig
 from darker.formatters.formatter_config import (
@@ -62,7 +54,8 @@ if TYPE_CHECKING:
     from pathlib import Path
     from typing import Pattern
 
-__all__ = ["Mode"]
+    from black import FileMode as Mode
+    from black import TargetVersion
 
 logger = logging.getLogger(__name__)
 
@@ -99,6 +92,9 @@ class BlackFormatter(BaseFormatter, HasConfig[BlackCompatibleConfig]):
         self._read_cli_args(args)
 
     def _read_config_file(self, config_path: str) -> None:  # noqa: C901
+        # Local import so Darker can be run without Black installed
+        from black import parse_pyproject_toml, re_compile_maybe_verbose
+
         raw_config = parse_pyproject_toml(config_path)
         if "line_length" in raw_config:
             self.config["line_length"] = raw_config["line_length"]
@@ -152,6 +148,9 @@ class BlackFormatter(BaseFormatter, HasConfig[BlackCompatibleConfig]):
         :return: The reformatted content
 
         """
+        # Local import so Darker can be run without Black installed
+        from black import format_str
+
         contents_for_black = content.string_with_newline("\n")
         if contents_for_black.strip():
             dst_contents = format_str(
@@ -172,6 +171,11 @@ class BlackFormatter(BaseFormatter, HasConfig[BlackCompatibleConfig]):
         # Collect relevant Black configuration options from ``self.config`` in order to
         # pass them to Black's ``format_str()``. File exclusion options aren't needed
         # since at this point we already have a single file's content to work on.
+
+        # Local import so Darker can be run without Black installed
+        from black import FileMode as Mode
+        from black import TargetVersion
+
         mode = BlackModeAttributes()
         if "line_length" in self.config:
             mode["line_length"] = self.config["line_length"]
