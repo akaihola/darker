@@ -6,7 +6,7 @@ from unittest.mock import patch
 
 import pytest
 
-from darker.formatters import black_formatter, ruff_formatter
+from darker.formatters import ruff_formatter
 from darker.formatters.black_formatter import BlackFormatter
 from darker.formatters.ruff_formatter import RuffFormatter
 from darkgraylib.testtools.helpers import raises_or_matches
@@ -79,16 +79,16 @@ def test_run(formatter_class, encoding, newline):
 @pytest.mark.parametrize(
     "formatter_setup",
     [
-        (BlackFormatter, black_formatter, "format_str"),
-        (RuffFormatter, ruff_formatter, "_ruff_format_stdin"),
+        (BlackFormatter, "black.format_str"),
+        (RuffFormatter, "darker.formatters.ruff_formatter._ruff_format_stdin"),
     ],
 )
 @pytest.mark.parametrize("newline", ["\n", "\r\n"])
 def test_run_always_uses_unix_newlines(formatter_setup, newline):
     """Content is always passed to Black and Ruff with Unix newlines"""
-    formatter_class, formatter_module, formatter_func_name = formatter_setup
+    formatter_class, formatter_func_name = formatter_setup
     src = TextDocument.from_str(f"print ( 'touché' ){newline}")
-    with patch.object(formatter_module, formatter_func_name) as formatter_func:
+    with patch(formatter_func_name) as formatter_func:
         formatter_func.return_value = 'print("touché")\n'
 
         _ = formatter_class().run(src, Path("a.py"))
