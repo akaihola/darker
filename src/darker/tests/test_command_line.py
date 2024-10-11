@@ -11,13 +11,12 @@ from unittest.mock import DEFAULT, Mock, call, patch
 
 import pytest
 import toml
-from black import TargetVersion
+from black import FileMode, TargetVersion
 
 import darker.help
 from darker.__main__ import main
 from darker.command_line import make_argument_parser, parse_command_line
 from darker.config import Exclusions
-from darker.formatters import black_formatter
 from darker.formatters.black_formatter import BlackFormatter
 from darker.tests.helpers import flynt_present, isort_present
 from darkgraylib.config import ConfigurationError
@@ -546,9 +545,8 @@ def test_black_options(monkeypatch, tmpdir, git_repo, options, expect):
         {"main.py": 'print("Hello World!")\n'}, commit="Initial commit"
     )
     added_files["main.py"].write_bytes(b'print ("Hello World!")\n')
-    with patch.object(
-        black_formatter, "Mode", wraps=black_formatter.Mode
-    ) as file_mode_class:
+    with patch("black.FileMode", wraps=FileMode) as file_mode_class:
+        # end of test setup, now call the function under test
 
         main(options + [str(path) for path in added_files.values()])
 
@@ -661,11 +659,12 @@ def test_black_config_file_and_options(git_repo, config, options, expect):
         commit="Initial commit",
     )
     added_files["main.py"].write_bytes(b"a = [1, 2,]")
-    mode_class_mock = Mock(wraps=black_formatter.Mode)
+    mode_class_mock = Mock(wraps=FileMode)
     # Speed up tests by mocking `format_str` to skip running Black
     format_str = Mock(return_value="a = [1, 2,]")
-    with patch.multiple(black_formatter, Mode=mode_class_mock, format_str=format_str):
-
+    with patch("black.FileMode", mode_class_mock), patch(
+        "black.format_str", format_str
+    ):
         main(options + [str(path) for path in added_files.values()])
 
     assert mode_class_mock.call_args_list == [expect]

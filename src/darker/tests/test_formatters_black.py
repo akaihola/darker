@@ -7,17 +7,14 @@ import sys
 from argparse import Namespace
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import TYPE_CHECKING, Dict, Iterable, Iterator, Optional, Pattern
-from unittest.mock import ANY, Mock, call, patch
+from typing import TYPE_CHECKING
+from unittest.mock import ANY, patch
 
 import pytest
 import regex
-from black import Mode, Report, TargetVersion
-from pathspec import PathSpec
+from black import Mode, TargetVersion
 
-from darker import files
 from darker.files import DEFAULT_EXCLUDE_RE, filter_python_files
-from darker.formatters import black_formatter
 from darker.formatters.black_formatter import BlackFormatter
 from darkgraylib.config import ConfigurationError
 from darkgraylib.testtools.helpers import raises_or_matches
@@ -213,129 +210,6 @@ def test_filter_python_files(  # pylint: disable=too-many-arguments
     assert result == expect_paths
 
 
-def make_mock_gen_python_files_black_21_7b1_dev8():
-    """Create `gen_python_files` mock for Black 21.7b1.dev8+ge76adbe
-
-    Also record the call made to the mock function for test verification.
-
-    This revision didn't yet have the `verbose` and `quiet` parameters.
-
-    """
-    calls = Mock()
-
-    # pylint: disable=unused-argument
-    def gen_python_files(
-        paths: Iterable[Path],
-        root: Path,
-        include: Pattern[str],
-        exclude: Pattern[str],
-        extend_exclude: Optional[Pattern[str]],
-        force_exclude: Optional[Pattern[str]],
-        report: Report,
-        gitignore: Optional[PathSpec],
-    ) -> Iterator[Path]:
-        calls.gen_python_files = call(gitignore=gitignore)
-        for _ in []:
-            yield Path()
-
-    return gen_python_files, calls
-
-
-def make_mock_gen_python_files_black_21_7b1_dev9():
-    """Create `gen_python_files` mock for Black 21.7b1.dev9+gb1d0601
-
-    Also record the call made to the mock function for test verification.
-
-    This revision added `verbose` and `quiet` parameters to `gen_python_files`.
-
-    """
-    calls = Mock()
-
-    # pylint: disable=unused-argument
-    def gen_python_files(
-        paths: Iterable[Path],
-        root: Path,
-        include: Pattern[str],
-        exclude: Pattern[str],
-        extend_exclude: Optional[Pattern[str]],
-        force_exclude: Optional[Pattern[str]],
-        report: Report,
-        gitignore: Optional[PathSpec],
-        *,
-        verbose: bool,
-        quiet: bool,
-    ) -> Iterator[Path]:
-        calls.gen_python_files = call(
-            gitignore=gitignore,
-            verbose=verbose,
-            quiet=quiet,
-        )
-        for _ in []:
-            yield Path()
-
-    return gen_python_files, calls
-
-
-def make_mock_gen_python_files_black_22_10_1_dev19():
-    """Create `gen_python_files` mock for Black 22.10.1.dev19+gffaaf48
-
-    Also record the call made to the mock function for test verification.
-
-    This revision renamed the `gitignore` parameter to `gitignore_dict`.
-
-    """
-    calls = Mock()
-
-    # pylint: disable=unused-argument
-    def gen_python_files(
-        paths: Iterable[Path],
-        root: Path,
-        include: Pattern[str],
-        exclude: Pattern[str],
-        extend_exclude: Optional[Pattern[str]],
-        force_exclude: Optional[Pattern[str]],
-        report: Report,
-        gitignore_dict: Optional[Dict[Path, PathSpec]],
-        *,
-        verbose: bool,
-        quiet: bool,
-    ) -> Iterator[Path]:
-        calls.gen_python_files = call(
-            gitignore_dict=gitignore_dict,
-            verbose=verbose,
-            quiet=quiet,
-        )
-        for _ in []:
-            yield Path()
-
-    return gen_python_files, calls
-
-
-@pytest.mark.kwparametrize(
-    dict(
-        make_mock=make_mock_gen_python_files_black_21_7b1_dev8,
-        expect={"gitignore": None},
-    ),
-    dict(
-        make_mock=make_mock_gen_python_files_black_21_7b1_dev9,
-        expect={"gitignore": None, "verbose": False, "quiet": False},
-    ),
-    dict(
-        make_mock=make_mock_gen_python_files_black_22_10_1_dev19,
-        expect={"gitignore_dict": {}, "verbose": False, "quiet": False},
-    ),
-)
-def test_filter_python_files_gitignore(make_mock, tmp_path, expect):
-    """`filter_python_files` uses per-Black-version params to `gen_python_files`"""
-    gen_python_files, calls = make_mock()
-    with patch.object(files, "gen_python_files", gen_python_files):
-        # end of test setup
-
-        _ = filter_python_files(set(), tmp_path, BlackFormatter())
-
-    assert calls.gen_python_files.kwargs == expect
-
-
 @pytest.mark.parametrize("encoding", ["utf-8", "iso-8859-1"])
 @pytest.mark.parametrize("newline", ["\n", "\r\n"])
 def test_run(encoding, newline):
@@ -360,7 +234,7 @@ def test_run(encoding, newline):
 def test_run_always_uses_unix_newlines(newline):
     """Content is always passed to Black with Unix newlines"""
     src = TextDocument.from_str(f"print ( 'touché' ){newline}")
-    with patch.object(black_formatter, "format_str") as format_str:
+    with patch("black.format_str") as format_str:
         format_str.return_value = 'print("touché")\n'
 
         _ = BlackFormatter().run(src)
@@ -472,7 +346,7 @@ def test_run_configuration(
 ):
     """`BlackFormatter.run` passes correct configuration to Black."""
     src = TextDocument.from_str("import  os\n")
-    with patch.object(black_formatter, "format_str") as format_str, raises_or_matches(
+    with patch("black.format_str") as format_str, raises_or_matches(
         expect, []
     ) as check:
         format_str.return_value = "import os\n"
