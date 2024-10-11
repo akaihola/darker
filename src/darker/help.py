@@ -2,8 +2,7 @@
 
 from textwrap import dedent
 
-from black import TargetVersion
-
+from darker.configuration.target_version import TargetVersion
 from darker.formatters import get_formatter_names
 
 
