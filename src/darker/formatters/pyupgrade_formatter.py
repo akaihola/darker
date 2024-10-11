@@ -42,9 +42,6 @@ import logging
 import sys
 from typing import TYPE_CHECKING
 
-from pyupgrade._data import Settings
-from pyupgrade._main import _fix_plugins, _fix_tokens, main
-
 from darker.formatters.base_formatter import BaseFormatter, HasConfig
 from darker.formatters.formatter_config import validate_target_versions
 from darker.formatters.pyupgrade_config import PyupgradeConfig
@@ -107,6 +104,9 @@ def _get_supported_target_versions() -> set[tuple[int, int]]:
     ``  --py???-plus``, and returns the target versions as a set of int-tuples.
 
     """
+    # Local import so Darker can be run also without pyupgrade installed
+    from pyupgrade._main import main  # pylint: disable=import-outside-toplevel
+
     stdout = sys.stdout
     sys.stdout = buf = io.StringIO()
     try:
@@ -129,6 +129,13 @@ def _pyupgrade_format_stdin(contents: str, min_version: tuple[int, int]) -> str:
     :return: The reformatted source code
 
     """
+    # Local imports so Darker can be run also without pyupgrade installed
+    from pyupgrade._data import Settings  # pylint: disable=import-outside-toplevel
+    from pyupgrade._main import (  # pylint: disable=import-outside-toplevel
+        _fix_plugins,
+        _fix_tokens,
+    )
+
     return _fix_tokens(
         _fix_plugins(contents, settings=Settings(min_version=min_version))
     )
