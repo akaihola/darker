@@ -41,25 +41,15 @@ import io
 import logging
 import sys
 from pathlib import Path
-from subprocess import PIPE, run  # nosec
-from typing import TYPE_CHECKING, Collection
-
-from pyupgrade import _main
-from pyupgrade._data import Settings
-from pyupgrade._main import _fix_plugins, _fix_tokens
+from typing import TYPE_CHECKING
 
 from darker.formatters.base_formatter import BaseFormatter, HasConfig
-from darker.formatters.pyupgrade_config import (
-    PyupgradeConfig,
-)
-
 from darker.formatters.formatter_config import validate_target_versions
-from darkgraylib.config import ConfigurationError
+from darker.formatters.pyupgrade_config import PyupgradeConfig
 from darkgraylib.utils import TextDocument
 
 if TYPE_CHECKING:
     from argparse import Namespace
-    from typing import Pattern
 
 logger = logging.getLogger(__name__)
 
@@ -112,6 +102,9 @@ def _get_supported_target_versions() -> set[tuple[int, int]]:
     ``  --py???-plus``, and returns the target versions as a set of int-tuples.
 
     """
+    # Local import so Darker can be run also without pyupgrade installed
+    from pyupgrade import _main
+
     stdout = sys.stdout
     sys.stdout = buf = io.StringIO()
     try:
@@ -134,6 +127,10 @@ def _pyupgrade_format_stdin(contents: str, min_version: tuple[int, int]) -> str:
     :return: The reformatted source code
 
     """
+    # Local imports so Darker can be run also without pyupgrade installed
+    from pyupgrade._data import Settings
+    from pyupgrade._main import _fix_plugins, _fix_tokens
+
     return _fix_tokens(
         _fix_plugins(contents, settings=Settings(min_version=min_version))
     )
