@@ -47,6 +47,7 @@ ignore = [
     "D203",  # One blank line required before class docstring
     "D213",  # Multi-line docstring summary should start at the second line
     "D400",  # First line should end with a period (duplicates D415)
+    "ISC001",  # Checks for implicitly concatenated strings on a single line
 
     # Remove these when support for Python 3.8 is dropped:
     "UP006",  # Use `xyz` instead of `Xyz` for type annotation
