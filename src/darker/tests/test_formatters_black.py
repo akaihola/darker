@@ -114,7 +114,8 @@ def test_formatter_without_black(caplog):
     dict(config_lines=["target-version = false"], expect=ConfigurationError()),
     dict(config_lines=["target-version = 'py37'"], expect={"target_version": (3, 7)}),
     dict(
-        config_lines=["target-version = ['py37']"], expect={"target_version": {(3, 7)}},
+        config_lines=["target-version = ['py37']"],
+        expect={"target_version": {(3, 7)}},
     ),
     dict(
         config_lines=["target-version = ['py39']"],

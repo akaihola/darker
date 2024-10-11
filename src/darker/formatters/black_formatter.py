@@ -58,8 +58,6 @@ if TYPE_CHECKING:
     from black import FileMode as Mode
     from black import TargetVersion
 
-    from darker.formatters.formatter_config import BlackConfig
-
 
 logger = logging.getLogger(__name__)
 
