@@ -17,7 +17,7 @@ import darker.help
 from darker.__main__ import main
 from darker.command_line import make_argument_parser, parse_command_line
 from darker.config import Exclusions
-from darker.formatters import black_formatter, ruff_formatter
+from darker.formatters import ruff_formatter
 from darker.formatters.black_formatter import BlackFormatter
 from darker.tests.helpers import flynt_present, isort_present
 from darkgraylib.config import ConfigurationError
