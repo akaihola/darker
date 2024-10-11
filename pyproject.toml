@@ -47,6 +47,7 @@ ignore = [
     "D203",  # One blank line required before class docstring
     "D213",  # Multi-line docstring summary should start at the second line
     "D400",  # First line should end with a period (duplicates D415)
+    "ISC001",  # Checks for implicitly concatenated strings on a single line
 ]
 
 [tool.ruff.lint.per-file-ignores]
