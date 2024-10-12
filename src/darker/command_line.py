@@ -5,8 +5,6 @@ from argparse import ArgumentParser, Namespace
 from functools import partial
 from typing import List, Optional, Tuple
 
-from black import TargetVersion
-
 import darkgraylib.command_line
 from darker import help as hlp
 from darker.config import (
@@ -15,6 +13,8 @@ from darker.config import (
     DarkerConfig,
     OutputMode,
 )
+from darker.configuration.target_version import TargetVersion
+from darker.formatters import get_formatter_names
 from darker.version import __version__
 from darkgraylib.command_line import add_parser_argument
 from darkgraylib.config import ConfigurationError
@@ -84,10 +84,10 @@ def make_argument_parser(require_src: bool) -> ArgumentParser:
         choices=[v.name.lower() for v in TargetVersion],
     )
     add_arg(
-        "Formatter to use for reformatting code",
+        hlp.FORMATTER,
         "--formatter",
         default="black",
-        choices=["black"],
+        choices=get_formatter_names(),
         metavar="FORMATTER",
     )
     return parser

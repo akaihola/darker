@@ -11,13 +11,14 @@ from unittest.mock import DEFAULT, Mock, call, patch
 
 import pytest
 import toml
-from black import TargetVersion
+from black import FileMode, TargetVersion
 
 import darker.help
-from darker import black_diff
 from darker.__main__ import main
 from darker.command_line import make_argument_parser, parse_command_line
 from darker.config import Exclusions
+from darker.formatters import ruff_formatter
+from darker.formatters.black_formatter import BlackFormatter
 from darker.tests.helpers import flynt_present, isort_present
 from darkgraylib.config import ConfigurationError
 from darkgraylib.git import RevisionRange
@@ -501,14 +502,6 @@ def test_help_with_flynt_package(capsys):
         expect=call(target_versions={TargetVersion.PY39}),
     ),
     dict(
-        options=["-c", "black.cfg", "-S"],
-        expect=call(
-            line_length=81,
-            string_normalization=False,
-            target_versions={TargetVersion.PY38},
-        ),
-    ),
-    dict(
         options=["-c", "black.cfg", "-t", "py39"],
         expect=call(
             line_length=81,
@@ -553,12 +546,98 @@ def test_black_options(monkeypatch, tmpdir, git_repo, options, expect):
         {"main.py": 'print("Hello World!")\n'}, commit="Initial commit"
     )
     added_files["main.py"].write_bytes(b'print ("Hello World!")\n')
-    with patch.object(black_diff, "Mode", wraps=black_diff.Mode) as file_mode_class:
+    with patch("black.FileMode", wraps=FileMode) as file_mode_class:
+        # end of test setup, now call the function under test
 
         main(options + [str(path) for path in added_files.values()])
 
     _, expect_args, expect_kwargs = expect
     file_mode_class.assert_called_once_with(*expect_args, **expect_kwargs)
+
+
+@pytest.mark.kwparametrize(
+    dict(options=[]),
+    dict(options=["-c", "ruff.cfg"], expect_opts=["--line-length=81"]),
+    dict(options=["--config", "ruff.cfg"], expect_opts=["--line-length=81"]),
+    dict(
+        options=["-S"],
+        expect_opts=['--config=format.quote-style="preserve"'],
+    ),
+    dict(
+        options=["--skip-string-normalization"],
+        expect_opts=['--config=format.quote-style="preserve"'],
+    ),
+    dict(options=["-l", "90"], expect_opts=["--line-length=90"]),
+    dict(options=["--line-length", "90"], expect_opts=["--line-length=90"]),
+    dict(
+        options=["-c", "ruff.cfg", "-S"],
+        expect_opts=["--line-length=81", '--config=format.quote-style="preserve"'],
+    ),
+    dict(
+        options=["-c", "ruff.cfg", "-l", "90"],
+        expect_opts=["--line-length=90"],
+    ),
+    dict(
+        options=["-l", "90", "-S"],
+        expect_opts=["--line-length=90", '--config=format.quote-style="preserve"'],
+    ),
+    dict(
+        options=["-c", "ruff.cfg", "-l", "90", "-S"],
+        expect_opts=["--line-length=90", '--config=format.quote-style="preserve"'],
+    ),
+    dict(options=["-t", "py39"], expect_opts=["--target-version=py39"]),
+    dict(options=["--target-version", "py39"], expect_opts=["--target-version=py39"]),
+    dict(
+        options=["-c", "ruff.cfg", "-t", "py39"],
+        expect_opts=["--line-length=81", "--target-version=py39"],
+    ),
+    dict(
+        options=["-t", "py39", "-S"],
+        expect_opts=[
+            "--target-version=py39",
+            '--config=format.quote-style="preserve"',
+        ],
+    ),
+    dict(
+        options=["-c", "ruff.cfg", "-t", "py39", "-S"],
+        expect_opts=[
+            "--line-length=81",
+            "--target-version=py39",
+            '--config=format.quote-style="preserve"',
+        ],
+    ),
+    dict(options=["--preview"], expect_opts=["--preview"]),
+    expect_opts=[],
+)
+def test_ruff_options(monkeypatch, tmp_path, git_repo, options, expect_opts):
+    """Ruff options from the command line are passed correctly to Ruff"""
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / "pyproject.toml").write_text("[tool.ruff]\n")
+    (tmp_path / "ruff.cfg").write_text(
+        dedent(
+            """
+            [tool.ruff]
+            line_length = 81
+            skip_string_normalization = false
+            target_version = 'py38'
+            """
+        )
+    )
+    added_files = git_repo.add(
+        {"main.py": 'print("Hello World!")\n'}, commit="Initial commit"
+    )
+    main_py = added_files["main.py"]
+    main_py.write_bytes(b'print ("Hello World!")\n')
+    with patch.object(ruff_formatter, "_ruff_format_stdin") as format_stdin:
+        format_stdin.return_value = 'print("Hello World!")\n'
+
+        main([*options, "--formatter=ruff", str(main_py)])
+
+    format_stdin.assert_called_once_with(
+        'print ("Hello World!")\n',
+        Path("main.py"),
+        ['--config=lint.ignore=["ISC001"]', *expect_opts],
+    )
 
 
 @pytest.mark.kwparametrize(
@@ -666,14 +745,62 @@ def test_black_config_file_and_options(git_repo, config, options, expect):
         commit="Initial commit",
     )
     added_files["main.py"].write_bytes(b"a = [1, 2,]")
-    mode_class_mock = Mock(wraps=black_diff.Mode)
+    mode_class_mock = Mock(wraps=FileMode)
     # Speed up tests by mocking `format_str` to skip running Black
     format_str = Mock(return_value="a = [1, 2,]")
-    with patch.multiple(black_diff, Mode=mode_class_mock, format_str=format_str):
-
+    with patch("black.FileMode", mode_class_mock), patch(
+        "black.format_str", format_str
+    ):
         main(options + [str(path) for path in added_files.values()])
 
     assert mode_class_mock.call_args_list == [expect]
+
+
+@pytest.mark.kwparametrize(
+    dict(config=[], options=[], expect=[]),
+    dict(options=["--line-length=50"], expect=["--line-length=50"]),
+    dict(config=["line_length = 60"], expect=["--line-length=60"]),
+    dict(
+        config=["line_length = 60"],
+        options=["--line-length=50"],
+        expect=["--line-length=50"],
+    ),
+    dict(
+        options=["--skip-string-normalization"],
+        expect=['--config=format.quote-style="preserve"'],
+    ),
+    dict(options=["--no-skip-string-normalization"], expect=[]),
+    dict(
+        options=["--skip-magic-trailing-comma"],
+        expect=[
+            '--config="format.skip-magic-trailing-comma=true"',
+            '--config="lint.isort.split-on-trailing-comma=false"',
+        ],
+    ),
+    dict(options=["--target-version", "py39"], expect=["--target-version=py39"]),
+    dict(options=["--preview"], expect=["--preview"]),
+    config=[],
+    options=[],
+)
+def test_ruff_config_file_and_options(git_repo, config, options, expect):
+    """Ruff configuration file and command line options are combined correctly."""
+    # Only line length is both supported as a command line option and read by Darker
+    # from Ruff configuration.
+    added_files = git_repo.add(
+        {"main.py": "foo", "pyproject.toml": joinlines(["[tool.ruff]", *config])},
+        commit="Initial commit",
+    )
+    added_files["main.py"].write_bytes(b"a = [1, 2,]")
+    # Speed up tests by mocking `_ruff_format_stdin` to skip running Ruff
+    format_stdin = Mock(return_value="a = [1, 2,]")
+    with patch.object(ruff_formatter, "_ruff_format_stdin", format_stdin):
+        # end of test setup, now run the test:
+
+        main([*options, "--formatter=ruff", str(added_files["main.py"])])
+
+    format_stdin.assert_called_once_with(
+        "a = [1, 2,]", Path("main.py"), ['--config=lint.ignore=["ISC001"]', *expect]
+    )
 
 
 @pytest.mark.kwparametrize(
@@ -746,7 +873,7 @@ def test_black_config_file_and_options(git_repo, config, options, expect):
             {Path("a.py")},
             Exclusions(isort={"**/*"}, flynt={"**/*"}),
             RevisionRange("HEAD", ":WORKTREE:"),
-            {"target_version": {"py39"}},
+            {"target_version": {(3, 9)}},
         ),
     ),
     dict(
@@ -774,7 +901,11 @@ def test_options(git_repo, options, expect):
 
         retval = main(options)
 
-    expect = (Path(git_repo.root), expect[1]) + expect[2:]
+    expect_formatter = BlackFormatter()
+    expect_formatter.config = expect[4]
+    actual_formatter = format_edited_parts.call_args.args[4]
+    assert actual_formatter.config == expect_formatter.config
+    expect = (Path(git_repo.root), expect[1]) + expect[2:4] + (expect_formatter,)
     format_edited_parts.assert_called_once_with(
         *expect, report_unmodified=False, workers=1
     )
