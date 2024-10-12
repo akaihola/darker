@@ -113,6 +113,6 @@ class Exclusions:
 
     """
 
-    black: set[str] = field(default_factory=set)
+    formatter: set[str] = field(default_factory=set)
     isort: set[str] = field(default_factory=set)
     flynt: set[str] = field(default_factory=set)
