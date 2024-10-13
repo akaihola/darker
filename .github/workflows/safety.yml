@@ -9,9 +9,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
       - uses: actions/setup-python@v5
-      - run: pip install -U pip-tools
-      - run: pip-compile setup.cfg
-      - run: pip install -U safety
+      - run: uvx --from pip-tools pip-compile setup.cfg
       - name: Check dependencies for known security vulnerabilities using Safety
-        run: safety check --file requirements.txt
+        run: uvx safety check --file requirements.txt
