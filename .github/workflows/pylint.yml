@@ -27,6 +27,7 @@ jobs:
             requests \
             requests-cache \
             ruamel.yaml \
+            setuptools \
             toml
           uv pip list --system
       - uses: wearerequired/lint-action@v2.3.0
