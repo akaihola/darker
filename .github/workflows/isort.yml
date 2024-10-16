@@ -13,7 +13,7 @@ jobs:
         with:
           python-version: 3.x
       - run: pip install 'isort>=5.0.1'
-      - uses: wearerequired/lint-action@v2.3.0
+      - uses: akaihola/lint-action@master
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           isort: true
