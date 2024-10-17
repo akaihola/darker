@@ -32,10 +32,12 @@ for how this result is further processed with:
   based on whether reformats touch user-edited lines
 
 """
+
+from __future__ import annotations
+
 import inspect
 import logging
-from pathlib import Path
-from typing import Collection, Optional, Pattern, Set, Tuple, TypedDict, Union
+from typing import TYPE_CHECKING, Collection, Pattern, TypedDict
 
 # `FileMode as Mode` required to satisfy mypy==0.782. Strange.
 from black import FileMode as Mode
@@ -56,6 +58,9 @@ from darker.files import find_pyproject_toml
 from darkgraylib.config import ConfigurationError
 from darkgraylib.utils import TextDocument
 
+if TYPE_CHECKING:
+    from pathlib import Path
+
 __all__ = ["BlackConfig", "Mode", "run_black"]
 
 logger = logging.getLogger(__name__)
@@ -69,10 +74,10 @@ class BlackConfig(TypedDict, total=False):
     """Type definition for Black configuration dictionaries"""
 
     config: str
-    exclude: Pattern[str]
-    extend_exclude: Pattern[str]
-    force_exclude: Pattern[str]
-    target_version: Union[str, Set[str]]
+    exclude: Pattern[str] | None
+    extend_exclude: Pattern[str] | None
+    force_exclude: Pattern[str] | None
+    target_version: str | set[str]
     line_length: int
     skip_string_normalization: bool
     skip_magic_trailing_comma: bool
@@ -82,7 +87,7 @@ class BlackConfig(TypedDict, total=False):
 class BlackModeAttributes(TypedDict, total=False):
     """Type definition for items accepted by ``black.Mode``"""
 
-    target_versions: Set[TargetVersion]
+    target_versions: set[TargetVersion]
     line_length: int
     string_normalization: bool
     is_pyi: bool
@@ -90,7 +95,7 @@ class BlackModeAttributes(TypedDict, total=False):
     preview: bool
 
 
-def read_black_config(src: Tuple[str, ...], value: Optional[str]) -> BlackConfig:
+def read_black_config(src: tuple[str, ...], value: str | None) -> BlackConfig:
     """Read the black configuration from ``pyproject.toml``
 
     :param src: The source code files and directories to be processed by Darker
@@ -136,7 +141,7 @@ def filter_python_files(
     paths: Collection[Path],  # pylint: disable=unsubscriptable-object
     root: Path,
     black_config: BlackConfig,
-) -> Set[Path]:
+) -> set[Path]:
     """Get Python files and explicitly listed files not excluded by Black's config
 
     :param paths: Relative file/directory paths from CWD to Python sources
@@ -164,7 +169,7 @@ def filter_python_files(
             directories,
             root,
             include=DEFAULT_INCLUDE_RE,
-            exclude=black_config.get("exclude", DEFAULT_EXCLUDE_RE),
+            exclude=black_config.get("exclude") or DEFAULT_EXCLUDE_RE,
             extend_exclude=black_config.get("extend_exclude"),
             force_exclude=black_config.get("force_exclude"),
             report=Report(),
