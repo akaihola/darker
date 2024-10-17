@@ -9,12 +9,13 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
       - uses: actions/setup-python@v5
-      - run: pip install pyupgrade
       - name: Ensure modern Python style using pyupgrade
         # This script is written in a Linux / macos / windows portable way
         run: |
-          python -c "
+          uvx --from pyupgrade python -c "
           import sys
           from pyupgrade._main import main
           from glob import glob

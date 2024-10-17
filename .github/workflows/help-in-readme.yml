@@ -6,6 +6,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: pip install '.[flynt,isort]'
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
       - name: Verify that README contains output of darker --help
-        run: darker --verify-readme
+        run: uvx --from '.[flynt,isort]' darker --verify-readme
