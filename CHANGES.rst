@@ -36,6 +36,7 @@ Fixed
 - Pass full environment to Git to avoid the "dubious ownership" error.
 - Work around a `pathlib.Path.resolve` bug in Python 3.8 and 3.9 on Windows.
   The work-around should be removed when Python 3.8 and 3.9 are no longer supported.
+- The Darker GitHub action now respects the ``working-directory`` input option.
 
 
 2.1.1_ - 2024-04-16
