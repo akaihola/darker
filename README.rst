@@ -371,7 +371,7 @@ The following `command line arguments`_ can also be used to modify the defaults:
        versions that should be supported by Black's output. [default: per-file auto-
        detection]
 --formatter FORMATTER
-       Formatter to use for reformatting code
+       [black\|none] Formatter to use for reformatting code. [default: black]
 
 To change default values for these options for a given project,
 add a ``[tool.darker]`` section to ``pyproject.toml`` in the project's root directory,
