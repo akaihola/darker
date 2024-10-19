@@ -60,6 +60,7 @@ class PyupgradeFormatter(BaseFormatter, HasConfig[PyupgradeConfig]):
     config: PyupgradeConfig  # type: ignore[assignment]
 
     name = "pyupgrade"
+    preserves_ast = False
 
     def run(
         self, content: TextDocument, path_from_cwd: Path  # noqa: ARG002
