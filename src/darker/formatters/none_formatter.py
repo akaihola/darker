@@ -17,6 +17,7 @@ class NoneFormatter(BaseFormatter):
     """A dummy code formatter plugin interface."""
 
     name = "dummy reformat"
+    preserves_ast = True
 
     def run(
         self, content: TextDocument, path_from_cwd: Path  # noqa: ARG002
