@@ -209,11 +209,6 @@ def _blacken_and_flynt_single_file(
         relative_path_in_rev2, exclude.flynt, edited_linenums_differ, rev2_isorted
     )
     has_fstring_changes = fstringified != rev2_isorted
-    logger.debug(
-        "Flynt resulted in %s lines, with %s changes from fstringification",
-        len(fstringified.lines),
-        "some" if has_fstring_changes else "no",
-    )
     # 3. run black on the isorted and fstringified contents of each edited to-file
     formatted = _maybe_blacken_single_file(
         relative_path_in_rev2, exclude.black, fstringified, black_config
@@ -267,7 +262,13 @@ def _maybe_flynt_single_file(
     if glob_any(relpath_in_rev2, exclude):
         # `--flynt` option not specified, don't reformat
         return rev2_isorted
-    return apply_flynt(rev2_isorted, relpath_in_rev2, edited_linenums_differ)
+    result = apply_flynt(rev2_isorted, relpath_in_rev2, edited_linenums_differ)
+    logger.debug(
+        "Flynt resulted in %s lines, with %s changes from fstringification",
+        len(result.lines),
+        "some" if result != rev2_isorted else "no",
+    )
+    return result
 
 
 def _maybe_blacken_single_file(
