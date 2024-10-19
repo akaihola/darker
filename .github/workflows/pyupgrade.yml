@@ -9,16 +9,13 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Install uv
         uses: astral-sh/setup-uv@v3
       - uses: actions/setup-python@v5
       - name: Ensure modern Python style using pyupgrade
-        # This script is written in a Linux / macos / windows portable way
         run: |
-          uvx --from pyupgrade python -c "
-          import sys
-          from pyupgrade._main import main
-          from glob import glob
-          files = glob('**/*.py', recursive=True)
-          sys.exit(main(files + ['--py39-plus']))
-          " || ( git diff ; false )
+          uvx \
+            --from '.[pyupgrade]' \
+            darker --formatter=pyupgrade --target-version=py39 --diff
