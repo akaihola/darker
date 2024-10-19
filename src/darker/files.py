@@ -1,27 +1,154 @@
 """Helper functions for working with files and directories."""
 
-from typing import Optional, Tuple
+from __future__ import annotations
 
-from black import err, find_user_pyproject_toml
+import re
+from functools import lru_cache
+from typing import TYPE_CHECKING, Collection, Iterable, Iterator, Optional, Pattern
 
 from darkgraylib.files import find_project_root
 
+if TYPE_CHECKING:
+    from pathlib import Path
 
-def find_pyproject_toml(path_search_start: Tuple[str, ...]) -> Optional[str]:
+    from darker.formatters.base_formatter import BaseFormatter
+
+
+def find_pyproject_toml(path_search_start: tuple[str, ...]) -> str | None:
     """Find the absolute filepath to a pyproject.toml if it exists"""
+
     path_project_root = find_project_root(path_search_start)
     path_pyproject_toml = path_project_root / "pyproject.toml"
     if path_pyproject_toml.is_file():
         return str(path_pyproject_toml)
+    return None
 
+
+DEFAULT_EXCLUDE_RE = re.compile(
+    r"/(\.direnv"
+    r"|\.eggs"
+    r"|\.git"
+    r"|\.hg"
+    r"|\.ipynb_checkpoints"
+    r"|\.mypy_cache"
+    r"|\.nox"
+    r"|\.pytest_cache"
+    r"|\.ruff_cache"
+    r"|\.tox"
+    r"|\.svn"
+    r"|\.venv"
+    r"|\.vscode"
+    r"|__pypackages__"
+    r"|_build"
+    r"|buck-out"
+    r"|build"
+    r"|dist"
+    r"|venv)/"
+)
+DEFAULT_INCLUDE_RE = re.compile(r"(\.pyi?|\.ipynb)$")
+
+
+@lru_cache
+def _cached_resolve(path: Path) -> Path:
+    return path.resolve()
+
+
+def _resolves_outside_root_or_cannot_stat(path: Path, root: Path) -> bool:
+    """Return whether path is a symlink that points outside the root directory.
+
+    Also returns True if we failed to resolve the path.
+
+    This function has been adapted from Black 24.10.0.
+
+    """
     try:
-        path_user_pyproject_toml = find_user_pyproject_toml()
-        return (
-            str(path_user_pyproject_toml)
-            if path_user_pyproject_toml.is_file()
-            else None
+        resolved_path = _cached_resolve(path)
+    except OSError:
+        return True
+    try:
+        resolved_path.relative_to(root)
+    except ValueError:
+        return True
+    return False
+
+
+def _path_is_excluded(
+    normalized_path: str,
+    pattern: Optional[Pattern[str]],
+) -> bool:
+    """Return whether the path is excluded by the pattern.
+
+    This function has been adapted from Black 24.10.0.
+
+    """
+    match = pattern.search(normalized_path) if pattern else None
+    return bool(match and match.group(0))
+
+
+def _gen_python_files(
+    paths: Iterable[Path],
+    root: Path,
+    exclude: Pattern[str],
+    extend_exclude: Optional[Pattern[str]],
+    force_exclude: Optional[Pattern[str]],
+) -> Iterator[Path]:
+    """Generate all files under ``path`` whose paths are not excluded.
+
+    This function has been adapted from Black 24.10.0.
+
+    """
+    assert root.is_absolute(), f"INTERNAL ERROR: `root` must be absolute but is {root}"
+    for child in paths:
+        assert child.is_absolute()
+        root_relative_path = child.relative_to(root).as_posix()
+
+        # Then ignore with `--exclude` `--extend-exclude` and `--force-exclude` options.
+        root_relative_path = f"/{root_relative_path}"
+        if child.is_dir():
+            root_relative_path = f"{root_relative_path}/"
+
+        if any(
+                _path_is_excluded(root_relative_path, x)
+                for x in [exclude, extend_exclude, force_exclude]
+        ) or _resolves_outside_root_or_cannot_stat(child, root):
+            continue
+
+        if child.is_dir():
+            yield from _gen_python_files(
+                child.iterdir(), root, exclude, extend_exclude, force_exclude
+            )
+
+        elif child.is_file():
+            include_match = DEFAULT_INCLUDE_RE.search(root_relative_path)
+            if include_match:
+                yield child
+
+
+def filter_python_files(
+    paths: Collection[Path],  # pylint: disable=unsubscriptable-object
+    root: Path,
+    formatter: BaseFormatter,
+) -> set[Path]:
+    """Get Python files and explicitly listed files not excluded by Black's config.
+
+    :param paths: Relative file/directory paths from CWD to Python sources
+    :param root: A common root directory for all ``paths``
+    :param formatter: The code re-formatter which provides the configuration containing
+                      the exclude options
+    :return: Paths of files which should be reformatted according to
+             ``black_config``, relative to ``root``.
+
+    """
+    absolute_paths = {p.resolve() for p in paths}
+    directories = {p for p in absolute_paths if p.is_dir()}
+    files = {p for p in absolute_paths if p not in directories}
+    files_from_directories = set(
+        _gen_python_files(
+            directories,
+            root,
+            formatter.get_exclude(DEFAULT_EXCLUDE_RE),
+            formatter.get_extend_exclude(),
+            formatter.get_force_exclude(),
         )
-    except (PermissionError, RuntimeError) as e:
-        # We do not have access to the user-level config directory, so ignore it.
-        err(f"Ignoring user configuration directory due to {e!r}")
-        return None
+    )
+    return {p.resolve().relative_to(root) for p in files_from_directories | files}
