@@ -113,6 +113,8 @@ def _get_supported_target_versions() -> set[tuple[int, int]]:
     sys.stdout = buf = io.StringIO()
     try:
         main(["--help"])
+    except SystemExit:  # expected from argparse
+        pass
     finally:
         sys.stdout = stdout
     version_strs = (
