@@ -80,8 +80,7 @@ class PyupgradeFormatter(BaseFormatter, HasConfig[PyupgradeConfig]):
             target_versions_in = validate_target_versions(
                 self.config["target_version"], supported_target_versions
             )
-            target_version_str = min(target_versions_in)
-            target_version = (int(target_version_str[0]), int(target_version_str[1:]))
+            target_version = min(target_versions_in)
         else:
             target_version = (3, 9)
 
@@ -95,7 +94,10 @@ class PyupgradeFormatter(BaseFormatter, HasConfig[PyupgradeConfig]):
 
     def _read_cli_args(self, args: Namespace) -> None:
         if getattr(args, "target_version", None):
-            self.config["target_version"] = {args.target_version}
+            self.config["target_version"] = (
+                int(args.target_version[2]),
+                int(args.target_version[3:]),
+            )
 
 
 def _get_supported_target_versions() -> set[tuple[int, int]]:
