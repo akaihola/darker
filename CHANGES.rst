@@ -10,8 +10,8 @@ Added
 - Display exit code in parentheses after error message.
 - Do not reformat renamed files.
 - CI workflow to post recent project activity in a discussion. Triggered manually.
-- CI "future" test now tests against ``main`` of Darkgraylib_ in addition to Black_,
-  Flynt_ and isort_.
+- CI "future" test now tests against ``main`` of Darkgraylib_ and pyupgrade_ in addition
+  to Black_, Flynt_ and isort_.
 - The ``--preview`` configuration flag is now supported in the configuration files for
   Darker and Black
 - Prevent Pylint from updating beyond version 3.2.7 due to dropped Python 3.8 support.
@@ -23,6 +23,8 @@ Added
   Isort or Flynt_.
 - Black_ is no longer installed by default. Use ``pip install 'darker[black]'`` to get
   Black support.
+- pyupgrade_ is now supported as a formatter plugin. Note that changes from pyupgrade
+  are applied on a per-file basis, not only for modified lines as with Black_ and Ruff_.
 
 Removed
 -------
@@ -697,3 +699,4 @@ Added
 .. _Black: https://black.readthedocs.io/
 .. _isort: https://pycqa.github.io/isort/
 .. _NixOS: https://nixos.org/
+.. _pyupgrade: https://pypi.org/project/pyupgrade/
