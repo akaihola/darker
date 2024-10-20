@@ -31,10 +31,18 @@ revision = "origin/master..."
 revision = "origin/master..."
 src = ["."]
 
+[tool.pylint.MASTER]
+load-plugins = [
+    "pylint_per_file_ignores",
+]
+
 [tool.pylint."messages control"]
 # Check import order only with isort. Pylint doesn't support a custom list of first
 # party packages. We want to consider "darkgraylib" and "graylint" as first party.
 disable = ["wrong-import-order"]
+per-file-ignores = [
+  "/stubs/:missing-class-docstring,missing-function-docstring,unused-argument",
+]
 
 [tool.ruff]
 target-version = "py39"
