@@ -19,6 +19,8 @@ Added
   other formatters in the future. There's also a dummy ``none`` formatter plugin.
 - ``--formatter=none`` now skips running Black. This is useful when you only want to run
   Isort or Flynt.
+- pyupgrade_ is now supported as a formatter plugin. Note that changes from pyupgrade
+  are applied on a per-file basis, not only for modified lines as with Black_ and Ruff_.
 
 Removed
 -------
@@ -682,3 +684,4 @@ Added
 .. _Ruff: https://astral.sh/ruff
 .. _Black: https://black.readthedocs.io/
 .. _NixOS: https://nixos.org/
+.. _pyupgrade: https://pypi.org/project/pyupgrade/
