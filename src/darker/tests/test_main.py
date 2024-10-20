@@ -86,6 +86,9 @@ A_PY_DIFF_BLACK_FLYNT = [
 ]
 
 
+@pytest.mark.parametrize(
+    "formatter_arguments", [[], ["--formatter=black"], ["--formatter=ruff"]]
+)
 @pytest.mark.kwparametrize(
     dict(arguments=["--diff"], expect_stdout=A_PY_DIFF_BLACK),
     dict(arguments=["--isort"], expect_a_py=A_PY_BLACK_ISORT),
@@ -132,6 +135,8 @@ A_PY_DIFF_BLACK_FLYNT = [
         pyproject_toml="""
            [tool.black]
            exclude = 'a.py'
+           [tool.ruff.format]
+           exclude = ['a.py']
            """,
         expect_a_py=A_PY,
     ),
@@ -140,6 +145,8 @@ A_PY_DIFF_BLACK_FLYNT = [
         pyproject_toml="""
            [tool.black]
            exclude = 'a.py'
+           [tool.ruff.format]
+           exclude = ['a.py']
            """,
         expect_stdout=[],
     ),
@@ -148,6 +155,8 @@ A_PY_DIFF_BLACK_FLYNT = [
         pyproject_toml="""
            [tool.black]
            extend_exclude = 'a.py'
+           [tool.ruff]
+           extend-exclude = ['a.py']
            """,
         expect_a_py=A_PY,
     ),
@@ -156,6 +165,8 @@ A_PY_DIFF_BLACK_FLYNT = [
         pyproject_toml="""
            [tool.black]
            extend_exclude = 'a.py'
+           [tool.ruff]
+           extend-exclude = ['a.py']
            """,
         expect_stdout=[],
     ),
@@ -164,6 +175,10 @@ A_PY_DIFF_BLACK_FLYNT = [
         pyproject_toml="""
            [tool.black]
            force_exclude = 'a.py'
+           [tool.ruff.format]
+           exclude = ['a.py']
+           [tool.ruff]
+           force-exclude = true  # redundant, always passed to ruff anyway
            """,
         expect_a_py=A_PY,
     ),
@@ -172,6 +187,10 @@ A_PY_DIFF_BLACK_FLYNT = [
         pyproject_toml="""
            [tool.black]
            force_exclude = 'a.py'
+           [tool.ruff.format]
+           exclude = ['a.py']
+           [tool.ruff]
+           force-exclude = true  # redundant, always passed to ruff anyway
            """,
         expect_stdout=[],
     ),
@@ -190,6 +209,7 @@ A_PY_DIFF_BLACK_FLYNT = [
 )
 @pytest.mark.parametrize("newline", ["\n", "\r\n"], ids=["unix", "windows"])
 def test_main(
+    formatter_arguments,
     git_repo,
     monkeypatch,
     capsys,
@@ -221,7 +241,9 @@ def test_main(
     paths["subdir/a.py"].write_bytes(newline.join(A_PY).encode("ascii"))
     paths["b.py"].write_bytes(f"print(42 ){newline}".encode("ascii"))
 
-    retval = darker.__main__.main(arguments + [str(pwd / "subdir")])
+    retval = darker.__main__.main(
+        [*formatter_arguments, *arguments, str(pwd / "subdir")]
+    )
 
     stdout = capsys.readouterr().out.replace(str(git_repo.root), "")
     diff_output = stdout.splitlines(False)
@@ -244,7 +266,8 @@ def test_main(
     assert retval == expect_retval
 
 
-def test_main_in_plain_directory(tmp_path, capsys):
+@pytest.mark.parametrize("formatter", [[], ["--formatter=black"], ["--formatter=ruff"]])
+def test_main_in_plain_directory(tmp_path, capsys, formatter):
     """Darker works also in a plain directory tree"""
     subdir_a = tmp_path / "subdir_a"
     subdir_c = tmp_path / "subdir_b/subdir_c"
@@ -255,7 +278,7 @@ def test_main_in_plain_directory(tmp_path, capsys):
     (subdir_c / "another python file.py").write_text("a  =5")
 
     retval = darker.__main__.main(
-        ["--diff", "--check", "--isort", "--lint", "dummy", str(tmp_path)],
+        [*formatter, "--diff", "--check", "--isort", "--lint", "dummy", str(tmp_path)],
     )
 
     assert retval == 1
@@ -285,18 +308,19 @@ def test_main_in_plain_directory(tmp_path, capsys):
     )
 
 
+@pytest.mark.parametrize("formatter", [[], ["--formatter=black"], ["--formatter=ruff"]])
 @pytest.mark.parametrize(
     "encoding, text", [(b"utf-8", b"touch\xc3\xa9"), (b"iso-8859-1", b"touch\xe9")]
 )
 @pytest.mark.parametrize("newline", [b"\n", b"\r\n"])
-def test_main_encoding(git_repo, encoding, text, newline):
+def test_main_encoding(git_repo, formatter, encoding, text, newline):
     """Encoding and newline of the file is kept unchanged after reformatting"""
     paths = git_repo.add({"a.py": newline.decode("ascii")}, commit="Initial commit")
     edited = [b"# coding: ", encoding, newline, b's="', text, b'"', newline]
     expect = [b"# coding: ", encoding, newline, b's = "', text, b'"', newline]
     paths["a.py"].write_bytes(b"".join(edited))
 
-    retval = darker.__main__.main(["a.py"])
+    retval = darker.__main__.main([*formatter, "a.py"])
 
     result = paths["a.py"].read_bytes()
     assert retval == 0
@@ -368,7 +392,8 @@ def test_main_historical_pre_commit(git_repo, monkeypatch):
         darker.__main__.main(["--revision=:PRE-COMMIT:", "a.py"])
 
 
-def test_main_vscode_tmpfile(git_repo, capsys):
+@pytest.mark.parametrize("formatter", [[], ["--formatter=black"], ["--formatter=ruff"]])
+def test_main_vscode_tmpfile(git_repo, capsys, formatter):
     """Main function handles VSCode `.py.<HASH>.tmp` files correctly"""
     _ = git_repo.add(
         {"a.py": "print ( 'reformat me' ) \n"},
@@ -376,7 +401,7 @@ def test_main_vscode_tmpfile(git_repo, capsys):
     )
     (git_repo.root / "a.py.hash.tmp").write_text("print ( 'reformat me now' ) \n")
 
-    retval = darker.__main__.main(["--diff", "a.py.hash.tmp"])
+    retval = darker.__main__.main([*formatter, "--diff", "a.py.hash.tmp"])
 
     assert retval == 0
     outerr = capsys.readouterr()
