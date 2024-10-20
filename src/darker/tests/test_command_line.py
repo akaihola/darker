@@ -2,6 +2,8 @@
 
 """Unit tests for :mod:`darker.command_line` and :mod:`darker.__main__`"""
 
+from __future__ import annotations
+
 import os
 import re
 from importlib import reload
@@ -22,6 +24,7 @@ from darker.formatters.black_formatter import BlackFormatter
 from darker.tests.helpers import flynt_present, isort_present
 from darkgraylib.config import ConfigurationError
 from darkgraylib.git import RevisionRange
+from darkgraylib.testtools.git_repo_plugin import GitRepoFixture
 from darkgraylib.testtools.helpers import raises_if_exception
 from darkgraylib.utils import TextDocument, joinlines
 
@@ -463,6 +466,24 @@ def test_help_with_flynt_package(capsys):
         )
 
 
+@pytest.fixture(scope="module")
+def black_options_files(request, tmp_path_factory):
+    """Fixture for the `test_black_options` test."""
+    with GitRepoFixture.context(request, tmp_path_factory) as repo:
+        (repo.root / "pyproject.toml").write_bytes(b"[tool.black]\n")
+        (repo.root / "black.cfg").write_text(
+            dedent(
+                """
+                [tool.black]
+                line-length = 81
+                skip-string-normalization = false
+                target-version = 'py38'
+                """
+            )
+        )
+        yield repo.add({"main.py": 'print("Hello World!")\n'}, commit="Initial commit")
+
+
 @pytest.mark.kwparametrize(
     dict(options=[], expect=call()),
     dict(
@@ -547,30 +568,19 @@ def test_help_with_flynt_package(capsys):
         ),
     ),
 )
-def test_black_options(monkeypatch, tmpdir, git_repo, options, expect):
-    """Black options from the command line are passed correctly to Black"""
-    monkeypatch.chdir(tmpdir)
-    (tmpdir / "pyproject.toml").write("[tool.black]\n")
-    (tmpdir / "black.cfg").write(
-        dedent(
-            """
-            [tool.black]
-            line-length = 81
-            skip-string-normalization = false
-            target-version = 'py38'
-            """
-        )
-    )
-    added_files = git_repo.add(
-        {"main.py": 'print("Hello World!")\n'}, commit="Initial commit"
-    )
-    added_files["main.py"].write_bytes(b'print ("Hello World!")\n')
+def test_black_options(black_options_files, options, expect):
+    """Black options from the command line are passed correctly to Black."""
+    # The Git repository set up by the module-scope `black_options_repo` fixture is
+    # shared by all test cases. The "main.py" file modified by the test run needs to be
+    # reset to its original content before the next test case.
+    black_options_files["main.py"].write_bytes(b'print ("Hello World!")\n')
     with patch.object(
         black_formatter, "Mode", wraps=black_formatter.Mode
     ) as file_mode_class:
 
-        main(options + [str(path) for path in added_files.values()])
+        main(options + [str(path) for path in black_options_files.values()])
 
+    assert black_options_files["main.py"].read_bytes() == b'print("Hello World!")\n'
     _, expect_args, expect_kwargs = expect
     file_mode_class.assert_called_once_with(*expect_args, **expect_kwargs)
 
