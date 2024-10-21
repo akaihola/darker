@@ -10,6 +10,7 @@ import pytest
 import darker.__main__
 import darker.import_sorting
 from darker.exceptions import MissingPackageError
+from darker.formatters import black_formatter
 from darker.tests.helpers import isort_present
 from darkgraylib.utils import TextDocument
 
@@ -50,8 +51,8 @@ def run_isort(git_repo, monkeypatch, caplog, request):
     isorted_code = "import os; import sys;"
     blacken_code = "import os\nimport sys\n"
     patch_run_black_ctx = patch.object(
-        darker.__main__,
-        "run_black",
+        black_formatter.BlackFormatter,
+        "run",
         return_value=TextDocument(blacken_code),
     )
     with patch_run_black_ctx, patch("darker.import_sorting.isort_code") as isort_code:

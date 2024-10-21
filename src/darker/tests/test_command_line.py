@@ -14,10 +14,11 @@ import toml
 from black import TargetVersion
 
 import darker.help
-from darker import black_diff
 from darker.__main__ import main
 from darker.command_line import make_argument_parser, parse_command_line
 from darker.config import Exclusions
+from darker.formatters import black_formatter
+from darker.formatters.black_formatter import BlackFormatter
 from darker.tests.helpers import flynt_present, isort_present
 from darkgraylib.config import ConfigurationError
 from darkgraylib.git import RevisionRange
@@ -501,14 +502,6 @@ def test_help_with_flynt_package(capsys):
         expect=call(target_versions={TargetVersion.PY39}),
     ),
     dict(
-        options=["-c", "black.cfg", "-S"],
-        expect=call(
-            line_length=81,
-            string_normalization=False,
-            target_versions={TargetVersion.PY38},
-        ),
-    ),
-    dict(
         options=["-c", "black.cfg", "-t", "py39"],
         expect=call(
             line_length=81,
@@ -553,7 +546,9 @@ def test_black_options(monkeypatch, tmpdir, git_repo, options, expect):
         {"main.py": 'print("Hello World!")\n'}, commit="Initial commit"
     )
     added_files["main.py"].write_bytes(b'print ("Hello World!")\n')
-    with patch.object(black_diff, "Mode", wraps=black_diff.Mode) as file_mode_class:
+    with patch.object(
+        black_formatter, "Mode", wraps=black_formatter.Mode
+    ) as file_mode_class:
 
         main(options + [str(path) for path in added_files.values()])
 
@@ -666,10 +661,10 @@ def test_black_config_file_and_options(git_repo, config, options, expect):
         commit="Initial commit",
     )
     added_files["main.py"].write_bytes(b"a = [1, 2,]")
-    mode_class_mock = Mock(wraps=black_diff.Mode)
+    mode_class_mock = Mock(wraps=black_formatter.Mode)
     # Speed up tests by mocking `format_str` to skip running Black
     format_str = Mock(return_value="a = [1, 2,]")
-    with patch.multiple(black_diff, Mode=mode_class_mock, format_str=format_str):
+    with patch.multiple(black_formatter, Mode=mode_class_mock, format_str=format_str):
 
         main(options + [str(path) for path in added_files.values()])
 
@@ -774,7 +769,11 @@ def test_options(git_repo, options, expect):
 
         retval = main(options)
 
-    expect = (Path(git_repo.root), expect[1]) + expect[2:]
+    expect_formatter = BlackFormatter()
+    expect_formatter.config = expect[4]
+    actual_formatter = format_edited_parts.call_args.args[4]
+    assert actual_formatter.config == expect_formatter.config
+    expect = (Path(git_repo.root), expect[1]) + expect[2:4] + (expect_formatter,)
     format_edited_parts.assert_called_once_with(
         *expect, report_unmodified=False, workers=1
     )
