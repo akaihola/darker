@@ -7,7 +7,7 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = 'darker'
-copyright = '2024, Antti Kaihola'
+copyright = '2020–2024, Antti Kaihola'
 author = 'Antti Kaihola'
 
 # -- General configuration ---------------------------------------------------
