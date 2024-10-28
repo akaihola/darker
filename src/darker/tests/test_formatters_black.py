@@ -6,6 +6,7 @@ import re
 import sys
 from argparse import Namespace
 from dataclasses import dataclass, field
+from importlib import reload
 from pathlib import Path
 from typing import TYPE_CHECKING
 from unittest.mock import ANY, patch
@@ -14,8 +15,12 @@ import pytest
 import regex
 from black import Mode, TargetVersion
 
+import darker.formatters.black_formatter
+from darker.exceptions import DependencyError
 from darker.files import DEFAULT_EXCLUDE_RE, filter_python_files
+from darker.formatters import create_formatter
 from darker.formatters.black_formatter import BlackFormatter
+from darker.tests.helpers import black_present
 from darkgraylib.config import ConfigurationError
 from darkgraylib.testtools.helpers import raises_or_matches
 from darkgraylib.utils import TextDocument
@@ -46,6 +51,45 @@ class RegexEquality:
             other.pattern == self.pattern
             and other.flags & 0x1FF == re.compile(self.pattern).flags | self.flags
         )
+
+
+@pytest.mark.parametrize("present", [True, False])
+def test_formatters_black_importable_with_and_without_isort(present):
+    """Ensure `darker.formatters.black_formatter` imports with/without ``black``."""
+    try:
+        with black_present(present=present):
+            # end of test setup, now import the module
+
+            # Import when `black` has been removed temporarily
+            reload(darker.formatters.black_formatter)
+
+    finally:
+        # Re-import after restoring `black` so other tests won't be affected
+        reload(darker.formatters.black_formatter)
+
+
+def test_formatter_without_black(caplog):
+    """`BlackFormatter` logs warnings with instructions if `black` is not installed."""
+    args = Namespace()
+    args.config = None
+    formatter = create_formatter("black")
+    with black_present(present=False), pytest.raises(
+        DependencyError, match="^Can't find the Black package$"
+    ):
+        # end of test setup, now exercise the Black formatter
+
+        formatter.read_config((), args)
+
+    assert [
+        record.msg for record in caplog.records if record.levelname == "WARNING"
+    ] == [
+        # warning 1:
+        "To re-format code using Black, install it using e.g."
+        " `pip install 'darker[black]'` or `pip install black`",
+        # warning 2:
+        "To use a different formatter or no formatter, select it on the command line"
+        " (e.g. `--formatter=none`) or configuration (e.g. `formatter=none`)",
+    ]
 
 
 @pytest.mark.kwparametrize(
