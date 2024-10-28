@@ -91,7 +91,10 @@ class BlackFormatter(BaseFormatter):
 
     def _read_config_file(self, config_path: str) -> None:  # noqa: C901
         # Local import so Darker can be run without Black installed
-        from black import parse_pyproject_toml, re_compile_maybe_verbose
+        from black import (  # pylint: disable=import-outside-toplevel
+            parse_pyproject_toml,
+            re_compile_maybe_verbose,
+        )
 
         raw_config = parse_pyproject_toml(config_path)
         if "line_length" in raw_config:
@@ -151,7 +154,7 @@ class BlackFormatter(BaseFormatter):
 
         """
         # Local import so Darker can be run without Black installed
-        from black import format_str
+        from black import format_str  # pylint: disable=import-outside-toplevel
 
         contents_for_black = content.string_with_newline("\n")
         if contents_for_black.strip():
@@ -175,8 +178,8 @@ class BlackFormatter(BaseFormatter):
         # since at this point we already have a single file's content to work on.
 
         # Local import so Darker can be run without Black installed
-        from black import FileMode as Mode
-        from black import TargetVersion
+        from black import FileMode as Mode  # pylint: disable=import-outside-toplevel
+        from black import TargetVersion  # pylint: disable=import-outside-toplevel
 
         mode = BlackModeAttributes()
         if "line_length" in self.config:
