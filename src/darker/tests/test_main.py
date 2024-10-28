@@ -666,7 +666,7 @@ def test_long_command_length(git_repo):
 
 @pytest.fixture(scope="module")
 def formatter_none_repo(git_repo_m):
-    """Create a Git repository with a single file and a formatter that does nothing."""
+    """Create a Git repo with a single file to test a formatter that does nothing."""
     files = git_repo_m.add({"file1.py": "# old content\n"}, commit="Initial")
     files["file1.py"].write_text(
         dedent(
