@@ -112,8 +112,8 @@ def _gen_python_files(
             root_relative_path = f"{root_relative_path}/"
 
         if any(
-                _path_is_excluded(root_relative_path, x)
-                for x in [exclude, extend_exclude, force_exclude]
+            _path_is_excluded(root_relative_path, x)
+            for x in [exclude, extend_exclude, force_exclude]
         ) or _resolves_outside_root_or_cannot_stat(child, root):
             continue
 
