@@ -22,7 +22,7 @@ if os.getenv("INPUT_LINT", default=""):
 
 run([sys.executable, "-m", "venv", str(ENV_PATH)], check=True)  # nosec
 
-req = ["darker[color,isort]"]
+req = ["darker[black,color,isort]"]
 if VERSION:
     if VERSION.startswith("@"):
         req[0] = f"git+https://github.com/akaihola/darker{VERSION}#egg={req[0]}"
