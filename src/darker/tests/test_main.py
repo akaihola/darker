@@ -23,7 +23,7 @@ from darker.git import EditedLinenumsDiffer
 from darker.help import LINTING_GUIDE
 from darker.terminal import output
 from darker.tests.examples import A_PY, A_PY_BLACK, A_PY_BLACK_FLYNT, A_PY_BLACK_ISORT
-from darker.tests.helpers import unix_and_windows_newline_repos
+from darker.tests.helpers import black_present, unix_and_windows_newline_repos
 from darker.tests.test_fstring import FLYNTED_SOURCE, MODIFIED_SOURCE, ORIGINAL_SOURCE
 from darkgraylib.git import RevisionRange
 from darkgraylib.testtools.git_repo_plugin import GitRepoFixture
@@ -662,3 +662,38 @@ def test_long_command_length(git_repo):
     git_repo.add(files, commit="Add all the files")
     result = darker.__main__.main(["--diff", "--check", "src"])
     assert result == 0
+
+
+@pytest.fixture(scope="module")
+def formatter_none_repo(git_repo_m):
+    """Create a Git repository with a single file and a formatter that does nothing."""
+    files = git_repo_m.add({"file1.py": "# old content\n"}, commit="Initial")
+    files["file1.py"].write_text(
+        dedent(
+            """
+            import sys, os
+            print ( 'untouched unformatted code' )
+            """
+        )
+    )
+    return files
+
+
+@pytest.mark.parametrize("has_black", [False, True])
+def test_formatter_none(has_black, formatter_none_repo):
+    """The dummy formatter works regardless of whether Black is installed or not."""
+    with black_present(present=has_black):
+        argv = ["--formatter=none", "--isort", "file1.py"]
+
+        result = darker.__main__.main(argv)
+
+    assert result == 0
+    expect = dedent(
+        """
+        import os
+        import sys
+
+        print ( 'untouched unformatted code' )
+        """
+    )
+    assert formatter_none_repo["file1.py"].read_text() == expect
