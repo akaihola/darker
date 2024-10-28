@@ -221,6 +221,18 @@ def get_darker_help_output(capsys):
         expect_modified=("formatter", ...),
     ),
     dict(
+        argv=["--formatter", "none", "."],
+        expect_value=("formatter", "none"),
+        expect_config=("formatter", "none"),
+        expect_modified=("formatter", "none"),
+    ),
+    dict(
+        argv=["--formatter=none", "."],
+        expect_value=("formatter", "none"),
+        expect_config=("formatter", "none"),
+        expect_modified=("formatter", "none"),
+    ),
+    dict(
         argv=["--formatter", "rustfmt", "."],
         expect_value=SystemExit,
         expect_config=None,
