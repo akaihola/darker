@@ -19,6 +19,8 @@ Added
   other formatters in the future. There's also a dummy ``none`` formatter plugin.
 - ``--formatter=none`` now skips running Black. This is useful when you only want to run
   Isort or Flynt.
+- Black_ is no longer installed by default. Use ``pip install 'darker[black]'`` to get
+  Black support.
 
 Removed
 -------
