@@ -167,6 +167,9 @@ You can enable additional features with command line options:
 - ``-f`` / ``--flynt``: Also convert string formatting to use f-strings using the
   ``flynt`` package
 
+If you only want to run those tools without reformatting with Black,
+use the ``--formatter=none`` option.
+
 *New in version 1.1.0:* The ``-L`` / ``--lint`` option.
 
 *New in version 1.2.2:* Package available in conda-forge_.
@@ -175,6 +178,8 @@ You can enable additional features with command line options:
 
 *New in version 3.0.0:* Removed the ``-L`` / ``--lint`` functionality and moved it into
 the Graylint_ package.
+
+*New in version 3.0.0:* The ``--formatter`` option.
 
 .. _Conda: https://conda.io/
 .. _conda-forge: https://conda-forge.org/
