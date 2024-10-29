@@ -28,7 +28,10 @@ from darkgraylib.testtools.git_repo_plugin import GitRepoFixture
 from darkgraylib.testtools.helpers import raises_if_exception
 from darkgraylib.utils import TextDocument, joinlines
 
-pytestmark = pytest.mark.usefixtures("find_project_root_cache_clear")
+# Clear LRU caches for `find_project_root()` and `_load_toml()` before each test
+pytestmark = pytest.mark.usefixtures(
+    "find_project_root_cache_clear", "load_toml_cache_clear"
+)
 
 
 @pytest.mark.kwparametrize(
@@ -585,6 +588,16 @@ def test_black_options(black_options_files, options, expect):
     file_mode_class.assert_called_once_with(*expect_args, **expect_kwargs)
 
 
+@pytest.fixture(scope="module")
+def black_config_file_and_options_fixture(git_repo_m):
+    repo_files = git_repo_m.add(
+        {"main.py": "foo", "pyproject.toml": "* placeholder, will be overwritten"},
+        commit="Initial commit",
+    )
+    repo_files["main.py"].write_bytes(b"a = [1, 2,]")
+    return repo_files
+
+
 @pytest.mark.kwparametrize(
     dict(config=[], options=[], expect=call()),
     dict(
@@ -683,19 +696,18 @@ def test_black_options(black_options_files, options, expect):
         expect=call(preview=True),
     ),
 )
-def test_black_config_file_and_options(git_repo, config, options, expect):
+def test_black_config_file_and_options(
+    black_config_file_and_options_fixture, config, options, expect
+):
     """Black configuration file and command line options are combined correctly"""
-    added_files = git_repo.add(
-        {"main.py": "foo", "pyproject.toml": joinlines(["[tool.black]"] + config)},
-        commit="Initial commit",
-    )
-    added_files["main.py"].write_bytes(b"a = [1, 2,]")
+    repo_files = black_config_file_and_options_fixture
+    repo_files["pyproject.toml"].write_text(joinlines(["[tool.black]"] + config))
     mode_class_mock = Mock(wraps=black_formatter.Mode)
     # Speed up tests by mocking `format_str` to skip running Black
     format_str = Mock(return_value="a = [1, 2,]")
     with patch.multiple(black_formatter, Mode=mode_class_mock, format_str=format_str):
 
-        main(options + [str(path) for path in added_files.values()])
+        main(options + [str(path) for path in repo_files.values()])
 
     assert mode_class_mock.call_args_list == [expect]
 
