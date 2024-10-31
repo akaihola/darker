@@ -1,6 +1,70 @@
+[project]
+name = "darker"
+description = "Apply Black formatting only in regions changed since last commit"
+authors = ["Antti Kaihola 13725+akaihola@users.noreply.github.com"]
+license = "BSD"
+requires-python = ">=3.8"
+# NOTE: remember to keep `.github/workflows/python-package.yml` in sync
+#       with the minimum required Python version
+classifiers = [
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12"
+]
+[project.urls]
+"Source Code" = "https://github.com/akaihola/darker"
+"Change Log" = "https://github.com/akaihola/darker/blob/master/CHANGES.rst"
+"News" = "https://github.com/akaihola/darker/discussions/categories/announcements"
+
 [build-system]
 # Minimum requirements for the build system to execute.
 requires = ["setuptools", "wheel"]  # PEP 508 specifications.
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.package-data]
+darker = ["py.typed", "pyi"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[project.dependencies]
+# NOTE: remember to keep `constraints-oldest.txt` in sync with these
+black = ">=22.3.0"
+darkgraylib = "~=2.0.1"
+toml = ">=0.10.0"
+typing_extensions = ">=4.0.1"
+
+[project.optional-dependencies]
+flynt = ["flynt>=0.76"]
+isort = ["isort>=5.0.1"]
+color = ["Pygments>=2.4.0"]
+test = [
+    "black>=22.3.0",
+    "cryptography>=3.3.2",
+    "defusedxml>=0.7.1",
+    "flynt>=0.76",
+    "isort>=5.0.1",
+    "mypy>=0.990",
+    "pathspec",
+    "pydocstyle",
+    "pygments",
+    "pylint<=3.2.7",
+    "pytest>=6.2.0",
+    "pytest-kwparametrize>=0.0.3",
+    "regex>=2021.4.4",
+    "requests_cache>=0.7",
+    "ruamel.yaml>=0.17.21",
+    "ruff>=0.0.292",
+    "twine>=2.0.0",
+    "types-requests>=2.27.9",
+    "types-toml>=0.10.4",
+    "urllib3>=1.25.9",
+    "wheel>=0.21.0"
+]
+release = ["darkgray-dev-tools~=0.1.1"]
 
 [tool.black]
 # Darker makes Black read its configuration from the file indicated by the `--config`
