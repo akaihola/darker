@@ -715,6 +715,17 @@ def test_black_config_file_and_options(
     assert mode_class_mock.call_args_list == [expect]
 
 
+@pytest.fixture(scope="module")
+def options_repo(request, tmp_path_factory):
+    """Git repository fixture for the `test_options` test."""
+    with GitRepoFixture.context(request, tmp_path_factory) as repo:
+        paths = repo.add(
+            {"a.py": "1\n", "b.py": "2\n", "my.cfg": ""}, commit="Initial commit"
+        )
+        paths["a.py"].write_bytes(b"one\n")
+        yield repo
+
+
 @pytest.mark.kwparametrize(
     dict(
         options=["a.py"],
@@ -809,17 +820,14 @@ def test_black_config_file_and_options(
         ),
     ),
 )
-def test_options(git_repo, options, expect):
+def test_options(options_repo, monkeypatch, options, expect):
     """The main engine is called with correct parameters based on the command line
 
     Executed in a clean directory so Darker's own ``pyproject.toml`` doesn't interfere.
 
     """
-    paths = git_repo.add(
-        {"a.py": "1\n", "b.py": "2\n", "my.cfg": ""}, commit="Initial commit"
-    )
-    paths["a.py"].write_bytes(b"one\n")
     with patch('darker.__main__.format_edited_parts') as format_edited_parts:
+        monkeypatch.chdir(options_repo.root)
 
         retval = main(options)
 
@@ -827,7 +835,7 @@ def test_options(git_repo, options, expect):
     expect_formatter.config = expect[4]
     actual_formatter = format_edited_parts.call_args.args[4]
     assert actual_formatter.config == expect_formatter.config
-    expect = (Path(git_repo.root), expect[1]) + expect[2:4] + (expect_formatter,)
+    expect = (Path(options_repo.root), expect[1]) + expect[2:4] + (expect_formatter,)
     format_edited_parts.assert_called_once_with(
         *expect, report_unmodified=False, workers=1
     )
