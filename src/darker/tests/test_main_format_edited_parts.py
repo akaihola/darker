@@ -1,12 +1,13 @@
 """Tests for the `darker.__main__.format_edited_parts` function."""
 
-# pylint: disable=too-many-arguments,use-dict-literal
+# pylint: disable=no-member,redefined-outer-name,too-many-arguments,use-dict-literal
 # pylint: disable=use-implicit-booleaness-not-comparison
 
 import logging
 import re
 from io import BytesIO
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import Mock, patch
 
 import pytest
@@ -16,6 +17,7 @@ import darker.verification
 from darker.config import Exclusions
 from darker.formatters.black_formatter import BlackFormatter
 from darker.tests.examples import A_PY, A_PY_BLACK, A_PY_BLACK_FLYNT, A_PY_BLACK_ISORT
+from darker.tests.helpers import unix_and_windows_newline_repos
 from darker.verification import NotEquivalentError
 from darkgraylib.git import WORKTREE, RevisionRange
 from darkgraylib.utils import TextDocument, joinlines
@@ -23,6 +25,27 @@ from darkgraylib.utils import TextDocument, joinlines
 A_PY_ISORT = ["import os", "import sys", "", "print( '{}'.format('42'))", ""]
 A_PY_BLACK_UNNORMALIZE = ("import sys", "import os", "", "print('{}'.format('42'))", "")
 A_PY_BLACK_ISORT_FLYNT = ["import os", "import sys", "", 'print("42")', ""]
+
+
+@pytest.fixture(scope="module")
+def format_edited_parts_repo(request, tmp_path_factory):
+    """Create Git repositories for testing `format_edited_parts`."""
+    fixture = {}
+    with unix_and_windows_newline_repos(request, tmp_path_factory) as repos:
+        for newline, repo in repos.items():
+            fixture[newline] = SimpleNamespace(
+                root=repo.root,
+                paths=repo.add(
+                    {"a.py": newline, "b.py": newline}, commit="Initial commit"
+                ),
+            )
+            fixture[newline].paths["a.py"].write_bytes(
+                newline.join(A_PY).encode("ascii")
+            )
+            fixture[newline].paths["b.py"].write_bytes(
+                f"print(42 ){newline}".encode("ascii")
+            )
+        yield fixture
 
 
 @pytest.mark.kwparametrize(
@@ -67,7 +90,7 @@ A_PY_BLACK_ISORT_FLYNT = ["import os", "import sys", "", 'print("42")', ""]
 )
 @pytest.mark.parametrize("newline", ["\n", "\r\n"], ids=["unix", "windows"])
 def test_format_edited_parts(
-    git_repo,
+    format_edited_parts_repo,
     black_config,
     black_exclude,
     isort_exclude,
@@ -82,14 +105,11 @@ def test_format_edited_parts(
     :func:`~darker.__main__.format_edited_parts`.
 
     """
-    paths = git_repo.add({"a.py": newline, "b.py": newline}, commit="Initial commit")
-    paths["a.py"].write_bytes(newline.join(A_PY).encode("ascii"))
-    paths["b.py"].write_bytes(f"print(42 ){newline}".encode("ascii"))
     formatter = BlackFormatter()
     formatter.config = black_config
 
     result = darker.__main__.format_edited_parts(
-        Path(git_repo.root),
+        Path(format_edited_parts_repo[newline].root),
         {Path("a.py")},
         Exclusions(formatter=black_exclude, isort=isort_exclude, flynt=flynt_exclude),
         RevisionRange("HEAD", ":WORKTREE:"),
@@ -103,7 +123,7 @@ def test_format_edited_parts(
     ]
     expect_changes = [
         (
-            paths["a.py"],
+            format_edited_parts_repo[newline].paths["a.py"],
             newline.join(A_PY),
             newline.join(expect_lines),
             tuple(expect_lines[:-1]),
