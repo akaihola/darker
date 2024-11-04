@@ -1,6 +1,7 @@
-# pylint: disable=too-many-arguments,too-many-locals,use-dict-literal
+"""Unit tests for `darker.command_line` and `darker.__main__`."""
 
-"""Unit tests for :mod:`darker.command_line` and :mod:`darker.__main__`"""
+# pylint: disable=too-many-arguments,too-many-locals
+# pylint: disable=no-member,redefined-outer-name,use-dict-literal
 
 from __future__ import annotations
 
@@ -589,13 +590,15 @@ def test_black_options(black_options_files, options, expect):
 
 
 @pytest.fixture(scope="module")
-def black_config_file_and_options_fixture(git_repo_m):
-    repo_files = git_repo_m.add(
-        {"main.py": "foo", "pyproject.toml": "* placeholder, will be overwritten"},
-        commit="Initial commit",
-    )
-    repo_files["main.py"].write_bytes(b"a = [1, 2,]")
-    return repo_files
+def black_config_file_and_options_files(request, tmp_path_factory):
+    """Git repository fixture for the `test_black_config_file_and_options` test."""
+    with GitRepoFixture.context(request, tmp_path_factory) as repo:
+        repo_files = repo.add(
+            {"main.py": "foo", "pyproject.toml": "* placeholder, will be overwritten"},
+            commit="Initial commit",
+        )
+        repo_files["main.py"].write_bytes(b"a = [1, 2,]")
+        yield repo_files
 
 
 @pytest.mark.kwparametrize(
@@ -697,11 +700,11 @@ def black_config_file_and_options_fixture(git_repo_m):
     ),
 )
 def test_black_config_file_and_options(
-    black_config_file_and_options_fixture, config, options, expect
+    black_config_file_and_options_files, config, options, expect
 ):
     """Black configuration file and command line options are combined correctly"""
-    repo_files = black_config_file_and_options_fixture
-    repo_files["pyproject.toml"].write_text(joinlines(["[tool.black]"] + config))
+    repo_files = black_config_file_and_options_files
+    repo_files["pyproject.toml"].write_text(joinlines(["[tool.black]", *config]))
     mode_class_mock = Mock(wraps=black_formatter.Mode)
     # Speed up tests by mocking `format_str` to skip running Black
     format_str = Mock(return_value="a = [1, 2,]")
