@@ -13,7 +13,7 @@ import pytest
 
 from darker import git
 from darkgraylib.git import WORKTREE, RevisionRange
-from darkgraylib.testtools.git_repo_plugin import GitRepoFixture
+from darkgraylib.testtools.git_repo_plugin import GitRepoFixture, branched_repo
 from darkgraylib.utils import TextDocument
 
 
@@ -303,6 +303,12 @@ def test_git_get_modified_python_files(git_repo, modify_paths, paths, expect):
     assert result == {Path(p) for p in expect}
 
 
+@pytest.fixture(scope="module")
+def git_get_modified_python_files_revision_range_repo(request, tmp_path_factory):
+    """Fixture for a Git repository with multiple commits and branches."""
+    yield from branched_repo(request, tmp_path_factory)
+
+
 @pytest.mark.kwparametrize(
     dict(
         _description="from latest commit in branch to worktree and index",
@@ -383,15 +389,17 @@ def test_git_get_modified_python_files(git_repo, modify_paths, paths, expect):
     ),
 )
 def test_git_get_modified_python_files_revision_range(
-    _description, branched_repo, revrange, expect
+    _description,  # noqa: PT019
+    git_get_modified_python_files_revision_range_repo,
+    revrange,
+    expect,
 ):
     """Test for :func:`darker.git.git_get_modified_python_files` with revision range"""
+    repo = git_get_modified_python_files_revision_range_repo
     result = git.git_get_modified_python_files(
-        [Path(branched_repo.root)],
-        RevisionRange.parse_with_common_ancestor(
-            revrange, branched_repo.root, stdin_mode=False
-        ),
-        Path(branched_repo.root),
+        [Path(repo.root)],
+        RevisionRange.parse_with_common_ancestor(revrange, repo.root, stdin_mode=False),
+        Path(repo.root),
     )
 
     assert {path.name for path in result} == expect
