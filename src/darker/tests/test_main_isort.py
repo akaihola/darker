@@ -18,7 +18,7 @@ from darkgraylib.utils import TextDocument
 pytestmark = pytest.mark.usefixtures("find_project_root_cache_clear")
 
 
-def test_isort_option_without_isort(git_repo):  # noqa: ARG001
+def test_isort_option_without_isort(git_repo):
     """Without isort, provide isort install instructions and error."""
     # The `git_repo` fixture ensures test is not run in the Darker repository clone in
     # CI builds. It helps avoid a NixOS test issue.

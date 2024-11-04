@@ -1,7 +1,7 @@
 """Unit tests for `darker.command_line` and `darker.__main__`."""
 
 # pylint: disable=too-many-arguments,too-many-locals
-# pylint: disable=no-member,redefined-outer-name,use-dict-literal
+# pylint: disable=no-member,redefined-outer-name,unused-argument,use-dict-literal
 
 from __future__ import annotations
 
@@ -842,6 +842,14 @@ def test_options(options_repo, monkeypatch, options, expect):
     assert retval == 0
 
 
+@pytest.fixture(scope="module")
+def main_retval_repo(request, tmp_path_factory):
+    """Git repository fixture for the `test_main_retval` test."""
+    with GitRepoFixture.context(request, tmp_path_factory) as repo:
+        repo.add({"a.py": ""}, commit="Initial commit")
+        yield
+
+
 @pytest.mark.kwparametrize(
     dict(arguments=["a.py"], changes=False),
     dict(arguments=["a.py"], changes=True),
@@ -849,9 +857,8 @@ def test_options(options_repo, monkeypatch, options, expect):
     dict(arguments=["--check", "a.py"], changes=True, expect_retval=1),
     expect_retval=0,
 )
-def test_main_retval(git_repo, arguments, changes, expect_retval):
+def test_main_retval(main_retval_repo, arguments, changes, expect_retval):
     """``main()`` return value is correct based on ``--check`` and reformatting."""
-    git_repo.add({"a.py": ""}, commit="Initial commit")
     format_edited_parts = Mock()
     format_edited_parts.return_value = (
         [
