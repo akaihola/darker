@@ -1,12 +1,13 @@
 """Unit tests for :mod:`darker.git`"""
 
-# pylint: disable=protected-access,redefined-outer-name,too-many-arguments
+# pylint: disable=no-member,protected-access,redefined-outer-name,too-many-arguments
 # pylint: disable=too-many-lines,use-dict-literal
 
 import os
 from pathlib import Path
 from subprocess import DEVNULL, check_call  # nosec
 from textwrap import dedent  # nosec
+from types import SimpleNamespace
 from unittest.mock import ANY, patch
 
 import pytest
@@ -78,6 +79,23 @@ def test_git_exists_in_revision_git_call(retval, expect):
     assert result == expect
 
 
+@pytest.fixture(scope="module")
+def exists_missing_test_repo(request, tmp_path_factory):
+    """Git repository fixture for exists/missing tests."""
+    fixture = SimpleNamespace()
+    with GitRepoFixture.context(request, tmp_path_factory) as repo:
+        fixture.root = repo.root
+        repo.add(
+            {"x/README": "", "x/dir/a.py": "", "x/dir/sub/b.py": ""},
+            commit="Add x/dir/*.py",
+        )
+        fixture.hash_add = repo.get_hash()
+        repo.add({"x/dir/a.py": None}, commit="Delete x/dir/a.py")
+        fixture.hash_del_a = repo.get_hash()
+        repo.add({"x/dir/sub/b.py": None}, commit="Delete x/dir/sub/b.py")
+        yield fixture
+
+
 @pytest.mark.kwparametrize(
     dict(cwd=".", rev2="{add}", path="x/dir/a.py", expect=True),
     dict(cwd=".", rev2="{add}", path="x/dir/sub/b.py", expect=True),
@@ -110,20 +128,17 @@ def test_git_exists_in_revision_git_call(retval, expect):
     dict(cwd="x", rev2="HEAD", path="dir", expect=False),
     dict(cwd="x", rev2="HEAD", path="dir/sub", expect=False),
 )
-def test_git_exists_in_revision(git_repo, monkeypatch, cwd, rev2, path, expect):
+def test_git_exists_in_revision(
+    exists_missing_test_repo, monkeypatch, cwd, rev2, path, expect
+):
     """``_get_exists_in_revision()`` detects file/dir existence correctly"""
-    git_repo.add(
-        {"x/README": "", "x/dir/a.py": "", "x/dir/sub/b.py": ""},
-        commit="Add x/dir/*.py",
-    )
-    add = git_repo.get_hash()
-    git_repo.add({"x/dir/a.py": None}, commit="Delete x/dir/a.py")
-    del_a = git_repo.get_hash()
-    git_repo.add({"x/dir/sub/b.py": None}, commit="Delete x/dir/b.py")
+    repo = exists_missing_test_repo
     monkeypatch.chdir(cwd)
 
     result = git._git_exists_in_revision(
-        Path(path), rev2.format(add=add, del_a=del_a), git_repo.root / "x/dir/sub"
+        Path(path),
+        rev2.format(add=repo.hash_add, del_a=repo.hash_del_a),
+        repo.root / "x/dir/sub",
     )
 
     assert result == expect
@@ -178,23 +193,16 @@ def test_git_exists_in_revision(git_repo, monkeypatch, cwd, rev2, path, expect):
     git_cwd=".",
 )
 def test_get_missing_at_revision(
-    git_repo, monkeypatch, paths, cwd, git_cwd, rev2, expect
+    exists_missing_test_repo, monkeypatch, paths, cwd, git_cwd, rev2, expect
 ):
     """``get_missing_at_revision()`` returns missing files/directories correctly"""
-    git_repo.add(
-        {"x/README": "", "x/dir/a.py": "", "x/dir/sub/b.py": ""},
-        commit="Add x/dir/**/*.py",
-    )
-    add = git_repo.get_hash()
-    git_repo.add({"x/dir/a.py": None}, commit="Delete x/dir/a.py")
-    del_a = git_repo.get_hash()
-    git_repo.add({"x/dir/sub/b.py": None}, commit="Delete x/dir/sub/b.py")
-    monkeypatch.chdir(git_repo.root / cwd)
+    repo = exists_missing_test_repo
+    monkeypatch.chdir(repo.root / cwd)
 
     result = git.get_missing_at_revision(
         {Path(p) for p in paths},
-        rev2.format(add=add, del_a=del_a),
-        git_repo.root / git_cwd,
+        rev2.format(add=repo.hash_add, del_a=repo.hash_del_a),
+        repo.root / git_cwd,
     )
 
     assert result == {Path(p) for p in expect}
