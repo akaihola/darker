@@ -96,11 +96,12 @@ def test_apply_isort(apply_isort_repo_root, encoding, newline, content, expect):
         expect=("import   sys", "import os", "", "print(42)"),
     ),
 )
-def test_apply_isort_exclude(git_repo, encoding, newline, content, exclude, expect):
+def test_apply_isort_exclude(
+    apply_isort_repo_root, encoding, newline, content, exclude, expect
+):
     """Import sorting is skipped if file path matches exclusion patterns"""
-    git_repo.add({"test1.py": joinlines(ORIGINAL_SOURCE, newline)}, commit="Initial")
     edited_linenums_differ = EditedLinenumsDiffer(
-        git_repo.root, RevisionRange("HEAD", ":WORKTREE:")
+        apply_isort_repo_root[newline], RevisionRange("HEAD", ":WORKTREE:")
     )
     src = Path("test1.py")
     content_ = TextDocument.from_lines(content, encoding=encoding, newline=newline)
