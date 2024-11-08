@@ -14,7 +14,6 @@ import darker.import_sorting
 from darker.git import EditedLinenumsDiffer
 from darker.tests.helpers import isort_present, unix_and_windows_newline_repos
 from darkgraylib.git import RevisionRange
-from darkgraylib.testtools.git_repo_plugin import GitRepoFixture
 from darkgraylib.utils import TextDocument, joinlines
 
 ORIGINAL_SOURCE = ("import sys", "import os", "", "print(42)")
@@ -186,7 +185,6 @@ def test_isort_config(monkeypatch, tmpdir, line_length, settings_file, expect):
     line_length=None,
 )
 def test_build_isort_args(
-    git_repo: GitRepoFixture,
     src: Path,
     config: Optional[str],
     line_length: int,
