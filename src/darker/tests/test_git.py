@@ -430,13 +430,23 @@ edited_linenums_differ_cases = pytest.mark.kwparametrize(
 )
 
 
+@pytest.fixture(scope="module")
+def edited_linenums_differ_revisions_repo(request, tmp_path_factory):
+    """Git repository fixture for `git.EditedLinenumsDiffer` tests."""
+    with GitRepoFixture.context(request, tmp_path_factory) as repo:
+        paths = repo.add({"a.py": "1\n2\n3\n4\n5\n6\n7\n8\n"}, commit="Initial commit")
+        yield SimpleNamespace(root=repo.root, paths=paths)
+
+
 @edited_linenums_differ_cases
-def test_edited_linenums_differ_compare_revisions(git_repo, context_lines, expect):
+def test_edited_linenums_differ_compare_revisions(
+    edited_linenums_differ_revisions_repo, context_lines, expect
+):
     """Tests for EditedLinenumsDiffer.revision_vs_worktree()"""
-    paths = git_repo.add({"a.py": "1\n2\n3\n4\n5\n6\n7\n8\n"}, commit="Initial commit")
-    paths["a.py"].write_bytes(b"1\n2\nthree\n4\n5\n6\nseven\n8\n")
+    repo = edited_linenums_differ_revisions_repo
+    repo.paths["a.py"].write_bytes(b"1\n2\nthree\n4\n5\n6\nseven\n8\n")
     revrange = RevisionRange("HEAD", ":WORKTREE:")
-    differ = git.EditedLinenumsDiffer(git_repo.root, revrange)
+    differ = git.EditedLinenumsDiffer(repo.root, revrange)
 
     linenums = differ.compare_revisions(Path("a.py"), context_lines)
 
@@ -444,12 +454,14 @@ def test_edited_linenums_differ_compare_revisions(git_repo, context_lines, expec
 
 
 @edited_linenums_differ_cases
-def test_edited_linenums_differ_revision_vs_lines(git_repo, context_lines, expect):
+def test_edited_linenums_differ_revision_vs_lines(
+    edited_linenums_differ_revisions_repo, context_lines, expect
+):
     """Tests for EditedLinenumsDiffer.revision_vs_lines()"""
-    git_repo.add({"a.py": "1\n2\n3\n4\n5\n6\n7\n8\n"}, commit="Initial commit")
+    repo = edited_linenums_differ_revisions_repo
     content = TextDocument.from_lines(["1", "2", "three", "4", "5", "6", "seven", "8"])
     revrange = RevisionRange("HEAD", ":WORKTREE:")
-    differ = git.EditedLinenumsDiffer(git_repo.root, revrange)
+    differ = git.EditedLinenumsDiffer(repo.root, revrange)
 
     linenums = differ.revision_vs_lines(Path("a.py"), content, context_lines)
 
