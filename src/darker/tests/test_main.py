@@ -481,17 +481,30 @@ def test_print_diff(tmp_path, capsys):
     ]
 
 
+@pytest.fixture(scope="module")
+def maybe_flynt_single_file_repo(request, tmp_path_factory):
+    """Git repository fixture for `test_maybe_flynt_single_file`."""
+    with unix_and_windows_newline_repos(request, tmp_path_factory) as repos:
+        for newline, repo in repos.items():
+            repo.add(
+                {"test1.py": joinlines(ORIGINAL_SOURCE, newline)}, commit="Initial"
+            )
+        yield repos
+
+
 @pytest.mark.parametrize("encoding", ["utf-8", "iso-8859-1"])
 @pytest.mark.parametrize("newline", ["\n", "\r\n"])
 @pytest.mark.kwparametrize(
     dict(exclude=set(), expect=FLYNTED_SOURCE),
     dict(exclude={"**/*"}, expect=MODIFIED_SOURCE),
 )
-def test_maybe_flynt_single_file(git_repo, encoding, newline, exclude, expect):
+def test_maybe_flynt_single_file(
+    maybe_flynt_single_file_repo, encoding, newline, exclude, expect
+):
     """Flynt skipped if path matches exclusion patterns, encoding and newline intact"""
-    git_repo.add({"test1.py": joinlines(ORIGINAL_SOURCE, newline)}, commit="Initial")
+    repo = maybe_flynt_single_file_repo[newline]
     edited_linenums_differ = EditedLinenumsDiffer(
-        git_repo.root, RevisionRange("HEAD", ":WORKTREE:")
+        repo.root, RevisionRange("HEAD", ":WORKTREE:")
     )  # pylint: disable=duplicate-code
     src = Path("test1.py")
     content_ = TextDocument.from_lines(
