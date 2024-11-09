@@ -265,6 +265,23 @@ def test_git_ls_files_others(git_repo):
     assert result == {Path("untracked.py")}
 
 
+@pytest.fixture(scope="module")
+def git_get_modified_python_files_repo(request, tmp_path_factory):
+    """Git repository fixture for `test_git_get_modified_python_files`."""
+    with GitRepoFixture.context(request, tmp_path_factory) as repo:
+        repo.add(
+            {
+                "a.py": "original",
+                "b.py": "original",
+                "c/d.py": "original",
+                "c/e.js": "original",
+                "d/f/g.py": "original",
+            },
+            commit="Initial commit",
+        )
+        yield repo
+
+
 @pytest.mark.kwparametrize(
     dict(paths=["a.py"], expect=[]),
     dict(expect=[]),
@@ -282,31 +299,23 @@ def test_git_ls_files_others(git_repo):
     modify_paths={},
     paths=[],
 )
-def test_git_get_modified_python_files(git_repo, modify_paths, paths, expect):
+def test_git_get_modified_python_files(
+    git_get_modified_python_files_repo, modify_paths, paths, expect, make_temp_copy
+):
     """Tests for `darker.git.git_get_modified_python_files()`"""
-    root = Path(git_repo.root)
-    git_repo.add(
-        {
-            "a.py": "original",
-            "b.py": "original",
-            "c/d.py": "original",
-            "c/e.js": "original",
-            "d/f/g.py": "original",
-        },
-        commit="Initial commit",
-    )
-    for path, content in modify_paths.items():
-        absolute_path = git_repo.root / path
-        if content is None:
-            absolute_path.unlink()
-        else:
-            absolute_path.parent.mkdir(parents=True, exist_ok=True)
-            absolute_path.write_bytes(content.encode("ascii"))
-    revrange = RevisionRange("HEAD", ":WORKTREE:")
+    with make_temp_copy(git_get_modified_python_files_repo.root) as root:
+        for path, content in modify_paths.items():
+            absolute_path = root / path
+            if content is None:
+                absolute_path.unlink()
+            else:
+                absolute_path.parent.mkdir(parents=True, exist_ok=True)
+                absolute_path.write_bytes(content.encode("ascii"))
+        revrange = RevisionRange("HEAD", ":WORKTREE:")
 
-    result = git.git_get_modified_python_files(
-        {root / p for p in paths}, revrange, repo_root=root
-    )
+        result = git.git_get_modified_python_files(
+            {root / p for p in paths}, revrange, repo_root=root
+        )
 
     assert result == {Path(p) for p in expect}
 
