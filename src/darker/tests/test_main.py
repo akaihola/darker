@@ -26,6 +26,7 @@ from darker.tests.examples import A_PY, A_PY_BLACK, A_PY_BLACK_FLYNT, A_PY_BLACK
 from darker.tests.helpers import unix_and_windows_newline_repos
 from darker.tests.test_fstring import FLYNTED_SOURCE, MODIFIED_SOURCE, ORIGINAL_SOURCE
 from darkgraylib.git import RevisionRange
+from darkgraylib.testtools.git_repo_plugin import GitRepoFixture
 from darkgraylib.testtools.highlighting_helpers import BLUE, CYAN, RESET, WHITE, YELLOW
 from darkgraylib.utils import WINDOWS, TextDocument, joinlines
 
@@ -321,19 +322,26 @@ def test_main_historical(git_repo):
         darker.__main__.main(["--revision=foo..bar", "."])
 
 
-@pytest.mark.parametrize("arguments", [["--diff"], ["--check"], ["--diff", "--check"]])
-@pytest.mark.parametrize("src", [".", "foo/..", "{git_repo_root}"])
-def test_main_historical_ok(git_repo, arguments, src):
-    """Runs ok for repository root with rev2 specified and ``--diff`` or ``--check``"""
-    git_repo.add({"README": "first"}, commit="Initial commit")
-    initial = git_repo.get_hash()
-    git_repo.add({"README": "second"}, commit="Second commit")
-    second = git_repo.get_hash()
+@pytest.fixture(scope="module")
+def main_historical_ok_repo(request, tmp_path_factory):
+    """Git repository fixture for `test_main_historical_ok`."""
+    with GitRepoFixture.context(request, tmp_path_factory) as repo:
+        repo.add({"README": "first"}, commit="Initial commit")
+        initial = repo.get_hash()
+        repo.add({"README": "second"}, commit="Second commit")
+        second = repo.get_hash()
 
-    darker.__main__.main(
-        arguments
-        + [f"--revision={initial}..{second}", src.format(git_repo_root=git_repo.root)]
-    )
+        yield SimpleNamespace(root=repo.root, hash_initial=initial, hash_second=second)
+
+
+@pytest.mark.parametrize("arguments", [["--diff"], ["--check"], ["--diff", "--check"]])
+@pytest.mark.parametrize("src", [".", "foo/..", "{repo_root}"])
+def test_main_historical_ok(main_historical_ok_repo, arguments, src):
+    """Runs ok for repository root with rev2 specified and ``--diff`` or ``--check``"""
+    repo = main_historical_ok_repo
+    revision_arg = f"--revision={repo.hash_initial}..{repo.hash_second}"
+
+    darker.__main__.main([*arguments, revision_arg, src.format(repo_root=repo.root)])
 
 
 def test_main_pre_commit_head(git_repo, monkeypatch):
