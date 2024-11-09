@@ -20,6 +20,7 @@ from darker.tests.examples import A_PY, A_PY_BLACK, A_PY_BLACK_FLYNT, A_PY_BLACK
 from darker.tests.helpers import unix_and_windows_newline_repos
 from darker.verification import NotEquivalentError
 from darkgraylib.git import WORKTREE, RevisionRange
+from darkgraylib.testtools.git_repo_plugin import GitRepoFixture
 from darkgraylib.utils import TextDocument, joinlines
 
 A_PY_ISORT = ["import os", "import sys", "", "print( '{}'.format('42'))", ""]
@@ -320,51 +321,61 @@ def test_format_edited_parts_isort_on_already_formatted(git_repo):
     assert list(result) == []
 
 
+@pytest.fixture(scope="module")
+def format_edited_parts_historical_repo(request, tmp_path_factory):
+    """Git repository fixture for `test_format_edited_parts_historical`."""
+    with GitRepoFixture.context(request, tmp_path_factory) as repo:
+        a_py = {
+            "HEAD^": TextDocument.from_lines(
+                [
+                    "import a",
+                    "from b import bar, foo",
+                    "",
+                    "a.foo()",
+                    "bar()",
+                ],
+            ),
+            "HEAD": TextDocument.from_lines(
+                [
+                    "from b import bar, foo",
+                    "",
+                    "bar()",
+                ],
+            ),
+            ":WORKTREE:": TextDocument.from_lines(
+                [
+                    "from b import foo, bar",
+                    "",
+                    "bar( )",
+                ],
+            ),
+            "reformatted": TextDocument.from_lines(
+                [
+                    "from b import bar, foo",
+                    "",
+                    "bar()",
+                ],
+            ),
+        }
+        paths = repo.add({"a.py": a_py["HEAD^"].string}, commit="Initial commit")
+        repo.add({"a.py": a_py["HEAD"].string}, commit="Modified a.py")
+        paths["a.py"].write_text(a_py[":WORKTREE:"].string)
+        yield SimpleNamespace(root=repo.root, paths=paths, source_a_py=a_py)
+
+
 @pytest.mark.kwparametrize(
     dict(rev1="HEAD^", rev2="HEAD", expect=[]),
     dict(rev1="HEAD^", rev2=WORKTREE, expect=[(":WORKTREE:", "reformatted")]),
     dict(rev1="HEAD", rev2=WORKTREE, expect=[(":WORKTREE:", "reformatted")]),
 )
-def test_format_edited_parts_historical(git_repo, rev1, rev2, expect):
+def test_format_edited_parts_historical(
+    format_edited_parts_historical_repo, rev1, rev2, expect
+):
     """``format_edited_parts()`` is correct for different commit pairs."""
-    a_py = {
-        "HEAD^": TextDocument.from_lines(
-            [
-                "import a",
-                "from b import bar, foo",
-                "",
-                "a.foo()",
-                "bar()",
-            ],
-        ),
-        "HEAD": TextDocument.from_lines(
-            [
-                "from b import bar, foo",
-                "",
-                "bar()",
-            ],
-        ),
-        ":WORKTREE:": TextDocument.from_lines(
-            [
-                "from b import foo, bar",
-                "",
-                "bar( )",
-            ],
-        ),
-        "reformatted": TextDocument.from_lines(
-            [
-                "from b import bar, foo",
-                "",
-                "bar()",
-            ],
-        ),
-    }
-    paths = git_repo.add({"a.py": a_py["HEAD^"].string}, commit="Initial commit")
-    git_repo.add({"a.py": a_py["HEAD"].string}, commit="Modified a.py")
-    paths["a.py"].write_text(a_py[":WORKTREE:"].string)
+    repo = format_edited_parts_historical_repo
 
     result = darker.__main__.format_edited_parts(
-        git_repo.root,
+        repo.root,
         {Path("a.py")},
         Exclusions(),
         RevisionRange(rev1, rev2),
@@ -372,4 +383,7 @@ def test_format_edited_parts_historical(git_repo, rev1, rev2, expect):
         report_unmodified=False,
     )
 
-    assert list(result) == [(paths["a.py"], a_py[x[0]], a_py[x[1]]) for x in expect]
+    assert list(result) == [
+        (repo.paths["a.py"], repo.source_a_py[x[0]], repo.source_a_py[x[1]])
+        for x in expect
+    ]
