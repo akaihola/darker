@@ -133,6 +133,32 @@ def test_format_edited_parts(
     assert changes == expect_changes
 
 
+@pytest.fixture(scope="module")
+def format_edited_parts_stdin_repo(request, tmp_path_factory):
+    """Git repository fixture for `test_format_edited_parts_stdin`."""
+    with unix_and_windows_newline_repos(request, tmp_path_factory) as repos:
+        fixture = {}
+        for newline, repo in repos.items():
+            n = newline
+            paths = repo.add(
+                {
+                    "a.py": f"print('a.py HEAD' ){n}#{n}print( 'a.py HEAD'){n}",
+                    "b.py": f"print('b.py HEAD' ){n}#{n}print( 'b.py HEAD'){n}",
+                },
+                commit="Initial commit",
+            )
+            paths["a.py"].write_bytes(
+                f"print('a.py :WORKTREE:' ){n}#{n}print( 'a.py HEAD'){n}".encode(
+                    "ascii"
+                ),
+            )
+            paths["b.py"].write_bytes(
+                f"print('b.py HEAD' ){n}#{n}print( 'b.py WORKTREE'){n}".encode("ascii"),
+            )
+            fixture[newline] = SimpleNamespace(root=repo.root, paths=paths)
+        yield fixture
+
+
 @pytest.mark.kwparametrize(
     dict(
         rev1="HEAD",
@@ -169,22 +195,12 @@ def test_format_edited_parts(
     ),
 )
 @pytest.mark.parametrize("newline", ["\n", "\r\n"], ids=["unix", "windows"])
-def test_format_edited_parts_stdin(git_repo, newline, rev1, rev2, expect):
+def test_format_edited_parts_stdin(
+    format_edited_parts_stdin_repo, newline, rev1, rev2, expect
+):
     """`format_edited_parts` with ``--stdin-filename``."""
+    repo = format_edited_parts_stdin_repo[newline]
     n = newline  # pylint: disable=invalid-name
-    paths = git_repo.add(
-        {
-            "a.py": f"print('a.py HEAD' ){n}#{n}print( 'a.py HEAD'){n}",
-            "b.py": f"print('b.py HEAD' ){n}#{n}print( 'b.py HEAD'){n}",
-        },
-        commit="Initial commit",
-    )
-    paths["a.py"].write_bytes(
-        f"print('a.py :WORKTREE:' ){n}#{n}print( 'a.py HEAD'){n}".encode("ascii"),
-    )
-    paths["b.py"].write_bytes(
-        f"print('b.py HEAD' ){n}#{n}print( 'b.py WORKTREE'){n}".encode("ascii"),
-    )
     stdin = f"print('a.py {rev1}' ){n}#{n}print( 'a.py STDIN'){n}".encode("ascii")
     with patch.object(
         darker.__main__.sys,  # type: ignore[attr-defined]
@@ -195,7 +211,7 @@ def test_format_edited_parts_stdin(git_repo, newline, rev1, rev2, expect):
 
         result = list(
             darker.__main__.format_edited_parts(
-                Path(git_repo.root),
+                Path(repo.root),
                 {Path("a.py")},
                 Exclusions(formatter=set(), isort=set()),
                 RevisionRange(rev1, rev2),
@@ -205,7 +221,11 @@ def test_format_edited_parts_stdin(git_repo, newline, rev1, rev2, expect):
         )
 
     expect = [
-        (paths[path], TextDocument.from_lines(before), TextDocument.from_lines(after))
+        (
+            repo.paths[path],
+            TextDocument.from_lines(before),
+            TextDocument.from_lines(after),
+        )
         for path, before, after in expect
     ]
     assert result == expect
