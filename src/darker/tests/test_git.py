@@ -468,33 +468,26 @@ def test_edited_linenums_differ_revision_vs_lines(
     assert linenums == expect
 
 
-@pytest.mark.kwparametrize(
-    dict(context_lines=0, expect=[1, 3, 4, 5, 6, 8]),
-    dict(context_lines=1, expect=[1, 2, 3, 4, 5, 6, 7, 8]),
-)
-def test_edited_linenums_differ_revision_vs_lines_multiline_strings(
-    git_repo, context_lines, expect
+@pytest.fixture(scope="module")
+def edited_linenums_differ_revision_vs_lines_multiline_strings_repo(
+    request, tmp_path_factory
 ):
-    """Tests for EditedLinenumsDiffer.revision_vs_lines() with multi-line strings"""
-    git_repo.add(
-        {
-            "a.py": dedent(
-                """\
-                change\n
-                keep\n
-                '''change first,\n
-                keep second\n
-                and third,\n
-                change fourth line of multiline'''\n
-                keep\n
-                change\n
-                """
-            )
-        },
-        commit="Initial commit",
-    )
-    content = TextDocument.from_lines(
-        [
+    """Fixture for `test_edited_linenums_differ_revision_vs_lines_multiline_strings`."""
+    with GitRepoFixture.context(request, tmp_path_factory) as repo:
+        a_py_content = dedent(
+            """\
+            change\n
+            keep\n
+            '''change first,\n
+            keep second\n
+            and third,\n
+            change fourth line of multiline'''\n
+            keep\n
+            change\n
+            """
+        )
+        repo.add({"a.py": a_py_content}, commit="Initial commit")
+        content_lines = [
             "CHANGED",
             "keep",
             "'''CHANGED FIRST,",
@@ -504,11 +497,27 @@ def test_edited_linenums_differ_revision_vs_lines_multiline_strings(
             "keep",
             "CHANGED",
         ]
-    )
-    revrange = RevisionRange("HEAD", ":WORKTREE:")
-    differ = git.EditedLinenumsDiffer(git_repo.root, revrange)
+        content = TextDocument.from_lines(content_lines)
+        revrange = RevisionRange("HEAD", ":WORKTREE:")
+        differ = git.EditedLinenumsDiffer(repo.root, revrange)
+        yield SimpleNamespace(content=content, differ=differ)
 
-    linenums = differ.revision_vs_lines(Path("a.py"), content, context_lines)
+
+@pytest.mark.kwparametrize(
+    dict(context_lines=0, expect=[1, 3, 4, 5, 6, 8]),
+    dict(context_lines=1, expect=[1, 2, 3, 4, 5, 6, 7, 8]),
+)
+def test_edited_linenums_differ_revision_vs_lines_multiline_strings(
+    edited_linenums_differ_revision_vs_lines_multiline_strings_repo,
+    context_lines,
+    expect,
+):
+    """Tests for `git.EditedLinenumsDiffer.revision_vs_lines`, multi-line strings."""
+    fixture = edited_linenums_differ_revision_vs_lines_multiline_strings_repo
+
+    linenums = fixture.differ.revision_vs_lines(
+        Path("a.py"), fixture.content, context_lines
+    )
 
     assert linenums == expect
 
