@@ -100,24 +100,16 @@ jobs:
           - '3.10'
           - '3.11'
           - '3.12'
-          - '3.13-dev'
+          - '3.13'
         constraints: ['']
         post_install: ['']
-        exclude:
-          # C extension builds failing.
-          # Remove exclusions after Python 3.13 release.
-          - os: windows-latest
-            python-version: '3.13-dev'
-          - os: macos-latest
-            python-version: '3.13-dev'
         include:
           - os: ubuntu-latest
             python-version: '3.9'
             post_install: uv sync --resolution lowest-direct
           - os: ubuntu-latest
-            python-version: '3.12'
+            python-version: '3.13'
             post_install: uv sync --upgrade
-
     needs:
       - build-wheel
     steps:
