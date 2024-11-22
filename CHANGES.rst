@@ -5,6 +5,7 @@ These features will be included in the next release:
 
 Added
 -----
+- Drop python 3.8, add python 3.13 official support
 - New exit codes 2 for file not found, 3 for invalid command line arguments, 4 for
   missing dependencies and 123 for unknown failures.
 - Display exit code in parentheses after error message.
