@@ -6,5 +6,6 @@ __pycache__/
 *.pyc
 /.vscode/
 /build
+/sphinx_output
 /venv
 uv.lock
