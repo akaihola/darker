@@ -1,0 +1,35 @@
+---
+name: Sphinx build
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  sphinx-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.13'
+          cache: 'pip'  # caching pip dependencies
+      - run: pip install .[release]
+
+      - name: Build HTML
+        run: ./action/build_docs.sh
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v1
+        with:
+          name: html-docs
+          path: ./sphinx_output/
+
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v3
+        if: github.ref == 'refs/heads/master'
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./sphinx_output
+...

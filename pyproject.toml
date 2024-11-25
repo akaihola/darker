@@ -74,6 +74,10 @@ dev = [
     "wheel>=0.21.0",
     "astor>=0.8.1",
 ]
+docs = [
+   "sphinx",
+   "sphinx-rtd-theme",
+]
 
 [project.urls]
 Homepage = "https://github.com/akaihola/darker"
