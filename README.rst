@@ -133,11 +133,11 @@ How?
 
 To install or upgrade, use::
 
-  pip install --upgrade darker~=2.1.1
+  pip install --upgrade darker[black]~=2.1.1
 
 Or, if you're using Conda_ for package management::
 
-  conda install -c conda-forge darker~=2.1.1 isort
+  conda install -c conda-forge darker~=2.1.1 black isort
   conda update -c conda-forge darker
 
 ..
@@ -145,6 +145,8 @@ Or, if you're using Conda_ for package management::
     **Note:** It is recommended to use the '``~=``' "`compatible release`_" version
     specifier for Darker. See `Guarding against Black compatibility breakage`_ for more
     information.
+
+*New in version 3.0.0:* Black is no longer installed by default.
 
 The ``darker <myfile.py>`` or ``darker <directory>`` command
 reads the original file(s),
@@ -478,7 +480,7 @@ PyCharm/IntelliJ IDEA
 
 1. Install ``darker``::
 
-     $ pip install darker
+     $ pip install 'darker[black]'
 
 2. Locate your ``darker`` installation folder.
 
@@ -540,7 +542,7 @@ Visual Studio Code
 
 1. Install ``darker``::
 
-     $ pip install darker
+     $ pip install 'darker[black]'
 
 2. Locate your ``darker`` installation folder.
 
@@ -683,8 +685,10 @@ other reformatter tools you use to known compatible versions, for example:
 Using arguments
 ---------------
 
-You can provide arguments, such as enabling isort, by specifying ``args``.
-Note the inclusion of the isort Python package under ``additional_dependencies``:
+You can provide arguments, such as disabling Darker or enabling isort,
+by specifying ``args``.
+Note the absence of Black and the inclusion of the isort Python package
+under ``additional_dependencies``:
 
 .. code-block:: yaml
 
@@ -692,7 +696,9 @@ Note the inclusion of the isort Python package under ``additional_dependencies``
      rev: v2.1.1
      hooks:
        - id: darker
-         args: [--isort]
+         args:
+           - --formatter=none
+           - --isort
          additional_dependencies:
            - isort~=5.9
 
@@ -778,6 +784,9 @@ The ``lint:`` option.
 *New in version 3.0.0:*
 Removed the ``lint:`` option and moved it into the GitHub action
 of the Graylint_ package.
+
+*New in version 3.0.0:*
+Black is now explicitly installed when running the action.
 
 
 Syntax highlighting
