@@ -61,7 +61,11 @@ def test_apply_isort(git_repo, encoding, newline, content, expect):
     content_ = TextDocument.from_lines(content, encoding=encoding, newline=newline)
 
     result = darker.import_sorting.apply_isort(
-        content_, src, exclude=[], edited_linenums_differ=edited_linenums_differ
+        content_,
+        src,
+        git_repo.root,
+        exclude=[],
+        edited_linenums_differ=edited_linenums_differ,
     )
 
     assert result.lines == expect
@@ -95,7 +99,11 @@ def test_apply_isort_exclude(git_repo, encoding, newline, content, exclude, expe
     content_ = TextDocument.from_lines(content, encoding=encoding, newline=newline)
 
     result = darker.import_sorting.apply_isort(
-        content_, src, exclude=exclude, edited_linenums_differ=edited_linenums_differ
+        content_,
+        src,
+        git_repo.root,
+        exclude=exclude,
+        edited_linenums_differ=edited_linenums_differ,
     )
 
     assert result.lines == expect
@@ -137,10 +145,10 @@ def test_apply_isort_exclude(git_repo, encoding, newline, content, exclude, expe
         ),
     ),
 )
-def test_isort_config(monkeypatch, tmpdir, line_length, settings_file, expect):
+def test_isort_config(monkeypatch, tmp_path, line_length, settings_file, expect):
     """``apply_isort()`` parses ``pyproject.toml``correctly"""
-    monkeypatch.chdir(tmpdir)
-    (tmpdir / "pyproject.toml").write(
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / "pyproject.toml").write_text(
         dedent(
             f"""\
             [tool.isort]
@@ -150,11 +158,14 @@ def test_isort_config(monkeypatch, tmpdir, line_length, settings_file, expect):
     )
 
     content = "from module import ab, cd, ef, gh, ij, kl, mn, op, qr, st, uv, wx, yz"
-    config = str(tmpdir / settings_file) if settings_file else None
+    # isort doesn't read the file but skips formatting if the file doesn't exist:
+    (tmp_path / "test1.py").write_text(content)
+    config = str(tmp_path / settings_file) if settings_file else None
 
     actual = darker.import_sorting.apply_isort(
         TextDocument.from_str(content),
         Path("test1.py"),
+        tmp_path,
         set(),
         EditedLinenumsDiffer(Path("."), RevisionRange("master", "HEAD")),
         config,
@@ -196,6 +207,7 @@ def test_isort_file_skip_comment():
     actual = darker.import_sorting.apply_isort(
         TextDocument.from_str(content),
         Path("test1.py"),
+        Path(),
         set(),
         EditedLinenumsDiffer(Path("."), RevisionRange("master", "HEAD")),
     )
