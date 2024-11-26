@@ -133,11 +133,11 @@ How?
 
 To install or upgrade, use::
 
-  pip install --upgrade darker~=2.1.1
+  pip install --upgrade darker[black]~=2.1.1
 
 Or, if you're using Conda_ for package management::
 
-  conda install -c conda-forge darker~=2.1.1 isort
+  conda install -c conda-forge darker~=2.1.1 black isort
   conda update -c conda-forge darker
 
 ..
@@ -145,6 +145,8 @@ Or, if you're using Conda_ for package management::
     **Note:** It is recommended to use the '``~=``' "`compatible release`_" version
     specifier for Darker. See `Guarding against Black compatibility breakage`_ for more
     information.
+
+*New in version 3.0.0:* Black is no longer installed by default.
 
 The ``darker <myfile.py>`` or ``darker <directory>`` command
 reads the original file(s),
@@ -165,6 +167,9 @@ You can enable additional features with command line options:
 - ``-f`` / ``--flynt``: Also convert string formatting to use f-strings using the
   ``flynt`` package
 
+If you only want to run those tools without reformatting with Black,
+use the ``--formatter=none`` option.
+
 *New in version 1.1.0:* The ``-L`` / ``--lint`` option.
 
 *New in version 1.2.2:* Package available in conda-forge_.
@@ -173,6 +178,8 @@ You can enable additional features with command line options:
 
 *New in version 3.0.0:* Removed the ``-L`` / ``--lint`` functionality and moved it into
 the Graylint_ package.
+
+*New in version 3.0.0:* The ``--formatter`` option.
 
 .. _Conda: https://conda.io/
 .. _conda-forge: https://conda-forge.org/
@@ -371,7 +378,8 @@ The following `command line arguments`_ can also be used to modify the defaults:
        versions that should be supported by Black's output. [default: per-file auto-
        detection]
 --formatter FORMATTER
-       [black\|none] Formatter to use for reformatting code. [default: black]
+       [black\|none\|pyupgrade\|ruff] Formatter to use for reformatting code. [default:
+       black]
 
 To change default values for these options for a given project,
 add a ``[tool.darker]`` section to ``pyproject.toml`` in the project's root directory,
@@ -478,7 +486,7 @@ PyCharm/IntelliJ IDEA
 
 1. Install ``darker``::
 
-     $ pip install darker
+     $ pip install 'darker[black]'
 
 2. Locate your ``darker`` installation folder.
 
@@ -540,7 +548,7 @@ Visual Studio Code
 
 1. Install ``darker``::
 
-     $ pip install darker
+     $ pip install 'darker[black]'
 
 2. Locate your ``darker`` installation folder.
 
@@ -683,8 +691,10 @@ other reformatter tools you use to known compatible versions, for example:
 Using arguments
 ---------------
 
-You can provide arguments, such as enabling isort, by specifying ``args``.
-Note the inclusion of the isort Python package under ``additional_dependencies``:
+You can provide arguments, such as disabling Darker or enabling isort,
+by specifying ``args``.
+Note the absence of Black and the inclusion of the isort Python package
+under ``additional_dependencies``:
 
 .. code-block:: yaml
 
@@ -692,7 +702,9 @@ Note the inclusion of the isort Python package under ``additional_dependencies``
      rev: v2.1.1
      hooks:
        - id: darker
-         args: [--isort]
+         args:
+           - --formatter=none
+           - --isort
          additional_dependencies:
            - isort~=5.9
 
@@ -778,6 +790,9 @@ The ``lint:`` option.
 *New in version 3.0.0:*
 Removed the ``lint:`` option and moved it into the GitHub action
 of the Graylint_ package.
+
+*New in version 3.0.0:*
+Black is now explicitly installed when running the action.
 
 
 Syntax highlighting

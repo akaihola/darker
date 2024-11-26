@@ -8,6 +8,7 @@ from darker.formatters.base_formatter import BaseFormatter
 
 if TYPE_CHECKING:
     from argparse import Namespace
+    from pathlib import Path
 
     from darkgraylib.utils import TextDocument
 
@@ -16,11 +17,16 @@ class NoneFormatter(BaseFormatter):
     """A dummy code formatter plugin interface."""
 
     name = "dummy reformat"
+    preserves_ast = True
 
-    def run(self, content: TextDocument) -> TextDocument:
+    def run(
+        self, content: TextDocument, path_from_cwd: Path
+    ) -> TextDocument:  # noqa: ARG002
         """Return the Python source code unmodified.
 
         :param content: The source code
+        :param path_from_cwd: The path to the source code file being reformatted, either
+                              absolute or relative to the current working directory
         :return: The source code unmodified
 
         """
