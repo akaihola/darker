@@ -16,9 +16,10 @@ jobs:
           python-version: 3.x
       - name: Install dependencies for running Pylint
         run: |
+          # TODO: change to darkgraylib.git@main before merging
           uv pip install --system -U \
             black \
-            git+https://github.com/akaihola/darkgraylib.git@main \
+            git+https://github.com/akaihola/darkgraylib.git@module-scope-git-repo-fixture \
             defusedxml \
             pygments \
             'pylint<=3.2.7' \

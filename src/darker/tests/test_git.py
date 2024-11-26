@@ -1,19 +1,20 @@
 """Unit tests for :mod:`darker.git`"""
 
-# pylint: disable=protected-access,redefined-outer-name,too-many-arguments
+# pylint: disable=no-member,protected-access,redefined-outer-name,too-many-arguments
 # pylint: disable=too-many-lines,use-dict-literal
 
 import os
 from pathlib import Path
 from subprocess import DEVNULL, check_call  # nosec
 from textwrap import dedent  # nosec
+from types import SimpleNamespace
 from unittest.mock import ANY, patch
 
 import pytest
 
 from darker import git
 from darkgraylib.git import WORKTREE, RevisionRange
-from darkgraylib.testtools.git_repo_plugin import GitRepoFixture
+from darkgraylib.testtools.git_repo_plugin import GitRepoFixture, branched_repo
 from darkgraylib.utils import TextDocument
 
 
@@ -78,6 +79,23 @@ def test_git_exists_in_revision_git_call(retval, expect):
     assert result == expect
 
 
+@pytest.fixture(scope="module")
+def exists_missing_test_repo(request, tmp_path_factory):
+    """Git repository fixture for exists/missing tests."""
+    fixture = SimpleNamespace()
+    with GitRepoFixture.context(request, tmp_path_factory) as repo:
+        fixture.root = repo.root
+        repo.add(
+            {"x/README": "", "x/dir/a.py": "", "x/dir/sub/b.py": ""},
+            commit="Add x/dir/*.py",
+        )
+        fixture.hash_add = repo.get_hash()
+        repo.add({"x/dir/a.py": None}, commit="Delete x/dir/a.py")
+        fixture.hash_del_a = repo.get_hash()
+        repo.add({"x/dir/sub/b.py": None}, commit="Delete x/dir/sub/b.py")
+        yield fixture
+
+
 @pytest.mark.kwparametrize(
     dict(cwd=".", rev2="{add}", path="x/dir/a.py", expect=True),
     dict(cwd=".", rev2="{add}", path="x/dir/sub/b.py", expect=True),
@@ -110,20 +128,17 @@ def test_git_exists_in_revision_git_call(retval, expect):
     dict(cwd="x", rev2="HEAD", path="dir", expect=False),
     dict(cwd="x", rev2="HEAD", path="dir/sub", expect=False),
 )
-def test_git_exists_in_revision(git_repo, monkeypatch, cwd, rev2, path, expect):
+def test_git_exists_in_revision(
+    exists_missing_test_repo, monkeypatch, cwd, rev2, path, expect
+):
     """``_get_exists_in_revision()`` detects file/dir existence correctly"""
-    git_repo.add(
-        {"x/README": "", "x/dir/a.py": "", "x/dir/sub/b.py": ""},
-        commit="Add x/dir/*.py",
-    )
-    add = git_repo.get_hash()
-    git_repo.add({"x/dir/a.py": None}, commit="Delete x/dir/a.py")
-    del_a = git_repo.get_hash()
-    git_repo.add({"x/dir/sub/b.py": None}, commit="Delete x/dir/b.py")
+    repo = exists_missing_test_repo
     monkeypatch.chdir(cwd)
 
     result = git._git_exists_in_revision(
-        Path(path), rev2.format(add=add, del_a=del_a), git_repo.root / "x/dir/sub"
+        Path(path),
+        rev2.format(add=repo.hash_add, del_a=repo.hash_del_a),
+        repo.root / "x/dir/sub",
     )
 
     assert result == expect
@@ -178,23 +193,16 @@ def test_git_exists_in_revision(git_repo, monkeypatch, cwd, rev2, path, expect):
     git_cwd=".",
 )
 def test_get_missing_at_revision(
-    git_repo, monkeypatch, paths, cwd, git_cwd, rev2, expect
+    exists_missing_test_repo, monkeypatch, paths, cwd, git_cwd, rev2, expect
 ):
     """``get_missing_at_revision()`` returns missing files/directories correctly"""
-    git_repo.add(
-        {"x/README": "", "x/dir/a.py": "", "x/dir/sub/b.py": ""},
-        commit="Add x/dir/**/*.py",
-    )
-    add = git_repo.get_hash()
-    git_repo.add({"x/dir/a.py": None}, commit="Delete x/dir/a.py")
-    del_a = git_repo.get_hash()
-    git_repo.add({"x/dir/sub/b.py": None}, commit="Delete x/dir/sub/b.py")
-    monkeypatch.chdir(git_repo.root / cwd)
+    repo = exists_missing_test_repo
+    monkeypatch.chdir(repo.root / cwd)
 
     result = git.get_missing_at_revision(
         {Path(p) for p in paths},
-        rev2.format(add=add, del_a=del_a),
-        git_repo.root / git_cwd,
+        rev2.format(add=repo.hash_add, del_a=repo.hash_del_a),
+        repo.root / git_cwd,
     )
 
     assert result == {Path(p) for p in expect}
@@ -257,6 +265,23 @@ def test_git_ls_files_others(git_repo):
     assert result == {Path("untracked.py")}
 
 
+@pytest.fixture(scope="module")
+def git_get_modified_python_files_repo(request, tmp_path_factory):
+    """Git repository fixture for `test_git_get_modified_python_files`."""
+    with GitRepoFixture.context(request, tmp_path_factory) as repo:
+        repo.add(
+            {
+                "a.py": "original",
+                "b.py": "original",
+                "c/d.py": "original",
+                "c/e.js": "original",
+                "d/f/g.py": "original",
+            },
+            commit="Initial commit",
+        )
+        yield repo
+
+
 @pytest.mark.kwparametrize(
     dict(paths=["a.py"], expect=[]),
     dict(expect=[]),
@@ -274,33 +299,31 @@ def test_git_ls_files_others(git_repo):
     modify_paths={},
     paths=[],
 )
-def test_git_get_modified_python_files(git_repo, modify_paths, paths, expect):
+def test_git_get_modified_python_files(
+    git_get_modified_python_files_repo, modify_paths, paths, expect, make_temp_copy
+):
     """Tests for `darker.git.git_get_modified_python_files()`"""
-    root = Path(git_repo.root)
-    git_repo.add(
-        {
-            "a.py": "original",
-            "b.py": "original",
-            "c/d.py": "original",
-            "c/e.js": "original",
-            "d/f/g.py": "original",
-        },
-        commit="Initial commit",
-    )
-    for path, content in modify_paths.items():
-        absolute_path = git_repo.root / path
-        if content is None:
-            absolute_path.unlink()
-        else:
-            absolute_path.parent.mkdir(parents=True, exist_ok=True)
-            absolute_path.write_bytes(content.encode("ascii"))
-    revrange = RevisionRange("HEAD", ":WORKTREE:")
+    with make_temp_copy(git_get_modified_python_files_repo.root) as root:
+        for path, content in modify_paths.items():
+            absolute_path = root / path
+            if content is None:
+                absolute_path.unlink()
+            else:
+                absolute_path.parent.mkdir(parents=True, exist_ok=True)
+                absolute_path.write_bytes(content.encode("ascii"))
+        revrange = RevisionRange("HEAD", ":WORKTREE:")
 
-    result = git.git_get_modified_python_files(
-        {root / p for p in paths}, revrange, repo_root=root
-    )
+        result = git.git_get_modified_python_files(
+            {root / p for p in paths}, revrange, repo_root=root
+        )
 
     assert result == {Path(p) for p in expect}
+
+
+@pytest.fixture(scope="module")
+def git_get_modified_python_files_revision_range_repo(request, tmp_path_factory):
+    """Fixture for a Git repository with multiple commits and branches."""
+    yield from branched_repo(request, tmp_path_factory)
 
 
 @pytest.mark.kwparametrize(
@@ -383,15 +406,17 @@ def test_git_get_modified_python_files(git_repo, modify_paths, paths, expect):
     ),
 )
 def test_git_get_modified_python_files_revision_range(
-    _description, branched_repo, revrange, expect
+    _description,  # noqa: PT019
+    git_get_modified_python_files_revision_range_repo,
+    revrange,
+    expect,
 ):
     """Test for :func:`darker.git.git_get_modified_python_files` with revision range"""
+    repo = git_get_modified_python_files_revision_range_repo
     result = git.git_get_modified_python_files(
-        [Path(branched_repo.root)],
-        RevisionRange.parse_with_common_ancestor(
-            revrange, branched_repo.root, stdin_mode=False
-        ),
-        Path(branched_repo.root),
+        [Path(repo.root)],
+        RevisionRange.parse_with_common_ancestor(revrange, repo.root, stdin_mode=False),
+        Path(repo.root),
     )
 
     assert {path.name for path in result} == expect
@@ -405,13 +430,23 @@ edited_linenums_differ_cases = pytest.mark.kwparametrize(
 )
 
 
+@pytest.fixture(scope="module")
+def edited_linenums_differ_revisions_repo(request, tmp_path_factory):
+    """Git repository fixture for `git.EditedLinenumsDiffer` tests."""
+    with GitRepoFixture.context(request, tmp_path_factory) as repo:
+        paths = repo.add({"a.py": "1\n2\n3\n4\n5\n6\n7\n8\n"}, commit="Initial commit")
+        yield SimpleNamespace(root=repo.root, paths=paths)
+
+
 @edited_linenums_differ_cases
-def test_edited_linenums_differ_compare_revisions(git_repo, context_lines, expect):
+def test_edited_linenums_differ_compare_revisions(
+    edited_linenums_differ_revisions_repo, context_lines, expect
+):
     """Tests for EditedLinenumsDiffer.revision_vs_worktree()"""
-    paths = git_repo.add({"a.py": "1\n2\n3\n4\n5\n6\n7\n8\n"}, commit="Initial commit")
-    paths["a.py"].write_bytes(b"1\n2\nthree\n4\n5\n6\nseven\n8\n")
+    repo = edited_linenums_differ_revisions_repo
+    repo.paths["a.py"].write_bytes(b"1\n2\nthree\n4\n5\n6\nseven\n8\n")
     revrange = RevisionRange("HEAD", ":WORKTREE:")
-    differ = git.EditedLinenumsDiffer(git_repo.root, revrange)
+    differ = git.EditedLinenumsDiffer(repo.root, revrange)
 
     linenums = differ.compare_revisions(Path("a.py"), context_lines)
 
@@ -419,45 +454,40 @@ def test_edited_linenums_differ_compare_revisions(git_repo, context_lines, expec
 
 
 @edited_linenums_differ_cases
-def test_edited_linenums_differ_revision_vs_lines(git_repo, context_lines, expect):
+def test_edited_linenums_differ_revision_vs_lines(
+    edited_linenums_differ_revisions_repo, context_lines, expect
+):
     """Tests for EditedLinenumsDiffer.revision_vs_lines()"""
-    git_repo.add({"a.py": "1\n2\n3\n4\n5\n6\n7\n8\n"}, commit="Initial commit")
+    repo = edited_linenums_differ_revisions_repo
     content = TextDocument.from_lines(["1", "2", "three", "4", "5", "6", "seven", "8"])
     revrange = RevisionRange("HEAD", ":WORKTREE:")
-    differ = git.EditedLinenumsDiffer(git_repo.root, revrange)
+    differ = git.EditedLinenumsDiffer(repo.root, revrange)
 
     linenums = differ.revision_vs_lines(Path("a.py"), content, context_lines)
 
     assert linenums == expect
 
 
-@pytest.mark.kwparametrize(
-    dict(context_lines=0, expect=[1, 3, 4, 5, 6, 8]),
-    dict(context_lines=1, expect=[1, 2, 3, 4, 5, 6, 7, 8]),
-)
-def test_edited_linenums_differ_revision_vs_lines_multiline_strings(
-    git_repo, context_lines, expect
+@pytest.fixture(scope="module")
+def edited_linenums_differ_revision_vs_lines_multiline_strings_repo(
+    request, tmp_path_factory
 ):
-    """Tests for EditedLinenumsDiffer.revision_vs_lines() with multi-line strings"""
-    git_repo.add(
-        {
-            "a.py": dedent(
-                """\
-                change\n
-                keep\n
-                '''change first,\n
-                keep second\n
-                and third,\n
-                change fourth line of multiline'''\n
-                keep\n
-                change\n
-                """
-            )
-        },
-        commit="Initial commit",
-    )
-    content = TextDocument.from_lines(
-        [
+    """Fixture for `test_edited_linenums_differ_revision_vs_lines_multiline_strings`."""
+    with GitRepoFixture.context(request, tmp_path_factory) as repo:
+        a_py_content = dedent(
+            """\
+            change\n
+            keep\n
+            '''change first,\n
+            keep second\n
+            and third,\n
+            change fourth line of multiline'''\n
+            keep\n
+            change\n
+            """
+        )
+        repo.add({"a.py": a_py_content}, commit="Initial commit")
+        content_lines = [
             "CHANGED",
             "keep",
             "'''CHANGED FIRST,",
@@ -467,11 +497,27 @@ def test_edited_linenums_differ_revision_vs_lines_multiline_strings(
             "keep",
             "CHANGED",
         ]
-    )
-    revrange = RevisionRange("HEAD", ":WORKTREE:")
-    differ = git.EditedLinenumsDiffer(git_repo.root, revrange)
+        content = TextDocument.from_lines(content_lines)
+        revrange = RevisionRange("HEAD", ":WORKTREE:")
+        differ = git.EditedLinenumsDiffer(repo.root, revrange)
+        yield SimpleNamespace(content=content, differ=differ)
 
-    linenums = differ.revision_vs_lines(Path("a.py"), content, context_lines)
+
+@pytest.mark.kwparametrize(
+    dict(context_lines=0, expect=[1, 3, 4, 5, 6, 8]),
+    dict(context_lines=1, expect=[1, 2, 3, 4, 5, 6, 7, 8]),
+)
+def test_edited_linenums_differ_revision_vs_lines_multiline_strings(
+    edited_linenums_differ_revision_vs_lines_multiline_strings_repo,
+    context_lines,
+    expect,
+):
+    """Tests for `git.EditedLinenumsDiffer.revision_vs_lines`, multi-line strings."""
+    fixture = edited_linenums_differ_revision_vs_lines_multiline_strings_repo
+
+    linenums = fixture.differ.revision_vs_lines(
+        Path("a.py"), fixture.content, context_lines
+    )
 
     assert linenums == expect
 

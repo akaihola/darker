@@ -15,9 +15,10 @@ jobs:
         with:
           python-version: 3.x
       - run: |
+          # TODO: change to darkgraylib.git@main before merging
           uv pip install --system -U \
             black \
-            git+https://github.com/akaihola/darkgraylib.git@main \
+            git+https://github.com/akaihola/darkgraylib.git@module-scope-git-repo-fixture \
             flynt \
             isort \
             mypy>=0.990 \

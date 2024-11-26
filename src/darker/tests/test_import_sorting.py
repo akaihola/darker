@@ -1,6 +1,7 @@
 """Tests for :mod:`darker.import_sorting`"""
 
-# pylint: disable=unused-argument,protected-access,too-many-arguments,use-dict-literal
+# pylint: disable=no-member,protected-access,redefined-outer-name,too-many-arguments
+# pylint: disable=unused-argument,use-dict-literal
 
 from importlib import reload
 from pathlib import Path
@@ -11,9 +12,8 @@ import pytest
 
 import darker.import_sorting
 from darker.git import EditedLinenumsDiffer
-from darker.tests.helpers import isort_present
+from darker.tests.helpers import isort_present, unix_and_windows_newline_repos
 from darkgraylib.git import RevisionRange
-from darkgraylib.testtools.git_repo_plugin import GitRepoFixture
 from darkgraylib.utils import TextDocument, joinlines
 
 ORIGINAL_SOURCE = ("import sys", "import os", "", "print(42)")
@@ -35,6 +35,17 @@ def test_import_sorting_importable_with_and_without_isort(present):
         reload(darker.import_sorting)
 
 
+@pytest.fixture(scope="module")
+def apply_isort_repo_root(request, tmp_path_factory):
+    """Git repository fixture for `test_apply_isort`."""
+    with unix_and_windows_newline_repos(request, tmp_path_factory) as repos:
+        for newline, repo in repos.items():
+            repo.add(
+                {"test1.py": joinlines(ORIGINAL_SOURCE, newline)}, commit="Initial"
+            )
+        yield {newline: repo.root for newline, repo in repos.items()}
+
+
 @pytest.mark.parametrize("encoding", ["utf-8", "iso-8859-1"])
 @pytest.mark.parametrize("newline", ["\n", "\r\n"])
 @pytest.mark.kwparametrize(
@@ -51,11 +62,10 @@ def test_import_sorting_importable_with_and_without_isort(present):
     dict(content=("import   sys", "import os", "", "print(42)"), expect=ISORTED_SOURCE),
     dict(content=("import sys", "import   os", "", "print(42)"), expect=ISORTED_SOURCE),
 )
-def test_apply_isort(git_repo, encoding, newline, content, expect):
+def test_apply_isort(apply_isort_repo_root, encoding, newline, content, expect):
     """Imports are sorted if edits overlap them, with encoding and newline intact"""
-    git_repo.add({"test1.py": joinlines(ORIGINAL_SOURCE, newline)}, commit="Initial")
     edited_linenums_differ = EditedLinenumsDiffer(
-        git_repo.root, RevisionRange("HEAD", ":WORKTREE:")
+        apply_isort_repo_root[newline], RevisionRange("HEAD", ":WORKTREE:")
     )
     src = Path("test1.py")
     content_ = TextDocument.from_lines(content, encoding=encoding, newline=newline)
@@ -85,11 +95,12 @@ def test_apply_isort(git_repo, encoding, newline, content, expect):
         expect=("import   sys", "import os", "", "print(42)"),
     ),
 )
-def test_apply_isort_exclude(git_repo, encoding, newline, content, exclude, expect):
+def test_apply_isort_exclude(
+    apply_isort_repo_root, encoding, newline, content, exclude, expect
+):
     """Import sorting is skipped if file path matches exclusion patterns"""
-    git_repo.add({"test1.py": joinlines(ORIGINAL_SOURCE, newline)}, commit="Initial")
     edited_linenums_differ = EditedLinenumsDiffer(
-        git_repo.root, RevisionRange("HEAD", ":WORKTREE:")
+        apply_isort_repo_root[newline], RevisionRange("HEAD", ":WORKTREE:")
     )
     src = Path("test1.py")
     content_ = TextDocument.from_lines(content, encoding=encoding, newline=newline)
@@ -174,7 +185,6 @@ def test_isort_config(monkeypatch, tmpdir, line_length, settings_file, expect):
     line_length=None,
 )
 def test_build_isort_args(
-    git_repo: GitRepoFixture,
     src: Path,
     config: Optional[str],
     line_length: int,

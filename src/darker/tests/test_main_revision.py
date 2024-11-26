@@ -1,10 +1,11 @@
 """Unit tests for the ``--revision`` argument in `darker.main`"""
 
-# pylint: disable=too-many-arguments,use-dict-literal
+# pylint: disable=no-member,redefined-outer-name,too-many-arguments,use-dict-literal
 
 import pytest
 
 from darker.__main__ import main
+from darkgraylib.testtools.git_repo_plugin import GitRepoFixture
 from darkgraylib.testtools.helpers import raises_if_exception
 
 # The following test is a bit dense, so some explanation is due.
@@ -41,6 +42,41 @@ from darkgraylib.testtools.helpers import raises_if_exception
 # - +1M0.py – the file added in HEAD^ and overwritten in HEAD (with `MODIFIED=1`)
 # All other files are missing from the diff since their content was the same as now
 # (`ORIGINAL=1`) at HEAD~2.
+
+
+@pytest.fixture(scope="module")
+def revision_files(request, tmp_path_factory):
+    """Git repository fixture for testing `--revision`."""
+    with GitRepoFixture.context(request, tmp_path_factory) as repo:
+        # 2: HEAD~2:
+        paths = repo.add(
+            {
+                "+2.py": "ORIGINAL=1\n",
+                "+2M1.py": "ORIGINAL=1\n",
+                "+2-1.py": "ORIGINAL=1\n",
+                "+2M1-0.py": "ORIGINAL=1\n",
+            },
+            commit="First commit",
+        )
+        # 1: HEAD~1 i.e. HEAD^
+        paths.update(
+            repo.add(
+                {
+                    "+2M1.py": "MODIFIED=1\n",
+                    "+1.py": "ORIGINAL=1\n",
+                    "+1M0.py": "ORIGINAL=1\n",
+                    "+2-1.py": None,
+                    "+2M1-0.py": "MODIFIED=1\n",
+                },
+                commit="Second commit",
+            )
+        )
+        # 0: HEAD~0 i.e. HEAD:
+        repo.add(
+            {"+1M0.py": "MODIFIED=1\n", "+2M1-0.py": None},
+            commit="Third commit",
+        )
+        yield paths
 
 
 @pytest.mark.kwparametrize(
@@ -109,39 +145,10 @@ from darkgraylib.testtools.helpers import raises_if_exception
     ),
     dict(revision="HEAD~3", worktree_content=b"USERMOD=1\n", expect=SystemExit),
 )
-def test_revision(git_repo, monkeypatch, capsys, revision, worktree_content, expect):
+def test_revision(revision_files, capsys, revision, worktree_content, expect):
     """``--diff`` with ``--revision`` reports correct files as modified"""
-    monkeypatch.chdir(git_repo.root)
-    # 2: HEAD~2:
-    paths = git_repo.add(
-        {
-            "+2.py": "ORIGINAL=1\n",
-            "+2M1.py": "ORIGINAL=1\n",
-            "+2-1.py": "ORIGINAL=1\n",
-            "+2M1-0.py": "ORIGINAL=1\n",
-        },
-        commit="First commit",
-    )
-    # 1: HEAD~1 i.e. HEAD^
-    paths.update(
-        git_repo.add(
-            {
-                "+2M1.py": "MODIFIED=1\n",
-                "+1.py": "ORIGINAL=1\n",
-                "+1M0.py": "ORIGINAL=1\n",
-                "+2-1.py": None,
-                "+2M1-0.py": "MODIFIED=1\n",
-            },
-            commit="Second commit",
-        )
-    )
-    # 0: HEAD~0 i.e. HEAD:
-    git_repo.add(
-        {"+1M0.py": "MODIFIED=1\n", "+2M1-0.py": None},
-        commit="Third commit",
-    )
     # Working tree:
-    for path in paths.values():
+    for path in revision_files.values():
         path.write_bytes(worktree_content)
     arguments = ["--diff", "--revision", revision, "."]
 

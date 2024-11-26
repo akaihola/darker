@@ -1,7 +1,7 @@
 """Unit tests for :mod:`darker.__main__`"""
 
 # pylint: disable=too-many-locals,use-implicit-booleaness-not-comparison,unused-argument
-# pylint: disable=protected-access,redefined-outer-name,too-many-arguments
+# pylint: disable=no-member,protected-access,redefined-outer-name,too-many-arguments
 # pylint: disable=use-dict-literal
 
 import random
@@ -12,6 +12,7 @@ from argparse import ArgumentError
 from pathlib import Path
 from subprocess import PIPE, CalledProcessError, run  # nosec
 from textwrap import dedent
+from types import SimpleNamespace
 from unittest.mock import patch
 
 import pytest
@@ -22,12 +23,16 @@ from darker.git import EditedLinenumsDiffer
 from darker.help import LINTING_GUIDE
 from darker.terminal import output
 from darker.tests.examples import A_PY, A_PY_BLACK, A_PY_BLACK_FLYNT, A_PY_BLACK_ISORT
+from darker.tests.helpers import unix_and_windows_newline_repos
 from darker.tests.test_fstring import FLYNTED_SOURCE, MODIFIED_SOURCE, ORIGINAL_SOURCE
 from darkgraylib.git import RevisionRange
+from darkgraylib.testtools.git_repo_plugin import GitRepoFixture
 from darkgraylib.testtools.highlighting_helpers import BLUE, CYAN, RESET, WHITE, YELLOW
 from darkgraylib.utils import WINDOWS, TextDocument, joinlines
 
-pytestmark = pytest.mark.usefixtures("find_project_root_cache_clear")
+pytestmark = pytest.mark.usefixtures(
+    "find_project_root_cache_clear", "load_toml_cache_clear"
+)
 
 
 def randomword(length: int) -> str:
@@ -84,6 +89,19 @@ A_PY_DIFF_BLACK_FLYNT = [
     "+",
     '+print("42")',
 ]
+
+
+@pytest.fixture(scope="module")
+def main_repo(request, tmp_path_factory):
+    """Create Git repositories to test `darker.__main__.main`."""
+    fixture = {}
+    with unix_and_windows_newline_repos(request, tmp_path_factory) as repos:
+        for newline, repo in repos.items():
+            paths = repo.add(
+                {"subdir/a.py": newline, "b.py": newline}, commit="Initial commit"
+            )
+            fixture[newline] = SimpleNamespace(root=repo.root, paths=paths)
+        yield fixture
 
 
 @pytest.mark.kwparametrize(
@@ -190,7 +208,7 @@ A_PY_DIFF_BLACK_FLYNT = [
 )
 @pytest.mark.parametrize("newline", ["\n", "\r\n"], ids=["unix", "windows"])
 def test_main(
-    git_repo,
+    main_repo,
     monkeypatch,
     capsys,
     arguments,
@@ -203,27 +221,21 @@ def test_main(
     tmp_path_factory,
 ):
     """Main function outputs diffs and modifies files correctly"""
+    repo = main_repo[newline]
     if root_as_cwd:
-        cwd = git_repo.root
+        cwd = repo.root
         pwd = Path("")
     else:
         cwd = tmp_path_factory.mktemp("not_a_git_repo")
-        pwd = git_repo.root
+        pwd = repo.root
     monkeypatch.chdir(cwd)
-    paths = git_repo.add(
-        {
-            "pyproject.toml": dedent(pyproject_toml),
-            "subdir/a.py": newline,
-            "b.py": newline,
-        },
-        commit="Initial commit",
-    )
-    paths["subdir/a.py"].write_bytes(newline.join(A_PY).encode("ascii"))
-    paths["b.py"].write_bytes(f"print(42 ){newline}".encode("ascii"))
+    (repo.root / "pyproject.toml").write_text(dedent(pyproject_toml))
+    repo.paths["subdir/a.py"].write_bytes(newline.join(A_PY).encode("ascii"))
+    repo.paths["b.py"].write_bytes(f"print(42 ){newline}".encode("ascii"))
 
     retval = darker.__main__.main(arguments + [str(pwd / "subdir")])
 
-    stdout = capsys.readouterr().out.replace(str(git_repo.root), "")
+    stdout = capsys.readouterr().out.replace(str(repo.root), "")
     diff_output = stdout.splitlines(False)
     if expect_stdout:
         if "--diff" in arguments:
@@ -237,10 +249,10 @@ def test_main(
         else:
             assert all("\t" not in line for line in diff_output)
     assert diff_output == expect_stdout
-    assert paths["subdir/a.py"].read_bytes().decode("ascii") == newline.join(
+    assert repo.paths["subdir/a.py"].read_bytes().decode("ascii") == newline.join(
         expect_a_py
     )
-    assert paths["b.py"].read_bytes().decode("ascii") == f"print(42 ){newline}"
+    assert repo.paths["b.py"].read_bytes().decode("ascii") == f"print(42 ){newline}"
     assert retval == expect_retval
 
 
@@ -310,19 +322,26 @@ def test_main_historical(git_repo):
         darker.__main__.main(["--revision=foo..bar", "."])
 
 
-@pytest.mark.parametrize("arguments", [["--diff"], ["--check"], ["--diff", "--check"]])
-@pytest.mark.parametrize("src", [".", "foo/..", "{git_repo_root}"])
-def test_main_historical_ok(git_repo, arguments, src):
-    """Runs ok for repository root with rev2 specified and ``--diff`` or ``--check``"""
-    git_repo.add({"README": "first"}, commit="Initial commit")
-    initial = git_repo.get_hash()
-    git_repo.add({"README": "second"}, commit="Second commit")
-    second = git_repo.get_hash()
+@pytest.fixture(scope="module")
+def main_historical_ok_repo(request, tmp_path_factory):
+    """Git repository fixture for `test_main_historical_ok`."""
+    with GitRepoFixture.context(request, tmp_path_factory) as repo:
+        repo.add({"README": "first"}, commit="Initial commit")
+        initial = repo.get_hash()
+        repo.add({"README": "second"}, commit="Second commit")
+        second = repo.get_hash()
 
-    darker.__main__.main(
-        arguments
-        + [f"--revision={initial}..{second}", src.format(git_repo_root=git_repo.root)]
-    )
+        yield SimpleNamespace(root=repo.root, hash_initial=initial, hash_second=second)
+
+
+@pytest.mark.parametrize("arguments", [["--diff"], ["--check"], ["--diff", "--check"]])
+@pytest.mark.parametrize("src", [".", "foo/..", "{repo_root}"])
+def test_main_historical_ok(main_historical_ok_repo, arguments, src):
+    """Runs ok for repository root with rev2 specified and ``--diff`` or ``--check``"""
+    repo = main_historical_ok_repo
+    revision_arg = f"--revision={repo.hash_initial}..{repo.hash_second}"
+
+    darker.__main__.main([*arguments, revision_arg, src.format(repo_root=repo.root)])
 
 
 def test_main_pre_commit_head(git_repo, monkeypatch):
@@ -462,17 +481,30 @@ def test_print_diff(tmp_path, capsys):
     ]
 
 
+@pytest.fixture(scope="module")
+def maybe_flynt_single_file_repo(request, tmp_path_factory):
+    """Git repository fixture for `test_maybe_flynt_single_file`."""
+    with unix_and_windows_newline_repos(request, tmp_path_factory) as repos:
+        for newline, repo in repos.items():
+            repo.add(
+                {"test1.py": joinlines(ORIGINAL_SOURCE, newline)}, commit="Initial"
+            )
+        yield repos
+
+
 @pytest.mark.parametrize("encoding", ["utf-8", "iso-8859-1"])
 @pytest.mark.parametrize("newline", ["\n", "\r\n"])
 @pytest.mark.kwparametrize(
     dict(exclude=set(), expect=FLYNTED_SOURCE),
     dict(exclude={"**/*"}, expect=MODIFIED_SOURCE),
 )
-def test_maybe_flynt_single_file(git_repo, encoding, newline, exclude, expect):
+def test_maybe_flynt_single_file(
+    maybe_flynt_single_file_repo, encoding, newline, exclude, expect
+):
     """Flynt skipped if path matches exclusion patterns, encoding and newline intact"""
-    git_repo.add({"test1.py": joinlines(ORIGINAL_SOURCE, newline)}, commit="Initial")
+    repo = maybe_flynt_single_file_repo[newline]
     edited_linenums_differ = EditedLinenumsDiffer(
-        git_repo.root, RevisionRange("HEAD", ":WORKTREE:")
+        repo.root, RevisionRange("HEAD", ":WORKTREE:")
     )  # pylint: disable=duplicate-code
     src = Path("test1.py")
     content_ = TextDocument.from_lines(

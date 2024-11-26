@@ -1,6 +1,6 @@
 """Tests for the ``--isort`` option of the ``darker`` command-line interface."""
 
-# pylint: disable=redefined-outer-name,unused-argument,use-dict-literal
+# pylint: disable=no-member,redefined-outer-name,unused-argument,use-dict-literal
 
 from types import SimpleNamespace
 from unittest.mock import patch
@@ -12,13 +12,23 @@ import darker.import_sorting
 from darker.exceptions import MissingPackageError
 from darker.formatters import black_formatter
 from darker.tests.helpers import isort_present
+from darkgraylib.testtools.git_repo_plugin import GitRepoFixture
 from darkgraylib.utils import TextDocument
 
 # Need to clear Black's `find_project_root` cache between tests
 pytestmark = pytest.mark.usefixtures("find_project_root_cache_clear")
 
 
-def test_isort_option_without_isort(git_repo):  # noqa: ARG001
+@pytest.fixture(scope="module")
+def isort_repo(request, tmp_path_factory):
+    """Git repository fixture for `test_isort_option_with_isort*`."""
+    with GitRepoFixture.context(request, tmp_path_factory) as repo:
+        paths = repo.add({"test1.py": "original"}, commit="Initial commit")
+        paths["test1.py"].write_bytes(b"changed")
+        yield repo
+
+
+def test_isort_option_without_isort(isort_repo):
     """Without isort, provide isort install instructions and error."""
     # The `git_repo` fixture ensures test is not run in the Darker repository clone in
     # CI builds. It helps avoid a NixOS test issue.
@@ -37,32 +47,33 @@ def test_isort_option_without_isort(git_repo):  # noqa: ARG001
 
 
 @pytest.fixture()
-def run_isort(git_repo, monkeypatch, caplog, request):
+def run_isort(isort_repo, make_temp_copy, monkeypatch, caplog, request):
     """Fixture for running Darker with requested arguments and a patched `isort`.
 
     Provides an `run_isort.isort_code` mock object which allows checking whether and how
     the `isort.code()` function was called.
 
     """
-    monkeypatch.chdir(git_repo.root)
-    paths = git_repo.add({"test1.py": "original"}, commit="Initial commit")
-    paths["test1.py"].write_bytes(b"changed")
-    args = getattr(request, "param", ())
-    isorted_code = "import os; import sys;"
-    blacken_code = "import os\nimport sys\n"
-    patch_run_black_ctx = patch.object(
-        black_formatter.BlackFormatter,
-        "run",
-        return_value=TextDocument(blacken_code),
-    )
-    with patch_run_black_ctx, patch("darker.import_sorting.isort_code") as isort_code:
-        isort_code.return_value = isorted_code
-        darker.__main__.main(["--isort", "./test1.py", *args])
-        return SimpleNamespace(
-            isort_code=isort_code,
-            caplog=caplog,
-            root=git_repo.root,
+    with make_temp_copy(isort_repo.root) as root:
+        monkeypatch.chdir(root)
+        args = getattr(request, "param", ())
+        isorted_code = "import os; import sys;"
+        blacken_code = "import os\nimport sys\n"
+        patch_run_black_ctx = patch.object(
+            black_formatter.BlackFormatter,
+            "run",
+            return_value=TextDocument(blacken_code),
         )
+        with patch_run_black_ctx, patch(
+            "darker.import_sorting.isort_code"
+        ) as isort_code:
+            isort_code.return_value = isorted_code
+            darker.__main__.main(["--isort", "./test1.py", *args])
+            return SimpleNamespace(
+                isort_code=isort_code,
+                caplog=caplog,
+                root=root,
+            )
 
 
 def test_isort_option_with_isort(run_isort):
