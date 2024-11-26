@@ -114,6 +114,24 @@ def get_darker_help_output(capsys):
     ),
     dict(
         argv=["."],
+        expect_value=("flynt", False),
+        expect_config=("flynt", False),
+        expect_modified=("flynt", ...),
+    ),
+    dict(
+        argv=["-f", "."],
+        expect_value=("flynt", True),
+        expect_config=("flynt", True),
+        expect_modified=("flynt", True),
+    ),
+    dict(
+        argv=["--flynt", "."],
+        expect_value=("flynt", True),
+        expect_config=("flynt", True),
+        expect_modified=("flynt", True),
+    ),
+    dict(
+        argv=["."],
         expect_value=("lint", []),
         expect_config=("lint", []),
         expect_modified=("lint", ...),
@@ -280,6 +298,7 @@ def test_parse_command_line(
     dict(config={"stdout": True}, expect_warn=set()),
     dict(config={"check": True}, expect_warn=set()),
     dict(config={"isort": True}, expect_warn=set()),
+    dict(config={"flynt": True}, expect_warn=set()),
     dict(
         config={"lint": ["dummy"]},
         expect_warn={
@@ -690,6 +709,16 @@ def test_black_config_file_and_options(git_repo, config, options, expect):
             Path("git_root"),
             {Path("a.py")},
             Exclusions(flynt={"**/*"}),
+            RevisionRange("HEAD", ":WORKTREE:"),
+            {},
+        ),
+    ),
+    dict(
+        options=["--flynt", "a.py"],
+        expect=(
+            Path("git_root"),
+            {Path("a.py")},
+            Exclusions(isort={"**/*"}),
             RevisionRange("HEAD", ":WORKTREE:"),
             {},
         ),
