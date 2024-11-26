@@ -2,8 +2,10 @@
 
 # pylint: disable=too-many-arguments,use-dict-literal
 
+from __future__ import annotations
+
 from io import BytesIO
-from typing import List, Optional
+from typing import TYPE_CHECKING
 from unittest.mock import Mock, patch
 
 import pytest
@@ -12,8 +14,10 @@ import toml
 import darker.__main__
 from darkgraylib.command_line import EXIT_CODE_CMDLINE_ERROR
 from darkgraylib.config import ConfigurationError
-from darkgraylib.testtools.git_repo_plugin import GitRepoFixture
 from darkgraylib.testtools.helpers import raises_if_exception
+
+if TYPE_CHECKING:
+    from darkgraylib.testtools.git_repo_plugin import GitRepoFixture
 
 pytestmark = pytest.mark.usefixtures("find_project_root_cache_clear")
 
@@ -135,14 +139,16 @@ pytestmark = pytest.mark.usefixtures("find_project_root_cache_clear")
     expect=0,
     expect_a_py="original\n",
 )
+@pytest.mark.parametrize("formatter", [[], ["--formatter=black"], ["--formatter=ruff"]])
 def test_main_stdin_filename(
     git_repo: GitRepoFixture,
-    config_src: Optional[List[str]],
-    src: List[str],
-    stdin_filename: Optional[str],
-    revision: Optional[str],
+    config_src: list[str] | None,
+    src: list[str],
+    stdin_filename: str | None,
+    revision: str | None,
     expect: int,
     expect_a_py: str,
+    formatter: list[str],
 ) -> None:
     """Tests for `darker.__main__.main` and the ``--stdin-filename`` option"""
     if config_src is not None:
@@ -165,7 +171,7 @@ def test_main_stdin_filename(
     ), raises_if_exception(expect):
         # end of test setup
 
-        retval = darker.__main__.main(arguments)
+        retval = darker.__main__.main([*formatter, *arguments])
 
         assert retval == expect
         assert paths["a.py"].read_text() == expect_a_py
