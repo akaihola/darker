@@ -2,18 +2,9 @@
 
 from __future__ import annotations
 
-import inspect
-from typing import TYPE_CHECKING, Collection
-
-from black import (
-    DEFAULT_EXCLUDES,
-    DEFAULT_INCLUDES,
-    Report,
-    err,
-    find_user_pyproject_toml,
-    gen_python_files,
-    re_compile_maybe_verbose,
-)
+import re
+from functools import lru_cache
+from typing import TYPE_CHECKING, Collection, Iterable, Iterator, Pattern
 
 from darkgraylib.files import find_project_root
 
@@ -25,22 +16,116 @@ if TYPE_CHECKING:
 
 def find_pyproject_toml(path_search_start: tuple[str, ...]) -> str | None:
     """Find the absolute filepath to a pyproject.toml if it exists"""
+
     path_project_root = find_project_root(path_search_start)
     path_pyproject_toml = path_project_root / "pyproject.toml"
     if path_pyproject_toml.is_file():
         return str(path_pyproject_toml)
+    return None
 
+
+DEFAULT_EXCLUDE_RE = re.compile(
+    r"/(\.direnv"
+    r"|\.eggs"
+    r"|\.git"
+    r"|\.hg"
+    r"|\.ipynb_checkpoints"
+    r"|\.mypy_cache"
+    r"|\.nox"
+    r"|\.pytest_cache"
+    r"|\.ruff_cache"
+    r"|\.tox"
+    r"|\.svn"
+    r"|\.venv"
+    r"|\.vscode"
+    r"|__pypackages__"
+    r"|_build"
+    r"|buck-out"
+    r"|build"
+    r"|dist"
+    r"|venv)/"
+)
+DEFAULT_INCLUDE_RE = re.compile(r"(\.pyi?|\.ipynb)$")
+
+
+@lru_cache
+def _cached_resolve(path: Path) -> Path:
+    return path.resolve()
+
+
+def _resolves_outside_root_or_cannot_stat(path: Path, root: Path) -> bool:
+    """Return whether path is a symlink that points outside the root directory.
+
+    Also returns True if we failed to resolve the path.
+
+    This function has been adapted from Black 24.10.0.
+
+    """
     try:
-        path_user_pyproject_toml = find_user_pyproject_toml()
-        return (
-            str(path_user_pyproject_toml)
-            if path_user_pyproject_toml.is_file()
-            else None
-        )
-    except (PermissionError, RuntimeError) as e:
-        # We do not have access to the user-level config directory, so ignore it.
-        err(f"Ignoring user configuration directory due to {e!r}")
-        return None
+        resolved_path = _cached_resolve(path)
+    except OSError:
+        return True
+    try:
+        resolved_path.relative_to(root)
+    except ValueError:
+        return True
+    return False
+
+
+def _path_is_excluded(
+    normalized_path: str,
+    pattern: Pattern[str] | None,
+) -> bool:
+    """Return whether the path is excluded by the pattern.
+
+    This function has been adapted from Black 24.10.0.
+
+    """
+    match = pattern.search(normalized_path) if pattern else None
+    return bool(match and match.group(0))
+
+
+def _gen_python_files(
+    paths: Iterable[Path],
+    root: Path,
+    exclude: Pattern[str],
+    extend_exclude: Pattern[str] | None,
+    force_exclude: Pattern[str] | None,
+) -> Iterator[Path]:
+    """Generate all files under ``path`` whose paths are not excluded.
+
+    This function has been adapted from Black 24.10.0.
+
+    """
+    if not root.is_absolute():
+        message = f"`root` must be absolute, not {root}"
+        raise ValueError(message)
+    for child in paths:
+        if not child.is_absolute():
+            message = f"`child` must be absolute, not {child}"
+            raise ValueError(message)
+        root_relative_path = child.relative_to(root).as_posix()
+
+        # Then ignore with `--exclude` `--extend-exclude` and `--force-exclude` options.
+        root_relative_path = f"/{root_relative_path}"
+        if child.is_dir():
+            root_relative_path = f"{root_relative_path}/"
+
+        if any(
+            _path_is_excluded(root_relative_path, x)
+            for x in [exclude, extend_exclude, force_exclude]
+        ) or _resolves_outside_root_or_cannot_stat(child, root):
+            continue
+
+        if child.is_dir():
+            yield from _gen_python_files(
+                child.iterdir(), root, exclude, extend_exclude, force_exclude
+            )
+
+        elif child.is_file():
+            include_match = DEFAULT_INCLUDE_RE.search(root_relative_path)
+            if include_match:
+                yield child
 
 
 def filter_python_files(
@@ -58,32 +143,16 @@ def filter_python_files(
              ``black_config``, relative to ``root``.
 
     """
-    sig = inspect.signature(gen_python_files)
-    # those two exist and are required in black>=21.7b1.dev9
-    kwargs = {"verbose": False, "quiet": False} if "verbose" in sig.parameters else {}
-    # `gitignore=` was replaced with `gitignore_dict=` in black==22.10.1.dev19+gffaaf48
-    for param in sig.parameters:
-        if param == "gitignore":
-            kwargs[param] = None  # type: ignore[assignment]
-        elif param == "gitignore_dict":
-            kwargs[param] = {}  # type: ignore[assignment]
     absolute_paths = {p.resolve() for p in paths}
     directories = {p for p in absolute_paths if p.is_dir()}
     files = {p for p in absolute_paths if p not in directories}
     files_from_directories = set(
-        gen_python_files(
+        _gen_python_files(
             directories,
             root,
-            include=DEFAULT_INCLUDE_RE,
-            exclude=formatter.get_exclude(DEFAULT_EXCLUDE_RE),
-            extend_exclude=formatter.get_extend_exclude(),
-            force_exclude=formatter.get_force_exclude(),
-            report=Report(),
-            **kwargs,  # type: ignore[arg-type]
+            formatter.get_exclude(DEFAULT_EXCLUDE_RE),
+            formatter.get_extend_exclude(),
+            formatter.get_force_exclude(),
         )
     )
     return {p.resolve().relative_to(root) for p in files_from_directories | files}
-
-
-DEFAULT_EXCLUDE_RE = re_compile_maybe_verbose(DEFAULT_EXCLUDES)
-DEFAULT_INCLUDE_RE = re_compile_maybe_verbose(DEFAULT_INCLUDES)

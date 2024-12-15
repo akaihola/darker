@@ -91,23 +91,25 @@ def test_creates_virtualenv(tmp_path, main_patch):
 
 
 @pytest.mark.kwparametrize(
-    dict(run_main_env={}, expect=["darker[color,isort]"]),
+    dict(run_main_env={}, expect=["darker[black,color,isort]"]),
     dict(
-        run_main_env={"INPUT_VERSION": "1.5.0"}, expect=["darker[color,isort]==1.5.0"]
+        run_main_env={"INPUT_VERSION": "1.5.0"},
+        expect=["darker[black,color,isort]==1.5.0"],
     ),
     dict(
         run_main_env={"INPUT_VERSION": "@master"},
         expect=[
-            "git+https://github.com/akaihola/darker@master#egg=darker[color,isort]"
+            "git+https://github.com/akaihola/darker"
+            "@master#egg=darker[black,color,isort]"
         ],
     ),
     dict(
         run_main_env={"INPUT_LINT": "dummy"},
-        expect=["darker[color,isort]"],
+        expect=["darker[black,color,isort]"],
     ),
     dict(
         run_main_env={"INPUT_LINT": "dummy,foobar"},
-        expect=["darker[color,isort]"],
+        expect=["darker[black,color,isort]"],
     ),
 )
 def test_installs_packages(tmp_path, main_patch, run_main_env, expect):
@@ -208,7 +210,7 @@ def test_error_if_pip_fails(tmp_path, capsys):
         run_module("main")
 
     assert main_patch.subprocess.run.call_args_list[-1] == call(
-        [ANY, "-m", "pip", "install", "darker[color,isort]"],
+        [ANY, "-m", "pip", "install", "darker[black,color,isort]"],
         check=False,
         stdout=PIPE,
         stderr=STDOUT,
@@ -216,7 +218,7 @@ def test_error_if_pip_fails(tmp_path, capsys):
     )
     assert (
         capsys.readouterr().out.splitlines()[-1]
-        == "::error::Failed to install darker[color,isort]."
+        == "::error::Failed to install darker[black,color,isort]."
     )
     main_patch.sys.exit.assert_called_once_with(42)
 
