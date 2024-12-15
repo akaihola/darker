@@ -18,7 +18,7 @@ regex==2021.4.4
 requests_cache==0.7
 ruamel.yaml==0.17.21
 toml==0.10.0
-twine==2.0.0
+twine==6.0.1
 types-toml==0.10.4
 typing_extensions==4.0.1
 wheel==0.21.0
