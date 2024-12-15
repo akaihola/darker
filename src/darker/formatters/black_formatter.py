@@ -39,14 +39,7 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, TypedDict
 
-from black import FileMode as Mode
-from black import (
-    TargetVersion,
-    format_str,
-    parse_pyproject_toml,
-    re_compile_maybe_verbose,
-)
-
+from darker.exceptions import DependencyError
 from darker.files import find_pyproject_toml
 from darker.formatters.base_formatter import BaseFormatter
 from darkgraylib.config import ConfigurationError
@@ -56,9 +49,11 @@ if TYPE_CHECKING:
     from argparse import Namespace
     from typing import Pattern
 
+    from black import FileMode as Mode
+    from black import TargetVersion
+
     from darker.formatters.formatter_config import BlackConfig
 
-__all__ = ["Mode"]
 
 logger = logging.getLogger(__name__)
 
@@ -96,6 +91,27 @@ class BlackFormatter(BaseFormatter):
         self._read_cli_args(args)
 
     def _read_config_file(self, config_path: str) -> None:  # noqa: C901
+        # Local import so Darker can be run without Black installed.
+        # Do error handling here. This is the first Black importing method being hit.
+        try:
+            from black import (  # pylint: disable=import-outside-toplevel
+                parse_pyproject_toml,
+                re_compile_maybe_verbose,
+            )
+        except ImportError as exc:
+            logger.warning(
+                "To re-format code using Black, install it using e.g."
+                " `pip install 'darker[black]'` or"
+                " `pip install black`"
+            )
+            logger.warning(
+                "To use a different formatter or no formatter, select it on the"
+                " command line (e.g. `--formatter=none`) or configuration"
+                " (e.g. `formatter=none`)"
+            )
+            message = "Can't find the Black package"
+            raise DependencyError(message) from exc
+
         raw_config = parse_pyproject_toml(config_path)
         if "line_length" in raw_config:
             self.config["line_length"] = raw_config["line_length"]
@@ -153,6 +169,10 @@ class BlackFormatter(BaseFormatter):
         :return: The reformatted content
 
         """
+        # Local import so Darker can be run without Black installed.
+        # No need for error handling, already done in `BlackFormatter.read_config`.
+        from black import format_str  # pylint: disable=import-outside-toplevel
+
         contents_for_black = content.string_with_newline("\n")
         if contents_for_black.strip():
             dst_contents = format_str(
@@ -173,6 +193,12 @@ class BlackFormatter(BaseFormatter):
         # Collect relevant Black configuration options from ``self.config`` in order to
         # pass them to Black's ``format_str()``. File exclusion options aren't needed
         # since at this point we already have a single file's content to work on.
+
+        # Local import so Darker can be run without Black installed.
+        # No need for error handling, already done in `BlackFormatter.read_config`.
+        from black import FileMode as Mode  # pylint: disable=import-outside-toplevel
+        from black import TargetVersion  # pylint: disable=import-outside-toplevel
+
         mode = BlackModeAttributes()
         if "line_length" in self.config:
             mode["line_length"] = self.config["line_length"]
