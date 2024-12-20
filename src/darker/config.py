@@ -36,13 +36,14 @@ DEPRECATED_CONFIG_OPTIONS: set[str] = set()
 class DarkerConfig(BaseConfig, total=False):
     """Dictionary representing ``[tool.darker]`` from ``pyproject.toml``"""
 
-    diff: bool
     check: bool
+    diff: bool
+    flynt: bool
     isort: bool
-    lint: list[str]
-    skip_string_normalization: bool
-    skip_magic_trailing_comma: bool
     line_length: int
+    lint: list[str]
+    skip_magic_trailing_comma: bool
+    skip_string_normalization: bool
     target_version: str
     formatter: str
 

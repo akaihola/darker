@@ -21,7 +21,7 @@ Added
 - Invoking Black is now implemented as a plugin. This allows for easier integration of
   other formatters in the future. There's also a dummy ``none`` formatter plugin.
 - ``--formatter=none`` now skips running Black. This is useful when you only want to run
-  Isort or Flynt.
+  Isort or Flynt_.
 
 Removed
 -------
@@ -43,6 +43,7 @@ Fixed
 - Pass full environment to Git to avoid the "dubious ownership" error.
 - Work around a `pathlib.Path.resolve` bug in Python 3.8 and 3.9 on Windows.
   The work-around should be removed when Python 3.8 and 3.9 are no longer supported.
+- Add missing configuration flag for Flynt_.
 
 
 2.1.1_ - 2024-04-16
@@ -80,7 +81,7 @@ Added
 - Update to ``ioggstream/bandit-report-artifacts@v1.7.4`` in CI.
 - Support for Python 3.12 in the package metadata and the CI build.
 - Update to Black 24.2.x and isort 5.13.x in pre-commit configuration.
-- Test against Flynt ``master`` branch in the CI build.
+- Test against Flynt_ ``master`` branch in the CI build.
 - Update to Darkgraylib 1.1.1 to get fixes for README formatting.
 - Improved "How does it work?" section in the README.
 - README section on limitations and work-arounds.
@@ -190,7 +191,7 @@ Fixed
 -----
 - Use ``git worktree`` to create a repository checkout for baseline linting. This avoids
   issues with the previous ``git clone`` and ``git checkout`` based approach.
-- Disallow Flynt version 0.78 and newer to avoid an internal API incompatibility.
+- Disallow Flynt_ version 0.78 and newer to avoid an internal API incompatibility.
 - In CI builds, run the ``commit-range`` action from the current checkout instead of
   pointing to a release tag. This fixes workflows when in a release branch.
 - Linting fixes: Use ``stacklevel=2`` in ``warnings.warn()`` calls as suggested by
@@ -679,6 +680,7 @@ Added
 .. _pygments: https://pypi.org/project/Pygments/
 .. _Darkgraylib: https://pypi.org/project/darkgraylib/
 .. _Flake8: https://flake8.pycqa.org/
+.. _Flynt: https://pypi.org/project/flynt/
 .. _Graylint: https://pypi.org/project/graylint/
 .. _Mypy: https://www.mypy-lang.org/
 .. _pydocstyle: http://www.pydocstyle.org/
