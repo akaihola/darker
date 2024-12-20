@@ -4,6 +4,6 @@ updates:
   - package-ecosystem: "pip"
     directory: "/"
     schedule:
-      interval: "daily" 
+      interval: "daily"
     ignore:
       - dependency-name: "black"
