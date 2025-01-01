@@ -1,6 +1,6 @@
 """Unit tests for `darker.__main__._reformat_and_flynt_single_file`."""
 
-# pylint: disable=too-many-arguments,use-dict-literal
+# pylint: disable=no-member,redefined-outer-name,too-many-arguments,use-dict-literal
 
 from pathlib import Path
 from textwrap import dedent
@@ -12,7 +12,19 @@ from darker.config import Exclusions
 from darker.formatters.black_formatter import BlackFormatter
 from darker.git import EditedLinenumsDiffer
 from darkgraylib.git import RevisionRange
+from darkgraylib.testtools.git_repo_plugin import GitRepoFixture
 from darkgraylib.utils import TextDocument
+
+
+@pytest.fixture(scope="module")
+def reformat_and_flynt_single_file_repo(request, tmp_path_factory):
+    """Git repository fixture for `test_reformat_and_flynt_single_file`."""
+    with GitRepoFixture.context(request, tmp_path_factory) as repo:
+        repo.add(
+            {"file.py": "import  original\nprint( original )\n"},
+            commit="Initial commit",
+        )
+        yield repo
 
 
 @pytest.mark.kwparametrize(
@@ -58,7 +70,7 @@ from darkgraylib.utils import TextDocument
     expect="import  original\nprint( original )\n",
 )
 def test_reformat_and_flynt_single_file(
-    git_repo,
+    reformat_and_flynt_single_file_repo,
     relative_path,
     rev2_content,
     rev2_isorted,
@@ -66,17 +78,13 @@ def test_reformat_and_flynt_single_file(
     expect,
 ):
     """Test for `_reformat_and_flynt_single_file`."""
-    git_repo.add(
-        {"file.py": "import  original\nprint( original )\n"}, commit="Initial commit"
-    )
+    repo = reformat_and_flynt_single_file_repo
     result = _reformat_and_flynt_single_file(
-        git_repo.root,
+        repo.root,
         Path(relative_path),
         Path("file.py"),
         exclusions,
-        EditedLinenumsDiffer(
-            git_repo.root, RevisionRange(rev1="HEAD", rev2=":WORKTREE")
-        ),
+        EditedLinenumsDiffer(repo.root, RevisionRange(rev1="HEAD", rev2=":WORKTREE")),
         TextDocument(rev2_content),
         TextDocument(rev2_isorted),
         has_isort_changes=False,

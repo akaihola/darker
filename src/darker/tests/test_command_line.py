@@ -1,6 +1,9 @@
-# pylint: disable=too-many-arguments,too-many-locals,use-dict-literal
+"""Unit tests for `darker.command_line` and `darker.__main__`."""
 
-"""Unit tests for :mod:`darker.command_line` and :mod:`darker.__main__`"""
+# pylint: disable=too-many-arguments,too-many-locals
+# pylint: disable=no-member,redefined-outer-name,unused-argument,use-dict-literal
+
+from __future__ import annotations
 
 import os
 import re
@@ -22,10 +25,14 @@ from darker.formatters.black_formatter import BlackFormatter
 from darker.tests.helpers import flynt_present, isort_present
 from darkgraylib.config import ConfigurationError
 from darkgraylib.git import RevisionRange
+from darkgraylib.testtools.git_repo_plugin import GitRepoFixture
 from darkgraylib.testtools.helpers import raises_if_exception
 from darkgraylib.utils import TextDocument, joinlines
 
-pytestmark = pytest.mark.usefixtures("find_project_root_cache_clear")
+# Clear LRU caches for `find_project_root()` and `_load_toml()` before each test
+pytestmark = pytest.mark.usefixtures(
+    "find_project_root_cache_clear", "load_toml_cache_clear"
+)
 
 
 @pytest.mark.kwparametrize(
@@ -463,6 +470,24 @@ def test_help_with_flynt_package(capsys):
         )
 
 
+@pytest.fixture(scope="module")
+def black_options_files(request, tmp_path_factory):
+    """Fixture for the `test_black_options` test."""
+    with GitRepoFixture.context(request, tmp_path_factory) as repo:
+        (repo.root / "pyproject.toml").write_bytes(b"[tool.black]\n")
+        (repo.root / "black.cfg").write_text(
+            dedent(
+                """
+                [tool.black]
+                line-length = 81
+                skip-string-normalization = false
+                target-version = 'py38'
+                """
+            )
+        )
+        yield repo.add({"main.py": 'print("Hello World!")\n'}, commit="Initial commit")
+
+
 @pytest.mark.kwparametrize(
     dict(options=[], expect=call()),
     dict(
@@ -547,32 +572,33 @@ def test_help_with_flynt_package(capsys):
         ),
     ),
 )
-def test_black_options(monkeypatch, tmpdir, git_repo, options, expect):
-    """Black options from the command line are passed correctly to Black"""
-    monkeypatch.chdir(tmpdir)
-    (tmpdir / "pyproject.toml").write("[tool.black]\n")
-    (tmpdir / "black.cfg").write(
-        dedent(
-            """
-            [tool.black]
-            line-length = 81
-            skip-string-normalization = false
-            target-version = 'py38'
-            """
-        )
-    )
-    added_files = git_repo.add(
-        {"main.py": 'print("Hello World!")\n'}, commit="Initial commit"
-    )
-    added_files["main.py"].write_bytes(b'print ("Hello World!")\n')
+def test_black_options(black_options_files, options, expect):
+    """Black options from the command line are passed correctly to Black."""
+    # The Git repository set up by the module-scope `black_options_repo` fixture is
+    # shared by all test cases. The "main.py" file modified by the test run needs to be
+    # reset to its original content before the next test case.
+    black_options_files["main.py"].write_bytes(b'print ("Hello World!")\n')
     with patch.object(
         black_formatter, "Mode", wraps=black_formatter.Mode
     ) as file_mode_class:
 
-        main(options + [str(path) for path in added_files.values()])
+        main(options + [str(path) for path in black_options_files.values()])
 
+    assert black_options_files["main.py"].read_bytes() == b'print("Hello World!")\n'
     _, expect_args, expect_kwargs = expect
     file_mode_class.assert_called_once_with(*expect_args, **expect_kwargs)
+
+
+@pytest.fixture(scope="module")
+def black_config_file_and_options_files(request, tmp_path_factory):
+    """Git repository fixture for the `test_black_config_file_and_options` test."""
+    with GitRepoFixture.context(request, tmp_path_factory) as repo:
+        repo_files = repo.add(
+            {"main.py": "foo", "pyproject.toml": "* placeholder, will be overwritten"},
+            commit="Initial commit",
+        )
+        repo_files["main.py"].write_bytes(b"a = [1, 2,]")
+        yield repo_files
 
 
 @pytest.mark.kwparametrize(
@@ -673,21 +699,31 @@ def test_black_options(monkeypatch, tmpdir, git_repo, options, expect):
         expect=call(preview=True),
     ),
 )
-def test_black_config_file_and_options(git_repo, config, options, expect):
+def test_black_config_file_and_options(
+    black_config_file_and_options_files, config, options, expect
+):
     """Black configuration file and command line options are combined correctly"""
-    added_files = git_repo.add(
-        {"main.py": "foo", "pyproject.toml": joinlines(["[tool.black]"] + config)},
-        commit="Initial commit",
-    )
-    added_files["main.py"].write_bytes(b"a = [1, 2,]")
+    repo_files = black_config_file_and_options_files
+    repo_files["pyproject.toml"].write_text(joinlines(["[tool.black]", *config]))
     mode_class_mock = Mock(wraps=black_formatter.Mode)
     # Speed up tests by mocking `format_str` to skip running Black
     format_str = Mock(return_value="a = [1, 2,]")
     with patch.multiple(black_formatter, Mode=mode_class_mock, format_str=format_str):
 
-        main(options + [str(path) for path in added_files.values()])
+        main(options + [str(path) for path in repo_files.values()])
 
     assert mode_class_mock.call_args_list == [expect]
+
+
+@pytest.fixture(scope="module")
+def options_repo(request, tmp_path_factory):
+    """Git repository fixture for the `test_options` test."""
+    with GitRepoFixture.context(request, tmp_path_factory) as repo:
+        paths = repo.add(
+            {"a.py": "1\n", "b.py": "2\n", "my.cfg": ""}, commit="Initial commit"
+        )
+        paths["a.py"].write_bytes(b"one\n")
+        yield repo
 
 
 @pytest.mark.kwparametrize(
@@ -784,17 +820,14 @@ def test_black_config_file_and_options(git_repo, config, options, expect):
         ),
     ),
 )
-def test_options(git_repo, options, expect):
+def test_options(options_repo, monkeypatch, options, expect):
     """The main engine is called with correct parameters based on the command line
 
     Executed in a clean directory so Darker's own ``pyproject.toml`` doesn't interfere.
 
     """
-    paths = git_repo.add(
-        {"a.py": "1\n", "b.py": "2\n", "my.cfg": ""}, commit="Initial commit"
-    )
-    paths["a.py"].write_bytes(b"one\n")
     with patch('darker.__main__.format_edited_parts') as format_edited_parts:
+        monkeypatch.chdir(options_repo.root)
 
         retval = main(options)
 
@@ -802,11 +835,19 @@ def test_options(git_repo, options, expect):
     expect_formatter.config = expect[4]
     actual_formatter = format_edited_parts.call_args.args[4]
     assert actual_formatter.config == expect_formatter.config
-    expect = (Path(git_repo.root), expect[1]) + expect[2:4] + (expect_formatter,)
+    expect = (Path(options_repo.root), expect[1]) + expect[2:4] + (expect_formatter,)
     format_edited_parts.assert_called_once_with(
         *expect, report_unmodified=False, workers=1
     )
     assert retval == 0
+
+
+@pytest.fixture(scope="module")
+def main_retval_repo(request, tmp_path_factory):
+    """Git repository fixture for the `test_main_retval` test."""
+    with GitRepoFixture.context(request, tmp_path_factory) as repo:
+        repo.add({"a.py": ""}, commit="Initial commit")
+        yield
 
 
 @pytest.mark.kwparametrize(
@@ -816,9 +857,8 @@ def test_options(git_repo, options, expect):
     dict(arguments=["--check", "a.py"], changes=True, expect_retval=1),
     expect_retval=0,
 )
-def test_main_retval(git_repo, arguments, changes, expect_retval):
+def test_main_retval(main_retval_repo, arguments, changes, expect_retval):
     """``main()`` return value is correct based on ``--check`` and reformatting."""
-    git_repo.add({"a.py": ""}, commit="Initial commit")
     format_edited_parts = Mock()
     format_edited_parts.return_value = (
         [
