@@ -12,7 +12,7 @@ flake8-comprehensions==3.7.0
 flynt==0.76
 mypy==0.990
 Pygments==2.4.0
-pytest==6.2.0
+pytest==8.3.4
 pytest-kwparametrize==0.0.3
 regex==2021.4.4
 requests_cache==0.7
