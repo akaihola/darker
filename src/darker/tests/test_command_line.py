@@ -589,7 +589,9 @@ def test_black_options(black_options_files, options, expect):
     # shared by all test cases. The "main.py" file modified by the test run needs to be
     # reset to its original content before the next test case.
     black_options_files["main.py"].write_bytes(b'print ("Hello World!")\n')
-    with patch("black.FileMode", wraps=FileMode) as file_mode_class:
+    with patch(
+        "darker.formatters.black_wrapper.FileMode", wraps=FileMode
+    ) as file_mode_class:
         # end of test setup, now call the function under test
 
         main(options + [str(path) for path in black_options_files.values()])
@@ -718,7 +720,7 @@ def test_black_config_file_and_options(
     mode_class_mock = Mock(wraps=FileMode)
     # Speed up tests by mocking `format_str` to skip running Black
     format_str = Mock(return_value="a = [1, 2,]")
-    with patch("black.FileMode", mode_class_mock), patch(
+    with patch("darker.formatters.black_wrapper.FileMode", mode_class_mock), patch(
         "black.format_str", format_str
     ):
         # end of test setup, now call the function under test

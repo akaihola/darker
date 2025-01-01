@@ -28,6 +28,7 @@ def _package_present(
 def black_present(*, present: bool) -> Generator[None, None, None]:
     """Context manager to remove or add the ``black`` package temporarily for a test."""
     with _package_present("black", present):
+        del sys.modules["darker.formatters.black_wrapper"]
         yield
 
 
