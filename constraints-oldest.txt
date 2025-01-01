@@ -19,6 +19,6 @@ requests_cache==0.7
 ruamel.yaml==0.17.21
 toml==0.10.0
 twine==2.0.0
-types-toml==0.10.4
+types-toml==0.10.8.20240310
 typing_extensions==4.0.1
 wheel==0.21.0
