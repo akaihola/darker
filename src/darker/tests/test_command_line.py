@@ -14,13 +14,12 @@ from unittest.mock import DEFAULT, Mock, call, patch
 
 import pytest
 import toml
-from black import TargetVersion
+from black import FileMode, TargetVersion
 
 import darker.help
 from darker.__main__ import main
 from darker.command_line import make_argument_parser, parse_command_line
 from darker.config import Exclusions
-from darker.formatters import black_formatter
 from darker.formatters.black_formatter import BlackFormatter
 from darker.tests.helpers import flynt_present, isort_present
 from darkgraylib.config import ConfigurationError
@@ -220,6 +219,18 @@ def get_darker_help_output(capsys):
         expect_value=("formatter", "black"),
         expect_config=("formatter", "black"),
         expect_modified=("formatter", ...),
+    ),
+    dict(
+        argv=["--formatter", "none", "."],
+        expect_value=("formatter", "none"),
+        expect_config=("formatter", "none"),
+        expect_modified=("formatter", "none"),
+    ),
+    dict(
+        argv=["--formatter=none", "."],
+        expect_value=("formatter", "none"),
+        expect_config=("formatter", "none"),
+        expect_modified=("formatter", "none"),
     ),
     dict(
         argv=["--formatter", "rustfmt", "."],
@@ -578,9 +589,8 @@ def test_black_options(black_options_files, options, expect):
     # shared by all test cases. The "main.py" file modified by the test run needs to be
     # reset to its original content before the next test case.
     black_options_files["main.py"].write_bytes(b'print ("Hello World!")\n')
-    with patch.object(
-        black_formatter, "Mode", wraps=black_formatter.Mode
-    ) as file_mode_class:
+    with patch("black.FileMode", wraps=FileMode) as file_mode_class:
+        # end of test setup, now call the function under test
 
         main(options + [str(path) for path in black_options_files.values()])
 
@@ -705,10 +715,13 @@ def test_black_config_file_and_options(
     """Black configuration file and command line options are combined correctly"""
     repo_files = black_config_file_and_options_files
     repo_files["pyproject.toml"].write_text(joinlines(["[tool.black]", *config]))
-    mode_class_mock = Mock(wraps=black_formatter.Mode)
+    mode_class_mock = Mock(wraps=FileMode)
     # Speed up tests by mocking `format_str` to skip running Black
     format_str = Mock(return_value="a = [1, 2,]")
-    with patch.multiple(black_formatter, Mode=mode_class_mock, format_str=format_str):
+    with patch("black.FileMode", mode_class_mock), patch(
+        "black.format_str", format_str
+    ):
+        # end of test setup, now call the function under test
 
         main(options + [str(path) for path in repo_files.values()])
 

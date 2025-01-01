@@ -25,6 +25,13 @@ def _package_present(
 
 
 @contextmanager
+def black_present(*, present: bool) -> Generator[None, None, None]:
+    """Context manager to remove or add the ``black`` package temporarily for a test."""
+    with _package_present("black", present):
+        yield
+
+
+@contextmanager
 def isort_present(present: bool) -> Generator[None, None, None]:
     """Context manager to remove or add the `isort` package temporarily for a test"""
     with _package_present("isort", present) as fake_isort_module:
