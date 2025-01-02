@@ -14,7 +14,7 @@ mypy==0.990
 Pygments==2.4.0
 pytest==6.2.0
 pytest-kwparametrize==0.0.3
-regex==2021.4.4
+regex==2024.11.6
 requests_cache==0.7
 ruamel.yaml==0.17.21
 toml==0.10.0
