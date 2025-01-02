@@ -143,9 +143,21 @@ def filter_python_files(
              ``black_config``, relative to ``root``.
 
     """
-    absolute_paths = {p.resolve() for p in paths}
-    directories = {p for p in absolute_paths if p.is_dir()}
-    files = {p for p in absolute_paths if p not in directories}
+    # Split input paths into directories (which need recursion) and direct files
+    directories, files = set(), set()
+    for p in paths:
+        # Convert all input paths to absolute paths for consistent handling
+        path = p.resolve()
+        if path.is_dir():
+            directories.add(path)
+        else:
+            files.add(path)
+
+    # Recursively walk directories to find Python files, applying exclusion patterns.
+    # Get all Python files from directories that match our criteria:
+    # - Pass formatter's exclude/extend-exclude/force-exclude patterns
+    # - Match Python file extensions (.py, .pyi, .ipynb)
+    # - Aren't symlinks pointing outside the root
     files_from_directories = set(
         _gen_python_files(
             directories,
@@ -155,4 +167,7 @@ def filter_python_files(
             formatter.get_force_exclude(),
         )
     )
+
+    # Combine directly specified files with those found in directories.
+    # Convert all paths to be relative to the root directory.
     return {p.resolve().relative_to(root) for p in files_from_directories | files}
