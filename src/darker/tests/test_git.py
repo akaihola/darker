@@ -8,9 +8,11 @@ from pathlib import Path
 from subprocess import DEVNULL, check_call  # nosec
 from textwrap import dedent  # nosec
 from types import SimpleNamespace
+from typing import Generator
 from unittest.mock import ANY, patch
 
 import pytest
+from _pytest.fixtures import SubRequest
 
 from darker import git
 from darkgraylib.git import WORKTREE, RevisionRange
@@ -321,7 +323,9 @@ def test_git_get_modified_python_files(
 
 
 @pytest.fixture(scope="module")
-def git_get_modified_python_files_revision_range_repo(request, tmp_path_factory):
+def git_get_modified_python_files_revision_range_repo(
+    request: SubRequest, tmp_path_factory: pytest.TempPathFactory
+) -> Generator[GitRepoFixture, None, None]:
     """Fixture for a Git repository with multiple commits and branches."""
     yield from branched_repo(request, tmp_path_factory)
 
