@@ -167,6 +167,9 @@ You can enable additional features with command line options:
 - ``-f`` / ``--flynt``: Also convert string formatting to use f-strings using the
   ``flynt`` package
 
+If you only want to run those tools without reformatting with Black,
+use the ``--formatter=none`` option.
+
 *New in version 1.1.0:* The ``-L`` / ``--lint`` option.
 
 *New in version 1.2.2:* Package available in conda-forge_.
@@ -175,6 +178,8 @@ You can enable additional features with command line options:
 
 *New in version 3.0.0:* Removed the ``-L`` / ``--lint`` functionality and moved it into
 the Graylint_ package.
+
+*New in version 3.0.0:* The ``--formatter`` option.
 
 .. _Conda: https://conda.io/
 .. _conda-forge: https://conda-forge.org/
@@ -373,7 +378,7 @@ The following `command line arguments`_ can also be used to modify the defaults:
        versions that should be supported by Black's output. [default: per-file auto-
        detection]
 --formatter FORMATTER
-       [black\|none] Formatter to use for reformatting code. [default: black]
+       [black\|none\|ruff] Formatter to use for reformatting code. [default: black]
 
 To change default values for these options for a given project,
 add a ``[tool.darker]`` section to ``pyproject.toml`` in the project's root directory,

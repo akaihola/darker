@@ -2,9 +2,10 @@
 
 # pylint: disable=no-member,redefined-outer-name,too-many-arguments,use-dict-literal
 
+from __future__ import annotations
+
 from io import BytesIO
 from types import SimpleNamespace
-from typing import List, Optional
 from unittest.mock import Mock, patch
 
 import pytest
@@ -148,14 +149,16 @@ def main_stdin_filename_repo(request, tmp_path_factory):
     expect=0,
     expect_a_py="original\n",
 )
+@pytest.mark.parametrize("formatter", [[], ["--formatter=black"], ["--formatter=ruff"]])
 def test_main_stdin_filename(
     main_stdin_filename_repo: SimpleNamespace,
-    config_src: Optional[List[str]],
-    src: List[str],
-    stdin_filename: Optional[str],
-    revision: Optional[str],
+    config_src: list[str] | None,
+    src: list[str],
+    stdin_filename: str | None,
+    revision: str | None,
     expect: int,
     expect_a_py: str,
+    formatter: list[str],
 ) -> None:
     """Tests for `darker.__main__.main` and the ``--stdin-filename`` option"""
     repo = main_stdin_filename_repo
@@ -177,7 +180,7 @@ def test_main_stdin_filename(
     ), raises_if_exception(expect):
         # end of test setup
 
-        retval = darker.__main__.main(arguments)
+        retval = darker.__main__.main([*formatter, *arguments])
 
         assert retval == expect
         assert repo.paths["a.py"].read_text() == expect_a_py

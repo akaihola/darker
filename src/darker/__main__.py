@@ -293,7 +293,7 @@ def _maybe_reformat_single_file(
     if glob_any(relpath_in_rev2, exclude):
         # File was excluded by Black configuration, don't reformat
         return fstringified
-    return formatter.run(fstringified)
+    return formatter.run(fstringified, relpath_in_rev2)
 
 
 def _drop_changes_on_unedited_lines(
