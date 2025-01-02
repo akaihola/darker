@@ -15,7 +15,7 @@ Pygments==2.4.0
 pytest==6.2.0
 pytest-kwparametrize==0.0.3
 regex==2021.4.4
-requests_cache==0.7
+requests_cache==1.2.1
 ruamel.yaml==0.17.21
 toml==0.10.0
 twine==2.0.0
