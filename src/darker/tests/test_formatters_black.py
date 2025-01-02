@@ -278,7 +278,7 @@ def test_run(encoding, newline):
 def test_run_always_uses_unix_newlines(newline):
     """Content is always passed to Black with Unix newlines"""
     src = TextDocument.from_str(f"print ( 'touché' ){newline}")
-    with patch("black.format_str") as format_str:
+    with patch("darker.formatters.black_wrapper.format_str") as format_str:
         format_str.return_value = 'print("touché")\n'
 
         _ = BlackFormatter().run(src)
@@ -390,9 +390,9 @@ def test_run_configuration(
 ):
     """`BlackFormatter.run` passes correct configuration to Black."""
     src = TextDocument.from_str("import  os\n")
-    with patch("black.format_str") as format_str, raises_or_matches(
-        expect, []
-    ) as check:
+    with patch(
+        "darker.formatters.black_wrapper.format_str"
+    ) as format_str, raises_or_matches(expect, []) as check:
         format_str.return_value = "import os\n"
         formatter = BlackFormatter()
         formatter.config = black_config

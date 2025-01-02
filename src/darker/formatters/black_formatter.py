@@ -39,7 +39,6 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, TypedDict
 
-from darker.exceptions import DependencyError
 from darker.files import find_pyproject_toml
 from darker.formatters.base_formatter import BaseFormatter
 from darkgraylib.config import ConfigurationError
@@ -93,24 +92,11 @@ class BlackFormatter(BaseFormatter):
     def _read_config_file(self, config_path: str) -> None:  # noqa: C901
         # Local import so Darker can be run without Black installed.
         # Do error handling here. This is the first Black importing method being hit.
-        try:
-            from black import (  # pylint: disable=import-outside-toplevel
-                parse_pyproject_toml,
-                re_compile_maybe_verbose,
-            )
-        except ImportError as exc:
-            logger.warning(
-                "To re-format code using Black, install it using e.g."
-                " `pip install 'darker[black]'` or"
-                " `pip install black`"
-            )
-            logger.warning(
-                "To use a different formatter or no formatter, select it on the"
-                " command line (e.g. `--formatter=none`) or configuration"
-                " (e.g. `formatter=none`)"
-            )
-            message = "Can't find the Black package"
-            raise DependencyError(message) from exc
+        # pylint: disable=import-outside-toplevel
+        from darker.formatters.black_wrapper import (
+            parse_pyproject_toml,
+            re_compile_maybe_verbose,
+        )
 
         raw_config = parse_pyproject_toml(config_path)
         if "line_length" in raw_config:
@@ -171,7 +157,8 @@ class BlackFormatter(BaseFormatter):
         """
         # Local import so Darker can be run without Black installed.
         # No need for error handling, already done in `BlackFormatter.read_config`.
-        from black import format_str  # pylint: disable=import-outside-toplevel
+        # pylint: disable=import-outside-toplevel
+        from darker.formatters.black_wrapper import format_str
 
         contents_for_black = content.string_with_newline("\n")
         if contents_for_black.strip():
@@ -196,8 +183,9 @@ class BlackFormatter(BaseFormatter):
 
         # Local import so Darker can be run without Black installed.
         # No need for error handling, already done in `BlackFormatter.read_config`.
-        from black import FileMode as Mode  # pylint: disable=import-outside-toplevel
-        from black import TargetVersion  # pylint: disable=import-outside-toplevel
+        # pylint: disable=import-outside-toplevel
+        from darker.formatters.black_wrapper import FileMode as Mode
+        from darker.formatters.black_wrapper import TargetVersion
 
         mode = BlackModeAttributes()
         if "line_length" in self.config:
