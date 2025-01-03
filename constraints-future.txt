@@ -6,3 +6,4 @@
 black @ git+https://github.com/psf/black.git@main 
 flynt @ git+https://github.com/ikamensh/flynt.git@master
 isort @ git+https://github.com/PyCQA/isort.git@main
+pyupgrade @ git+https://github.com/asottile/pyupgrade.git@main

@@ -21,6 +21,8 @@ Added
   Isort or Flynt_.
 - Black_ is no longer installed by default. Use ``pip install 'darker[black]'`` to get
   Black support.
+- pyupgrade_ is now supported as a formatter plugin. Note that changes from pyupgrade
+  are applied on a per-file basis, not only for modified lines as with Black_ and Ruff_.
 
 Removed
 -------
@@ -686,3 +688,4 @@ Added
 .. _Ruff: https://astral.sh/ruff
 .. _Black: https://black.readthedocs.io/
 .. _NixOS: https://nixos.org/
+.. _pyupgrade: https://pypi.org/project/pyupgrade/
