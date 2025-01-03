@@ -78,6 +78,8 @@ akaihola:
   - {link_type: search-comments, type: Reviewed Pull Requests}
 aljazerzen:
   - {link_type: commits, type: Code}
+anakinxc:
+  - {link_type: issues, type: Bug reports}
 baod-rate:
   - {link_type: pulls-author, type: Code}
 baodrate:
