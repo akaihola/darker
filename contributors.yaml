@@ -80,6 +80,9 @@ aljazerzen:
   - {link_type: commits, type: Code}
 anakinxc:
   - {link_type: issues, type: Bug reports}
+artel1992:
+  - {link_type: issues, type: Bug reports}
+  - {link_type: search-comments, type: Bug reports}
 baod-rate:
   - {link_type: pulls-author, type: Code}
 baodrate:
