@@ -306,3 +306,7 @@ yoursvivek:
   - {link_type: commits, type: Documentation}
 zachnorton4C:
   - {link_type: issues, type: Bug reports}
+zmeir:
+  - {link_type: search-comments, type: Bug reports}
+  - {link_type: issues, type: Bug reports}
+  - {link_type: search-comments, type: Reviewed Pull Requests}
