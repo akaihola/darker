@@ -95,6 +95,8 @@ brettcannon:
   - {link_type: search-comments, type: Bug reports}
 brtknr:
   - {link_type: pulls-reviewed, type: Reviewed Pull Requests}
+brtkwr:
+  - {link_type: search-comments, type: Bug reports}
 casio:
   - {link_type: issues, type: Bug reports}
 cclauss:
