@@ -43,6 +43,7 @@ Fixed
 - Work around a `pathlib.Path.resolve` bug in Python 3.8 and 3.9 on Windows.
   The work-around should be removed when Python 3.8 and 3.9 are no longer supported.
 - Add missing configuration flag for Flynt_.
+- Only split source code lines at Python's universal newlines (LF, CRLF, CR).
 
 
 2.1.1_ - 2024-04-16
