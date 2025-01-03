@@ -151,6 +151,9 @@ gesslerpd:
 guettli:
   - {link_type: issues, type: Bug reports}
   - {link_type: search-comments, type: Bug reports}
+haohu321:
+  - {link_type: issues, type: Bug reports}
+  - {link_type: search-comments, type: Bug reports}
 hauntsaninja:
   - {link_type: issues, type: Bug reports}
 hugovk:
