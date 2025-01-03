@@ -88,27 +88,19 @@ jobs:
           - windows-latest
           - macos-latest
         python-version:
-          - '3.8'
           - '3.9'
           - '3.10'
           - '3.11'
           - '3.12'
-          - '3.13-dev'
+          - '3.13'
         constraints: ['']
         post_install: ['']
-        exclude:
-          # C extension builds failing.
-          # Remove exclusions after Python 3.13 release.
-          - os: windows-latest
-            python-version: '3.13-dev'
-          - os: macos-latest
-            python-version: '3.13-dev'
         include:
           - os: ubuntu-latest
-            python-version: '3.8'
+            python-version: '3.9'
             constraints: '--constraint constraints-oldest.txt'
           - os: ubuntu-latest
-            python-version: '3.12'
+            python-version: '3.13'
             post_install: pip uninstall -y -r constraints-future.txt ;
                           pip install -r constraints-future.txt
                                       --upgrade --upgrade-strategy=eager
