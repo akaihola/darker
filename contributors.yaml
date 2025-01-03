@@ -76,6 +76,7 @@ akaihola:
   - {link_type: search-comments, type: Bug reports}
   - {link_type: pulls-author, type: Code}
   - {link_type: search-comments, type: Reviewed Pull Requests}
+  - {link_type: search-discussions, type: Bug reports}
 aljazerzen:
   - {link_type: commits, type: Code}
 anakinxc:
@@ -227,6 +228,9 @@ njhuffman:
   - {link_type: commits, type: Code}
 okuuva:
   - {link_type: search-comments, type: Bug reports}
+  - {link_type: issues, type: Bug reports}
+  - {link_type: pulls-author, type: Code}
+  - {link_type: search-comments, type: Reviewed Pull Requests}
 overratedpro:
   - {link_type: issues, type: Bug reports}
 philipgian:
@@ -257,6 +261,7 @@ sgaist:
 shane-kearns:
   - {link_type: issues, type: Bug reports}
   - {link_type: search-comments, type: Bug reports}
+  - {link_type: search-comments, type: Reviewed Pull Requests}
 shangxiao:
   - {link_type: pulls-author, type: Code}
   - {link_type: issues, type: Bug reports}
@@ -264,14 +269,18 @@ sherbie:
   - {link_type: pulls-reviewed, type: Reviewed Pull Requests}
 simgunz:
   - {link_type: search-comments, type: Reviewed Pull Requests}
+  - {link_type: search-discussions, type: Bug reports}
 simonf-dev:
   - {link_type: search-comments, type: Bug reports}
+  - {link_type: search-comments, type: Reviewed Pull Requests}
 soxofaan:
   - {link_type: pulls-author, type: Documentation}
 strzonnek:
   - {link_type: issues, type: Bug reports}
 talhajunaidd:
   - {link_type: commits, type: Code}
+  - {link_type: search-comments, type: Bug reports}
+  - {link_type: search-comments, type: Reviewed Pull Requests}
 tapted:
   - {link_type: issues, type: Bug reports}
 tehunter:
