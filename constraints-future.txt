@@ -3,6 +3,7 @@
 # still works against upcaming releases of Python ependencies. Keep this
 # up-to-date by adding entries for any packages we want to get early
 # incompatibility warnings for.
-black @ git+https://github.com/psf/black.git@main 
+black @ git+https://github.com/psf/black.git@main
+darkgraylib @ git+https://github.com/akaihola/darkgraylib.git@main
 flynt @ git+https://github.com/ikamensh/flynt.git@master
 isort @ git+https://github.com/PyCQA/isort.git@main
