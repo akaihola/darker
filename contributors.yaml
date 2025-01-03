@@ -235,6 +235,8 @@ phitoduck:
   - {link_type: issues, type: Bug reports}
 qubidt:
   - {link_type: issues, type: Bug reports}
+ranelpadon:
+  - {link_type: issues, type: Bug reports}
 rogalski:
   - {link_type: pulls-author, type: Code}
   - {link_type: issues, type: Bug reports}
