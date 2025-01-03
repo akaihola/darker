@@ -415,7 +415,7 @@ An example ``pyproject.toml`` configuration file:
    line-length = 88                  # Overridden by [tool.darker] above
    skip-magic-trailing-comma = false
    skip-string-normalization = false
-   target-version = ["py38", "py39", "py310", "py311", "py312"]  # Overridden above
+   target-version = ["py39", "py310", "py311", "py312"]  # Overridden above
    exclude = "test_*\.py"
    extend_exclude = "/generated/"
    force_exclude = ".*\.pyi"

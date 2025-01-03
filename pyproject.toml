@@ -6,7 +6,7 @@ requires = ["setuptools", "wheel"]  # PEP 508 specifications.
 # Darker makes Black read its configuration from the file indicated by the `--config`
 # option, so we need to mirror the same configuration here and in `check-darker.toml`.
 skip-string-normalization = false
-target-version = ["py38", "py39", "py310", "py311", "py312"]
+target-version = ["py39", "py310", "py311", "py312"]
 
 [tool.isort]
 # Darker makes isort read its configuration from the file indicated by the `--config`
@@ -37,7 +37,7 @@ src = ["."]
 disable = ["wrong-import-order"]
 
 [tool.ruff]
-target-version = "py38"
+target-version = "py39"
 
 [tool.ruff.lint]
 select = ["ALL"]
@@ -47,10 +47,6 @@ ignore = [
     "D203",  # One blank line required before class docstring
     "D213",  # Multi-line docstring summary should start at the second line
     "D400",  # First line should end with a period (duplicates D415)
-
-    # Remove these when support for Python 3.8 is dropped:
-    "UP006",  # Use `xyz` instead of `Xyz` for type annotation
-    "UP007",  # Use `X | Y` for type annotations
 ]
 
 [tool.ruff.lint.per-file-ignores]
