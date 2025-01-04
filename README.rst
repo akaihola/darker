@@ -37,7 +37,7 @@ in regions which have changed in the Git working tree between the two revisions.
 
 The reformatters supported are:
 
-- Black_ and Ruff_ for code reformatting
+- Black_ and `the Ruff formatter`_ for code reformatting
 - isort_ for sorting imports
 - flynt_ for turning old-style format strings to f-strings
 - pyupgrade_ for upgrading syntax for newer versions of Python
@@ -49,9 +49,9 @@ To easily run Darker as a Pytest_ plugin, see pytest-darker_.
 To integrate Darker with your IDE or with pre-commit_,
 see the relevant sections below in this document.
 
-.. _Black: https://github.com/python/black
-.. _Ruff: https://docs.astral.sh/ruff/formatter/
-.. _isort: https://github.com/timothycrosley/isort
+.. _Black: https://black.readthedocs.io/
+.. _the Ruff formatter: https://docs.astral.sh/ruff/formatter/
+.. _isort: https://pycqa.github.io/isort/
 .. _flynt: https://github.com/ikamensh/flynt
 .. _pyupgrade: https://github.com/asottile/pyupgrade
 .. _Pytest: https://docs.pytest.org/
@@ -79,9 +79,10 @@ see the relevant sections below in this document.
 Why?
 ====
 
-You want to start unifying code style in your project using Black_.
+You want to start unifying code style in your project
+using Black_ or `the Ruff formatter`_.
 Maybe you also like to standardize on how to order your imports,
-or do static type checking or other static analysis for your code.
+or convert string formatting to use f-strings.
 
 However, instead of formatting the whole code base in one giant commit,
 you'd like to only change formatting when you're touching the code for other reasons.
@@ -94,6 +95,11 @@ for various good reasons, and so far there hasn't been a plan to implemented it 
 (`134`__, `142`__, `245`__, `370`__, `511`__, `830`__).
 However, in September 2021 Black developers started to hint towards adding this feature
 after all (`1352`__). This might at least simplify Darker's algorithm substantially.
+
+The ``--range`` option in `the Ruff formatter`_
+does allow for partial formatting of a single range,
+but to make use of it,
+Darker would need call `the Ruff formatter`_ once for each modified chunk.
 
 __ https://github.com/psf/black/issues/134
 __ https://github.com/psf/black/issues/142
@@ -108,7 +114,8 @@ This tool is for those who want to do partial formatting right now.
 
 Note that this tool is meant for special situations
 when dealing with existing code bases.
-You should just use Black_ and isort_ as is when starting a project from scratch.
+You should just use Black_ or `the Ruff formatter`_, Flynt_ and isort_ as is
+when starting a project from scratch.
 
 You may also want to still consider whether reformatting the whole code base in one
 commit would make sense in your particular case. You can ignore a reformatting commit
@@ -150,7 +157,7 @@ The available optional dependencies are:
 
 - ``color``: Enable syntax highlighting in terminal output using Pygments_
 - ``black``: Enable Black_ code formatting (the default formatter)
-- ``ruff``: Enable Ruff_ code formatting
+- ``ruff``: Enable code formatting using `the Ruff formatter`_
 - ``isort``: Enable isort_ import sorting
 - ``flynt``: Enable flynt_ string formatting conversion
 - ``pyupgrade``: Enable pyupgrade_ code upgrades
@@ -163,8 +170,9 @@ Or, if you're using Conda_ for package management::
 ..
 
     **Note:** It is recommended to use the '``~=``' "`compatible release`_" version
-    specifier for Darker. See `Guarding against Black compatibility breakage`_ for more
-    information.
+    specifier for Darker.
+    See `Guarding against Black, Flynt and isort compatibility breakage`_
+    for more information.
 
 *New in version 3.0.0:* Black is no longer installed by default.
 
@@ -183,14 +191,17 @@ You can choose different formatters or enable additional features
 with command line options:
 
 - ``--formatter=black``: Use Black_ for code formatting (the default)
-- ``--formatter=ruff``: Use Ruff_ for code formatting
+- ``--formatter=ruff``: Use `the Ruff formatter`_ instead of Black_.
 - ``--formatter=pyupgrade``: Use pyupgrade_ to upgrade Python syntax
 - ``--formatter=none``: Don't run any formatter, only run other enabled tools
-- ``-i`` / ``--isort``: Also reorder imports using isort_. Note that isort_ must be
+- ``-i`` / ``--isort``: Reorder imports using isort_. Note that isort_ must be
   run in the same Python environment as the packages to process, as it imports
   your modules to determine whether they are first or third party modules.
 - ``-f`` / ``--flynt``: Also convert string formatting to use f-strings using the
   ``flynt`` package
+
+If you only want to run isort_ and/or Flynt_ without reformatting code,
+use the ``--formatter=none`` option.
 
 *New in version 1.1.0:* The ``-L`` / ``--lint`` option.
 
@@ -309,8 +320,8 @@ instead of the last commit:
    $ darker --revision master .
 
 
-Customizing ``darker``, Black_, Ruff_, isort_, flynt_, and pyupgrade_ behavior
-==============================================================================
+Customizing ``darker``, Black_, `the Ruff formatter`_, isort_, flynt_, and pyupgrade_ behavior
+==============================================================================================
 
 ``darker`` invokes Black_, isort_, flynt_ and pyupgrade_ internals directly
 instead of running their binaries,
@@ -322,8 +333,12 @@ isort_ does also look for a few other places for configuration.
 For pyupgrade_, only ``--target-version`` is converted to ``--py<version>-plus``
 and passed to the pyupgrade_ internals. No other options are currently supported.
 
-Ruff_ is invoked as a subprocess, and it reads its configuration from the usual places,
+`The Ruff formatter`_ is invoked as a subprocess,
+and it reads its configuration from the usual places,
 including the project's ``pyproject.toml`` file.
+
+Options for `the Ruff formatter`_ are read as usual directly by Ruff itself
+when Darker invokes it as a subprocess.
 
 Darker does honor exclusion options in Black configuration files when recursing
 directories, but the exclusions are only applied to Black reformatting.
@@ -412,7 +427,7 @@ To change default values for these options for a given project,
 add a ``[tool.darker]`` section to ``pyproject.toml`` in the project's root directory,
 or to a different TOML file specified using the ``-c`` / ``--config`` option.
 
-You should configure invoked tools like Black_, isort_ and flynt_
+You should configure invoked tools like Black_, `the Ruff formatter`_, isort_ and flynt_
 using their own configuration files.
 
 As an exception, the ``line-length`` and ``target-version`` options in ``[tool.darker]``
@@ -695,8 +710,9 @@ do the following:
        pre-commit autoupdate
 
 When auto-updating, care is being taken to protect you from possible incompatibilities
-introduced by Black updates. See `Guarding against Black compatibility breakage`_ for
-more information.
+introduced by Black updates.
+See `Guarding against Black, Flynt and isort compatibility breakage`_
+for more information.
 
 If you'd prefer to not update but keep a stable pre-commit setup, you can pin Black and
 other reformatter tools you use to known compatible versions, for example:
@@ -850,16 +866,19 @@ line options always take highest precedence.
 .. _Pygments: https://pypi.org/project/Pygments/
 
 
-Guarding against Black compatibility breakage
-=============================================
+Guarding against Black, Flynt and isort compatibility breakage
+==============================================================
 
-Darker accesses some Black internals which don't belong to its public API. Darker is
-thus subject to becoming incompatible with future versions of Black.
+Darker accesses some Black_, Flynt_ and isort_ internals
+which don't belong to their public APIs.
+Darker is thus subject to becoming incompatible with future versions of those tools.
 
-To protect users against such breakage, we test Darker daily against the `Black main
-branch`_ and strive to proactively fix any potential incompatibilities through this
-process. If a commit to Black ``main`` branch introduces an incompatibility with
-Darker, we will release a first patch version for Darker that prevents upgrading Black
+To protect users against such breakage, we test Darker daily against
+the `Black main branch`_, `Flynt master branch`_ and `isort main branch`_,
+and strive to proactively fix any potential incompatibilities through this process.
+If a commit to those branches introduces an incompatibility with Darker,
+we will release a first patch version for Darker
+that prevents upgrading the corresponding tool
 and a second patch version that fixes the incompatibility. A hypothetical example:
 
 1. Darker 9.0.0; Black 35.12.0
@@ -897,6 +916,8 @@ See issue `#382`_ and PR `#430`_ for more information.
 
 .. _compatible release: https://peps.python.org/pep-0440/#compatible-release
 .. _Black main branch: https://github.com/psf/black/commits/main
+.. _Flynt master branch: https://github.com/ikamensh/flynt/commits/master
+.. _isort main branch: https://github.com/PyCQA/isort/commits/main
 .. _test-future: https://github.com/akaihola/darker/blob/master/.github/workflows/test-future.yml
 .. _#382: https://github.com/akaihola/darker/issues/382
 .. _#430: https://github.com/akaihola/darker/issues/430
@@ -912,7 +933,7 @@ Darker does the following:
   the ``--revision=REV1..REV2`` option
 - record current line numbers of lines edited or added between those revisions
 - run flynt_ on edited and added files (if Flynt is enabled by the user)
-- run Black_ on edited and added files
+- run Black_ or `the Ruff formatter`_ on edited and added files
 - compare before and after reformat, noting each continuous chunk of reformatted lines
 - discard reformatted chunks on which no edited/added line falls on
 - keep reformatted chunks on which some edited/added lines fall on
@@ -929,14 +950,15 @@ To sort imports when the ``--isort`` option was specified, Darker proceeds like 
 Limitations and work-arounds
 =============================
 
-Black doesn't support partial formatting natively.
-Because of this, Darker lets Black reformat complete files.
-Darker then accepts or rejects chunks of contiguous lines touched by Black,
+Black doesn't support partial formatting natively,
+and `the Ruff formatter`_ only accepts a single line range.
+Because of this, Darker lets them reformat complete files.
+Darker then accepts or rejects chunks of contiguous lines touched by the formatter,
 depending on whether any of the lines in a chunk were edited or added
 between the two revisions.
 
 Due to the nature of this algorithm,
-Darker is often unable to minimize the number of changes made by Black
+Darker is often unable to minimize the number of changes made by reformatters
 as carefully as a developer could do by hand.
 Also, depending on what kind of changes were made to the code,
 diff results may lead to Darker applying reformatting in an invalid way.
