@@ -8,5 +8,10 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install uv
         uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+          cache-dependency-glob: |
+            **/setup.cfg
+            **/pyproject.toml
       - name: Verify that README contains output of darker --help
         run: uvx --from '.[flynt,isort]' darker --verify-readme
