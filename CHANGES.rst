@@ -10,6 +10,8 @@ Added
 - Display exit code in parentheses after error message.
 - Do not reformat renamed files.
 - CI workflow to post recent project activity in a discussion. Triggered manually.
+- CI "future" test now tests against ``main`` of Darkgraylib_ in addition to Black_,
+  Flynt_ and isort_.
 - The ``--preview`` configuration flag is now supported in the configuration files for
   Darker and Black
 - Prevent Pylint from updating beyond version 3.2.7 due to dropped Python 3.8 support.
@@ -687,4 +689,5 @@ Added
 .. _pydocstyle: http://www.pydocstyle.org/
 .. _Ruff: https://astral.sh/ruff
 .. _Black: https://black.readthedocs.io/
+.. _isort: https://pycqa.github.io/isort/
 .. _NixOS: https://nixos.org/
