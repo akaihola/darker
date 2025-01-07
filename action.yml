@@ -27,6 +27,19 @@ inputs:
       NOTE: Baseline linting has been moved to the Graylint package.
     required: false
     default: ''
+  working-directory:
+    description: >-
+      Directory to run Darker in, either absolute or relative to
+      $GITHUB_WORKSPACE. By default, Darker is run in $GITHUB_WORKSPACE.
+    required: false
+    default: '.'
+outputs:
+  exitcode:
+    description: "Exit code of Darker"
+    value: ${{ steps.darker.outputs.exitcode }}
+  stdout:
+    description: "Standard output of Darker"
+    value: ${{ steps.darker.outputs.stdout }}
 branding:
   color: "black"
   icon: "check-circle"
@@ -35,8 +48,18 @@ runs:
   steps:
     - name: Commit Range
       id: commit-range
-      uses: akaihola/darker/.github/actions/commit-range@1.7.1
+      uses: ./.github/actions/commit-range
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.x'
+        cache: 'pip'
+    - name: Install dependencies
+      run: |
+        pip install pip-requirements-parser
+      shell: bash
     - name: Run Darker
+      id: darker
       run: |
         # Exists since using github.action_path + path to main script doesn't
         # work because bash interprets the backslashes in github.action_path
@@ -68,5 +91,6 @@ runs:
         INPUT_REVISION: ${{ inputs.revision }}
         INPUT_LINT: ${{ inputs.lint }}
         INPUT_COMMIT_RANGE: ${{ steps.commit-range.outputs.commit-range }}
+        INPUT_WORKING_DIRECTORY: ${{ inputs.working-directory }}
         pythonioencoding: utf-8
       shell: bash
