@@ -22,6 +22,8 @@ Added
   other formatters in the future. There's also a dummy ``none`` formatter plugin.
 - ``--formatter=none`` now skips running Black. This is useful when you only want to run
   Isort or Flynt_.
+- Black_ is no longer installed by default. Use ``pip install 'darker[black]'`` to get
+  Black support.
 
 Removed
 -------
@@ -34,8 +36,9 @@ Removed
 Fixed
 -----
 - Update ``darkgray-dev-tools`` for Pip >= 24.1 compatibility.
-- Update to Darkgraylib 2.0.1 to fix the configuration dump, the output of ``--version``
-  and the Git "dubious ownership" issue (see below).
+- Update to Darkgraylib 2.2.0 to fix the configuration dump, the output of
+  ``--version``, the Git "dubious ownership" issue, and source code line splitting
+  (see below).
 - In the configuration dump printed when ``-vv`` verbosity is used, the configuration
   section is now correctly named ``[tool.darker]`` instead of ``[tool.darkgraylib]``.
 - Pass Graylint version to `~darkgraylib.command_line.make_argument_parser` to make
@@ -44,6 +47,7 @@ Fixed
 - Work around a `pathlib.Path.resolve` bug in Python 3.8 and 3.9 on Windows.
   The work-around should be removed when Python 3.8 and 3.9 are no longer supported.
 - Add missing configuration flag for Flynt_.
+- Only split source code lines at Python's universal newlines (LF, CRLF, CR).
 
 
 2.1.1_ - 2024-04-16

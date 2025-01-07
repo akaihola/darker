@@ -1,6 +1,7 @@
 ---
 AckslD:
   - {link_type: issues, type: Bug reports}
+  - {link_type: search-comments, type: Bug reports}
 Ashblaze:
   - {link_type: search-discussions, type: Bug reports}
 Asuskf:
@@ -9,16 +10,27 @@ Carreau:
   - {link_type: commits, type: Code}
   - {link_type: commits, type: Documentation}
   - {link_type: pulls-reviewed, type: Reviewed Pull Requests}
+  - {link_type: issues, type: Bug reports}
+  - {link_type: search-comments, type: Bug reports}
+  - {link_type: pulls-author, type: Code}
+  - {link_type: search-comments, type: Reviewed Pull Requests}
 CorreyL:
   - {link_type: commits, type: Code}
   - {link_type: commits, type: Documentation}
   - {link_type: pulls-reviewed, type: Reviewed Pull Requests}
+  - {link_type: search-comments, type: Bug reports}
 DavidCDreher:
   - {link_type: issues, type: Bug reports}
+DeinAlptraum:
+  - {link_type: search-comments, type: Bug reports}
+  - {link_type: search-discussions, type: Bug reports}
 DylanYoung:
   - {link_type: issues, type: Bug reports}
+  - {link_type: search-comments, type: Bug reports}
 Eyobkibret15:
   - {link_type: search-discussions, type: Bug reports}
+Garfounkel:
+  - {link_type: search-comments, type: Bug reports}
 Hainguyen1210:
   - {link_type: issues, type: Bug reports}
 KangOl:
@@ -27,10 +39,14 @@ Krischtopp:
   - {link_type: issues, type: Bug reports}
 MatthijsBurgh:
   - {link_type: issues, type: Bug reports}
+  - {link_type: search-comments, type: Bug reports}
+  - {link_type: search-comments, type: Reviewed Pull Requests}
+  - {link_type: pulls-author, type: Code}
 Mystic-Mirage:
   - {link_type: commits, type: Code}
   - {link_type: commits, type: Documentation}
   - {link_type: pulls-reviewed, type: Reviewed Pull Requests}
+  - {link_type: search-comments, type: Bug reports}
 Pacu2:
   - {link_type: pulls-author, type: Code}
   - {link_type: pulls-reviewed, type: Reviewed Pull Requests}
@@ -40,7 +56,13 @@ RishiKumarRay:
   - {link_type: search, type: Bug reports}
 Svenito:
   - {link_type: pulls-author, type: Code}
+  - {link_type: issues, type: Bug reports}
+  - {link_type: search-comments, type: Bug reports}
+  - {link_type: search-comments, type: Reviewed Pull Requests}
 Timple:
+  - {link_type: search-comments, type: Bug reports}
+  - {link_type: search-comments, type: Reviewed Pull Requests}
+Will-Ruddick:
   - {link_type: search-comments, type: Bug reports}
 agandra:
   - {link_type: issues, type: Bug reports}
@@ -50,14 +72,32 @@ akaihola:
   - {link_type: commits, type: Documentation}
   - {link_type: pulls-reviewed, type: Reviewed Pull Requests}
   - {link_type: commits, type: Maintenance}
+  - {link_type: issues, type: Bug reports}
+  - {link_type: search-comments, type: Bug reports}
+  - {link_type: pulls-author, type: Code}
+  - {link_type: search-comments, type: Reviewed Pull Requests}
+  - {link_type: search-discussions, type: Bug reports}
 aljazerzen:
   - {link_type: commits, type: Code}
+anakinxc:
+  - {link_type: issues, type: Bug reports}
+artel1992:
+  - {link_type: issues, type: Bug reports}
+  - {link_type: search-comments, type: Bug reports}
 baod-rate:
+  - {link_type: pulls-author, type: Code}
+baodrate:
+  - {link_type: search-comments, type: Bug reports}
+  - {link_type: search-comments, type: Reviewed Pull Requests}
   - {link_type: pulls-author, type: Code}
 bdperkin:
   - {link_type: issues, type: Bug reports}
+brettcannon:
+  - {link_type: search-comments, type: Bug reports}
 brtknr:
   - {link_type: pulls-reviewed, type: Reviewed Pull Requests}
+brtkwr:
+  - {link_type: search-comments, type: Bug reports}
 casio:
   - {link_type: issues, type: Bug reports}
 cclauss:
@@ -70,8 +110,12 @@ chrisdecker1201:
   - {link_type: issues, type: Bug reports}
 clintonsteiner:
   - {link_type: issues, type: Bug reports}
+  - {link_type: search-comments, type: Bug reports}
+  - {link_type: pulls-author, type: Code}
+  - {link_type: search-comments, type: Reviewed Pull Requests}
 deadkex:
   - {link_type: search-discussions, type: Bug reports}
+  - {link_type: search-comments, type: Bug reports}
 dhrvjha:
   - {link_type: search-comments, type: Bug reports}
   - {link_type: pulls-author, type: Code}
@@ -79,6 +123,7 @@ dkeraudren:
   - {link_type: search-comments, type: Bug reports}
 dshemetov:
   - {link_type: issues, type: Bug reports}
+  - {link_type: search-comments, type: Bug reports}
 dsmanl:
   - {link_type: issues, type: Bug reports}
 dwt:
@@ -88,6 +133,9 @@ falkben:
   - {link_type: search-discussions, type: Bug reports}
 felixvd:
   - {link_type: pulls-author, type: Code}
+  - {link_type: issues, type: Bug reports}
+  - {link_type: search-comments, type: Bug reports}
+  - {link_type: search-comments, type: Reviewed Pull Requests}
 fizbin:
   - {link_type: issues, type: Bug reports}
 flying-sheep:
@@ -100,12 +148,20 @@ gergelypolonkai:
   - {link_type: issues, type: Bug reports}
 gesslerpd:
   - {link_type: issues, type: Bug reports}
+  - {link_type: search-comments, type: Bug reports}
 guettli:
   - {link_type: issues, type: Bug reports}
+  - {link_type: search-comments, type: Bug reports}
+haohu321:
+  - {link_type: issues, type: Bug reports}
+  - {link_type: search-comments, type: Bug reports}
 hauntsaninja:
   - {link_type: issues, type: Bug reports}
 hugovk:
   - {link_type: pulls-author, type: Code}
+  - {link_type: issues, type: Bug reports}
+  - {link_type: search-comments, type: Bug reports}
+  - {link_type: search-comments, type: Reviewed Pull Requests}
 ioggstream:
   - {link_type: search-comments, type: Bug reports}
 irynahryshanovich:
@@ -122,15 +178,20 @@ jasleen19:
   - {link_type: pulls-reviewed, type: Reviewed Pull Requests}
 jedie:
   - {link_type: issues, type: Bug reports}
+  - {link_type: search-comments, type: Bug reports}
+  - {link_type: pulls-author, type: Code}
 jenshnielsen:
   - {link_type: search, type: Bug reports}
 jsuit:
   - {link_type: search-discussions, type: Bug reports}
 jvacek:
   - {link_type: search, type: Bug reports}
+  - {link_type: issues, type: Bug reports}
+  - {link_type: search-comments, type: Bug reports}
 k-dominik:
   - {link_type: search-comments, type: Bug reports}
   - {link_type: search-discussions, type: Bug reports}
+  - {link_type: issues, type: Bug reports}
 kedhammar:
   - {link_type: search-discussions, type: Bug reports}
   - {link_type: issues, type: Bug reports}
@@ -148,6 +209,8 @@ markddavidoff:
 martinRenou:
   - {link_type: conda-issues, type: Code}
   - {link_type: pulls-reviewed, type: Reviewed Pull Requests}
+  - {link_type: search-comments, type: Bug reports}
+  - {link_type: search-comments, type: Reviewed Pull Requests}
 matclayton:
   - {link_type: issues, type: Bug reports}
 mayk0gan:
@@ -165,6 +228,9 @@ njhuffman:
   - {link_type: commits, type: Code}
 okuuva:
   - {link_type: search-comments, type: Bug reports}
+  - {link_type: issues, type: Bug reports}
+  - {link_type: pulls-author, type: Code}
+  - {link_type: search-comments, type: Reviewed Pull Requests}
 overratedpro:
   - {link_type: issues, type: Bug reports}
 philipgian:
@@ -173,19 +239,29 @@ phitoduck:
   - {link_type: issues, type: Bug reports}
 qubidt:
   - {link_type: issues, type: Bug reports}
+ranelpadon:
+  - {link_type: issues, type: Bug reports}
 rogalski:
   - {link_type: pulls-author, type: Code}
   - {link_type: issues, type: Bug reports}
+  - {link_type: search-comments, type: Bug reports}
 roniemartinez:
   - {link_type: issues, type: Bug reports}
 rossbar:
   - {link_type: issues, type: Bug reports}
 samoylovfp:
   - {link_type: pulls-reviewed, type: Reviewed Pull Requests}
+  - {link_type: search-comments, type: Bug reports}
 seweissman:
   - {link_type: issues, type: Bug reports}
+  - {link_type: search-comments, type: Bug reports}
 sgaist:
   - {link_type: pulls-author, type: Code}
+  - {link_type: issues, type: Bug reports}
+shane-kearns:
+  - {link_type: issues, type: Bug reports}
+  - {link_type: search-comments, type: Bug reports}
+  - {link_type: search-comments, type: Reviewed Pull Requests}
 shangxiao:
   - {link_type: pulls-author, type: Code}
   - {link_type: issues, type: Bug reports}
@@ -193,16 +269,23 @@ sherbie:
   - {link_type: pulls-reviewed, type: Reviewed Pull Requests}
 simgunz:
   - {link_type: search-comments, type: Reviewed Pull Requests}
+  - {link_type: search-discussions, type: Bug reports}
 simonf-dev:
   - {link_type: search-comments, type: Bug reports}
+  - {link_type: search-comments, type: Reviewed Pull Requests}
 soxofaan:
   - {link_type: pulls-author, type: Documentation}
 strzonnek:
   - {link_type: issues, type: Bug reports}
 talhajunaidd:
   - {link_type: commits, type: Code}
+  - {link_type: search-comments, type: Bug reports}
+  - {link_type: search-comments, type: Reviewed Pull Requests}
 tapted:
   - {link_type: issues, type: Bug reports}
+tehunter:
+  - {link_type: issues, type: Bug reports}
+  - {link_type: pulls-author, type: Code}
 tgross35:
   - {link_type: issues, type: Bug reports}
 tkolleh:
@@ -214,11 +297,13 @@ virtuald:
   - {link_type: issues, type: Bug reports}
 wasdee:
   - {link_type: issues, type: Bug reports}
+  - {link_type: search-comments, type: Bug reports}
 wjdp:
   - {link_type: issues, type: Bug reports}
   - {link_type: pulls-author, type: Documentation}
 wkentaro:
   - {link_type: issues, type: Bug reports}
+  - {link_type: pulls-author, type: Code}
 wnoise:
   - {link_type: issues, type: Bug reports}
 wpnbos:
@@ -230,3 +315,7 @@ yoursvivek:
   - {link_type: commits, type: Documentation}
 zachnorton4C:
   - {link_type: issues, type: Bug reports}
+zmeir:
+  - {link_type: search-comments, type: Bug reports}
+  - {link_type: issues, type: Bug reports}
+  - {link_type: search-comments, type: Reviewed Pull Requests}

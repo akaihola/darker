@@ -1,9 +1,11 @@
 """Tests for `darker.__main__.main` and the ``--stdin-filename`` option"""
 
-# pylint: disable=too-many-arguments,use-dict-literal
+# pylint: disable=no-member,redefined-outer-name,too-many-arguments,use-dict-literal
+
+from __future__ import annotations
 
 from io import BytesIO
-from typing import List, Optional
+from types import SimpleNamespace
 from unittest.mock import Mock, patch
 
 import pytest
@@ -16,6 +18,18 @@ from darkgraylib.testtools.git_repo_plugin import GitRepoFixture
 from darkgraylib.testtools.helpers import raises_if_exception
 
 pytestmark = pytest.mark.usefixtures("find_project_root_cache_clear")
+
+
+@pytest.fixture(scope="module")
+def main_stdin_filename_repo(request, tmp_path_factory):
+    """Git repository fixture for `test_main_stdin_filename`."""
+    with GitRepoFixture.context(request, tmp_path_factory) as repo:
+        yield SimpleNamespace(
+            root=repo.root,
+            paths=repo.add(
+                {"a.py": "original\n", "b.py": "original\n"}, commit="Initial commit"
+            ),
+        )
 
 
 @pytest.mark.kwparametrize(
@@ -135,24 +149,25 @@ pytestmark = pytest.mark.usefixtures("find_project_root_cache_clear")
     expect=0,
     expect_a_py="original\n",
 )
+@pytest.mark.parametrize("formatter", [[], ["--formatter=black"], ["--formatter=ruff"]])
 def test_main_stdin_filename(
-    git_repo: GitRepoFixture,
-    config_src: Optional[List[str]],
-    src: List[str],
-    stdin_filename: Optional[str],
-    revision: Optional[str],
+    main_stdin_filename_repo: SimpleNamespace,
+    config_src: list[str] | None,
+    src: list[str],
+    stdin_filename: str | None,
+    revision: str | None,
     expect: int,
     expect_a_py: str,
+    formatter: list[str],
 ) -> None:
     """Tests for `darker.__main__.main` and the ``--stdin-filename`` option"""
-    if config_src is not None:
-        configuration = {"tool": {"darker": {"src": config_src}}}
-        git_repo.add({"pyproject.toml": toml.dumps(configuration)})
-    paths = git_repo.add(
-        {"a.py": "original\n", "b.py": "original\n"}, commit="Initial commit"
+    repo = main_stdin_filename_repo
+    repo.paths["a.py"].write_text("modified  = 'a.py worktree'")
+    repo.paths["b.py"].write_text("modified  = 'b.py worktree'")
+    configuration = (
+        {} if config_src is None else {"tool": {"darker": {"src": config_src}}}
     )
-    paths["a.py"].write_text("modified  = 'a.py worktree'")
-    paths["b.py"].write_text("modified  = 'b.py worktree'")
+    (repo.root / "pyproject.toml").write_text(toml.dumps(configuration))
     arguments = src[:]
     if stdin_filename is not None:
         arguments.insert(0, f"--stdin-filename={stdin_filename}")
@@ -165,8 +180,8 @@ def test_main_stdin_filename(
     ), raises_if_exception(expect):
         # end of test setup
 
-        retval = darker.__main__.main(arguments)
+        retval = darker.__main__.main([*formatter, *arguments])
 
         assert retval == expect
-        assert paths["a.py"].read_text() == expect_a_py
-        assert paths["b.py"].read_text() == "modified  = 'b.py worktree'"
+        assert repo.paths["a.py"].read_text() == expect_a_py
+        assert repo.paths["b.py"].read_text() == "modified  = 'b.py worktree'"

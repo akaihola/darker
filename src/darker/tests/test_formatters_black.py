@@ -6,19 +6,21 @@ import re
 import sys
 from argparse import Namespace
 from dataclasses import dataclass, field
+from importlib import reload
 from pathlib import Path
-from typing import TYPE_CHECKING, Dict, Iterable, Iterator, Optional, Pattern
-from unittest.mock import ANY, Mock, call, patch
+from typing import TYPE_CHECKING
+from unittest.mock import patch
 
 import pytest
 import regex
-from black import Mode, Report, TargetVersion
-from pathspec import PathSpec
+from black import Mode, TargetVersion
 
-from darker import files
+import darker.formatters.black_formatter
+from darker.exceptions import DependencyError
 from darker.files import DEFAULT_EXCLUDE_RE, filter_python_files
-from darker.formatters import black_formatter
+from darker.formatters import create_formatter
 from darker.formatters.black_formatter import BlackFormatter
+from darker.tests.helpers import black_present
 from darkgraylib.config import ConfigurationError
 from darkgraylib.testtools.helpers import raises_or_matches
 from darkgraylib.utils import TextDocument
@@ -34,7 +36,7 @@ else:
     import tomli as tomllib
 
 if TYPE_CHECKING:
-    from darker.formatters.formatter_config import BlackConfig
+    from darker.formatters.formatter_config import BlackCompatibleConfig
 
 
 @dataclass
@@ -51,15 +53,47 @@ class RegexEquality:
         )
 
 
+@pytest.mark.parametrize("present", [True, False])
+def test_formatters_black_importable_with_and_without_isort(present):
+    """Ensure `darker.formatters.black_formatter` imports with/without ``black``."""
+    try:
+        with black_present(present=present):
+            # end of test setup, now import the module
+
+            # Import when `black` has been removed temporarily
+            reload(darker.formatters.black_formatter)
+
+    finally:
+        # Re-import after restoring `black` so other tests won't be affected
+        reload(darker.formatters.black_formatter)
+
+
+def test_formatter_without_black(caplog):
+    """`BlackFormatter` logs warnings with instructions if `black` is not installed."""
+    args = Namespace()
+    args.config = None
+    formatter = create_formatter("black")
+    with black_present(present=False), pytest.raises(
+        DependencyError, match="^Can't find the Black package$"
+    ):
+        # end of test setup, now exercise the Black formatter
+
+        formatter.read_config((), args)
+
+    assert [
+        record.msg for record in caplog.records if record.levelname == "WARNING"
+    ] == [
+        # warning 1:
+        "To re-format code using Black, install it using e.g."
+        " `pip install 'darker[black]'` or `pip install black`",
+        # warning 2:
+        "To use a different formatter or no formatter, select it on the command line"
+        " (e.g. `--formatter=none`) or configuration (e.g. `formatter=none`)",
+    ]
+
+
+@pytest.mark.parametrize("option_name_delimiter", ["-", "_"])
 @pytest.mark.kwparametrize(
-    dict(
-        config_path=None, config_lines=["line-length = 79"], expect={"line_length": 79}
-    ),
-    dict(
-        config_path="custom.toml",
-        config_lines=["line-length = 99"],
-        expect={"line_length": 99},
-    ),
     dict(
         config_lines=["skip-string-normalization = true"],
         expect={"skip_string_normalization": True},
@@ -78,23 +112,23 @@ class RegexEquality:
     ),
     dict(config_lines=["target-version ="], expect=tomllib.TOMLDecodeError()),
     dict(config_lines=["target-version = false"], expect=ConfigurationError()),
-    dict(config_lines=["target-version = 'py37'"], expect={"target_version": "py37"}),
+    dict(config_lines=["target-version = 'py37'"], expect={"target_version": (3, 7)}),
     dict(
-        config_lines=["target-version = ['py37']"], expect={"target_version": {"py37"}}
+        config_lines=["target-version = ['py37']"],
+        expect={"target_version": {(3, 7)}},
     ),
     dict(
         config_lines=["target-version = ['py39']"],
-        expect={"target_version": {"py39"}},
+        expect={"target_version": {(3, 9)}},
     ),
     dict(
         config_lines=["target-version = ['py37', 'py39']"],
-        expect={"target_version": {"py37", "py39"}},
+        expect={"target_version": {(3, 7), (3, 9)}},
     ),
     dict(
         config_lines=["target-version = ['py39', 'py37']"],
-        expect={"target_version": {"py39", "py37"}},
+        expect={"target_version": {(3, 9), (3, 7)}},
     ),
-    dict(config_lines=[r"include = '\.pyi$'"], expect={}),
     dict(
         config_lines=[r"exclude = '\.pyx$'"],
         expect={"exclude": RegexEquality("\\.pyx$")},
@@ -113,12 +147,16 @@ class RegexEquality:
     ),
     config_path=None,
 )
-def test_read_config(tmpdir, config_path, config_lines, expect):
-    """`BlackFormatter.read_config` reads Black config correctly from a TOML file."""
+def test_read_config(tmpdir, option_name_delimiter, config_path, config_lines, expect):
+    """``read_config()`` reads Black config correctly from a TOML file."""
+    # Test both hyphen and underscore delimited option names
+    config = "\n".join(
+        line.replace("-", option_name_delimiter) for line in config_lines
+    )
     tmpdir = Path(tmpdir)
     src = tmpdir / "src.py"
     toml = tmpdir / (config_path or "pyproject.toml")
-    toml.write_text("[tool.black]\n{}\n".format("\n".join(config_lines)))
+    toml.write_text(f"[tool.black]\n{config}\n")
     with raises_or_matches(expect, []):
         formatter = BlackFormatter()
         args = Namespace()
@@ -189,7 +227,7 @@ def test_filter_python_files(  # pylint: disable=too-many-arguments
     paths = {tmp_path / name for name in names}
     for path in paths:
         path.touch()
-    black_config: BlackConfig = {
+    black_config: BlackCompatibleConfig = {
         "exclude": regex.compile(exclude) if exclude else DEFAULT_EXCLUDE_RE,
         "extend_exclude": regex.compile(extend_exclude) if extend_exclude else None,
         "force_exclude": regex.compile(force_exclude) if force_exclude else None,
@@ -213,161 +251,6 @@ def test_filter_python_files(  # pylint: disable=too-many-arguments
     assert result == expect_paths
 
 
-def make_mock_gen_python_files_black_21_7b1_dev8():
-    """Create `gen_python_files` mock for Black 21.7b1.dev8+ge76adbe
-
-    Also record the call made to the mock function for test verification.
-
-    This revision didn't yet have the `verbose` and `quiet` parameters.
-
-    """
-    calls = Mock()
-
-    # pylint: disable=unused-argument
-    def gen_python_files(
-        paths: Iterable[Path],
-        root: Path,
-        include: Pattern[str],
-        exclude: Pattern[str],
-        extend_exclude: Optional[Pattern[str]],
-        force_exclude: Optional[Pattern[str]],
-        report: Report,
-        gitignore: Optional[PathSpec],
-    ) -> Iterator[Path]:
-        calls.gen_python_files = call(gitignore=gitignore)
-        for _ in []:
-            yield Path()
-
-    return gen_python_files, calls
-
-
-def make_mock_gen_python_files_black_21_7b1_dev9():
-    """Create `gen_python_files` mock for Black 21.7b1.dev9+gb1d0601
-
-    Also record the call made to the mock function for test verification.
-
-    This revision added `verbose` and `quiet` parameters to `gen_python_files`.
-
-    """
-    calls = Mock()
-
-    # pylint: disable=unused-argument
-    def gen_python_files(
-        paths: Iterable[Path],
-        root: Path,
-        include: Pattern[str],
-        exclude: Pattern[str],
-        extend_exclude: Optional[Pattern[str]],
-        force_exclude: Optional[Pattern[str]],
-        report: Report,
-        gitignore: Optional[PathSpec],
-        *,
-        verbose: bool,
-        quiet: bool,
-    ) -> Iterator[Path]:
-        calls.gen_python_files = call(
-            gitignore=gitignore,
-            verbose=verbose,
-            quiet=quiet,
-        )
-        for _ in []:
-            yield Path()
-
-    return gen_python_files, calls
-
-
-def make_mock_gen_python_files_black_22_10_1_dev19():
-    """Create `gen_python_files` mock for Black 22.10.1.dev19+gffaaf48
-
-    Also record the call made to the mock function for test verification.
-
-    This revision renamed the `gitignore` parameter to `gitignore_dict`.
-
-    """
-    calls = Mock()
-
-    # pylint: disable=unused-argument
-    def gen_python_files(
-        paths: Iterable[Path],
-        root: Path,
-        include: Pattern[str],
-        exclude: Pattern[str],
-        extend_exclude: Optional[Pattern[str]],
-        force_exclude: Optional[Pattern[str]],
-        report: Report,
-        gitignore_dict: Optional[Dict[Path, PathSpec]],
-        *,
-        verbose: bool,
-        quiet: bool,
-    ) -> Iterator[Path]:
-        calls.gen_python_files = call(
-            gitignore_dict=gitignore_dict,
-            verbose=verbose,
-            quiet=quiet,
-        )
-        for _ in []:
-            yield Path()
-
-    return gen_python_files, calls
-
-
-@pytest.mark.kwparametrize(
-    dict(
-        make_mock=make_mock_gen_python_files_black_21_7b1_dev8,
-        expect={"gitignore": None},
-    ),
-    dict(
-        make_mock=make_mock_gen_python_files_black_21_7b1_dev9,
-        expect={"gitignore": None, "verbose": False, "quiet": False},
-    ),
-    dict(
-        make_mock=make_mock_gen_python_files_black_22_10_1_dev19,
-        expect={"gitignore_dict": {}, "verbose": False, "quiet": False},
-    ),
-)
-def test_filter_python_files_gitignore(make_mock, tmp_path, expect):
-    """`filter_python_files` uses per-Black-version params to `gen_python_files`"""
-    gen_python_files, calls = make_mock()
-    with patch.object(files, "gen_python_files", gen_python_files):
-        # end of test setup
-
-        _ = filter_python_files(set(), tmp_path, BlackFormatter())
-
-    assert calls.gen_python_files.kwargs == expect
-
-
-@pytest.mark.parametrize("encoding", ["utf-8", "iso-8859-1"])
-@pytest.mark.parametrize("newline", ["\n", "\r\n"])
-def test_run(encoding, newline):
-    """Running Black through its Python internal API gives correct results"""
-    src = TextDocument.from_lines(
-        [f"# coding: {encoding}", "print ( 'touché' )"],
-        encoding=encoding,
-        newline=newline,
-    )
-
-    result = BlackFormatter().run(src)
-
-    assert result.lines == (
-        f"# coding: {encoding}",
-        'print("touché")',
-    )
-    assert result.encoding == encoding
-    assert result.newline == newline
-
-
-@pytest.mark.parametrize("newline", ["\n", "\r\n"])
-def test_run_always_uses_unix_newlines(newline):
-    """Content is always passed to Black with Unix newlines"""
-    src = TextDocument.from_str(f"print ( 'touché' ){newline}")
-    with patch.object(black_formatter, "format_str") as format_str:
-        format_str.return_value = 'print("touché")\n'
-
-        _ = BlackFormatter().run(src)
-
-    format_str.assert_called_once_with("print ( 'touché' )\n", mode=ANY)
-
-
 def test_run_ignores_excludes():
     """Black's exclude configuration is ignored by `BlackFormatter.run`."""
     src = TextDocument.from_str("a=1\n")
@@ -378,57 +261,35 @@ def test_run_ignores_excludes():
         "force_exclude": regex.compile(r".*"),
     }
 
-    result = formatter.run(src)
+    result = formatter.run(src, Path("a.py"))
 
     assert result.string == "a = 1\n"
-
-
-@pytest.mark.parametrize(
-    "src_content, expect",
-    [
-        ("", ""),
-        ("\n", "\n"),
-        ("\r\n", "\r\n"),
-        (" ", ""),
-        ("\t", ""),
-        (" \t", ""),
-        (" \t\n", "\n"),
-        (" \t\r\n", "\r\n"),
-    ],
-)
-def test_run_all_whitespace_input(src_content, expect):
-    """All-whitespace files are reformatted correctly"""
-    src = TextDocument.from_str(src_content)
-
-    result = BlackFormatter().run(src)
-
-    assert result.string == expect
 
 
 @pytest.mark.kwparametrize(
     dict(black_config={}),
     dict(
-        black_config={"target_version": "py37"},
+        black_config={"target_version": (3, 7)},
         expect_target_versions={TargetVersion.PY37},
     ),
     dict(
-        black_config={"target_version": "py39"},
+        black_config={"target_version": (3, 9)},
         expect_target_versions={TargetVersion.PY39},
     ),
     dict(
-        black_config={"target_version": {"py37"}},
+        black_config={"target_version": {(3, 7)}},
         expect_target_versions={TargetVersion.PY37},
     ),
     dict(
-        black_config={"target_version": {"py39"}},
+        black_config={"target_version": {(3, 9)}},
         expect_target_versions={TargetVersion.PY39},
     ),
     dict(
-        black_config={"target_version": {"py37", "py39"}},
+        black_config={"target_version": {(3, 7), (3, 9)}},
         expect_target_versions={TargetVersion.PY37, TargetVersion.PY39},
     ),
     dict(
-        black_config={"target_version": {"py39", "py37"}},
+        black_config={"target_version": {(3, 9), (3, 7)}},
         expect_target_versions={TargetVersion.PY37, TargetVersion.PY39},
     ),
     dict(
@@ -472,14 +333,14 @@ def test_run_configuration(
 ):
     """`BlackFormatter.run` passes correct configuration to Black."""
     src = TextDocument.from_str("import  os\n")
-    with patch.object(black_formatter, "format_str") as format_str, raises_or_matches(
-        expect, []
-    ) as check:
+    with patch(
+        "darker.formatters.black_wrapper.format_str"
+    ) as format_str, raises_or_matches(expect, []) as check:
         format_str.return_value = "import os\n"
         formatter = BlackFormatter()
         formatter.config = black_config
 
-        check(formatter.run(src))
+        check(formatter.run(src, Path("a.py")))
 
         assert format_str.call_count == 1
         mode = format_str.call_args[1]["mode"]

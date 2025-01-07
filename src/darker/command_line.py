@@ -5,8 +5,6 @@ from argparse import ArgumentParser, Namespace
 from functools import partial
 from typing import List, Optional, Tuple
 
-from black import TargetVersion
-
 import darkgraylib.command_line
 from darker import help as hlp
 from darker.config import (
@@ -15,6 +13,7 @@ from darker.config import (
     DarkerConfig,
     OutputMode,
 )
+from darker.configuration.target_version import TargetVersion
 from darker.formatters import get_formatter_names
 from darker.version import __version__
 from darkgraylib.command_line import add_parser_argument

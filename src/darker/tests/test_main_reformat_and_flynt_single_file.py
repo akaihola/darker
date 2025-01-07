@@ -1,6 +1,6 @@
 """Unit tests for `darker.__main__._reformat_and_flynt_single_file`."""
 
-# pylint: disable=too-many-arguments,use-dict-literal
+# pylint: disable=no-member,redefined-outer-name,too-many-arguments,use-dict-literal
 
 from pathlib import Path
 from textwrap import dedent
@@ -10,9 +10,22 @@ import pytest
 from darker.__main__ import _reformat_and_flynt_single_file
 from darker.config import Exclusions
 from darker.formatters.black_formatter import BlackFormatter
+from darker.formatters.ruff_formatter import RuffFormatter
 from darker.git import EditedLinenumsDiffer
 from darkgraylib.git import RevisionRange
+from darkgraylib.testtools.git_repo_plugin import GitRepoFixture
 from darkgraylib.utils import TextDocument
+
+
+@pytest.fixture(scope="module")
+def reformat_and_flynt_single_file_repo(request, tmp_path_factory):
+    """Git repository fixture for `test_reformat_and_flynt_single_file`."""
+    with GitRepoFixture.context(request, tmp_path_factory) as repo:
+        repo.add(
+            {"file.py": "import  original\nprint( original )\n"},
+            commit="Initial commit",
+        )
+        yield repo
 
 
 @pytest.mark.kwparametrize(
@@ -57,36 +70,35 @@ from darkgraylib.utils import TextDocument
     exclusions=Exclusions(),
     expect="import  original\nprint( original )\n",
 )
+@pytest.mark.parametrize("formatter_class", [BlackFormatter, RuffFormatter])
 def test_reformat_and_flynt_single_file(
-    git_repo,
+    reformat_and_flynt_single_file_repo,
     relative_path,
     rev2_content,
     rev2_isorted,
     exclusions,
     expect,
+    formatter_class,
 ):
     """Test for `_reformat_and_flynt_single_file`."""
-    git_repo.add(
-        {"file.py": "import  original\nprint( original )\n"}, commit="Initial commit"
-    )
+    repo = reformat_and_flynt_single_file_repo
     result = _reformat_and_flynt_single_file(
-        git_repo.root,
+        repo.root,
         Path(relative_path),
         Path("file.py"),
         exclusions,
-        EditedLinenumsDiffer(
-            git_repo.root, RevisionRange(rev1="HEAD", rev2=":WORKTREE")
-        ),
+        EditedLinenumsDiffer(repo.root, RevisionRange(rev1="HEAD", rev2=":WORKTREE")),
         TextDocument(rev2_content),
         TextDocument(rev2_isorted),
         has_isort_changes=False,
-        formatter=BlackFormatter(),
+        formatter=formatter_class(),
     )
 
     assert result.string == expect
 
 
-def test_blacken_and_flynt_single_file_common_ancestor(git_repo):
+@pytest.mark.parametrize("formatter_class", [BlackFormatter, RuffFormatter])
+def test_blacken_and_flynt_single_file_common_ancestor(git_repo, formatter_class):
     """`_blacken_and_flynt_single_file` diffs to common ancestor of ``rev1...rev2``."""
     a_py_initial = dedent(
         """\
@@ -143,7 +155,7 @@ def test_blacken_and_flynt_single_file_common_ancestor(git_repo):
         rev2_content=worktree,
         rev2_isorted=worktree,
         has_isort_changes=False,
-        formatter=BlackFormatter(),
+        formatter=formatter_class(),
     )
 
     assert result.lines == (
@@ -155,7 +167,8 @@ def test_blacken_and_flynt_single_file_common_ancestor(git_repo):
     )
 
 
-def test_reformat_single_file_docstring(git_repo):
+@pytest.mark.parametrize("formatter_class", [BlackFormatter, RuffFormatter])
+def test_reformat_single_file_docstring(git_repo, formatter_class):
     """`_blacken_and_flynt_single_file()` handles docstrings as one contiguous block."""
     initial = dedent(
         '''\
@@ -202,7 +215,7 @@ def test_reformat_single_file_docstring(git_repo):
         rev2_content=TextDocument.from_str(modified),
         rev2_isorted=TextDocument.from_str(modified),
         has_isort_changes=False,
-        formatter=BlackFormatter(),
+        formatter=formatter_class(),
     )
 
     assert result.lines == tuple(expect.splitlines())

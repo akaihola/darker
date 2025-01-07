@@ -13,11 +13,11 @@ The first line will be reformatted by Black, and the second left intact::
     ...     ]
     ... )
 
-First, :func:`run_black` uses Black to reformat the contents of a given file.
+First, `BlackFormatter.run` uses Black to reformat the contents of a given file.
 Reformatted lines are returned e.g.::
 
     >>> from darker.formatters.black_formatter import BlackFormatter
-    >>> dst = BlackFormatter().run(src_content)
+    >>> dst = BlackFormatter().run(src_content, src)
     >>> dst.lines
     ('for i in range(5):', '    print(i)', 'print("done")')
 
@@ -39,26 +39,24 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, TypedDict
 
-from black import FileMode as Mode
-from black import (
-    TargetVersion,
-    format_str,
-    parse_pyproject_toml,
-    re_compile_maybe_verbose,
-)
-
 from darker.files import find_pyproject_toml
-from darker.formatters.base_formatter import BaseFormatter
+from darker.formatters.base_formatter import BaseFormatter, HasConfig
+from darker.formatters.formatter_config import (
+    BlackCompatibleConfig,
+    read_black_compatible_cli_args,
+    validate_target_versions,
+)
 from darkgraylib.config import ConfigurationError
 from darkgraylib.utils import TextDocument
 
 if TYPE_CHECKING:
     from argparse import Namespace
+    from pathlib import Path
     from typing import Pattern
 
-    from darker.formatters.formatter_config import BlackConfig
+    from black import FileMode as Mode
+    from black import TargetVersion
 
-__all__ = ["Mode"]
 
 logger = logging.getLogger(__name__)
 
@@ -74,14 +72,13 @@ class BlackModeAttributes(TypedDict, total=False):
     preview: bool
 
 
-class BlackFormatter(BaseFormatter):
+class BlackFormatter(BaseFormatter, HasConfig[BlackCompatibleConfig]):
     """Black code formatter plugin interface."""
 
-    def __init__(self) -> None:  # pylint: disable=super-init-not-called
-        """Initialize the Black code re-formatter plugin."""
-        self.config: BlackConfig = {}
+    config: BlackCompatibleConfig  # type: ignore[assignment]
 
     name = "black"
+    config_section = "tool.black"
 
     def read_config(self, src: tuple[str, ...], args: Namespace) -> None:
         """Read Black configuration from ``pyproject.toml``.
@@ -96,6 +93,14 @@ class BlackFormatter(BaseFormatter):
         self._read_cli_args(args)
 
     def _read_config_file(self, config_path: str) -> None:  # noqa: C901
+        # Local import so Darker can be run without Black installed.
+        # Do error handling here. This is the first Black importing method being hit.
+        # pylint: disable=import-outside-toplevel
+        from darker.formatters.black_wrapper import (
+            parse_pyproject_toml,
+            re_compile_maybe_verbose,
+        )
+
         raw_config = parse_pyproject_toml(config_path)
         if "line_length" in raw_config:
             self.config["line_length"] = raw_config["line_length"]
@@ -112,10 +117,15 @@ class BlackFormatter(BaseFormatter):
         if "target_version" in raw_config:
             target_version = raw_config["target_version"]
             if isinstance(target_version, str):
-                self.config["target_version"] = target_version
+                self.config["target_version"] = (
+                    int(target_version[2]),
+                    int(target_version[3:]),
+                )
             elif isinstance(target_version, list):
-                # Convert TOML list to a Python set
-                self.config["target_version"] = set(target_version)
+                # Convert TOML list to a Python set of int-tuples
+                self.config["target_version"] = {
+                    (int(v[2]), int(v[3:])) for v in target_version
+                }
             else:
                 message = (
                     f"Invalid target-version = {target_version!r} in {config_path}"
@@ -133,26 +143,24 @@ class BlackFormatter(BaseFormatter):
             )
 
     def _read_cli_args(self, args: Namespace) -> None:
-        if args.config:
-            self.config["config"] = args.config
-        if getattr(args, "line_length", None):
-            self.config["line_length"] = args.line_length
-        if getattr(args, "target_version", None):
-            self.config["target_version"] = {args.target_version}
-        if getattr(args, "skip_string_normalization", None) is not None:
-            self.config["skip_string_normalization"] = args.skip_string_normalization
-        if getattr(args, "skip_magic_trailing_comma", None) is not None:
-            self.config["skip_magic_trailing_comma"] = args.skip_magic_trailing_comma
-        if getattr(args, "preview", None):
-            self.config["preview"] = args.preview
+        return read_black_compatible_cli_args(args, self.config)
 
-    def run(self, content: TextDocument) -> TextDocument:
+    def run(
+        self, content: TextDocument, path_from_cwd: Path  # noqa: ARG002
+    ) -> TextDocument:
         """Run the Black code re-formatter for the Python source code given as a string.
 
         :param content: The source code
+        :param path_from_cwd: The path to the source code file being reformatted, either
+                              absolute or relative to the current working directory
         :return: The reformatted content
 
         """
+        # Local import so Darker can be run without Black installed.
+        # No need for error handling, already done in `BlackFormatter.read_config`.
+        # pylint: disable=import-outside-toplevel
+        from darker.formatters.black_wrapper import format_str
+
         contents_for_black = content.string_with_newline("\n")
         if contents_for_black.strip():
             dst_contents = format_str(
@@ -173,19 +181,24 @@ class BlackFormatter(BaseFormatter):
         # Collect relevant Black configuration options from ``self.config`` in order to
         # pass them to Black's ``format_str()``. File exclusion options aren't needed
         # since at this point we already have a single file's content to work on.
+
+        # Local import so Darker can be run without Black installed.
+        # No need for error handling, already done in `BlackFormatter.read_config`.
+        # pylint: disable=import-outside-toplevel
+        from darker.formatters.black_wrapper import FileMode as Mode
+        from darker.formatters.black_wrapper import TargetVersion
+
         mode = BlackModeAttributes()
         if "line_length" in self.config:
             mode["line_length"] = self.config["line_length"]
         if "target_version" in self.config:
-            if isinstance(self.config["target_version"], set):
-                target_versions_in = self.config["target_version"]
-            else:
-                target_versions_in = {self.config["target_version"]}
-            all_target_versions = {tgt_v.name.lower(): tgt_v for tgt_v in TargetVersion}
-            bad_target_versions = target_versions_in - set(all_target_versions)
-            if bad_target_versions:
-                message = f"Invalid target version(s) {bad_target_versions}"
-                raise ConfigurationError(message)
+            all_target_versions = {
+                (int(tgt_v.name[2]), int(tgt_v.name[3:])): tgt_v
+                for tgt_v in TargetVersion
+            }
+            target_versions_in = validate_target_versions(
+                self.config["target_version"], all_target_versions
+            )
             mode["target_versions"] = {
                 all_target_versions[n] for n in target_versions_in
             }
