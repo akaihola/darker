@@ -53,18 +53,7 @@ runs:
       uses: actions/setup-python@v5
       with:
         python-version: '3.x'
-    - name: Get pip cache dir
-      id: pip-cache
-      run: echo "dir=$(pip cache dir)" >> $GITHUB_OUTPUT
-      shell: bash
-    - name: Cache Darker environment
-      uses: actions/cache@v4
-      with:
-        path: |
-          ${{ github.action_path }}/.darker-env
-          ${{ steps.pip-cache.outputs.dir }}
-        key: ${{ runner.os }}-darker-${{ inputs.version }}-lint-${{ inputs.lint }}
-        save-always: true
+        cache: 'pip'
     - name: Install dependencies
       run: |
         pip install pip-requirements-parser
