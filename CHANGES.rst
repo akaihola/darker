@@ -5,6 +5,7 @@ These features will be included in the next release:
 
 Added
 -----
+- Add readthedocs site
 - New exit codes 2 for file not found, 3 for invalid command line arguments, 4 for
   missing dependencies and 123 for unknown failures.
 - Display exit code in parentheses after error message.
