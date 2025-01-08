@@ -1,12 +1,18 @@
 """Helper functions for unit tests"""
 
+from __future__ import annotations
+
 import sys
 from contextlib import contextmanager
 from types import ModuleType
-from typing import Generator, Optional
+from typing import TYPE_CHECKING, Generator, Optional
 from unittest.mock import patch
 
 from darkgraylib.testtools.git_repo_plugin import GitRepoFixture
+
+if TYPE_CHECKING:
+    import pytest
+    from _pytest.fixtures import SubRequest
 
 
 @contextmanager
@@ -56,7 +62,9 @@ def flynt_present(present: bool) -> Generator[None, None, None]:
 
 
 @contextmanager
-def unix_and_windows_newline_repos(request, tmp_path_factory):
+def unix_and_windows_newline_repos(
+    request: SubRequest, tmp_path_factory: pytest.TempPathFactory
+) -> Generator[dict[str, GitRepoFixture], None, None]:
     """Create temporary repositories for Unix and windows newlines separately."""
     with GitRepoFixture.context(
         request, tmp_path_factory

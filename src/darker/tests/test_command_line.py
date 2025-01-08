@@ -1,6 +1,6 @@
 """Unit tests for `darker.command_line` and `darker.__main__`."""
 
-# pylint: disable=too-many-arguments,too-many-locals
+# pylint: disable=too-many-arguments,too-many-positional-arguments,too-many-locals
 # pylint: disable=no-member,redefined-outer-name,unused-argument,use-dict-literal
 
 from __future__ import annotations
