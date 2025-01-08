@@ -9,16 +9,10 @@ Added
   missing dependencies and 123 for unknown failures.
 - Display exit code in parentheses after error message.
 - Do not reformat renamed files.
-- CI workflow to post recent project activity in a discussion. Triggered manually.
-- CI "future" test now tests against ``main`` of Darkgraylib_ and pyupgrade_ in addition
-  to Black_, Flynt_ and isort_.
 - The ``--preview`` configuration flag is now supported in the configuration files for
   Darker and Black
-- Prevent Pylint from updating beyond version 3.2.7 due to dropped Python 3.8 support.
 - The ``--formatter=black`` option (the default) has been added in preparation for
   future formatters.
-- Invoking Black is now implemented as a plugin. This allows for easier integration of
-  other formatters in the future. There's also a dummy ``none`` formatter plugin.
 - ``--formatter=none`` now skips running Black. This is useful when you only want to run
   Isort or Flynt_.
 - Black_ is no longer installed by default. Use ``pip install 'darker[black]'`` to get
@@ -36,23 +30,29 @@ Removed
 
 Fixed
 -----
-- Update ``darkgray-dev-tools`` for Pip >= 24.1 compatibility.
 - Update to Darkgraylib 2.2.0 to fix the configuration dump, the output of
   ``--version``, the Git "dubious ownership" issue, and source code line splitting
   (see below).
 - In the configuration dump printed when ``-vv`` verbosity is used, the configuration
   section is now correctly named ``[tool.darker]`` instead of ``[tool.darkgraylib]``.
-- Pass Graylint version to `~darkgraylib.command_line.make_argument_parser` to make
+- Pass Darker version to `~darkgraylib.command_line.make_argument_parser` to make
   ``--version`` display the correct version number.
 - Pass full environment to Git to avoid the "dubious ownership" error.
-- Work around a `pathlib.Path.resolve` bug in Python 3.8 and 3.9 on Windows.
-  The work-around should be removed when Python 3.8 and 3.9 are no longer supported.
+- Work around a `pathlib.Path.resolve` bug in Python 3.9 on Windows.
+  The work-around should be removed when Python 3.9 is no longer supported.
 - Add missing configuration flag for Flynt_.
 - Only split source code lines at Python's universal newlines (LF, CRLF, CR).
 - The Darker GitHub action now respects the ``working-directory`` input option.
 
 Internal
 --------
+- CI workflow to post recent project activity in a discussion. Triggered manually.
+- CI "future" test now tests against ``main`` of Darkgraylib_ in addition to Black_,
+  Flynt_ and isort_.
+- Prevent Pylint from updating beyond version 3.2.7 due to dropped Python 3.8 support.
+- Invoking Black is now implemented as a plugin. This allows for easier integration of
+  other formatters in the future. There's also a dummy ``none`` formatter plugin.
+- Update ``darkgray-dev-tools`` for Pip >= 24.1 compatibility.
 - Drop dependency on ``pip`` and ``distutils`` in the weekly CI "future" test. Use
   ``packaging`` instead.
 
@@ -67,11 +67,6 @@ Added
   deprecated and will be removed in Darker 3.0. A deprecation warning is now displayed
   if they are still used.
 
-Removed
--------
-- The ``release_tools/update_contributors.py`` script was moved to the
-  ``darkgray-dev-tools`` repository.
-
 Fixed
 -----
 - A dash (``-``) is now allowed as the single source filename when using the
@@ -82,32 +77,37 @@ Fixed
 
 __ https://github.com/microsoft/vscode-black-formatter
 
+Internal
+-------
+- The ``release_tools/update_contributors.py`` script was moved to the
+  ``darkgray-dev-tools`` repository.
+
 
 2.1.0_ - 2024-03-27
 ===================
 
 Added
 -----
-- Mark the Darker package as annotated with type hints.
-- Update to ``ioggstream/bandit-report-artifacts@v1.7.4`` in CI.
 - Support for Python 3.12 in the package metadata and the CI build.
 - Update to Black 24.2.x and isort 5.13.x in pre-commit configuration.
-- Test against Flynt_ ``master`` branch in the CI build.
-- Update to Darkgraylib 1.1.1 to get fixes for README formatting.
 - Improved "How does it work?" section in the README.
 - README section on limitations and work-arounds.
 
-Removed
--------
+Fixed
+-----
+- Escape pipe symbols (``|``) in the README to avoid RestructuredText rendering issues.
+- Compatibility with Flynt 0.78.0 and newer.
+
+Internal
+--------
+- Mark the Darker package as annotated with type hints.
+- Update to ``ioggstream/bandit-report-artifacts@v1.7.4`` in CI.
+- Test against Flynt_ ``master`` branch in the CI build.
+- Update to Darkgraylib 1.1.1 to get fixes for README formatting.
 - ``bump_version.py`` is now in the separate ``darkgray-dev-tools`` repository.
 - Skip tests on Python 3.13-dev in Windows and macOS. C extension builds are failing,
   this exclusion is to be removed when Python 3.13 has been removed.
-
-Fixed
------
 - Bump-version pre-commit hook pattern: ``rev: vX.Y.Z`` instead of ``X.Y.Z``.
-- Escape pipe symbols (``|``) in the README to avoid RestructuredText rendering issues.
-- Compatibility with Flynt 0.78.0 and newer.
 
 
 2.0.0_ - 2024-03-13
@@ -121,29 +121,31 @@ Added
 - The minimum Ruff_ version is now 0.0.292. Its configuration in ``pyproject.toml`` has
   been updated accordingly.
 - The contribution guide now gives better instructions for reformatting and linting.
+
+Removed
+-------
+- Drop support for Python 3.7 which has reached end of life.
+- Move linting support to Graylint_ but keep the ``-L``/``--lint`` option for now.
+
+Fixed
+-----
+- `Black 24.2.0`_ compatibility by using the new `darkgraylib.files.find_project_root`
+  instead of the implementation in Black.
+- `Black 24.2.1`_ compatibility by detecting the new `black.parsing.ASTSafetyError`
+  instead of `AssertionError` when Black>=24.2.1 is in use.
+- Work around some situations where Windows errors due to a too long Git command line.
+
+Internal
+--------
 - Separate GitHub workflow for checking code formatting and import sorting.
 - Also check the action, release tools and ``setup.py`` in the build workflows.
 - Require Darkgraylib 1.0.x and Graylint 1.0.x.
 - Update 3rd party GitHub actions to avoid using deprecated NodeJS versions.
 - CI build now shows a diff between output of ``darker --help`` and its output as
   included ``README.rst`` in case the two differ.
-
-Removed
--------
-- Drop support for Python 3.7 which has reached end of life.
-- ``shlex_join`` compatibility wrapper for Python 3.7 and earlier.
-- Move linting support to Graylint_ but keep the ``-L``/``--lint`` option for now.
 - Move code used by both Darker and Graylint_ into the Darkgraylib_ library.
 - Don't run pytest-darker_ in the CI build. It's lagging quite a bit behind.
-
-Fixed
------
-- `Black 24.2.0`_ compatibility by using the new `darkgraylib.files.find_project_root`
-  instead of the implementation in Black.
-- `Black 24.2.1`_ compatibility by detecting the new `black.parsing.ASTSafetyError` instead
-  of `AssertionError` when Black>=24.2.1 is in use.
 - Make sure NixOS_ builds have good SSL certificates installed.
-- Work around some situations where Windows errors due to a too long Git command line.
 
 
 1.7.3_ - 2024-02-27
@@ -152,15 +154,18 @@ Fixed
 Added
 -----
 - Limit Black_ to versions before 24.2 until the incompatibility is resolved.
-- Stop testing on Python 3.7. Note: dropping support to be done in a separate PR.
 
 Fixed
 -----
 - Typos in README.
+- Fix compatibility with Pygments 2.4.0 and 2.17.2 in unit tests.
+
+Internal
+--------
+- Stop testing on Python 3.7. Note: dropping support to be done in a separate PR.
 - Usage of the Black_ ``gen_python_files(gitignore_dict=...)`` parameter.
 - ``show_capture`` option in Pytest configuration.
 - Ignore some linter messages by recent versions of linters used in CI builds.
-- Fix compatibility with Pygments 2.4.0 and 2.17.2 in unit tests.
 - Update `actions/checkout@v3` to `actions/checkout@v4` in CI builds.
 
 
@@ -172,9 +177,6 @@ Added
 - Add a ``News`` link on the PyPI page.
 - Allow ``-`` as the single source filename when using the ``--stdin-filename`` option.
   This makes the option compatible with Black_.
-- Upgrade NixOS_ tests to use Python 3.11 on both Linux and macOS.
-- Move ``git_repo`` fixture to ``darkgraylib``.
-- In CI builds, show a diff of changed ``--help`` output if ``README.rst`` is outdated.
 
 Fixed
 -----
@@ -185,26 +187,25 @@ Fixed
 - Use the original repository working directory name as the name of the temporary
   directory for getting the linter baseline. This avoids issues with Mypy_ when there's
   an ``__init__.py`` in the repository root.
-- Upgrade ``install-nix-action`` to version 22 in CI to fix an issue with macOS.
 - Allow ``--target-version=py312`` since newest Black_ supports it.
+
+Internal
+--------
+- Upgrade NixOS_ tests to use Python 3.11 on both Linux and macOS.
+- Move ``git_repo`` fixture to ``darkgraylib``.
+- In CI builds, show a diff of changed ``--help`` output if ``README.rst`` is outdated.
+- Upgrade ``install-nix-action`` to version 22 in CI to fix an issue with macOS.
 - Allow a comment in milestone titles in the ``bump_version`` script.
 
 
 1.7.1_ - 2023-03-26
 ===================
 
-Added
------
-- Prefix GitHub milestones with ``Darker`` for clarity since we'll have two additional
-  related repositories soon in the same project.
-
 Fixed
 -----
 - Use ``git worktree`` to create a repository checkout for baseline linting. This avoids
   issues with the previous ``git clone`` and ``git checkout`` based approach.
 - Disallow Flynt_ version 0.78 and newer to avoid an internal API incompatibility.
-- In CI builds, run the ``commit-range`` action from the current checkout instead of
-  pointing to a release tag. This fixes workflows when in a release branch.
 - Linting fixes: Use ``stacklevel=2`` in ``warnings.warn()`` calls as suggested by
   Flake8_; skip Bandit check for virtualenv creation in the GitHub Action;
   use ``ignore[method-assign]`` as suggested by Mypy_.
@@ -212,6 +213,13 @@ Fixed
   (e.g. ``line-length = 88``) are now supported.
 - In debug log output mode, configuration options are now always spelled with hyphens
   instead of underscores.
+
+Internal
+--------
+- Prefix GitHub milestones with ``Darker`` for clarity since we'll have two additional
+  related repositories soon in the same project.
+- In CI builds, run the ``commit-range`` action from the current checkout instead of
+  pointing to a release tag. This fixes workflows when in a release branch.
 
 
 1.7.0_ - 2023-02-11
@@ -221,9 +229,6 @@ Added
 -----
 - ``-f`` / ``--flynt`` option for converting old-style format strings to f-strings as
   supported in Python 3.6+.
-- Make unit tests compatible with ``pytest --log-cli-level==DEBUG``.
-  Doctests are still incompatible due to
-  `pytest#5908 <https://github.com/pytest-dev/pytest/issues/5908>`_.
 - Black_'s ``target-version =`` configuration file option and ``-t`` /
   ``--target-version`` command line option
 - In ``README.rst``, link to GitHub searches which find public repositories that
@@ -235,19 +240,25 @@ Added
 - ``--stdin-filename=PATH`` now allows reading contents of a single file from standard
   input. This also makes ``:STDIN:``, a new magic value, the default ``rev2`` for
   ``--revision``.
-- Add configuration for ``darglint`` and ``flake8-docstrings``, preparing for enabling
-  those linters in CI builds.
 
 Fixed
 -----
+- Pass Git errors to stderr correctly both in raw and encoded subprocess output mode.
+- Split and join command lines using ``shlex`` from the Python standard library. This
+  deals with quoting correctly.
+
+Internal
+--------
+- Make unit tests compatible with ``pytest --log-cli-level==DEBUG``.
+  Doctests are still incompatible due to
+  `pytest#5908 <https://github.com/pytest-dev/pytest/issues/5908>`_.
+- Add configuration for ``darglint`` and ``flake8-docstrings``, preparing for enabling
+  those linters in CI builds.
 - Compatibility of highlighting unit tests with Pygments 2.14.0.
 - In the CI test workflow, don't use environment variables to add a Black_ version
   constraint to the ``pip`` command. This fixes the Windows builds.
-- Pass Git errors to stderr correctly both in raw and encoded subprocess output mode.
 - Add a work-around for cleaning up temporary directories. Needed for Python 3.7 on
   Windows.
-- Split and join command lines using ``shlex`` from the Python standard library. This
-  deals with quoting correctly.
 - Configure ``coverage`` to use relative paths in the Darker repository. This enables
   use of ``cov_to_lint.py``
 - Satisfy Pylint's ``use-dict-literal`` check in Darker's code base.
@@ -267,31 +278,34 @@ Added
 
 Fixed
 -----
-- Pin Black_ to version 22.12.0 in the CI build to ensure consistent formatting of
-  Darker's own code base.
 - Fix compatibility with ``black-22.10.1.dev19+gffaaf48`` and later – an argument was
   replaced in ``black.files.gen_python_files()``.
-- Fix tests to work with Git older than version 2.28.x.
 - GitHub Action example now omits ``revision:`` since the commit range is obtained
   automatically.
+
+Internal
+--------
+- Pin Black_ to version 22.12.0 in the CI build to ensure consistent formatting of
+  Darker's own code base.
+- Fix tests to work with Git older than version 2.28.x.
 - ``test-bump-version`` workflow will now succeed also in a release branch.
 
 
 1.6.0_ - 2022-12-19
 ===================
 
-Added
+Fixed
 -----
+- Fix compatibility with ``black-22.10.1.dev19+gffaaf48`` and later – an argument was
+  replaced in ``black.files.gen_python_files()``.
+
+Internal
+--------
 - Upgrade linters in CI and modify code to satisfy their new requirements.
 - Upgrade to ``setup-python@v4`` in all GitHub workflows.
 - ``bump_version.py`` now accepts an optional GitHub token with the ``--token=``
   argument. The ``test-bump-version`` workflow uses that, which should help deal with
   GitHub's API rate limiting.
-
-Fixed
------
-- Fix compatibility with ``black-22.10.1.dev19+gffaaf48`` and later – an argument was
-  replaced in ``black.files.gen_python_files()``.
 - Upgrade CI to use environment files instead of the deprecated ``set-output`` method.
 - Fix Safety check in CI.
 - Don't do a development install in the ``help-in-readme.yml`` workflow. Something
@@ -301,15 +315,6 @@ Fixed
 1.5.1_ - 2022-09-11
 ===================
 
-Added
------
-- Add a CI workflow which verifies that the ``darker --help`` output in ``README.rst``
-  is up to date.
-- Only run linters, security checks and package builds once in the CI build.
-- Small simplification: It doesn't matter whether ``isort`` was run or not, only
-  whether changes were made.
-- Refactor Black_ and ``isort`` file exclusions into one data structure.
-
 Fixed
 -----
 - ``darker --revision=a..b .`` now works since the repository root is now always
@@ -317,10 +322,19 @@ Fixed
 - Ignore linter lines which refer to non-Python files or files outside the common root
   of paths on the command line. Fixes a failure when Pylint notifies about obsolete
   options in ``.pylintrc``.
-- For linting Darker's own code base, require Pylint 2.6.0 or newer. This avoids the
-  need to skip the obsolete ``bad-continuation`` check now removed from Pylint.
 - Fix linter output parsing for full Windows paths which include a drive letter.
 - Stricter rules for linter output parsing.
+
+Internal
+--------
+- Add a CI workflow which verifies that the ``darker --help`` output in ``README.rst``
+  is up to date.
+- Only run linters, security checks and package builds once in the CI build.
+- Small simplification: It doesn't matter whether ``isort`` was run or not, only
+  whether changes were made.
+- Refactor Black_ and ``isort`` file exclusions into one data structure.
+- For linting Darker's own code base, require Pylint 2.6.0 or newer. This avoids the
+  need to skip the obsolete ``bad-continuation`` check now removed from Pylint.
 
 
 1.5.0_ - 2022-04-23
@@ -337,19 +351,22 @@ Added
   ``pyproject.toml``, the ``PY_COLORS`` and ``NO_COLOR`` environment variables, and the
   ``--color``/``--no-color`` command line options.
 - Syntax highlighting is now enabled by default in the GitHub Action.
-- ``pytest>=6.2.0`` now required for the test suite due to type hinting issues.
 
 Fixed
 -----
 - Avoid memory leak from using ``@lru_cache`` on a method.
 - Handle files encoded with an encoding other than UTF-8 without an exception.
 - The GitHub Action now handles missing ``revision:`` correctly.
-- Update ``cachix/install-nix-action`` to ``v17`` to fix macOS build error.
-- Downgrade Python from 3.10 to 3.9 in the macOS NixOS_ build on GitHub due to a build
-  error with Python 3.10.
 - Darker now reads its own configuration from the file specified using
   ``-c``/``--config``, or in case a directory is specified, from ``pyproject.toml``
   inside that directory.
+
+Internal
+--------
+- ``pytest>=6.2.0`` now required for the test suite due to type hinting issues.
+- Update ``cachix/install-nix-action`` to ``v17`` to fix macOS build error.
+- Downgrade Python from 3.10 to 3.9 in the macOS NixOS_ build on GitHub due to a build
+  error with Python 3.10.
 
 
 1.4.2_ - 2022-03-12
@@ -360,20 +377,23 @@ Added
 - Document ``isort``'s requirement to be run in the same environment as
   the modules which are processed.
 - Document VSCode and ``--lint``/``-L`` incompatibility in the README.
+
+Fixed
+-----
+- Multiline strings are now always reformatted completely even if just a part
+  was modified by the user and reformatted by Black_. This prevents the
+  "back-and-forth indent" symptom.
+
+Internal
+--------
 - Guard against breaking changes in ``isort`` by testing against its ``main``
   branch in the ``test-future`` GitHub Workflow.
 - ``release_tools/bump_version.py`` script for incrementing version numbers and
   milestone numbers in various files when releasing.
-
-Fixed
------
 - Fix NixOS_ builds when ``pytest-darker`` calls ``pylint``. Needed to activate
   the virtualenv.
 - Allow more time to pass when checking file modification times in a unit test.
   Windows tests on GitHub are sometimes really slow.
-- Multiline strings are now always reformatted completely even if just a part
-  was modified by the user and reformatted by Black_. This prevents the
-  "back-and-forth indent" symptom.
 
 
 1.4.1_ - 2022-02-17
@@ -381,21 +401,22 @@ Fixed
 
 Added
 -----
-- Run tests on CI against Black_ ``main`` branch to get an early warning of
-  incompatible changes which would break Darker.
 - Determine the commit range to check automatically in the GitHub Action.
 - Improve GitHub Action documentation.
-- Add Nix CI builds on Linux and macOS.
-- Add a YAML linting workflow to the Darker repository.
-- Updated Mypy_ to version 0.931.
-- Guard against breaking changes in Black_ by testing against its ``main`` branch
-  in the ``test-future`` GitHub Workflow.
 
 Fixed
 -----
 - Consider ``.py.tmp`` as files which should be reformatted.
   This enables VSCode Format On Save.
 - Use the latest release of Darker instead of 1.3.2 in the GitHub Action.
+
+Internal
+--------
+- Add Nix CI builds on Linux and macOS.
+- Add a YAML linting workflow to the Darker repository.
+- Updated Mypy_ to version 0.931.
+- Guard against breaking changes in Black_ by testing against its ``main`` branch
+  in the ``test-future`` GitHub Workflow.
 
 
 1.4.0_ - 2022-02-08
@@ -410,9 +431,6 @@ Added
 
 Fixed
 -----
-- ``regex`` module now always available for unit tests
-- Compatibility with NixOS_. Keep ``$PATH`` intact so Git can be called.
-- Updated tests to pass on new Pygments versions
 - Compatibility with `Black 22.1`_
 - Removed additional newline at the end of the file with the ``--stdout`` flag
   compared to without.
@@ -423,6 +441,12 @@ Removed
 -------
 - Drop support for Python 3.6 which has reached end of life.
 
+Internal
+--------
+- ``regex`` module now always available for unit tests
+- Compatibility with NixOS_. Keep ``$PATH`` intact so Git can be called.
+- Updated tests to pass on new Pygments versions
+
 
 1.3.2_ - 2021-10-28
 ===================
@@ -432,7 +456,6 @@ Added
 - Linter failures now result in an exit value of 1, regardless of whether ``--check``
   was used or not. This makes linting in Darker compatible with ``pre-commit``.
 - Declare Python 3.9 and 3.10 as supported in package metadata
-- Run test build in a Python 3.10 environment on GitHub Actions
 - Explanation in README about how to use ``args:`` in pre-commit configuration
 
 Fixed
@@ -445,6 +468,10 @@ Fixed
 - ``--revision rev1...rev2`` now actually applies reformatting and filters linter output
   to only lines modified compared to the common ancestor of ``rev1`` and ``rev2``
 - Relative paths are now resolved correctly when using the ``--stdout`` option
+
+Internal
+--------
+- Run test build in a Python 3.10 environment on GitHub Actions
 - Downgrade to Flake8_ version 3.x for Pytest compatibility.
   See `tholo/pytest-flake8#81`__
 
@@ -481,7 +508,6 @@ Added
   file provided on the command line.
 - Terminate with an error if non-existing files or directories are passed on the command
   line. This also improves the error from misquoted parameters like ``"--lint pylint"``.
-- Allow Git test case to run slower when checking file timestamps. CI can be slow.
 - Fix compatibility with Black_ >= 21.7b1.dev9
 - Show a simple one-line error instead of full traceback on some unexpected failures
 - Skip reformatting files set to be excluded by Black_ in configuration files
@@ -495,14 +521,16 @@ Fixed
 - Use forward slash as the path separator when calling Git in Windows. At least
   ``git show`` and ``git cat-file`` fail when using backslashes.
 
+Internal
+--------
+- Allow Git test case to run slower when checking file timestamps. CI can be slow.
+
 
 1.2.4_ - 2021-06-27
 ===================
 
 Added
 -----
-- Upgrade to and satisfy Mypy_ 0.910 by adding ``types-toml`` as a test dependency, and
-  ``types-dataclasses`` as well if running on Python 3.6.
 - Installation instructions in a Conda environment.
 
 Fixed
@@ -515,28 +543,36 @@ Fixed
 - Ensure identical Black_ formatting on Unix and Windows by always passing Unix newlines
   to Black_
 
+Internal
+--------
+- Upgrade to and satisfy Mypy_ 0.910 by adding ``types-toml`` as a test dependency, and
+  ``types-dataclasses`` as well if running on Python 3.6.
+
 
 1.2.3_ - 2021-05-02
 ===================
 
 Added
 -----
-- A unified ``TextDocument`` class to represent source code file contents
-- Move help texts into the separate ``darker.help`` module
 - If AST differs with zero context lines, search for the lowest successful number of
   context lines using a binary search to improve performance
 - Return an exit value of 1 also if there are failures from any of the linters on
   modified lines
-- Run GitHub Actions for the test build also on Windows and macOS
 
 Fixed
 -----
-- Compatibility with Mypy_ 0.812
 - Keep newline character sequence and text encoding intact when modifying files
 - Installation now works on Windows
 - Improve compatibility with pre-commit. Fallback to compare against HEAD if
   ``--revision :PRE-COMMIT:`` is set, but ``PRE_COMMIT_FROM_REF`` or
   ``PRE_COMMIT_TO_REF`` are not set.
+
+Internal
+--------
+- A unified ``TextDocument`` class to represent source code file contents
+- Move help texts into the separate ``darker.help`` module
+- Run GitHub Actions for the test build also on Windows and macOS
+- Compatibility with Mypy_ 0.812
 
 
 1.2.2_ - 2020-12-30
@@ -547,12 +583,15 @@ Added
 - Get revision range from pre-commit_'s ``PRE_COMMIT_FROM_REF`` and
   ``PRE_COMMIT_TO_REF`` environment variables when using the ``--revision :PRE-COMMIT:``
   option
-- Configure a pre-commit hook for Darker itself
 - Add a Darker package to conda-forge_.
 
 Fixed
 -----
 - ``<commit>...`` now compares always correctly to the latest common ancestor
+
+Internal
+--------
+- Configure a pre-commit hook for Darker itself
 - Migrate from Travis CI to GitHub Actions
 
 
@@ -561,16 +600,19 @@ Fixed
 
 Added
 -----
-- Travis CI now runs Pylint_ on modified lines via pytest-darker_
 - Darker can now be used as a pre-commit hook (see pre-commit_)
 - Document integration with Vim
 - Thank all contributors right in the ``README``
-- ``RevisionRange`` class and Git repository test fixture improvements in preparation
-  for a larger refactoring coming in `#80`_
 
 Fixed
 -----
 - Improve example in ``README`` and clarify that path argument can also be a directory
+
+Internal
+--------
+- Travis CI now runs Pylint_ on modified lines via pytest-darker_
+- ``RevisionRange`` class and Git repository test fixture improvements in preparation
+  for a larger refactoring coming in `#80`_
 
 
 1.2.0_ - 2020-09-09
@@ -579,12 +621,15 @@ Fixed
 Added
 -----
 - Configuration for Darker can now be done in ``pyproject.toml``.
+- Support commit ranges for ``-r``/``--revision``. Useful for comparing to the best
+  common ancestor, e.g. ``master...``.
+
+Internal
+--------
 - The formatting of the Darker code base itself is now checked using Darker itself and
   pytest-darker_. Currently the formatting is a mix of `Black 19.10`_ and `Black 20.8`_
   rules, and Travis CI only requires Black 20.8 formatting for lines modified in merge
   requests. In a way, Darker is now eating its own dogfood.
-- Support commit ranges for ``-r``/``--revision``. Useful for comparing to the best
-  common ancestor, e.g. ``master...``.
 - Configure Flake8_ verification for Darker's own source code
 
 
