@@ -79,6 +79,7 @@ class BlackFormatter(BaseFormatter, HasConfig[BlackCompatibleConfig]):
 
     name = "black"
     config_section = "tool.black"
+    preserves_ast = True
 
     def read_config(self, src: tuple[str, ...], args: Namespace) -> None:
         """Read Black configuration from ``pyproject.toml``.

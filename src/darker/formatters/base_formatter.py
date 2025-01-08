@@ -29,6 +29,7 @@ class BaseFormatter(HasConfig[FormatterConfig]):
     """Base class for code re-formatters."""
 
     name: str
+    preserves_ast: bool
 
     def read_config(self, src: tuple[str, ...], args: Namespace) -> None:
         """Read code re-formatter configuration from a configuration file.
