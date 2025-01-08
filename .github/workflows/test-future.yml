@@ -34,7 +34,6 @@ jobs:
           uv pip install \
             --constraint=constraints-future.txt \
             --upgrade \
-            --upgrade-strategy=eager \
             -e '.[test]'
           uv python install
       - name: Test with pytest
