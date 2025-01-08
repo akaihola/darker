@@ -79,7 +79,7 @@ jobs:
         continue-on-error: true
         id: darker-run
         with:
-          version: "@gh-action-working-directory"
+          version: "@${{ github.ref_name }}"
           options: ${{ matrix.scenario.options }}
           # In the action, '.' is the default value used if `working-directory` omitted
           working-directory: >-
