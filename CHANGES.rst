@@ -49,6 +49,11 @@ Fixed
 - Only split source code lines at Python's universal newlines (LF, CRLF, CR).
 - The Darker GitHub action now respects the ``working-directory`` input option.
 
+Internal
+--------
+- Drop dependency on ``pip`` and ``distutils`` in the weekly CI "future" test. Use
+  ``packaging`` instead.
+
 
 2.1.1_ - 2024-04-16
 ===================
