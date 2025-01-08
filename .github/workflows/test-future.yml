@@ -36,9 +36,10 @@ jobs:
             --upgrade \
             --upgrade-strategy=eager \
             -e '.[test]'
+          uv python install
       - name: Test with pytest
         run: |
-          pytest
+          uv run pytest
       - name: Note a possible Black incompatibility and required actions
         if: failure()
         shell: python
