@@ -40,9 +40,9 @@ jobs:
           import json
           import os
           import urllib.request
-          from distutils.version import LooseVersion
-          from importlib.metadata import version
           from textwrap import dedent
+
+          from packaging.version import Version
 
           for linenum, line in enumerate(open("setup.cfg"), 1):
               constraint = line.strip()
@@ -57,7 +57,7 @@ jobs:
               'https://pypi.org/pypi/black/json'
           ).read().decode()
           latest_version = max(
-              LooseVersion(s)
+              Version(s)
               for s in json.loads(response)['releases'].keys()
           )
 
