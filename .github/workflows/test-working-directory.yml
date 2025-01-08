@@ -1,6 +1,11 @@
 ---
 name: "GH Action `working-directory:` test"
 
+# If these tests fail with "fatal: bad object" in the "Run Darker" step
+# and "Error: Expected exit code <n>" in the "Check exit code" step,
+# make sure `fetch-steps:` in `actions/checkout` below is
+# at least as large as the number of commits in the branch the test is run in.
+
 on: push  # yamllint disable-line rule:truthy
 
 jobs:
@@ -66,7 +71,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 10
+          # This needs to be at least the number of commits
+          # in the branch the test is run in:
+          fetch-depth: 30
 
       - name: Download test repository
         uses: actions/download-artifact@v3
