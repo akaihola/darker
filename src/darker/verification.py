@@ -5,7 +5,7 @@ from __future__ import annotations
 import ast
 import sys
 import warnings
-from typing import TYPE_CHECKING, Dict, Iterator
+from typing import TYPE_CHECKING, Iterator
 
 if TYPE_CHECKING:
     from darkgraylib.utils import TextDocument
@@ -225,7 +225,7 @@ class ASTVerifier:  # pylint: disable=too-few-public-methods
 
     def __init__(self, baseline: TextDocument) -> None:
         self._baseline_ast_str = self._to_ast_str(baseline)
-        self._comparisons: Dict[str, bool] = {baseline.string: True}
+        self._comparisons: dict[str, bool] = {baseline.string: True}
 
     @staticmethod
     def _to_ast_str(document: TextDocument) -> str:
