@@ -227,9 +227,17 @@ def _reformat_and_flynt_single_file(  # noqa: PLR0913
         "no" if formatted == fstringified else "some",
         len(formatted.lines),
     )
+    # 4. apply all re-formatter modifications if the re-formatter doesn't guarantee
+    #    preserving the abstract syntax tree (AST); otherwise do steps 5 to 10
+    if not formatter.preserves_ast:
+        logger.debug(
+            "Preserving the AST not guaranteed by %s, applying all changes",
+            formatter.name,
+        )
+        return formatted
 
-    # 4. get a diff between the edited to-file and the processed content
-    # 5. convert the diff into chunks, keeping original and reformatted content for each
+    # 5. get a diff between the edited to-file and the processed content
+    # 6. convert the diff into chunks, keeping original and reformatted content for each
     #    chunk
     new_chunks = diff_chunks(rev2_isorted, formatted)
 
@@ -337,9 +345,9 @@ def _drop_changes_on_unedited_lines(
                 context_lines,
                 abspath_in_rev2,
             )
-        # 6. diff the given revisions (optionally with isort modifications) for each
+        # 7. diff the given revisions (optionally with isort modifications) for each
         #    file
-        # 7. extract line numbers in each edited to-file for changed lines
+        # 8. extract line numbers in each edited to-file for changed lines
         edited_linenums = edited_linenums_differ.revision_vs_lines(
             relpath_in_repo, rev2_isorted, context_lines
         )
@@ -348,7 +356,7 @@ def _drop_changes_on_unedited_lines(
             last_successful_reformat = rev2_isorted
             break
 
-        # 8. choose processed content for each chunk if there were any changed lines
+        # 9. choose processed content for each chunk if there were any changed lines
         #    inside the chunk in the edited to-file, or choose the chunk's original
         #    contents if no edits were done in that chunk
         chosen = TextDocument.from_lines(
@@ -358,8 +366,8 @@ def _drop_changes_on_unedited_lines(
             mtime=datetime.utcnow().strftime(GIT_DATEFORMAT),
         )
 
-        # 9. verify that the resulting reformatted source code parses to an identical
-        #    AST as the original edited to-file
+        # 10. verify that the resulting reformatted source code parses to an identical
+        #     AST as the original edited to-file
         if not has_fstring_changes and not verifier.is_equivalent_to_baseline(chosen):
             logger.debug(
                 "Verifying that the %s original edited lines and %s reformatted lines "
@@ -459,32 +467,26 @@ def _import_pygments():  # type: ignore
 def main(  # noqa: C901,PLR0912,PLR0915
     argv: List[str] = None,
 ) -> int:
-    """Parse the command line and reformat and optionally lint each source file
+    """Parse the command line and reformat and optionally lint each source file.
 
     1. run isort on each edited file (optional)
     2. run flynt (optional) on the isorted contents of each edited to-file
     3. run a code re-formatter on the isorted and fstringified contents of each edited
        to-file
-    4. get a diff between the edited to-file and the processed content
-    5. convert the diff into chunks, keeping original and reformatted content for each
+    4. apply all re-formatter modifications if the re-formatter doesn't guarantee
+       preserving the abstract syntax tree (AST); otherwise do steps 5 to 10
+    5. get a diff between the edited to-file and the processed content
+    6. convert the diff into chunks, keeping original and reformatted content for each
        chunk
-    6. diff the given revisions (optionally with isort modifications) for each
+    7. diff the given revisions (optionally with isort modifications) for each
        file
-    7. extract line numbers in each edited to-file for changed lines
-    8. choose processed content for each chunk if there were any changed lines inside
+    8. extract line numbers in each edited to-file for changed lines
+    9. choose processed content for each chunk if there were any changed lines inside
        the chunk in the edited to-file, or choose the chunk's original contents if no
        edits were done in that chunk
-    9. verify that the resulting reformatted source code parses to an identical AST as
-       the original edited to-file
-    9. write the reformatted source back to the original file or print the diff
-    10. run linter subprocesses twice for all modified and unmodified files which are
-        mentioned on the command line: first establish a baseline by running against
-        ``rev1``, then get current linting status by running against the working tree
-        (steps 10.-12. are optional)
-    11. create a mapping from line numbers of unmodified lines in the current versions
-        to corresponding line numbers in ``rev1``
-    12. hide linter messages which appear in the current versions and identically on
-        corresponding lines in ``rev1``, and show all other linter messages
+    10. verify that the resulting reformatted source code parses to an identical AST as
+        the original edited to-file
+    11. write the reformatted source back to the original file or print the diff
 
     :param argv: The command line arguments to the ``darker`` command
     :return: 1 if the ``--check`` argument was provided and at least one file was (or
@@ -611,7 +613,7 @@ def main(  # noqa: C901,PLR0912,PLR0915
             workers=config["workers"],
         ),
     ):
-        # 10. A re-formatted Python file which produces an identical AST was
+        # 11. A re-formatted Python file which produces an identical AST was
         #     created successfully - write an updated file or print the diff if
         #     there were any changes to the original
         formatting_failures_on_modified_lines = True

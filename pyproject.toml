@@ -31,10 +31,18 @@ revision = "origin/master..."
 revision = "origin/master..."
 src = ["."]
 
+[tool.pylint.MASTER]
+load-plugins = [
+    "pylint_per_file_ignores",
+]
+
 [tool.pylint."messages control"]
 # Check import order only with isort. Pylint doesn't support a custom list of first
 # party packages. We want to consider "darkgraylib" and "graylint" as first party.
 disable = ["wrong-import-order"]
+per-file-ignores = [
+  "/stubs/:missing-class-docstring,missing-function-docstring,unused-argument",
+]
 
 [tool.ruff]
 target-version = "py39"
@@ -47,6 +55,7 @@ ignore = [
     "D203",  # One blank line required before class docstring
     "D213",  # Multi-line docstring summary should start at the second line
     "D400",  # First line should end with a period (duplicates D415)
+    "ISC001",  # Checks for implicitly concatenated strings on a single line
 ]
 
 [tool.ruff.lint.per-file-ignores]
