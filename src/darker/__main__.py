@@ -5,7 +5,7 @@ import logging
 import sys
 import warnings
 from argparse import Action, ArgumentError
-from datetime import datetime
+from datetime import datetime, timezone
 from difflib import unified_diff
 from pathlib import Path
 from typing import Collection, Generator, List, Optional, Tuple
@@ -363,7 +363,7 @@ def _drop_changes_on_unedited_lines(
             choose_lines(new_chunks, edited_linenums),
             encoding=rev2_content.encoding,
             newline=rev2_content.newline,
-            mtime=datetime.utcnow().strftime(GIT_DATEFORMAT),
+            mtime=datetime.now(timezone.utc).strftime(GIT_DATEFORMAT),
         )
 
         # 10. verify that the resulting reformatted source code parses to an identical
