@@ -28,7 +28,6 @@ dynamic = ["version", "readme"]
 [dependency-groups]
 dev = [
     "black>=22.3.0",
-    "cryptography>=3.3.2", # through twine, fixes CVE-2020-36242
     "darkgray-dev-tools~=0.1.1",
     "defusedxml>=0.7.1",
     "flynt>=0.76",
@@ -39,7 +38,7 @@ dev = [
     "pydocstyle",
     "pygments>=2.4.0",
     "pyupgrade>=2.31.0",
-    "pylint<=3.2.7", # pylint 3.3.0 dropped Python 3.8 support
+    "pylint>=3.2.7",
     "pylint-per-file-ignores",
     "pytest>=6.2.0",
     "pytest-kwparametrize>=0.0.3",
@@ -53,6 +52,7 @@ dev = [
     "types-toml>=0.10.4",
     "urllib3>=1.25.9", # through requests-cache and twine, fixes CVE-2020-26137
     "wheel>=0.21.0",
+    "astor>=0.8.1",
 ]
 
 [project.urls]
