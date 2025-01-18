@@ -2,6 +2,74 @@
 # Minimum requirements for the build system to execute.
 requires = ["setuptools", "wheel"]  # PEP 508 specifications.
 
+[tool.setuptools.dynamic]
+readme = {file=["README.md"]}
+
+[project]
+name = "darker"
+authors = [{name = "Antti Kaihola", email = "13725+akaihola@users.noreply.github.com"}]
+license = {text = "BSD"}
+description = "Apply Black formatting only in regions changed since last commit"
+classifiers = [
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+requires-python = ">=3.9"
+dependencies = [
+    "darkgraylib~=2.2.0",
+    "toml>=0.10.0",
+    "typing_extensions>=4.0.1",
+]
+dynamic = ["version", "readme"]
+
+[dependency-groups]
+dev = [
+    "black>=22.3.0",
+    "cryptography>=3.3.2", # through twine, fixes CVE-2020-36242
+    "darkgray-dev-tools~=0.1.1",
+    "defusedxml>=0.7.1",
+    "flynt>=0.76",
+    "isort>=5.0.1",
+    "mypy>=0.990",
+    "packaging",
+    "pathspec", # to test `gen_python_files` in `test_black_diff.py`
+    "pydocstyle",
+    "pygments>=2.4.0",
+    "pyupgrade>=2.31.0",
+    "pylint<=3.2.7", # pylint 3.3.0 dropped Python 3.8 support
+    "pylint-per-file-ignores",
+    "pytest>=6.2.0",
+    "pytest-kwparametrize>=0.0.3",
+    "pyupgrade>=2.31.0",
+    "regex>=2021.4.4",
+    "requests_cache>=0.7",
+    "ruamel.yaml>=0.17.21",
+    "ruff>=0.0.292",
+    "twine>=2.0.0",
+    "types-requests>=2.27.9",
+    "types-toml>=0.10.4",
+    "urllib3>=1.25.9", # through requests-cache and twine, fixes CVE-2020-26137
+    "wheel>=0.21.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/akaihola/darker"
+"Source Code" = "https://github.com/akaihola/darker"
+"Change Log" = "https://github.com/akaihola/darker/blob/master/CHANGES.rst"
+News = "https://github.com/akaihola/darker/discussions/categories/announcements"
+
+[project.entry-points."darker.formatter"]
+black = "darker.formatters.black_formatter:BlackFormatter"
+ruff = "darker.formatters.ruff_formatter:RuffFormatter"
+pyupgrade = "darker.formatters.pyupgrade_formatter:PyupgradeFormatter"
+none = "darker.formatters.none_formatter:NoneFormatter"
+
+[project.scripts]
+darker = "darker.__main__:main_with_error_handling"
+
 [tool.black]
 # Darker makes Black read its configuration from the file indicated by the `--config`
 # option, so we need to mirror the same configuration here and in `check-darker.toml`.
