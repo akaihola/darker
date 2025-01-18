@@ -7,6 +7,7 @@ readme = {file=["README.rst"]}
 
 [project]
 name = "darker"
+version = "2.1.1"
 authors = [{name = "Antti Kaihola", email = "13725+akaihola@users.noreply.github.com"}]
 license = {text = "BSD"}
 description = "Apply Black formatting only in regions changed since last commit"
@@ -23,7 +24,7 @@ dependencies = [
     "toml>=0.10.0",
     "typing_extensions>=4.0.1",
 ]
-dynamic = ["version", "readme"]
+dynamic = ["readme"]
 
 [dependency-groups]
 dev = [
