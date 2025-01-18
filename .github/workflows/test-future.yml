@@ -17,22 +17,14 @@ jobs:
         with:
           ref: 'master'
           fetch-depth: 0
-      - uses: actions/setup-python@v5
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
         with:
           python-version: '3.x'
       - name: Install dependencies
-        run: |
-          # strict dependency resolution added in pip 20.3
-          # CVE-2021-3572 fixed in pip 21.1
-          python -m pip install --upgrade 'pip>=21.1'
-          pip install \
-            --constraint=constraints-future.txt \
-            --upgrade \
-            --upgrade-strategy=eager \
-            -e '.[test]'
+        run: uv sync --upgrade --latest
       - name: Test with pytest
-        run: |
-          pytest
+        run: uv run pytest
       - name: Note a possible Black incompatibility and required actions
         if: failure()
         shell: python
@@ -44,7 +36,7 @@ jobs:
 
           from packaging.version import Version
 
-          for linenum, line in enumerate(open("setup.cfg"), 1):
+          for linenum, line in enumerate(open("pyproject.toml"), 1):
               constraint = line.strip()
               if constraint.startswith("black>="):
                   column = line.index("black>=") + 1

@@ -105,12 +105,11 @@ jobs:
         include:
           - os: ubuntu-latest
             python-version: '3.9'
-            constraints: '--constraint constraints-oldest.txt'
+            post_install: uv sync --resolution lowest-direct 
           - os: ubuntu-latest
             python-version: '3.12'
-            post_install: pip uninstall -y -r constraints-future.txt ;
-                          pip install -r constraints-future.txt
-                                      --upgrade --upgrade-strategy=eager
+            post_install: uv sync --upgrade --latest 
+
     needs:
       - build-wheel
     steps:
@@ -133,10 +132,6 @@ jobs:
         # compatibility fixing periods.
         if: matrix.post_install
         run: ${{ matrix.post_install }}
-      - name: Downgrade target-version when running oldest supported Black
-        if: matrix.constraints == '--constraint constraints-oldest.txt'
-        run: |
-          sed -i 's/, "py311", "py312"//' pyproject.toml
       - run: pytest
 
   build-sdist-validate-dists:
