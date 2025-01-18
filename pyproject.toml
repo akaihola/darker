@@ -3,7 +3,7 @@
 requires = ["setuptools", "wheel"]  # PEP 508 specifications.
 
 [tool.setuptools.dynamic]
-readme = {file=["README.md"]}
+readme = {file=["README.rst"]}
 
 [project]
 name = "darker"
