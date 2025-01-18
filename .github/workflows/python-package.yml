@@ -25,7 +25,7 @@ jobs:
       - uses: actions/setup-python@v5
       - name: Build wheel distribution
         run: |
-          uv sync
+          uv sync --all-packages
           uv build
       - name: Upload wheel for other jobs
         uses: actions/upload-artifact@v4
@@ -71,7 +71,7 @@ jobs:
               source venv/bin/activate
               cert_file=/nix/var/nix/profiles/default/etc/ssl/certs/ca-bundle.crt
               export NIX_SSL_CERT_FILE=$cert_file
-              pip install "${{needs.build-wheel.outputs.wheel-path}}"
+              pip install "${{needs.build-wheel.outputs.wheel-path}}" --extra dev
               # Run tests in installed package to avoid plugin import issue:
               pytest $(python -c "
           import os, darker
