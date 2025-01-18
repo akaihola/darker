@@ -24,7 +24,9 @@ jobs:
         uses: astral-sh/setup-uv@v3
       - uses: actions/setup-python@v5
       - name: Build wheel distribution
-        run: uv build --wheel --resolution lowest-direct
+        run: |
+          uv sync
+          uv build
       - name: Upload wheel for other jobs
         uses: actions/upload-artifact@v4
         with:
