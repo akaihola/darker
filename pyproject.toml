@@ -21,10 +21,10 @@ classifiers = [
 requires-python = ">=3.9"
 dependencies = [
     "black>=24.10.0",
-    "darkgraylib~=1.2.0",
+    "darkgraylib~=2.2.0",
     "toml>=0.10.0",
     "typing_extensions>=4.0.1",
-    "darkgray-dev-tools~=0.1.1",
+    "darkgray-dev-tools",
     "defusedxml>=0.7.1",
     "flynt>=0.76",
     "isort>=5.0.1",
