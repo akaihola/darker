@@ -20,7 +20,8 @@ classifiers = [
 ]
 requires-python = ">=3.9"
 dependencies = [
-    "darkgraylib~=2.2.0",
+    "black>=24.10.0",
+    "darkgraylib~=1.2.0",
     "toml>=0.10.0",
     "typing_extensions>=4.0.1",
 ]
@@ -51,7 +52,6 @@ dev = [
     "twine>=2.0.0",
     "types-requests>=2.27.9",
     "types-toml>=0.10.4",
-    "urllib3>=1.25.9", # through requests-cache and twine, fixes CVE-2020-26137
     "wheel>=0.21.0",
     "astor>=0.8.1",
 ]
