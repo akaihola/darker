@@ -126,7 +126,7 @@ jobs:
       - name: Download wheel uploaded by the build-wheel job
         uses: actions/download-artifact@v4
       - name: Install Darker and its dependencies from the wheel built earlier
-        run: pip install "${{needs.build-wheel.outputs.wheel-path}}[test]"
+        run: pip install "${{needs.build-wheel.outputs.wheel-path}} --extra dev"
                          ${{ matrix.upgrade }} ${{ matrix.constraints }}
       - name: Upgrade Black, Flynt and Isort from GitHub if future constraints are used
         # This can't be done in the same Pip invocation as installing Darker
