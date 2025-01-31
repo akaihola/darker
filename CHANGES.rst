@@ -55,6 +55,7 @@ Internal
 - Update ``darkgray-dev-tools`` for Pip >= 24.1 compatibility.
 - Drop dependency on ``pip`` and ``distutils`` in the weekly CI "future" test. Use
   ``packaging`` instead.
+- No need to use `typing.Pattern` instead of `re.Pattern` in Python 3.9+.
 
 
 2.1.1_ - 2024-04-16
