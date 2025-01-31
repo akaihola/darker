@@ -52,7 +52,7 @@ from darkgraylib.utils import TextDocument
 if TYPE_CHECKING:
     from argparse import Namespace
     from pathlib import Path
-    from typing import Pattern
+    from re import Pattern
 
     from black import FileMode as Mode
     from black import TargetVersion

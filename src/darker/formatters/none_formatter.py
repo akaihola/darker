@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Pattern
+from typing import TYPE_CHECKING
 
 from darker.formatters.base_formatter import BaseFormatter
 
 if TYPE_CHECKING:
     from argparse import Namespace
     from pathlib import Path
+    from re import Pattern
 
     from darkgraylib.utils import TextDocument
 

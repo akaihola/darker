@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Generic, Pattern, TypeVar
+from typing import TYPE_CHECKING, Generic, TypeVar
 
 from darker.files import find_pyproject_toml
 from darker.formatters.formatter_config import FormatterConfig
@@ -10,6 +10,7 @@ from darker.formatters.formatter_config import FormatterConfig
 if TYPE_CHECKING:
     from argparse import Namespace
     from pathlib import Path
+    from re import Pattern
 
     from darkgraylib.utils import TextDocument
 

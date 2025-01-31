@@ -64,7 +64,7 @@ else:
 
 if TYPE_CHECKING:
     from argparse import Namespace
-    from typing import Pattern
+    from re import Pattern
 
 logger = logging.getLogger(__name__)
 

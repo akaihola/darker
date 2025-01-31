@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Iterable, Pattern, TypedDict
+from typing import TYPE_CHECKING, Iterable, TypedDict
 
 from darkgraylib.config import ConfigurationError
 
 if TYPE_CHECKING:
     from argparse import Namespace
+    from re import Pattern
 
 
 class FormatterConfig(TypedDict):
