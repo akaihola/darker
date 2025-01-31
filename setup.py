@@ -1,7 +1,6 @@
 """Setuptools entry point for Darker"""
 
 import re
-from typing import Pattern
 
 from setuptools import setup
 
@@ -9,7 +8,7 @@ SIDEBAR_RE = re.compile(r"\+---.*:alt: Support", re.DOTALL)
 CONTRIBUTORS_RE = re.compile(r"""\nThanks goes .*\nThis project follows """, re.DOTALL)
 
 
-def replace(name: str, regex: Pattern[str], replacement: str, content: str) -> str:
+def replace(name: str, regex: re.Pattern[str], replacement: str, content: str) -> str:
     """Replace/remove a section from the package description, based on a regex
 
     Raise an exception if the regular expression doesn't match anything.

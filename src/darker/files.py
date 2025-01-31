@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import re
 from functools import lru_cache
-from typing import TYPE_CHECKING, Collection, Iterable, Iterator, Pattern
+from typing import TYPE_CHECKING, Collection, Iterable, Iterator
 
 from darkgraylib.files import find_project_root
 
@@ -74,7 +74,7 @@ def _resolves_outside_root_or_cannot_stat(path: Path, root: Path) -> bool:
 
 def _path_is_excluded(
     normalized_path: str,
-    pattern: Pattern[str] | None,
+    pattern: re.Pattern[str] | None,
 ) -> bool:
     """Return whether the path is excluded by the pattern.
 
@@ -88,9 +88,9 @@ def _path_is_excluded(
 def _gen_python_files(
     paths: Iterable[Path],
     root: Path,
-    exclude: Pattern[str],
-    extend_exclude: Pattern[str] | None,
-    force_exclude: Pattern[str] | None,
+    exclude: re.Pattern[str],
+    extend_exclude: re.Pattern[str] | None,
+    force_exclude: re.Pattern[str] | None,
 ) -> Iterator[Path]:
     """Generate all files under ``path`` whose paths are not excluded.
 
