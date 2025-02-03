@@ -57,6 +57,7 @@ Internal
   ``packaging`` instead.
 - No need to use `typing.Pattern` instead of `re.Pattern` in Python 3.9+.
 - Always use newest artifact upload/download actions from the v4 series in the CI build.
+- Use `datetime.datetime.now()`, not ``.utcnow()`` to silence a deprecation warning.
 
 
 2.1.1_ - 2024-04-16
