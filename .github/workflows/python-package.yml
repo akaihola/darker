@@ -130,6 +130,10 @@ jobs:
       - name: Install Darker and its dependencies from the wheel built earlier
         run: pip install "${{needs.build-wheel.outputs.wheel-path}}[dev]"
                          ${{ matrix.upgrade }} ${{ matrix.constraints }}
+      - name: Downgrade target-version when running oldest supported Black
+        if: matrix.constraints == '--constraint constraints-oldest.txt'
+        run: |
+          sed -i 's/, "py311", "py312"//' pyproject.toml
       - name: Upgrade Black, Flynt and Isort from GitHub if future constraints are used
         # This can't be done in the same Pip invocation as installing Darker
         # since Darker might place an upper limit on Black, Flynt and/or Isort during
