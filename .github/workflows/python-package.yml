@@ -110,7 +110,7 @@ jobs:
             post_install: uv sync --resolution lowest-direct 
           - os: ubuntu-latest
             python-version: '3.12'
-            post_install: uv sync --upgrade --latest 
+            post_install: uv sync --upgrade
 
     needs:
       - build-wheel

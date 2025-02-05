@@ -2,9 +2,6 @@
 # Minimum requirements for the build system to execute.
 requires = ["setuptools", "wheel"]  # PEP 508 specifications.
 
-[tool.setuptools.dynamic]
-readme = {file=["README.rst"]}
-
 [project]
 name = "darker"
 version = "2.1.1"
