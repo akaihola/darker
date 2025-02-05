@@ -107,7 +107,7 @@ jobs:
         include:
           - os: ubuntu-latest
             python-version: '3.9'
-            post_install: uv sync --resolution lowest-direct 
+            post_install: uv sync --resolution lowest-direct
           - os: ubuntu-latest
             python-version: '3.12'
             post_install: uv sync --upgrade
