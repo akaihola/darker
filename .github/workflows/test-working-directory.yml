@@ -26,7 +26,7 @@ jobs:
           echo 'def  hello():    return  "Hello, World!"' > test.py
 
       - name: Upload test repository
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: test-repo
           path: test-repo
@@ -76,7 +76,7 @@ jobs:
           fetch-depth: 30
 
       - name: Download test repository
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: test-repo
           path: ${{ runner.temp }}/test-repo

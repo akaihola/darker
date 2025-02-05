@@ -5,7 +5,7 @@ import logging
 import sys
 import warnings
 from argparse import Action, ArgumentError
-from datetime import datetime
+from datetime import datetime, timezone
 from difflib import unified_diff
 from pathlib import Path
 from typing import Collection, Generator, List, Optional, Tuple
@@ -209,11 +209,6 @@ def _reformat_and_flynt_single_file(  # noqa: PLR0913
         relative_path_in_rev2, exclude.flynt, edited_linenums_differ, rev2_isorted
     )
     has_fstring_changes = fstringified != rev2_isorted
-    logger.debug(
-        "Flynt resulted in %s lines, with %s changes from fstringification",
-        len(fstringified.lines),
-        "some" if has_fstring_changes else "no",
-    )
     # 3. run the code re-formatter on the isorted and fstringified contents of each
     #    edited to-file
     formatted = _maybe_reformat_single_file(
@@ -279,7 +274,13 @@ def _maybe_flynt_single_file(
     if glob_any(relpath_in_rev2, exclude):
         # `--flynt` option not specified, don't reformat
         return rev2_isorted
-    return apply_flynt(rev2_isorted, relpath_in_rev2, edited_linenums_differ)
+    result = apply_flynt(rev2_isorted, relpath_in_rev2, edited_linenums_differ)
+    logger.debug(
+        "Flynt resulted in %s lines, with %s changes from fstringification",
+        len(result.lines),
+        "some" if result != rev2_isorted else "no",
+    )
+    return result
 
 
 def _maybe_reformat_single_file(
@@ -363,7 +364,7 @@ def _drop_changes_on_unedited_lines(
             choose_lines(new_chunks, edited_linenums),
             encoding=rev2_content.encoding,
             newline=rev2_content.newline,
-            mtime=datetime.utcnow().strftime(GIT_DATEFORMAT),
+            mtime=datetime.now(timezone.utc).strftime(GIT_DATEFORMAT),
         )
 
         # 10. verify that the resulting reformatted source code parses to an identical

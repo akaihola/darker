@@ -56,6 +56,10 @@ Internal
 - Update ``darkgray-dev-tools`` for Pip >= 24.1 compatibility.
 - Drop dependency on ``pip`` and ``distutils`` in the weekly CI "future" test. Use
   ``packaging`` instead.
+- No need to use `typing.Pattern` instead of `re.Pattern` in Python 3.9+.
+- Always use newest artifact upload/download actions from the v4 series in the CI build.
+- Use `datetime.datetime.now()`, not ``.utcnow()`` to silence a deprecation warning.
+- Suppress logging about Flynt unless Flynt is enabled.
 
 
 2.1.1_ - 2024-04-16
