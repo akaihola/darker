@@ -9,9 +9,14 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - name: Install uv
-        uses: astral-sh/setup-uv@v3
       - uses: actions/setup-python@v5
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+          cache-dependency-glob: |
+            **/setup.cfg
+            **/pyproject.toml
 
       - name: Make sure that `darkgray_bump_version` still finds all version strings
               and that there's a future milestone on GitHub Issues.

@@ -15,24 +15,27 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: 'master'
           fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: '3.x'
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+          cache-dependency-glob: |
+            **/setup.cfg
+            **/pyproject.toml
       - name: Install dependencies
         run: |
-          # strict dependency resolution added in pip 20.3
-          # CVE-2021-3572 fixed in pip 21.1
-          python -m pip install --upgrade 'pip>=21.1'
-          pip install \
+          uv pip install \
             --constraint=constraints-future.txt \
             --upgrade \
-            --upgrade-strategy=eager \
             -e '.[test]'
+          uv python install
       - name: Test with pytest
         run: |
-          pytest
+          uv run pytest
       - name: Note a possible Black incompatibility and required actions
         if: failure()
         shell: python
