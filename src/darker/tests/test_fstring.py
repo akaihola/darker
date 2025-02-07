@@ -1,6 +1,7 @@
 """Tests for :mod:`darker.fstring`"""
 
-# pylint: disable=unused-argument,protected-access,too-many-arguments
+# pylint: disable=protected-access
+# pylint: disable=too-many-arguments,too-many-positional-arguments,unused-argument
 
 from importlib import reload
 from pathlib import Path

@@ -1,6 +1,7 @@
 """Tests for `darker.__main__.main` and the ``--stdin-filename`` option"""
 
-# pylint: disable=no-member,redefined-outer-name,too-many-arguments,use-dict-literal
+# pylint: disable=no-member,redefined-outer-name
+# pylint: disable=too-many-arguments,too-many-positional-arguments,use-dict-literal
 
 from __future__ import annotations
 
