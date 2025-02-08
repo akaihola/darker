@@ -1,6 +1,7 @@
 """Helpers for invoking ``isort`` and acting on its output"""
 
 import logging
+from contextlib import suppress
 from pathlib import Path
 from typing import Any, Collection, List, Optional, TypedDict
 
@@ -51,9 +52,10 @@ class IsortArgs(TypedDict, total=False):
     settings_path: str
 
 
-def apply_isort(  # pylint: disable=too-many-arguments
+def apply_isort(  # pylint: disable=too-many-arguments  # noqa: PLR0913
     content: TextDocument,
-    src: Path,
+    relative_path: Path,
+    root: Path,
     exclude: Collection[str],
     edited_linenums_differ: EditedLinenumsDiffer,
     config: Optional[str] = None,
@@ -62,9 +64,10 @@ def apply_isort(  # pylint: disable=too-many-arguments
     """Run isort on the given Python source file content
 
     :param content: The contents of the Python source code file to sort imports in
-    :param src: The relative path to the file. This must be the actual path in the
-                repository, which may differ from the path given on the command line in
-                case of VSCode temporary files.
+    :param relative_path: The path to the file relative to ``root``. Note that this may
+                          differ from the path given on the command line in case of
+                          VSCode temporary files.
+    :param root: The root directory based on which ``src`` is resolved.
     :param exclude: The file path patterns to exclude from import sorting
     :param edited_linenums_differ: Helper for finding out which lines were edited
     :param config: Path to configuration file
@@ -72,17 +75,17 @@ def apply_isort(  # pylint: disable=too-many-arguments
     :return: Original Python source file contents with imports sorted
 
     """
-    if glob_any(src, exclude):
+    if glob_any(relative_path, exclude):
         return content
     edited_linenums = edited_linenums_differ.revision_vs_lines(
-        src,
+        relative_path,
         content,
         context_lines=0,
     )  # pylint: disable=duplicate-code
     if not edited_linenums:
         return content
-    isort_args = _build_isort_args(src, config, line_length)
-    rev2_isorted = _call_isort_code(content, isort_args)
+    isort_args = _build_isort_args(root / relative_path, config, line_length)
+    rev2_isorted = _call_isort_code(content, root / relative_path, isort_args)
     # Get the chunks in the diff between the edited and import-sorted file
     isort_chunks = diff_chunks(content, rev2_isorted)
     if not isort_chunks:
@@ -98,15 +101,16 @@ def apply_isort(  # pylint: disable=too-many-arguments
 
 
 def _build_isort_args(
-    src: Path,
+    path_from_cwd: Path,
     config: Optional[str] = None,
     line_length: Optional[int] = None,
 ) -> IsortArgs:
     """Build ``isort.code()`` keyword arguments
 
-    :param src: The relative path to the file. This must be the actual path in the
-                repository, which may differ from the path given on the command line in
-                case of VSCode temporary files.
+    :param path_from_cwd: The path to the file. This must be either an absolute path or
+                          a relative path from the current working directory. Note that
+                          this may differ from the path given on the command line in
+                          case of VSCode temporary files.
     :param config: Path to configuration file
     :param line_length: Maximum line length to use
 
@@ -115,16 +119,20 @@ def _build_isort_args(
     if config:
         isort_args["settings_file"] = config
     else:
-        isort_args["settings_path"] = str(find_project_root((str(src),)))
+        isort_args["settings_path"] = str(find_project_root((str(path_from_cwd),)))
     if line_length:
         isort_args["line_length"] = line_length
     return isort_args
 
 
-def _call_isort_code(content: TextDocument, isort_args: IsortArgs) -> TextDocument:
+def _call_isort_code(
+    content: TextDocument, path_from_cwd: Path, isort_args: IsortArgs
+) -> TextDocument:
     """Call ``isort.code()`` and return the result as a `TextDocument` object
 
     :param content: The contents of the Python source code file to sort imports in
+    :param path_from_cwd: The path to the file with the given content, either relative
+                          to the current working directory or an absolute path.
     :param isort_args: Keyword arguments for ``isort.code()``
 
     """
@@ -133,10 +141,8 @@ def _call_isort_code(content: TextDocument, isort_args: IsortArgs) -> TextDocume
         "isort.code(code=..., %s)",
         ", ".join(f"{k}={v!r}" for k, v in isort_args.items()),
     )
-    try:
-        code = isort_code(code=code, **isort_args)
-    except isort.exceptions.FileSkipComment:
-        pass
+    with suppress(isort.exceptions.FileSkipped):
+        code = isort_code(code=code, file_path=path_from_cwd, **isort_args)
     return TextDocument.from_str(
         code,
         encoding=content.encoding,
