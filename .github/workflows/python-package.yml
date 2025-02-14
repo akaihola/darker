@@ -31,7 +31,8 @@ jobs:
             **/setup.cfg
             **/pyproject.toml
       - name: Build wheel distribution
-        run: uv build --wheel
+        run: |
+          uv build --wheel
       - name: Upload wheel for other jobs
         uses: actions/upload-artifact@v4
         with:
@@ -76,7 +77,7 @@ jobs:
               source venv/bin/activate
               cert_file=/nix/var/nix/profiles/default/etc/ssl/certs/ca-bundle.crt
               export NIX_SSL_CERT_FILE=$cert_file
-              pip install "${{needs.build-wheel.outputs.wheel-path}}[test]"
+              pip install "${{needs.build-wheel.outputs.wheel-path}}[dev]"
               # Run tests in installed package to avoid plugin import issue:
               pytest $(python -c "
           import os, darker
@@ -112,12 +113,11 @@ jobs:
         include:
           - os: ubuntu-latest
             python-version: '3.9'
-            constraints: '--constraint constraints-oldest.txt'
+            post_install: uv sync --resolution lowest-direct
           - os: ubuntu-latest
             python-version: '3.12'
-            post_install: pip uninstall -y -r constraints-future.txt ;
-                          pip install -r constraints-future.txt
-                                      --upgrade --upgrade-strategy=eager
+            post_install: uv sync --upgrade
+
     needs:
       - build-wheel
     steps:
@@ -125,6 +125,8 @@ jobs:
         with:
           fetch-depth: 0
           # need full history since Pytest runs Darker itself below
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
@@ -132,18 +134,18 @@ jobs:
       - name: Download wheel uploaded by the build-wheel job
         uses: actions/download-artifact@v4
       - name: Install Darker and its dependencies from the wheel built earlier
-        run: pip install "${{needs.build-wheel.outputs.wheel-path}}[test]"
+        run: pip install "${{needs.build-wheel.outputs.wheel-path}}[dev]"
                          ${{ matrix.upgrade }} ${{ matrix.constraints }}
+      - name: Downgrade target-version when running oldest supported Black
+        if: matrix.constraints == '--constraint constraints-oldest.txt'
+        run: |
+          sed -i 's/, "py311", "py312"//' pyproject.toml
       - name: Upgrade Black, Flynt and Isort from GitHub if future constraints are used
         # This can't be done in the same Pip invocation as installing Darker
         # since Darker might place an upper limit on Black, Flynt and/or Isort during
         # compatibility fixing periods.
         if: matrix.post_install
         run: ${{ matrix.post_install }}
-      - name: Downgrade target-version when running oldest supported Black
-        if: matrix.constraints == '--constraint constraints-oldest.txt'
-        run: |
-          sed -i 's/, "py311", "py312"//' pyproject.toml
       - run: pytest
 
   build-sdist-validate-dists:
