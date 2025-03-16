@@ -29,7 +29,6 @@ dependencies = [
     "packaging",
     "pathspec", # to test `gen_python_files` in `test_black_diff.py`
     "pydocstyle",
-    "pygments>=2.4.0",
     "pyupgrade>=2.31.0",
     "pylint>=3.2.7",
     "pylint-per-file-ignores",
@@ -48,6 +47,11 @@ dependencies = [
 ]
 dynamic = ["readme"]
 
+[project.optional-dependencies]
+color = [
+    "Pygments>=2.4.0",
+]
+
 [dependency-groups]
 dev = [
     "black>=22.3.0",
@@ -59,7 +63,7 @@ dev = [
     "packaging",
     "pathspec", # to test `gen_python_files` in `test_black_diff.py`
     "pydocstyle",
-    "pygments>=2.4.0",
+    "Pygments>=2.4.0",
     "pyupgrade>=2.31.0",
     "pylint>=3.2.7",
     "pylint-per-file-ignores",
