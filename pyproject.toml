@@ -51,6 +51,9 @@ dynamic = ["readme"]
 color = [
     "Pygments>=2.4.0",
 ]
+release = [
+    "darkgray-dev-tools~=0.2.0",
+]
 
 [dependency-groups]
 dev = [
