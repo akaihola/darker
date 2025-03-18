@@ -159,7 +159,7 @@ jobs:
       - name: Build source distribution
         run: uv build --sdist
       - name: Validate distributions
-        run: uvx twine check dist/*
+        run: uvx --from "twine!=6.1.0" twine check dist/*
 
   validate-extras:
     runs-on: ubuntu-latest
