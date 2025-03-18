@@ -14,6 +14,8 @@ jobs:
           python-version: '3.x'
           cache: 'pip'
       - run: pip install 'isort>=5.0.5'
+      # TODO: check and document what my fix was, use upstream if fixed there too
+      # - uses: wearerequired/lint-action@v2.3.0
       - uses: akaihola/lint-action@master
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
