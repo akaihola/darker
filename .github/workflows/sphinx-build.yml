@@ -18,6 +18,9 @@ jobs:
           python-version: '3.13'
           enable-cache: true
 
+      - name: Sync UV
+        run: uv sync --group docs
+
       - name: Build HTML
         run: uv run sphinx-build -b html docs docs/_build/html
 
