@@ -74,10 +74,6 @@ dev = [
     "wheel>=0.21.0",
     "astor>=0.8.1",
 ]
-docs = [
-   "sphinx",
-   "sphinx-rtd-theme",
-]
 
 [project.urls]
 Homepage = "https://github.com/akaihola/darker"
@@ -93,6 +89,12 @@ none = "darker.formatters.none_formatter:NoneFormatter"
 
 [project.scripts]
 darker = "darker.__main__:main_with_error_handling"
+
+[project.optional-dependencies]
+docs = [
+    "sphinx>=7.4.7",
+    "sphinx-rtd-theme>=3.0.2",
+]
 
 [tool.black]
 # Darker makes Black read its configuration from the file indicated by the `--config`
