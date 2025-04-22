@@ -22,16 +22,17 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.x' 
+          python-version: '3.x'
       - name: Install uv
-        uses: astral-sh/setup-uv@v4
+        uses: astral-sh/setup-uv@v6
         with:
           enable-cache: true
           cache-dependency-glob: |
             **/setup.cfg
             **/pyproject.toml
       - name: Build wheel distribution
-        run: uv build --wheel
+        run: |
+          uv build --wheel
       - name: Upload wheel for other jobs
         uses: actions/upload-artifact@v4
         with:
@@ -62,7 +63,7 @@ jobs:
       - build-wheel
     steps:
       - uses: actions/checkout@v4
-      - uses: cachix/install-nix-action@v22
+      - uses: cachix/install-nix-action@v31
         with:
           nix_path: nixpkgs=channel:nixos-unstable
       - name: Download wheel uploaded by the build-wheel job
@@ -72,13 +73,13 @@ jobs:
           nix-shell \
             --pure \
             --run '
-              python -m venv venv
-              source venv/bin/activate
               cert_file=/nix/var/nix/profiles/default/etc/ssl/certs/ca-bundle.crt
               export NIX_SSL_CERT_FILE=$cert_file
-              pip install "${{needs.build-wheel.outputs.wheel-path}}[test]"
+              uv venv
+              uv pip install --group=dev "${{needs.build-wheel.outputs.wheel-path}}"
+              uv export --only-group=dev | uv pip install --requirements=-
               # Run tests in installed package to avoid plugin import issue:
-              pytest $(python -c "
+              PY_IGNORE_IMPORTMISMATCH=1 uv run pytest $(python -c "
           import os, darker
           print(os.path.dirname(darker.__file__))
               ")
@@ -99,25 +100,18 @@ jobs:
           - '3.10'
           - '3.11'
           - '3.12'
-          - '3.13-dev'
-        constraints: ['']
+          - '3.13'
         post_install: ['']
-        exclude:
-          # C extension builds failing.
-          # Remove exclusions after Python 3.13 release.
-          - os: windows-latest
-            python-version: '3.13-dev'
-          - os: macos-latest
-            python-version: '3.13-dev'
         include:
           - os: ubuntu-latest
             python-version: '3.9'
-            constraints: '--constraint constraints-oldest.txt'
+            post_install: uv sync --resolution lowest-direct
           - os: ubuntu-latest
-            python-version: '3.12'
-            post_install: pip uninstall -y -r constraints-future.txt ;
-                          pip install -r constraints-future.txt
-                                      --upgrade --upgrade-strategy=eager
+            python-version: '3.13'
+            post_install: uv pip install
+                                 --upgrade
+                                 --requirements constraints-future.txt
+
     needs:
       - build-wheel
     steps:
@@ -129,21 +123,26 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+          activate-environment: true
       - name: Download wheel uploaded by the build-wheel job
         uses: actions/download-artifact@v4
       - name: Install Darker and its dependencies from the wheel built earlier
-        run: pip install "${{needs.build-wheel.outputs.wheel-path}}[test]"
-                         ${{ matrix.upgrade }} ${{ matrix.constraints }}
-      - name: Upgrade Black, Flynt and Isort from GitHub if future constraints are used
+        run: uv pip install --group=dev "${{needs.build-wheel.outputs.wheel-path}}"
+      - name: Downgrade target-version when running oldest supported Black
+        if: matrix.post_install == 'uv sync --resolution lowest-direct'
+        run: |
+          sed -i 's/, "py311", "py312"//' pyproject.toml
+      - name: Upgrade/downgrade packages for future/oldest test
+        # Upgrade Black, Flynt and Isort from GitHub if future constraints are used.
         # This can't be done in the same Pip invocation as installing Darker
         # since Darker might place an upper limit on Black, Flynt and/or Isort during
         # compatibility fixing periods.
         if: matrix.post_install
         run: ${{ matrix.post_install }}
-      - name: Downgrade target-version when running oldest supported Black
-        if: matrix.constraints == '--constraint constraints-oldest.txt'
-        run: |
-          sed -i 's/, "py311", "py312"//' pyproject.toml
       - run: pytest
 
   build-sdist-validate-dists:
@@ -153,11 +152,51 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install uv
-        uses: astral-sh/setup-uv@v3
+        uses: astral-sh/setup-uv@v6
       - uses: actions/setup-python@v5
+        with:
+          python-version: 3.x
       - name: Download wheel uploaded by the build-wheel job
         uses: actions/download-artifact@v4
       - name: Build source distribution
         run: uv build --sdist
       - name: Validate distributions
-        run: uvx twine check dist/*
+        run: uvx --from "twine!=6.1.0" twine check dist/*
+
+  validate-extras:
+    runs-on: ubuntu-latest
+    needs:
+      - build-wheel
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v5
+        with:
+          python-version: 3.x
+      - uses: astral-sh/setup-uv@v6
+        with:
+          activate-environment: true
+      - uses: actions/download-artifact@v4
+      - run: >
+          uv pip install ${{needs.build-wheel.outputs.wheel-path}}[color]
+          | ( ! grep -E '^(error|warning): ' )
+      - name: Ensure Pygments was installed
+        run: uv pip show pygments
+
+  validate-no-extras:
+    runs-on: ubuntu-latest
+    needs:
+      - build-wheel
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v5
+        with:
+          python-version: 3.x
+      - uses: astral-sh/setup-uv@v6
+        with:
+          activate-environment: true
+      - uses: actions/download-artifact@v4
+      - run: >
+          uv pip install ${{needs.build-wheel.outputs.wheel-path}}
+          | ( ! grep -E "^(error|warning): " )
+      - name: Ensure Pygments was not installed
+        run: "! uv pip show pygments"

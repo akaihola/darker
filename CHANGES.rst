@@ -5,7 +5,7 @@ These features will be included in the next release:
 
 Added
 -----
-- CI workflow, enable caching of packages via uv across all actions
+- Drop python 3.8, add python 3.13 official support
 - New exit codes 2 for file not found, 3 for invalid command line arguments, 4 for
   missing dependencies and 123 for unknown failures.
 - Display exit code in parentheses after error message.
@@ -60,6 +60,12 @@ Internal
 - Always use newest artifact upload/download actions from the v4 series in the CI build.
 - Use `datetime.datetime.now()`, not ``.utcnow()`` to silence a deprecation warning.
 - Suppress logging about Flynt unless Flynt is enabled.
+- Update to Mypy 1.15+ and use the ``explicit-any`` ignore.
+- Switch from old defunct Bandit action to ``brunohaf/action-bandit``.
+- Format YAML files to satisfy yaml-lint and fix workflow syntax.
+- Use UV across all CI workflow actions, and enable caching of packages.
+- Update Nix action to v31 – fixes the build error.
+- Update to Pygments 2.15 to address two CVEs reported by Safety.
 
 
 2.1.1_ - 2024-04-16

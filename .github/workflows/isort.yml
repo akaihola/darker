@@ -9,6 +9,14 @@ on:  # yamllint disable-line rule:truthy
     branches:
       - master
 
+# Down scope as necessary via
+# https://docs.github.com/en/actions/security-guides
+#  /automatic-token-authentication#
+#  modifying-the-permissions-for-the-github_token
+permissions:
+  checks: write
+  contents: write
+
 jobs:
   isort:
     runs-on: ubuntu-latest
@@ -18,8 +26,19 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.x'
-          cache: 'pip'
-      - run: pip install 'isort>=5.0.1'
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: |
+            **/setup.cfg
+            **/pyproject.toml
+      - run: uv pip install --system 'isort>=5.1.0'
+      # Upstream lint-action 2.3.0 doesn't support isort.
+      # Gobot1234/lint-action had isort support but was outdated.
+      # I rebased Gobot1234's patch on top of upstream:
+      # https://github.com/wearerequired/lint-action/pull/858
+      # - uses: wearerequired/lint-action@v2.3.0
       - uses: akaihola/lint-action@master
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
