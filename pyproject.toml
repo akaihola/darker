@@ -55,7 +55,7 @@ dev = [
     "isort>=5.0.1",
     "mypy>=1.15",
     "packaging",
-    "pathspec", # to test `gen_python_files` in `test_black_diff.py`
+    "pathspec>=0.2.2", # to test `gen_python_files` in `test_black_diff.py`
     "pydocstyle",
     "Pygments>=2.4.0",
     "pyupgrade>=2.31.0",
