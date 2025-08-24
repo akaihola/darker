@@ -90,27 +90,21 @@ you'd like to only change formatting when you're touching the code for other rea
 This can also be useful
 when contributing to upstream codebases that are not under your complete control.
 
-Partial formatting is not supported by Black_ itself,
-for various good reasons, and so far there hasn't been a plan to implemented it either
-(`134`__, `142`__, `245`__, `370`__, `511`__, `830`__).
-However, in September 2021 Black developers started to hint towards adding this feature
-after all (`1352`__). This might at least simplify Darker's algorithm substantially.
+Partial formatting was not supported by Black_ itself when Darker was originally
+created, which is why Darker was developed to provide this functionality.
+However, Black has since added the `-\-line-ranges`_ command line option for partial
+formatting, which could potentially simplify Darker's implementation.
+
+.. _-\-line-ranges: https://black.readthedocs.io/en/latest/usage_and_configuration/the_basics.html#line-ranges
 
 The ``--range`` option in `the Ruff formatter`_
-does allow for partial formatting of a single range,
+allows for partial formatting of a single range as well,
 but to make use of it,
 Darker would need call `the Ruff formatter`_ once for each modified chunk.
 
-__ https://github.com/psf/black/issues/134
-__ https://github.com/psf/black/issues/142
-__ https://github.com/psf/black/issues/245
-__ https://github.com/psf/black/issues/370
-__ https://github.com/psf/black/issues/511
-__ https://github.com/psf/black/issues/830
-__ https://github.com/psf/black/issues/1352
-
-But for the time being, this is where ``darker`` enters the stage.
-This tool is for those who want to do partial formatting right now.
+However, Black doesn't help in determining which line ranges to format.
+This is where ``darker`` enters the stage.
+This tool is for those who want to do partial formatting for modified parts of the code.
 
 Note that this tool is meant for special situations
 when dealing with existing code bases.
@@ -950,10 +944,10 @@ To sort imports when the ``--isort`` option was specified, Darker proceeds like 
 Limitations and work-arounds
 =============================
 
-Black doesn't support partial formatting natively,
-and `the Ruff formatter`_ only accepts a single line range.
-Because of this, Darker lets them reformat complete files.
-Darker then accepts or rejects chunks of contiguous lines touched by the formatter,
+Although Black has added support for partial formatting with the `--line-ranges` command
+line option, and `the Ruff formatter`_ accepts a single line range for ``--range``,
+Darker lets Black or Ruff reformat complete files.
+Darker then accepts or rejects chunks of contiguous lines touched by Black or Ruff,
 depending on whether any of the lines in a chunk were edited or added
 between the two revisions.
 
