@@ -63,7 +63,7 @@ Internal
 - Suppress logging about Flynt unless Flynt is enabled.
 - Update to Mypy 1.15+ and use the ``explicit-any`` ignore.
 - Switch from old defunct Bandit action to ``brunohaf/action-bandit``.
-- Format YAML files to satisfy yaml-lint.
+- Format YAML files to satisfy yaml-lint and fix workflow syntax.
 
 
 2.1.1_ - 2024-04-16
