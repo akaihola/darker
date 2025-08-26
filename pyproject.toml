@@ -32,7 +32,7 @@ dependencies = [
     "pyupgrade>=2.31.0",
     "pylint>=3.2.7",
     "pylint-per-file-ignores",
-    "pytest>=6.2.0",
+    "pytest==7.4.0",
     "pytest-kwparametrize>=0.0.3",
     "pyupgrade>=2.31.0",
     "regex>=2021.4.4",
