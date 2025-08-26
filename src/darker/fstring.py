@@ -30,7 +30,7 @@ except ImportError:
     flynt = None
     State = None
 
-    def fstringify_code_by_line(*args: Any, **kwargs: Any) -> str:  # type: ignore[misc]
+    def fstringify_code_by_line(*args: Any, **kwargs: Any) -> str:  # type: ignore[explicit-any]
         """Fake `flynt.fstringify_code_by_line()` to use when `flynt` isn't installed"""
         raise MissingPackageError(
             "No module named 'flynt'. Please install the 'flynt' package before using"

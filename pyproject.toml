@@ -25,7 +25,7 @@ dependencies = [
     "defusedxml>=0.7.1",
     "flynt>=0.76",
     "isort>=5.0.1",
-    "mypy>=0.990",
+    "mypy>=1.15",
     "packaging",
     "pathspec", # to test `gen_python_files` in `test_black_diff.py`
     "pydocstyle",
@@ -59,7 +59,7 @@ dev = [
     "defusedxml>=0.7.1",
     "flynt>=0.76",
     "isort>=5.0.1",
-    "mypy>=0.990",
+    "mypy>=1.15",
     "packaging",
     "pathspec", # to test `gen_python_files` in `test_black_diff.py`
     "pydocstyle",
