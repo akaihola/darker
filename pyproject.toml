@@ -27,6 +27,21 @@ dynamic = ["readme"]
 color = [
     "Pygments>=2.4.0",
 ]
+black = [
+    "black>=24.10.0",
+]
+pyupgrade = [
+    "pyupgrade>=2.31.0",
+]
+flynt = [
+    "flynt>=0.76",
+]
+isort = [
+    "isort>=5.0.1",
+]
+ruff = [
+    "ruff>=0.0.292",
+]
 release = [
     "darkgray-dev-tools~=0.2.0",
 ]
