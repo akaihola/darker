@@ -61,6 +61,8 @@ Internal
 - Always use newest artifact upload/download actions from the v4 series in the CI build.
 - Use `datetime.datetime.now()`, not ``.utcnow()`` to silence a deprecation warning.
 - Suppress logging about Flynt unless Flynt is enabled.
+- Update to Mypy 1.15+ and use the ``explicit-any`` ignore.
+- Switch from old defunct Bandit action to ``brunohaf/action-bandit``.
 
 
 2.1.1_ - 2024-04-16
