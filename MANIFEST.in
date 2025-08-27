@@ -1,0 +1,1 @@
+include stubs/pyupgrade/*.pyi
