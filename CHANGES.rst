@@ -64,6 +64,7 @@ Internal
 - Switch from old defunct Bandit action to ``brunohaf/action-bandit``.
 - Format YAML files to satisfy yaml-lint and fix workflow syntax.
 - Use UV across all CI workflow actions, and enable caching of packages.
+- Update Nix action to v31 – fixes the build error.
 
 
 2.1.1_ - 2024-04-16
