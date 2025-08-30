@@ -26,7 +26,7 @@ jobs:
             git+https://github.com/akaihola/darkgraylib.git@main \
             defusedxml \
             pygments \
-            'pylint<=3.2.7' \
+            'pylint>=3.3.0' \
             pylint-per-file-ignores \
             pytest>=6.2.0 \
             pyupgrade>=3 \
