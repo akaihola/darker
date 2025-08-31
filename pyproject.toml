@@ -39,7 +39,7 @@ flynt = [
     "flynt>=0.76",
 ]
 isort = [
-    "isort>=5.0.1",
+    "isort>=5.1.0",
 ]
 ruff = [
     "ruff>=0.0.292",
@@ -55,7 +55,7 @@ dev = [
     "defusedxml>=0.7.1",
     "flake8>=3.8.0",
     "flynt>=0.76",
-    "isort>=5.0.5",
+    "isort>=5.1.0",
     "mypy>=1.15",
     "packaging>=14",
     "pydocstyle>=2.0.0",
