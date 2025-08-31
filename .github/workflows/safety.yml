@@ -9,14 +9,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - name: Run Safety CLI to check for vulnerabilities
+        uses: pyupio/safety-action@v1
         with:
-          python-version: '3.x'
-      - uses: astral-sh/setup-uv@v4
-        with:
-          enable-cache: true
-          cache-dependency-glob: |
-            **/setup.cfg
-            **/pyproject.toml
-      - name: Check dependencies for known security vulnerabilities using Safety
-      - run: uv pip compile pyproject.toml | uvx safety check --file -
+          api-key: ${{ secrets.SAFETY_API_KEY }}
