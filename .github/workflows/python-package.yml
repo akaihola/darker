@@ -76,7 +76,7 @@ jobs:
               cert_file=/nix/var/nix/profiles/default/etc/ssl/certs/ca-bundle.crt
               export NIX_SSL_CERT_FILE=$cert_file
               uv venv
-              uv pip install "${{needs.build-wheel.outputs.wheel-path}}[dev]"
+              uv pip install --group=dev "${{needs.build-wheel.outputs.wheel-path}}"
               uv export --only-group=dev | uv pip install --requirements=-
               # Run tests in installed package to avoid plugin import issue:
               PY_IGNORE_IMPORTMISMATCH=1 uv run pytest $(python -c "
