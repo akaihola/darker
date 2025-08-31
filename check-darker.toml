@@ -1,6 +1,7 @@
 # This is the Darker configuration file for running all the code formatters and linters
 # on the Darker code base. To use it, run:
 #   $ darker --config=check-darker.toml
+#   $ graylint --config=check-darker.toml
 
 [tool.black]
 # Darker makes Black read its configuration from the file indicated by the `--config`

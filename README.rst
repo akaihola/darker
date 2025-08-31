@@ -30,16 +30,17 @@
 What?
 =====
 
-This utility reformats and checks Python source code files.
+This utility reformats Python source code files.
 However, when run in a Git repository, it compares an old revision of the source tree
 to a newer revision (or the working tree). It then only applies reformatting
 in regions which have changed in the Git working tree between the two revisions.
 
 The reformatters supported are:
 
-- Black_ for code reformatting
+- Black_ and Ruff_ for code reformatting
 - isort_ for sorting imports
 - flynt_ for turning old-style format strings to f-strings
+- pyupgrade_ for upgrading syntax for newer versions of Python
 
 **NOTE:** Baseline linting support has been moved to the Graylint_ package.
 
@@ -49,8 +50,10 @@ To integrate Darker with your IDE or with pre-commit_,
 see the relevant sections below in this document.
 
 .. _Black: https://github.com/python/black
+.. _Ruff: https://docs.astral.sh/ruff/formatter/
 .. _isort: https://github.com/timothycrosley/isort
 .. _flynt: https://github.com/ikamensh/flynt
+.. _pyupgrade: https://github.com/asottile/pyupgrade
 .. _Pytest: https://docs.pytest.org/
 .. _pytest-darker: https://pypi.org/project/pytest-darker/
 
@@ -133,7 +136,24 @@ How?
 
 To install or upgrade, use::
 
-  pip install --upgrade darker[black]~=2.1.1
+  pip install --upgrade darker~=2.1.1
+
+To also install support for Black_ formatting::
+
+  pip install --upgrade 'darker[black]~=2.1.1'
+
+To install support for all available formatting and analysis tools::
+
+  pip install --upgrade 'darker[color,black,ruff,isort,flynt,pyupgrade]~=2.1.1'
+
+The available optional dependencies are:
+
+- ``color``: Enable syntax highlighting in terminal output using Pygments_
+- ``black``: Enable Black_ code formatting (the default formatter)
+- ``ruff``: Enable Ruff_ code formatting
+- ``isort``: Enable isort_ import sorting
+- ``flynt``: Enable flynt_ string formatting conversion
+- ``pyupgrade``: Enable pyupgrade_ code upgrades
 
 Or, if you're using Conda_ for package management::
 
@@ -158,17 +178,19 @@ Alternatively, you can invoke the module directly through the ``python`` executa
 which may be preferable depending on your setup.
 Use ``python -m darker`` instead of ``darker`` in that case.
 
-By default, ``darker`` just runs Black_ to reformat the code.
-You can enable additional features with command line options:
+By default, ``darker`` uses Black_ to reformat the code.
+You can choose different formatters or enable additional features
+with command line options:
 
-- ``-i`` / ``--isort``: Reorder imports using isort_. Note that isort_ must be
+- ``--formatter=black``: Use Black_ for code formatting (the default)
+- ``--formatter=ruff``: Use Ruff_ for code formatting
+- ``--formatter=pyupgrade``: Use pyupgrade_ to upgrade Python syntax
+- ``--formatter=none``: Don't run any formatter, only run other enabled tools
+- ``-i`` / ``--isort``: Also reorder imports using isort_. Note that isort_ must be
   run in the same Python environment as the packages to process, as it imports
   your modules to determine whether they are first or third party modules.
 - ``-f`` / ``--flynt``: Also convert string formatting to use f-strings using the
   ``flynt`` package
-
-If you only want to run those tools without reformatting with Black,
-use the ``--formatter=none`` option.
 
 *New in version 1.1.0:* The ``-L`` / ``--lint`` option.
 
@@ -287,18 +309,21 @@ instead of the last commit:
    $ darker --revision master .
 
 
-Customizing ``darker``, Black_, isort_ and flynt_ behavior
-==========================================================
+Customizing ``darker``, Black_, Ruff_, isort_, flynt_, and pyupgrade_ behavior
+==============================================================================
 
-``darker`` invokes Black_ and isort_ internals directly instead of running their
-binaries, so it needs to read and pass configuration options to them explicitly.
-Project-specific default options for ``darker`` itself, Black_ and isort_ are read from
-the project's ``pyproject.toml`` file in the repository root. isort_ does also look for
-a few other places for configuration.
+``darker`` invokes Black_, isort_, flynt_ and pyupgrade_ internals directly
+instead of running their binaries,
+so it needs to read and pass configuration options to them explicitly.
+Project-specific default options for ``darker`` itself, Black_, isort_ and flynt_
+are read from the project's ``pyproject.toml`` file in the repository root.
+isort_ does also look for a few other places for configuration.
 
-flynt_ (option ``-f`` / ``--flynt``) is also invoked as a subprocess, but passing
-command line options to it is currently not supported. Configuration files need to be
-used instead.
+For pyupgrade_, only ``--target-version`` is converted to ``--py<version>-plus``
+and passed to the pyupgrade_ internals. No other options are currently supported.
+
+Ruff_ is invoked as a subprocess, and it reads its configuration from the usual places,
+including the project's ``pyproject.toml`` file.
 
 Darker does honor exclusion options in Black configuration files when recursing
 directories, but the exclusions are only applied to Black reformatting.
@@ -308,9 +333,11 @@ command line are still reformatted even if they match exclusion patterns.
 For more details, see:
 
 - `Black documentation about pyproject.toml`_
+- `Ruff documentation about config files`_
 - `isort documentation about config files`_
 - `public GitHub repositories which install and run Darker`_
 - `flynt documentation about configuration files`_
+- `pyupgrade documentation`_
 
 The following `command line arguments`_ can also be used to modify the defaults:
 
@@ -467,9 +494,11 @@ the Graylint_ package. Also removed ``lint =``, ``skip_string_normalization =`` 
 ``skip_magic_trailing_comma =`` from ``[tool.darker]``.
 
 .. _Black documentation about pyproject.toml: https://black.readthedocs.io/en/stable/usage_and_configuration/the_basics.html#configuration-via-a-file
+.. _Ruff documentation about config files: https://docs.astral.sh/ruff/formatter/#configuration
 .. _isort documentation about config files: https://timothycrosley.github.io/isort/docs/configuration/config_files/
 .. _public GitHub repositories which install and run Darker: https://github.com/search?q=%2Fpip+install+.*darker%2F+path%3A%2F%5E.github%5C%2Fworkflows%5C%2F.*%2F&type=code
 .. _flynt documentation about configuration files: https://github.com/ikamensh/flynt#configuration-files
+.. _pyupgrade documentation: https://github.com/asottile/pyupgrade/blob/main/README.md
 .. _command line arguments: https://black.readthedocs.io/en/stable/usage_and_configuration/the_basics.html#command-line-options
 
 Editor integration

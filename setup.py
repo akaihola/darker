@@ -47,4 +47,7 @@ def make_pypi_compliant_readme() -> str:
     )
 
 
-setup(long_description=make_pypi_compliant_readme())
+setup(
+    long_description=make_pypi_compliant_readme(),
+    long_description_content_type="text/x-rst",
+)

@@ -13,7 +13,7 @@ jobs:
         with:
           python-version: '3.x'
       - name: Install uv
-        uses: astral-sh/setup-uv@v4
+        uses: astral-sh/setup-uv@v6
         with:
           enable-cache: true
           cache-dependency-glob: |
@@ -29,7 +29,7 @@ jobs:
             'pylint<=3.2.7' \
             pylint-per-file-ignores \
             pytest>=6.2.0 \
-            pyupgrade>=2.31.0 \
+            pyupgrade>=3 \
             regex \
             requests \
             requests-cache \

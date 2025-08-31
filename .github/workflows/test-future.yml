@@ -16,74 +16,35 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Install uv
-        uses: astral-sh/setup-uv@v3
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.x'
       - name: Install uv
-        uses: astral-sh/setup-uv@v4
+        uses: astral-sh/setup-uv@v6
         with:
           enable-cache: true
           cache-dependency-glob: |
             **/setup.cfg
             **/pyproject.toml
-      - name: Install dependencies
-
-        run: uv sync --upgrade --latest
+          activate-environment: true
+      - name: Install Darker and its dependencies
+        run: uv pip install --group=dev .
+      - name: Upgrade dependencies to future versions
+        # Upgrade Black, Flynt, Isort, pyupgrade and Darkgraylib from GitHub.
+        # This can't be done in the same uv invocation as installing Darker
+        # since Darker might place an upper limit on Black, Flynt and/or Isort during
+        # compatibility fixing periods.
+        run: |
+          uv pip install \
+            --upgrade \
+            --requirements=constraints-future.txt \
+            --group=dev \
+            -e . packaging setuptools
       - name: Test with pytest
         run: uv run pytest
-
-      - name: Note a possible Black incompatibility and required actions
+      - name: Note a possible dependency incompatibility and required actions
         if: failure()
-        shell: python
         run: |
-          import json
-          import os
-          import urllib.request
-          from textwrap import dedent
-
-          from packaging.version import Version
-
-          for linenum, line in enumerate(open("pyproject.toml"), 1):
-              constraint = line.strip()
-              if constraint.startswith("black>="):
-                  column = line.index("black>=") + 1
-                  end_column = len(line)
-                  break
-          else:
-              raise RuntimeError("black>= line not found in setup.cfg")
-
-          response = urllib.request.urlopen(
-              'https://pypi.org/pypi/black/json'
-          ).read().decode()
-          latest_version = max(
-              Version(s)
-              for s in json.loads(response)['releases'].keys()
-          )
-
-          print(
-              dedent(
-                  f"""
-                  ### :x: Future Black incompatibility? :x:
-
-                  You could add a maximum version constraint for Black on
-                  `setup.cfg` line {linenum}, e.g.
-                  `{constraint},<={latest_version}`
-
-                  See [#382](/akaihola/darker/issues/382)
-                  for more information
-                  """
-              ),
-              file=open(os.getenv("GITHUB_STEP_SUMMARY"), "a"),
-          )
-
-          print(
-              "::notice "
-              "file=setup.cfg,"
-              f"line={linenum},"
-              f"col={column},"
-              f"endColumn={end_column},"
-              "title=Future Black incompatibility?::"
-              "You could add a maximum version constraint for Black here, "
-              f"e.g. {constraint},<={latest_version}"
-          )
+          uvx \
+            --from darkgray-dev-tools \
+            darkgray_suggest_constraint Pygments toml
