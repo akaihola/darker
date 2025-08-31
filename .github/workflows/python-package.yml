@@ -24,7 +24,7 @@ jobs:
         with:
           python-version: '3.x'
       - name: Install uv
-        uses: astral-sh/setup-uv@v4
+        uses: astral-sh/setup-uv@v6
         with:
           enable-cache: true
           cache-dependency-glob: |
@@ -152,8 +152,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install uv
-        uses: astral-sh/setup-uv@v3
+        uses: astral-sh/setup-uv@v6
       - uses: actions/setup-python@v5
+        with:
+          python-version: 3.x
       - name: Download wheel uploaded by the build-wheel job
         uses: actions/download-artifact@v4
       - name: Build source distribution
@@ -167,10 +169,12 @@ jobs:
       - build-wheel
     steps:
       - uses: actions/checkout@v5
+      - uses: actions/setup-python@v5
+        with:
+          python-version: 3.x
       - uses: astral-sh/setup-uv@v6
         with:
           activate-environment: true
-      - uses: actions/setup-python@v5
       - uses: actions/download-artifact@v4
       - run: >
           uv pip install ${{needs.build-wheel.outputs.wheel-path}}[color]
@@ -184,10 +188,12 @@ jobs:
       - build-wheel
     steps:
       - uses: actions/checkout@v5
+      - uses: actions/setup-python@v5
+        with:
+          python-version: 3.x
       - uses: astral-sh/setup-uv@v6
         with:
           activate-environment: true
-      - uses: actions/setup-python@v5
       - uses: actions/download-artifact@v4
       - run: >
           uv pip install ${{needs.build-wheel.outputs.wheel-path}}
