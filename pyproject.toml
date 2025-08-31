@@ -43,13 +43,13 @@ ruff = [
     "ruff>=0.0.292",
 ]
 release = [
-    "darkgray-dev-tools~=0.2.0",
+    "darkgray-dev-tools~=0.3.0",
 ]
 
 [dependency-groups]
 dev = [
     "black>=22.3.0",
-    "darkgray-dev-tools~=0.1.1",
+    "darkgray-dev-tools~=0.3.0",
     "defusedxml>=0.7.1",
     "flynt>=0.76",
     "isort>=5.0.1",
