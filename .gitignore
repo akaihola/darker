@@ -8,3 +8,4 @@ __pycache__/
 /build
 /venv
 uv.lock
+/docs/_build/

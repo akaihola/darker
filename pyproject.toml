@@ -90,6 +90,12 @@ none = "darker.formatters.none_formatter:NoneFormatter"
 [project.scripts]
 darker = "darker.__main__:main_with_error_handling"
 
+[project.optional-dependencies]
+docs = [
+    "sphinx>=7.4.7",
+    "sphinx-rtd-theme>=3.0.2",
+]
+
 [tool.black]
 # Darker makes Black read its configuration from the file indicated by the `--config`
 # option, so we need to mirror the same configuration here and in `check-darker.toml`.
