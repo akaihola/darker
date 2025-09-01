@@ -2,6 +2,7 @@
 
 # pylint: disable=no-member,redefined-outer-name,unused-argument,use-dict-literal
 
+from textwrap import dedent
 from types import SimpleNamespace
 from unittest.mock import patch
 
@@ -90,6 +91,30 @@ def test_isort_option_with_isort_calls_sortimports(run_isort, isort_args):
     """Relevant config options are passed from command line to ``isort``."""
     run_isort.isort_code.assert_called_once_with(
         code="changed",
+        file_path=run_isort.root / "test1.py",
         settings_path=str(run_isort.root),
         **isort_args,
     )
+
+
+def test_isort_respects_skip_glob(tmp_path):
+    """Test that Darker respects isort's skip_glob setting."""
+    # Create a pyproject.toml file with isort skip_glob configuration
+    configuration = dedent(
+        """
+        [tool.isort]
+        skip_glob = ['*/conf/settings/*']
+        filter_files = true
+        """
+    )
+    (tmp_path / "pyproject.toml").write_text(configuration)
+    # Create a file that should be skipped
+    settings_dir = tmp_path / "conf" / "settings"
+    settings_dir.mkdir(parents=True)
+    backoffice_py = settings_dir / "backoffice.py"
+    backoffice_py.write_text("import sys\nimport os\n")
+
+    # Run darker with --isort
+    darker.__main__.main(["--isort", str(settings_dir / "backoffice.py")])
+
+    assert backoffice_py.read_text() == "import sys\nimport os\n"
