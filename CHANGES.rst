@@ -15,27 +15,30 @@ Fixed
 
 Added
 -----
-- Drop python 3.8, add python 3.13 official support
+- Ruff_ formatter support using the ``--formatter=ruff`` command line option or
+  ``formatter = "ruff"`` configuration file option.
+- The ``--formatter=black`` option (the default) has been added.
+- pyupgrade_ is now supported as a formatter plugin (``--formatter=pyupgrade`` on CLI,
+  ``formatter = "pyupgrade"`` in config file). Note that changes from pyupgrade
+  are applied on a per-file basis, not only for modified lines as with Black_ and Ruff_.
+- ``--formatter=none`` now skips running Black_, Ruff_ or pyupgrade_.
+  This is useful when you only want to run isort_ or Flynt_.
+- The ``--preview`` configuration flag is now supported in the configuration files for
+  Darker and Black_.
+- Add official support for Python 3.13.
 - New exit codes 2 for file not found, 3 for invalid command line arguments, 4 for
   missing dependencies and 123 for unknown failures.
 - Display exit code in parentheses after error message.
 - Do not reformat renamed files.
-- The ``--preview`` configuration flag is now supported in the configuration files for
-  Darker and Black.
-- The ``--formatter=black`` option (the default) has been added in preparation for
-  future formatters.
-- ``--formatter=none`` now skips running Black. This is useful when you only want to run
-  Isort or Flynt_.
-- Black_ is no longer installed by default. Use ``pip install 'darker[black]'`` to get
-  Black support.
-- pyupgrade_ is now supported as a formatter plugin. Note that changes from pyupgrade
-  are applied on a per-file basis, not only for modified lines as with Black_ and Ruff_.
 - Respect the ``skip_glob`` setting of isort_.
 
 Removed
 -------
 - **Backwards incompatible change:** Baseline linting support (``-L``/``--lint`` option)
   has been removed. Use the Graylint_ tool instead.
+- **Backwards incompatible change:** Black_ is no longer installed by default.
+  Use ``pip install 'darker[black]'`` to get Black support.
+- Drop support for Python 3.8.
 - In the Darker configuration file under ``[tool.darker]``, the Black configuration
   options ``skip_string_normalization`` and ``skip_magic_trailing_comma`` are no longer
   valid. Use ``[tool.black]`` instead.
@@ -44,15 +47,15 @@ Removed
 
 Fixed
 -----
-- Update to Darkgraylib 2.2.0 to fix the configuration dump, the output of
+- Update to Darkgraylib_ 2.4.0 to fix the configuration dump, the output of
   ``--version``, the Git "dubious ownership" issue, and source code line splitting
   (see below).
 - In the configuration dump printed when ``-vv`` verbosity is used, the configuration
   section is now correctly named ``[tool.darker]`` instead of ``[tool.darkgraylib]``.
-- Pass Darker version to `~darkgraylib.command_line.make_argument_parser` to make
+- Pass Darker version to ``darkgraylib.command_line.make_argument_parser`` to make
   ``--version`` display the correct version number.
 - Pass full environment to Git to avoid the "dubious ownership" error.
-- Work around a `pathlib.Path.resolve` bug in Python 3.9 on Windows.
+- Work around a ``pathlib.Path.resolve`` bug in Python 3.9 on Windows.
   The work-around should be removed when Python 3.9 is no longer supported.
 - Add missing configuration flag for Flynt_.
 - Only split source code lines at Python's universal newlines (LF, CRLF, CR).
@@ -129,7 +132,7 @@ Internal
 - Mark the Darker package as annotated with type hints.
 - Update to ``ioggstream/bandit-report-artifacts@v1.7.4`` in CI.
 - Test against Flynt_ ``master`` branch in the CI build.
-- Update to Darkgraylib 1.1.1 to get fixes for README formatting.
+- Update to Darkgraylib_ 1.1.1 to get fixes for README formatting.
 - ``bump_version.py`` is now in the separate ``darkgray-dev-tools`` repository.
 - Skip tests on Python 3.13-dev in Windows and macOS. C extension builds are failing,
   this exclusion is to be removed when Python 3.13 has been removed.
@@ -165,7 +168,7 @@ Internal
 --------
 - Separate GitHub workflow for checking code formatting and import sorting.
 - Also check the action, release tools and ``setup.py`` in the build workflows.
-- Require Darkgraylib 1.0.x and Graylint 1.0.x.
+- Require Darkgraylib_ 1.0.x and Graylint 1.0.x.
 - Update 3rd party GitHub actions to avoid using deprecated NodeJS versions.
 - CI build now shows a diff between output of ``darker --help`` and its output as
   included ``README.rst`` in case the two differ.

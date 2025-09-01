@@ -440,6 +440,7 @@ An example ``pyproject.toml`` configuration file:
        "src/mypackage",
    ]
    revision = "master"
+   formatter = "black"
    diff = true
    check = true
    isort = true
