@@ -38,10 +38,10 @@ jobs:
           path: |
             ${{ env.pythonLocation }}/lib
             ${{ env.pythonLocation }}/bin
-          key: >
-            os${{ runner.os }}-
-            py${{ steps.setup-python.outputs.python-version }}-
-            req${{ hashFiles('setup.cfg') }}
+          key: "\
+            os${{ runner.os }}-\
+            py${{ steps.setup-python.outputs.python-version }}-\
+            req${{ hashFiles('setup.cfg') }}"
       - id: get-uv-cache
         if: steps.python-cache.outputs.cache-hit != 'true'
         run: echo "uv-cache-dir=$(uv cache dir)" >> ${GITHUB_OUTPUT}
@@ -50,17 +50,14 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{steps.get-uv-cache.outputs.uv-cache-dir}}
-          key: >
-            os${{ runner.os }}-
-            py${{ steps.setup-python.outputs.python-version }}-
-            req${{ hashFiles('setup.cfg') }}
+          key: "\
+            os${{ runner.os }}-\
+            py${{ steps.setup-python.outputs.python-version }}-\
+            req${{ hashFiles('setup.cfg') }}"
           restore-keys: "\
             os${{ runner.os }}-\
-            py${{ steps.setup-python.outputs.python-version }}-
-
-            os${{ runner.os }}-
-
-          "
+            py${{ steps.setup-python.outputs.python-version }}-\
+            os${{ runner.os }}"
       # END PYTHON CACHING
 
       - name: Build wheel distribution
@@ -170,10 +167,10 @@ jobs:
           path: |
             ${{ env.pythonLocation }}/lib
             ${{ env.pythonLocation }}/bin
-          key: >
-            os${{ runner.os }}-
-            py${{ steps.setup-python.outputs.python-version }}-
-            req${{ hashFiles('setup.cfg') }}
+          key: "\
+            os${{ runner.os }}-\
+            py${{ steps.setup-python.outputs.python-version }}-\
+            req${{ hashFiles('setup.cfg') }}"
       - id: get-uv-cache
         if: steps.python-cache.outputs.cache-hit != 'true'
         run: echo "uv-cache-dir=$(uv cache dir)" >> ${GITHUB_OUTPUT}
@@ -182,17 +179,14 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{steps.get-uv-cache.outputs.uv-cache-dir}}
-          key: >
-            os${{ runner.os }}-
-            py${{ steps.setup-python.outputs.python-version }}-
-            req${{ hashFiles('setup.cfg') }}
+          key: "\
+            os${{ runner.os }}-\
+            py${{ steps.setup-python.outputs.python-version }}-\
+            req${{ hashFiles('setup.cfg') }}"
           restore-keys: "\
             os${{ runner.os }}-\
-            py${{ steps.setup-python.outputs.python-version }}-
-
-            os${{ runner.os }}-
-
-          "
+            py${{ steps.setup-python.outputs.python-version }}-\
+            os${{ runner.os }}"
       # END PYTHON CACHING
 
       - name: Download wheel uploaded by the build-wheel job
@@ -232,10 +226,10 @@ jobs:
           path: |
             ${{ env.pythonLocation }}/lib
             ${{ env.pythonLocation }}/bin
-          key: >
-            os${{ runner.os }}-
-            py${{ steps.setup-python.outputs.python-version }}-
-            req${{ hashFiles('setup.cfg') }}
+          key: "\
+            os${{ runner.os }}-\
+            py${{ steps.setup-python.outputs.python-version }}-\
+            req${{ hashFiles('setup.cfg') }}"
       - id: get-uv-cache
         if: steps.python-cache.outputs.cache-hit != 'true'
         run: echo "uv-cache-dir=$(uv cache dir)" >> ${GITHUB_OUTPUT}
@@ -244,17 +238,14 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{steps.get-uv-cache.outputs.uv-cache-dir}}
-          key: >
-            os${{ runner.os }}-
-            py${{ steps.setup-python.outputs.python-version }}-
-            req${{ hashFiles('setup.cfg') }}
+          key: "\
+            os${{ runner.os }}-\
+            py${{ steps.setup-python.outputs.python-version }}-\
+            req${{ hashFiles('setup.cfg') }}"
           restore-keys: "\
             os${{ runner.os }}-\
-            py${{ steps.setup-python.outputs.python-version }}-
-
-            os${{ runner.os }}-
-
-          "
+            py${{ steps.setup-python.outputs.python-version }}-\
+            os${{ runner.os }}"
       # END PYTHON CACHING
 
       - name: Download wheel uploaded by the build-wheel job
