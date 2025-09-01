@@ -20,6 +20,7 @@ Added
   Black support.
 - pyupgrade_ is now supported as a formatter plugin. Note that changes from pyupgrade
   are applied on a per-file basis, not only for modified lines as with Black_ and Ruff_.
+- Respect the ``skip_glob`` setting of isort_.
 
 Removed
 -------
@@ -28,6 +29,7 @@ Removed
 - In the Darker configuration file under ``[tool.darker]``, the Black configuration
   options ``skip_string_normalization`` and ``skip_magic_trailing_comma`` are no longer
   valid. Use ``[tool.black]`` instead.
+- Drop support for isort_ 5.1.x.
 
 Fixed
 -----
