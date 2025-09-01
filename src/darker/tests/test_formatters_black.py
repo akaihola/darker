@@ -84,11 +84,12 @@ def test_formatter_without_black(caplog):
         record.msg for record in caplog.records if record.levelname == "WARNING"
     ] == [
         # warning 1:
+        "Since Darker 3.0.0, Black is no longer installed by default. "
         "To re-format code using Black, install it using e.g."
         " `pip install 'darker[black]'` or `pip install black`",
         # warning 2:
         "To use a different formatter or no formatter, select it on the command line"
-        " (e.g. `--formatter=none`) or configuration (e.g. `formatter=none`)",
+        " (e.g. `--formatter=ruff`) or configuration (e.g. `formatter=none`)",
     ]
 
 
