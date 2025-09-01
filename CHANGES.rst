@@ -65,6 +65,7 @@ Internal
 - Format YAML files to satisfy yaml-lint and fix workflow syntax.
 - Use UV across all CI workflow actions, and enable caching of packages.
 - Update Nix action to v31 – fixes the build error.
+- Update to Pygments 2.15 to address two CVEs reported by Safety.
 
 
 2.1.1_ - 2024-04-16
