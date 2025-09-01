@@ -10,13 +10,14 @@ try:
     import black  # noqa: F401  # pylint: disable=unused-import
 except ImportError as exc:
     logger.warning(
+        "Since Darker 3.0.0, Black is no longer installed by default. "
         "To re-format code using Black, install it using e.g."
         " `pip install 'darker[black]'` or"
         " `pip install black`"
     )
     logger.warning(
         "To use a different formatter or no formatter, select it on the"
-        " command line (e.g. `--formatter=none`) or configuration"
+        " command line (e.g. `--formatter=ruff`) or configuration"
         " (e.g. `formatter=none`)"
     )
     MESSAGE = "Can't find the Black package"
