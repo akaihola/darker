@@ -5,6 +5,16 @@ These features will be included in the next release:
 
 Added
 -----
+
+Fixed
+-----
+
+
+3.0.0_ - 2025-09-01
+===================
+
+Added
+-----
 - Drop python 3.8, add python 3.13 official support
 - New exit codes 2 for file not found, 3 for invalid command line arguments, 4 for
   missing dependencies and 123 for unknown failures.
@@ -712,7 +722,9 @@ Added
 -----
 - Initial implementation
 
-.. _Unreleased: https://github.com/akaihola/darker/compare/2.1.0...HEAD
+.. _Unreleased: https://github.com/akaihola/darker/compare/3.0.0...HEAD
+.. _3.0.0: https://github.com/akaihola/darker/compare/2.1.1...3.0.0
+.. _2.1.1: https://github.com/akaihola/darker/compare/2.1.0...2.1.1
 .. _2.1.0: https://github.com/akaihola/darker/compare/2.0.0...2.1.0
 .. _2.0.0: https://github.com/akaihola/darker/compare/1.7.3...2.0.0
 .. _1.7.3: https://github.com/akaihola/darker/compare/1.7.2...1.7.3
