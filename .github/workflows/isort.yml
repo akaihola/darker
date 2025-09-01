@@ -1,7 +1,13 @@
 ---
 name: isort
 
-on: push  # yamllint disable-line rule:truthy
+on:  # yamllint disable-line rule:truthy
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
 
 # Down scope as necessary via
 # https://docs.github.com/en/actions/security-guides

@@ -1,6 +1,13 @@
 ---
 name: help-in-readme
-on: [push]  # yamllint disable-line rule:truthy
+on:  # yamllint disable-line rule:truthy
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
 jobs:
   help-in-readme:
     runs-on: ubuntu-latest
