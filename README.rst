@@ -22,7 +22,7 @@
 .. |changelog-badge| image:: https://img.shields.io/badge/-change%20log-purple
    :alt: Change log
    :target: https://github.com/akaihola/darker/blob/master/CHANGES.rst
-.. |next-milestone| image:: https://img.shields.io/github/milestones/progress/akaihola/darker/25?color=red&label=release%202.1.2
+.. |next-milestone| image:: https://img.shields.io/github/milestones/progress/akaihola/darker/25?color=red&label=release%203.0.1
    :alt: Next milestone
    :target: https://github.com/akaihola/darker/milestone/24
 
@@ -137,7 +137,7 @@ How?
 
 To install or upgrade, use::
 
-  pip install --upgrade darker~=2.1.1
+  pip install --upgrade darker~=3.0.0
 
 To also install support for Black_ formatting::
 
@@ -440,6 +440,7 @@ An example ``pyproject.toml`` configuration file:
        "src/mypackage",
    ]
    revision = "master"
+   formatter = "black"
    diff = true
    check = true
    isort = true
@@ -694,7 +695,7 @@ do the following:
    .. code-block:: yaml
 
       - repo: https://github.com/akaihola/darker
-        rev: v2.1.1
+        rev: v3.0.0
         hooks:
           - id: darker
 
@@ -714,7 +715,7 @@ other reformatter tools you use to known compatible versions, for example:
 .. code-block:: yaml
 
    - repo: https://github.com/akaihola/darker
-     rev: v2.1.1
+     rev: v3.0.0
      hooks:
        - id: darker
          args:
@@ -738,7 +739,7 @@ under ``additional_dependencies``:
 .. code-block:: yaml
 
    - repo: https://github.com/akaihola/darker
-     rev: v2.1.1
+     rev: v3.0.0
      hooks:
        - id: darker
          args:
@@ -785,11 +786,11 @@ Create a file named ``.github/workflows/darker.yml`` inside your repository with
            with:
              fetch-depth: 0 
          - uses: actions/setup-python@v5
-         - uses: akaihola/darker@2.1.1
+         - uses: akaihola/darker@3.0.0
            with:
              options: "--check --diff --isort --color"
              src: "./src"
-             version: "~=2.1.1"
+             version: "~=3.0.0"
 
 There needs to be a working Python environment, set up using ``actions/setup-python``
 in the above example. Darker will be installed in an isolated virtualenv to prevent
