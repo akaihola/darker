@@ -1,6 +1,6 @@
 """Unit tests for `darker.black_formatter`"""
 
-# pylint: disable=too-many-arguments,use-dict-literal
+# pylint: disable=too-many-arguments,too-many-positional-arguments,use-dict-literal
 
 import re
 import sys
@@ -198,9 +198,10 @@ def test_read_config(tmpdir, option_name_delimiter, config_path, config_lines, e
     extend_exclude=None,
     force_exclude=None,
 )
-def test_filter_python_files(  # pylint: disable=too-many-arguments
+def test_filter_python_files(
     tmp_path, monkeypatch, exclude, extend_exclude, force_exclude, expect
 ):
+    # pylint: disable=too-many-arguments,too-many-positional-arguments
     """``filter_python_files()`` skips excluded files correctly"""
     monkeypatch.chdir(tmp_path)
     names = {

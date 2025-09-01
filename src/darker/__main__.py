@@ -58,7 +58,7 @@ logger = logging.getLogger(__name__)
 ProcessedDocument = Tuple[Path, TextDocument, TextDocument]
 
 
-def format_edited_parts(  # noqa: PLR0913  # pylint: disable=too-many-arguments
+def format_edited_parts(  # noqa: PLR0913
     root: Path,
     changed_files: Collection[Path],
     exclude: Exclusions,
@@ -67,6 +67,7 @@ def format_edited_parts(  # noqa: PLR0913  # pylint: disable=too-many-arguments
     report_unmodified: bool,
     workers: int = 1,
 ) -> Generator[ProcessedDocument, None, None]:
+    # pylint: disable=too-many-arguments,too-many-positional-arguments
     """Black (and optional isort and flynt) formatting modified chunks in a set of files
 
     Files inside given directories and excluded by Black's configuration are not
@@ -121,7 +122,7 @@ def _modify_and_reformat_single_file(  # noqa: PLR0913
     revrange: RevisionRange,
     formatter: BaseFormatter,
 ) -> ProcessedDocument:
-    # pylint: disable=too-many-arguments
+    # pylint: disable=too-many-arguments,too-many-positional-arguments
     """Black, isort and/or flynt formatting for modified chunks in a single file
 
     :param root: Root directory for the relative path
@@ -180,7 +181,7 @@ def _reformat_and_flynt_single_file(  # noqa: PLR0913
     has_isort_changes: bool,
     formatter: BaseFormatter,
 ) -> TextDocument:
-    # pylint: disable=too-many-arguments
+    # pylint: disable=too-many-arguments,too-many-positional-arguments,too-many-locals
     """In a Python file, reformat chunks with edits since the last commit using Black
 
     :param root: The common root of all files to reformat
@@ -307,7 +308,7 @@ def _maybe_reformat_single_file(
 
 
 def _drop_changes_on_unedited_lines(
-    # pylint: disable=too-many-arguments
+    # pylint: disable=too-many-arguments,too-many-positional-arguments
     new_chunks: List[DiffChunk],
     abspath_in_rev2: Path,
     relpath_in_repo: Path,

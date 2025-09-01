@@ -11,7 +11,7 @@ Added
 - Display exit code in parentheses after error message.
 - Do not reformat renamed files.
 - The ``--preview`` configuration flag is now supported in the configuration files for
-  Darker and Black
+  Darker and Black.
 - The ``--formatter=black`` option (the default) has been added in preparation for
   future formatters.
 - ``--formatter=none`` now skips running Black. This is useful when you only want to run
@@ -30,6 +30,7 @@ Removed
   options ``skip_string_normalization`` and ``skip_magic_trailing_comma`` are no longer
   valid. Use ``[tool.black]`` instead.
 - Drop support for isort_ 5.1.x.
+- Drop support for Pylint earlier than 3.3.0.
 
 Fixed
 -----
@@ -68,6 +69,8 @@ Internal
 - Use UV across all CI workflow actions, and enable caching of packages.
 - Update Nix action to v31 – fixes the build error.
 - Update to Pygments 2.15 to address two CVEs reported by Safety.
+- Use Pylint 3.3.0 or later and Graylint to lint only problems newly introduced by a PR.
+- Add ignores for the ``too-many-positional-arguments`` Pylint message.
 
 
 2.1.1_ - 2024-04-16

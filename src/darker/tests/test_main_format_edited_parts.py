@@ -1,7 +1,8 @@
 """Tests for the `darker.__main__.format_edited_parts` function."""
 
-# pylint: disable=no-member,redefined-outer-name,too-many-arguments,use-dict-literal
-# pylint: disable=use-implicit-booleaness-not-comparison
+# pylint: disable=no-member,redefined-outer-name
+# pylint: disable=too-many-arguments,too-many-positional-arguments
+# pylint: disable=use-dict-literal,use-implicit-booleaness-not-comparison
 
 import logging
 import re
