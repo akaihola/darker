@@ -44,6 +44,7 @@ jobs:
             req${{ hashFiles('setup.cfg') }}"
       - id: get-uv-cache
         if: steps.python-cache.outputs.cache-hit != 'true'
+        shell: bash
         run: echo "uv-cache-dir=$(uv cache dir)" >> ${GITHUB_OUTPUT}
       - name: "Cache uv"
         if: steps.python-cache.outputs.cache-hit != 'true'
@@ -173,6 +174,7 @@ jobs:
             req${{ hashFiles('setup.cfg') }}"
       - id: get-uv-cache
         if: steps.python-cache.outputs.cache-hit != 'true'
+        shell: bash
         run: echo "uv-cache-dir=$(uv cache dir)" >> ${GITHUB_OUTPUT}
       - name: "Cache uv"
         if: steps.python-cache.outputs.cache-hit != 'true'
@@ -232,6 +234,7 @@ jobs:
             req${{ hashFiles('setup.cfg') }}"
       - id: get-uv-cache
         if: steps.python-cache.outputs.cache-hit != 'true'
+        shell: bash
         run: echo "uv-cache-dir=$(uv cache dir)" >> ${GITHUB_OUTPUT}
       - name: "Cache uv"
         if: steps.python-cache.outputs.cache-hit != 'true'
