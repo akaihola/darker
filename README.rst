@@ -141,11 +141,11 @@ To install or upgrade, use::
 
 To also install support for Black_ formatting::
 
-  pip install --upgrade 'darker[black]~=2.1.1'
+  pip install --upgrade 'darker[black]~=3.0.0'
 
 To install support for all available formatting and analysis tools::
 
-  pip install --upgrade 'darker[color,black,ruff,isort,flynt,pyupgrade]~=2.1.1'
+  pip install --upgrade 'darker[color,black,ruff,isort,flynt,pyupgrade]~=3.0.0'
 
 The available optional dependencies are:
 
@@ -158,7 +158,7 @@ The available optional dependencies are:
 
 Or, if you're using Conda_ for package management::
 
-  conda install -c conda-forge darker~=2.1.1 black isort
+  conda install -c conda-forge darker~=3.0.0 black isort
   conda update -c conda-forge darker
 
 ..
