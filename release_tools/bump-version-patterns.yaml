@@ -29,25 +29,25 @@
 
 "README.rst":
   - |-
-    ^  conda install -c conda-forge darker~={old_version->new_version} isort
+    \bdarker~={old_version->new_version}\b
+
+  - |-
+    \bdarker\[.*?\]~={old_version->new_version}\b
 
   - |-
     ^\.\. _next-milestone: https://github\.com/akaihola/darker/milestone/{any_milestone->next_milestone}
 
   - |-
-    ^     (?:   )?rev: v{old_version->new_version}
+    \bv{old_version->new_version}\b
 
   - |-
     ^\.\. \|next-milestone\| image:: https://img\.shields\.io/github/milestones/progress/akaihola/darker/{any_milestone->next_milestone}
 
   - |-
-    ^             version: "~={old_version->new_version}"
+    \bversion: "~={old_version->new_version}"
 
   - |-
-    ^         - uses: akaihola/darker@{old_version->new_version}
-
-  - |-
-    ^  pip install --upgrade darker~={old_version->new_version}
+    \bdarker@{old_version->new_version}\b
 
   - |-
     label=release%20{any_version->next_version}
