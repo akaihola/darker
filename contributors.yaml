@@ -42,6 +42,8 @@ MatthijsBurgh:
   - {link_type: search-comments, type: Bug reports}
   - {link_type: search-comments, type: Reviewed Pull Requests}
   - {link_type: pulls-author, type: Code}
+MeGaGiGaGon:
+  - {link_type: issues, type: Bug reports}
 Mystic-Mirage:
   - {link_type: commits, type: Code}
   - {link_type: commits, type: Documentation}
@@ -81,6 +83,8 @@ aljazerzen:
   - {link_type: commits, type: Code}
 anakinxc:
   - {link_type: issues, type: Bug reports}
+  - {link_type: search-comments, type: Bug reports}
+  - {link_type: pulls-author, type: Code}
 artel1992:
   - {link_type: issues, type: Bug reports}
   - {link_type: search-comments, type: Bug reports}
@@ -92,6 +96,11 @@ baodrate:
   - {link_type: pulls-author, type: Code}
 bdperkin:
   - {link_type: issues, type: Bug reports}
+bendavis78:
+  - {link_type: search-discussions, type: Bug reports}
+benyamingg:
+  - {link_type: issues, type: Bug reports}
+  - {link_type: search-comments, type: Bug reports}
 brettcannon:
   - {link_type: search-comments, type: Bug reports}
 brtknr:
@@ -195,6 +204,9 @@ k-dominik:
 kedhammar:
   - {link_type: search-discussions, type: Bug reports}
   - {link_type: issues, type: Bug reports}
+kshitiz305:
+  - {link_type: issues, type: Bug reports}
+  - {link_type: pulls-author, type: Code}
 leej3:
   - {link_type: search-comments, type: Bug reports}
 leotrs:
@@ -291,6 +303,9 @@ tgross35:
 tkolleh:
   - {link_type: issues, type: Bug reports}
 tobiasdiez: []
+tonyz0x0:
+  - {link_type: issues, type: Bug reports}
+  - {link_type: search-discussions, type: Bug reports}
 victorcui96:
   - {link_type: search-comments, type: Bug reports}
 virtuald:
@@ -304,6 +319,8 @@ wjdp:
 wkentaro:
   - {link_type: issues, type: Bug reports}
   - {link_type: pulls-author, type: Code}
+  - {link_type: search-comments, type: Bug reports}
+  - {link_type: search-comments, type: Reviewed Pull Requests}
 wnoise:
   - {link_type: issues, type: Bug reports}
 wpnbos:
