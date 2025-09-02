@@ -9,6 +9,10 @@ Added
 Fixed
 -----
 
+Internal
+--------
+- Require Pytest 6.2.4+ for compatibility across Python 3.9+ versions.
+
 
 3.0.0_ - 2025-09-01
 ===================
