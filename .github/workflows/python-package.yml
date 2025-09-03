@@ -19,7 +19,7 @@ jobs:
     outputs:
       wheel-path: ${{ steps.get-darker-version.outputs.wheel-path }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: actions/setup-python@v5
         with:
           python-version: '3.x'
@@ -62,12 +62,12 @@ jobs:
     needs:
       - build-wheel
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: cachix/install-nix-action@v31
         with:
           nix_path: nixpkgs=channel:nixos-unstable
       - name: Download wheel uploaded by the build-wheel job
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
       - name: Run tests in nix-shell
         run: |
           nix-shell \
@@ -115,7 +115,7 @@ jobs:
     needs:
       - build-wheel
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
           # need full history since Pytest runs Darker itself below
@@ -129,7 +129,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
           activate-environment: true
       - name: Download wheel uploaded by the build-wheel job
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
       - name: Install Darker and its dependencies from the wheel built earlier
         run: uv pip install --group=dev "${{needs.build-wheel.outputs.wheel-path}}"
       - name: Downgrade target-version when running oldest supported Black
@@ -150,14 +150,14 @@ jobs:
     needs:
       - build-wheel
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Install uv
         uses: astral-sh/setup-uv@v6
       - uses: actions/setup-python@v5
         with:
           python-version: 3.x
       - name: Download wheel uploaded by the build-wheel job
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
       - name: Build source distribution
         run: uv build --sdist
       - name: Validate distributions
@@ -175,7 +175,7 @@ jobs:
       - uses: astral-sh/setup-uv@v6
         with:
           activate-environment: true
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
       - run: >
           uv pip install ${{needs.build-wheel.outputs.wheel-path}}[color]
           | ( ! grep -E '^(error|warning): ' )
@@ -194,7 +194,7 @@ jobs:
       - uses: astral-sh/setup-uv@v6
         with:
           activate-environment: true
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
       - run: >
           uv pip install ${{needs.build-wheel.outputs.wheel-path}}
           | ( ! grep -E "^(error|warning): " )

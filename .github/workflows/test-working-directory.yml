@@ -69,14 +69,14 @@ jobs:
             expected_exitcode: 4
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           # This needs to be at least the number of commits
           # in the branch the test is run in:
           fetch-depth: 30
 
       - name: Download test repository
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: test-repo
           path: ${{ runner.temp }}/test-repo
