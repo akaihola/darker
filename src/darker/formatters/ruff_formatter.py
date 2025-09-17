@@ -228,6 +228,8 @@ def _ruff_format_stdin(
 
     """
     cmdline = [
+        sys.executable,
+        "-m",
         "ruff",
         "format",
         "--force-exclude",  # apply `exclude =` from conffile even with stdin
