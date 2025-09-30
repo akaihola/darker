@@ -1,7 +1,13 @@
 ---
 name: pyupgrade
 
-on: push  # yamllint disable-line rule:truthy
+on:  # yamllint disable-line rule:truthy
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
 
 jobs:
   pyupgrade:
