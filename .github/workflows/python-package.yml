@@ -30,6 +30,37 @@ jobs:
           cache-dependency-glob: |
             **/setup.cfg
             **/pyproject.toml
+
+      # PYTHON CACHING:
+      - id: python-cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ env.pythonLocation }}/lib
+            ${{ env.pythonLocation }}/bin
+          key: "\
+            os${{ runner.os }}-\
+            py${{ steps.setup-python.outputs.python-version }}-\
+            req${{ hashFiles('setup.cfg') }}"
+      - id: get-uv-cache
+        if: steps.python-cache.outputs.cache-hit != 'true'
+        shell: bash
+        run: echo "uv-cache-dir=$(uv cache dir)" >> ${GITHUB_OUTPUT}
+      - name: "Cache uv"
+        if: steps.python-cache.outputs.cache-hit != 'true'
+        uses: actions/cache@v4
+        with:
+          path: ${{steps.get-uv-cache.outputs.uv-cache-dir}}
+          key: "\
+            os${{ runner.os }}-\
+            py${{ steps.setup-python.outputs.python-version }}-\
+            req${{ hashFiles('setup.cfg') }}"
+          restore-keys: "\
+            os${{ runner.os }}-\
+            py${{ steps.setup-python.outputs.python-version }}-\
+            os${{ runner.os }}"
+      # END PYTHON CACHING
+
       - name: Build wheel distribution
         run: |
           uv build --wheel
@@ -119,7 +150,8 @@ jobs:
         with:
           fetch-depth: 0
           # need full history since Pytest runs Darker itself below
-      - name: Set up Python ${{ matrix.python-version }}
+      - id: setup-python
+        name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
@@ -128,6 +160,37 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           activate-environment: true
+
+      # PYTHON CACHING:
+      - id: python-cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ env.pythonLocation }}/lib
+            ${{ env.pythonLocation }}/bin
+          key: "\
+            os${{ runner.os }}-\
+            py${{ steps.setup-python.outputs.python-version }}-\
+            req${{ hashFiles('setup.cfg') }}"
+      - id: get-uv-cache
+        if: steps.python-cache.outputs.cache-hit != 'true'
+        shell: bash
+        run: echo "uv-cache-dir=$(uv cache dir)" >> ${GITHUB_OUTPUT}
+      - name: "Cache uv"
+        if: steps.python-cache.outputs.cache-hit != 'true'
+        uses: actions/cache@v4
+        with:
+          path: ${{steps.get-uv-cache.outputs.uv-cache-dir}}
+          key: "\
+            os${{ runner.os }}-\
+            py${{ steps.setup-python.outputs.python-version }}-\
+            req${{ hashFiles('setup.cfg') }}"
+          restore-keys: "\
+            os${{ runner.os }}-\
+            py${{ steps.setup-python.outputs.python-version }}-\
+            os${{ runner.os }}"
+      # END PYTHON CACHING
+
       - name: Download wheel uploaded by the build-wheel job
         uses: actions/download-artifact@v4
       - name: Install Darker and its dependencies from the wheel built earlier
@@ -153,9 +216,41 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install uv
         uses: astral-sh/setup-uv@v6
-      - uses: actions/setup-python@v5
+      - id: setup-python
+        uses: actions/setup-python@v5
         with:
           python-version: 3.x
+
+      # PYTHON CACHING:
+      - id: python-cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ env.pythonLocation }}/lib
+            ${{ env.pythonLocation }}/bin
+          key: "\
+            os${{ runner.os }}-\
+            py${{ steps.setup-python.outputs.python-version }}-\
+            req${{ hashFiles('setup.cfg') }}"
+      - id: get-uv-cache
+        if: steps.python-cache.outputs.cache-hit != 'true'
+        shell: bash
+        run: echo "uv-cache-dir=$(uv cache dir)" >> ${GITHUB_OUTPUT}
+      - name: "Cache uv"
+        if: steps.python-cache.outputs.cache-hit != 'true'
+        uses: actions/cache@v4
+        with:
+          path: ${{steps.get-uv-cache.outputs.uv-cache-dir}}
+          key: "\
+            os${{ runner.os }}-\
+            py${{ steps.setup-python.outputs.python-version }}-\
+            req${{ hashFiles('setup.cfg') }}"
+          restore-keys: "\
+            os${{ runner.os }}-\
+            py${{ steps.setup-python.outputs.python-version }}-\
+            os${{ runner.os }}"
+      # END PYTHON CACHING
+
       - name: Download wheel uploaded by the build-wheel job
         uses: actions/download-artifact@v4
       - name: Build source distribution
