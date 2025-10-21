@@ -5,6 +5,7 @@ These features will be included in the next release:
 
 Added
 -----
+- Support for Python 3.14.
 
 Fixed
 -----
@@ -12,6 +13,8 @@ Fixed
 Internal
 --------
 - Require Pytest 6.2.4+ for compatibility across Python 3.9+ versions.
+- Require v1.0.3+ for the optional Flynt dependency for compatibility with Python 3.14.
+- Run tests with Python 3.14, and use it for the "future" tests as well.
 
 
 3.0.0_ - 2025-09-01

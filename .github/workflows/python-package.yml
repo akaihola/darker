@@ -101,13 +101,14 @@ jobs:
           - '3.11'
           - '3.12'
           - '3.13'
+          - '3.14'
         post_install: ['']
         include:
           - os: ubuntu-latest
             python-version: '3.9'
             post_install: uv sync --resolution lowest-direct
           - os: ubuntu-latest
-            python-version: '3.13'
+            python-version: '3.14'
             post_install: uv pip install
                                  --upgrade
                                  --requirements constraints-future.txt
