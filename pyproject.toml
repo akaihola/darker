@@ -38,7 +38,7 @@ pyupgrade = [
     "pyupgrade>=2.31.0",
 ]
 flynt = [
-    "flynt>=0.76",
+    "flynt>=1.0.3",
 ]
 isort = [
     "isort>=5.2.0",
@@ -56,7 +56,7 @@ dev = [
     "darkgray-dev-tools~=0.3.0",
     "defusedxml>=0.7.1",
     "flake8>=3.8.0",
-    "flynt>=0.76",
+    "flynt>=1.0.3",
     "isort>=5.2.0",
     "mypy>=1.15",
     "packaging>=14",
