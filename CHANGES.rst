@@ -8,6 +8,7 @@ Added
 
 Fixed
 -----
+- Fix typo (missing 'v') in GitHub Actions integration Usage example.
 
 Internal
 --------

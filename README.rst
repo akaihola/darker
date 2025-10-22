@@ -786,7 +786,7 @@ Create a file named ``.github/workflows/darker.yml`` inside your repository with
            with:
              fetch-depth: 0 
          - uses: actions/setup-python@v5
-         - uses: akaihola/darker@3.0.0
+         - uses: akaihola/darker@v3.0.0
            with:
              options: "--check --diff --isort --color"
              src: "./src"
