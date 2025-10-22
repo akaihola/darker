@@ -62,9 +62,6 @@
   - |-
     ^    default: "~={old_version->new_version}"
 
-  - |-
-    ^      uses: akaihola/darker/.github/actions/commit-range@{old_version->new_version}
-
 "src/darker/version.py":
   - |-
     ^__version__ *= *\"{old_version->new_version}\"

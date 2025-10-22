@@ -48,7 +48,10 @@ runs:
   steps:
     - name: Commit Range
       id: commit-range
-      uses: ./.github/actions/commit-range
+      # The commit range action needs to be run from a remote repository. A reference
+      # to a local copy like `./.github/actions/commit-range` won't work since that
+      # path won't exist when this GitHub action is used from another repository.
+      uses: akaihola/darkgraylib/.github/actions/commit-range@v2.4.0
     - name: Set up Python
       uses: actions/setup-python@v5
       with:

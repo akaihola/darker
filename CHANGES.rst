@@ -8,10 +8,13 @@ Added
 
 Fixed
 -----
+- Revert running ``commit-range`` from the repository itself (again; we've reverted it
+  already once in 1.7.2_). This broke the GitHub action.
 
 Internal
 --------
 - Require Pytest 6.2.4+ for compatibility across Python 3.9+ versions.
+- Remove the unused ``commit-range`` action.
 
 
 3.0.0_ - 2025-09-01
